@@ -118,7 +118,6 @@ def extract_directory_file_names(path=None):
     return names
 
 
-
 def create_directories(path=None):
     """
     Creates a directory if it does not already exist.
@@ -323,6 +322,10 @@ def print_terminal_partition(level=None):
         partition = ""
     print(partition)
     pass
+
+
+##########
+# Read text from file
 
 
 def read_file_text_table(path_file=None, names=None, delimiter=None):
@@ -703,12 +706,12 @@ def select_elements_by_sets(
     return passes
 
 
-def collect_unique_elements(elements_original=None):
+def collect_unique_elements(elements=None):
     """
     Collects unique elements
 
     arguments:
-        elements_original (list): sequence of elements
+        elements (list): sequence of elements
 
     returns:
         (list): unique elements
@@ -717,11 +720,11 @@ def collect_unique_elements(elements_original=None):
 
     """
 
-    elements_novel = []
-    for element in elements_original:
-        if element not in elements_novel:
-            elements_novel.append(element)
-    return elements_novel
+    elements_unique = []
+    for element in elements:
+        if element not in elements_unique:
+            elements_unique.append(element)
+    return elements_unique
 
 
 def collect_value_from_records(key=None, records=None):
