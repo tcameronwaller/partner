@@ -35,7 +35,7 @@ import matplotlib.lines
 #import selection
 #import integration
 #import prediction
-import utility
+import promiscuity.utility as utility
 
 #dir()
 #importlib.reload()
