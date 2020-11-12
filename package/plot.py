@@ -26,15 +26,15 @@ matplotlib.rcParams.update({'figure.max_open_warning': 0})
 import matplotlib.pyplot
 import matplotlib.lines
 #import matplotlib_venn
-import seaborn
-import sklearn
+#import seaborn
+#import sklearn
 
 # Custom
 
-import assembly
-import selection
-import integration
-import prediction
+#import assembly
+#import selection
+#import integration
+#import prediction
 import utility
 
 #dir()
