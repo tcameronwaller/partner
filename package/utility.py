@@ -1160,6 +1160,7 @@ def combine_unique_elements_pairwise_order(
 
 # Pandas
 
+
 def convert_records_to_dataframe(records=None):
     """
     Converts information from list of dictionaries to Pandas data frame.
