@@ -2,44 +2,40 @@
 
 #chmod u+x script.sh
 
-# Read in private file paths.
-echo "read private file path variables..."
-cd ~/path
-path_temporary=$(<"./process_temporary.txt")
-path_project=$(<"./project_sexy_alcohol.txt")
-path_repository=$(<"./sexy_alcohol.txt")
-
 # Echo each command to console.
 set -x
 
-# download python
-# https://www.python.org/downloads/
-# /usr/bin/python3
+cd ~
 
-# Install pip unless already installed with python.
-# https://pip.pypa.io/en/stable/installing/
-#curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-#python get-pip.py --target <directory>
-#pip3 install --upgrade pip
+# Tweaks
+# Customize Ubuntu user interface themes and additional system controls.
+# Change suspend behavior on closing computer lid.
+sudo add-apt-repository universe
+sudo apt install gnome-tweak-tool
 
-# Install SciPy.
-pip3 install scipy --upgrade --target <path>
+# Atom
+sudo apt install curl
+curl -sL https://packagecloud.io/AtomEditor/atom/gpgkey | sudo apt-key add -
+sudo sh -c 'echo "deb [arch=amd64] https://packagecloud.io/AtomEditor/atom/any/ any main" > /etc/apt/sources.list.d/atom.list'
+sudo apt update
+sudo apt install atom
 
-# Install NumPy.
-pip3 install numpy --upgrade --target <path>
+# Inkscape
+sudo add-apt-repository ppa:inkscape.dev/stable
+sudo apt update
+sudo apt install inkscape
 
-# Install Pandas.
-pip3 install pandas --upgrade --target <path>
+# Gimp
+sudo add-apt-repository ppa:otto-kesselgulasch/gimp
+sudo apt update
+sudo apt install gimp
 
-# Install SkLearn.
-pip3 install sklearn --upgrade --target <path>
+# Zoom
+# https://zoom.us/download
+# - Ubuntu Linux
+# - 64 bit
+# - 16.04+
+sudo apt install /home/tcameronwaller/Downloads/zoom_amd64.deb # need to specify complete path
+sudo apt remove zoom
 
-# Install StatsModels.
-pip3 install statsmodels --upgrade --target <path>
-
-# Install StatsModels.
-pip3 install matplotlib --upgrade --target <path>
-
-
-# tutorial on paths
-#https://www.devdungeon.com/content/python-import-syspath-and-pythonpath-tutorial#toc-5
+# Discord
