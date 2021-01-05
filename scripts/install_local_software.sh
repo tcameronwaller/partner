@@ -2,44 +2,29 @@
 
 #chmod u+x script.sh
 
-# Read in private file paths.
-echo "read private file path variables..."
-cd ~/path
-path_temporary=$(<"./process_temporary.txt")
-path_project=$(<"./project_sexy_alcohol.txt")
-path_repository=$(<"./sexy_alcohol.txt")
-
 # Echo each command to console.
 set -x
 
-# download python
-# https://www.python.org/downloads/
-# /usr/bin/python3
+# Set working directory.
+cd ~
 
-# Install pip unless already installed with python.
-# https://pip.pypa.io/en/stable/installing/
-#curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-#python get-pip.py --target <directory>
-#pip3 install --upgrade pip
+# Install general tools.
+# "software-properties-common" increases "apt" functionality for commands such as "add-apt-repository".
+sudo apt install software-properties-common
+sudo apt install wget
+sudo apt install curl
 
-# Install SciPy.
-pip3 install scipy --upgrade --target <path>
+# Install Tweak tool to customize Ubuntu's appearance and behavior.
+sudo add-apt-repository universe
+sudo apt install gnome-tweaks
 
-# Install NumPy.
-pip3 install numpy --upgrade --target <path>
+# Install Atom syntax code editor.
+wget -qO - https://packagecloud.io/AtomEditor/atom/gpgkey | sudo apt-key add -
+sudo add-apt-repository "deb [arch=amd64] https://packagecloud.io/AtomEditor/atom/any/ any main"
+sudo apt update
+sudo apt install atom
 
-# Install Pandas.
-pip3 install pandas --upgrade --target <path>
-
-# Install SkLearn.
-pip3 install sklearn --upgrade --target <path>
-
-# Install StatsModels.
-pip3 install statsmodels --upgrade --target <path>
-
-# Install StatsModels.
-pip3 install matplotlib --upgrade --target <path>
-
-
-# tutorial on paths
-#https://www.devdungeon.com/content/python-import-syspath-and-pythonpath-tutorial#toc-5
+# Discord
+cd ~/Downloads
+wget https://dl.discordapp.net/apps/linux/0.0.13/discord-0.0.13.deb
+sudo apt install ./discord-0.0.13.deb
