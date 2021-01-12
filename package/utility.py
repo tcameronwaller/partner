@@ -111,11 +111,13 @@ def extract_directory_file_names(path=None):
     """
 
     contents = os.listdir(path=path)
-    names = list(filter(
-        lambda content: not os.path.isdir(os.path.join(path, content)),
-        contents
+    files = list(filter(
+        lambda content: (
+            (os.path.isfile(os.path.join(path, content))) and
+            (not os.path.isdir(os.path.join(path, content)))
+        ), contents
     ))
-    return names
+    return files
 
 
 def create_directories(path=None):
