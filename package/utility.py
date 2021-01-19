@@ -1545,6 +1545,83 @@ def calculate_pseudo_logarithm_signals_negative(
     return data_log
 
 
+def standardize_table_values_by_column(
+    table=None,
+    report=None,
+):
+    """
+    Transforms floating-point values in a table to standard or z-score space by
+    column.
+
+    The mean of each column will be zero (mean = 0).
+    The standard deviation of each column will be one (standard deviation = 1).
+
+    arguments:
+        table (object): Pandas data frame of variables (features) across columns
+            and samples (cases) across rows
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data frame of variables (features) across columns and
+            samples (cases) across rows
+
+    """
+
+    # Copy information.
+    table = table.copy(deep=True)
+    # Calculate standard scores by column.
+    # This method inserts missing values if the standard deviation is zero.
+    table_scale = table.apply(
+        lambda series: scipy.stats.zscore(
+            series.to_numpy(),
+            axis=0,
+            ddof=1, # sample standard deviation
+            nan_policy="omit", # Ignore missing values.
+        ),
+        axis="index", # Apply function to each column of table.
+    )
+    # Report.
+    if report:
+        # Compare summary statistics before and after transformation.
+        print_terminal_partition(level=2)
+        print("Report from: standardize_table_values_by_column()")
+        print_terminal_partition(level=2)
+        print("Summary statistics before standardization.")
+        table_mean = table.aggregate(
+            lambda series: series.mean(),
+            axis="index", # Apply function to each column of table.
+        )
+        print("Mean")
+        print(table_mean.iloc[0:10])
+        print_terminal_partition(level=4)
+        table_deviation = table.aggregate(
+            lambda series: series.std(),
+            axis="index", # Apply function to each column of table.
+        )
+        print("Standard deviation")
+        print(table_deviation.iloc[0:10])
+
+        utility.print_terminal_partition(level=2)
+        print("Summary statistics after standardization.")
+        table_mean = table_scale.aggregate(
+            lambda series: series.mean(),
+            axis="index", # Apply function to each column of table.
+        )
+        print("Mean")
+        print(table_mean.iloc[0:10])
+        print_terminal_partition(level=4)
+        table_deviation = table_scale.aggregate(
+            lambda series: series.std(),
+            axis="index", # Apply function to each column of table.
+        )
+        print("Standard deviation")
+        print(table_deviation.iloc[0:10])
+    # Return information.
+    return table_scale
+
+
 def count_data_factors_groups_elements(
     factors=None,
     element=None,
@@ -1608,6 +1685,8 @@ def count_data_factors_groups_elements(
         inplace=True,
     )
     return data_counts
+
+################### WORK ZONE ###########################
 
 
 # Principal components
@@ -1698,6 +1777,10 @@ def calculate_principal_components(
     }
     # Return information.
     return information
+
+
+
+##########################################################
 
 
 # Pairwise correlations in symmetric adjacency matrix
