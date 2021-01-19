@@ -1603,7 +1603,7 @@ def standardize_table_values_by_column(
         print("Standard deviation")
         print(table_deviation.iloc[0:10])
 
-        utility.print_terminal_partition(level=2)
+        print_terminal_partition(level=2)
         print("Summary statistics after standardization.")
         table_mean = table_scale.aggregate(
             lambda series: series.mean(),
