@@ -819,24 +819,24 @@ def compare_lists_by_mutual_inclusion(list_one=None, list_two=None):
     return forward and reverse
 
 
-def filter_common_elements(list_one=None, list_two=None):
+def filter_common_elements(list_minor=None, list_major=None):
     """
-    Filters elements by whether both of two lists include them
+    Filters elements in minor list by whether the major list also includes them.
 
     arguments:
-        list_one (list): list of elements
-        list_two (list): list of elements
+        list_minor (list): list of elements
+        list_major (list): list of elements
 
     returns:
-        (list): elements that both of two lists include
+        (list): elements from minor list that major list also includes
 
     raises:
 
     """
 
-    def match(element_two=None):
-        return element_two in list_one
-    return list(filter(match, list_two))
+    def match(element=None):
+        return element in list_major
+    return list(filter(match, list_minor))
 
 
 def filter_unique_common_elements(list_one=None, list_two=None):
@@ -1568,6 +1568,8 @@ def standardize_table_values_by_column(
             samples (cases) across rows
 
     """
+
+    # Also consider sklearn.preprocessing.StandardScaler.
 
     # Copy information.
     table = table.copy(deep=True)

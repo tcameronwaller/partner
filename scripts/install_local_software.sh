@@ -33,3 +33,19 @@ sudo apt install ./discord-0.0.13.deb
 cd ~/Downloads
 wget https://zoom.us/client/latest/zoom_amd64.deb
 sudo apt install ./zoom_amd64.deb
+
+# GIMP
+sudo apt install flatpak
+flatpak install https://flathub.org/repo/appstream/org.gimp.GIMP.flatpakref
+flatpak update
+flatpak run org.gimp.GIMP//stable
+
+# PulseEffects
+# Audio effects
+sudo add-apt-repository ppa:mikhailnov/pulseeffects
+sudo apt update
+sudo apt install pulseaudio pulseeffects --install-recommends
+# sudo apt remove pulseeffects
+# or use FlatPak
+flatpak install flathub com.github.wwmm.pulseeffects
+flatpak run com.github.wwmm.pulseeffects
