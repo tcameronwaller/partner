@@ -1477,6 +1477,84 @@ def calculate_false_discovery_rate(
     return data_discoveries
 
 
+def calculate_array_translate_shift_logarithm_base(
+    array=None,
+    shift_minimum=None,
+    base=None,
+):
+    """
+    Shifts values in an array to positive scale and transforms by logarithm at
+    specific base.
+
+    arguments:
+        array (object): NumPy array of ratio-scale values
+        shift_minimum (float): scalar value for new minimum greater than zero
+            after translation
+        base (float): value for logarithmic base
+
+    raises:
+
+    returns:
+        (object): NumPy array of values after logarithmic transformation
+
+    """
+
+    # Copy information.
+    array = numpy.copy(array)
+    # Calculate shift translation for new minimum.
+    minimum = numpy.nanmin(array)
+    shift = (shift_minimum - minimum)
+    # Shift values to be positive and greater than zero.
+    array = numpy.add(array, shift)
+    # Calculate logarithm.
+    if (math.isclose(base, math.e)):
+        array_log = numpy.log(array)
+    elif (base == 2):
+        array_log = numpy.log2(array)
+    elif (base == 10):
+        array_log = numpy.log10(array)
+    else:
+        array_log = (numpy.log(array) / numpy.log(base))
+    # Return information.
+    return array_log
+
+
+def transform_normalize_table_continuous_ratio_variables(
+    columns=None,
+    table=None,
+):
+    """
+    Transforms variables' values to normalize their distributions.
+
+    arguments:
+        columns (list<str>): names of columns for continuous, ratio-scale
+            variables to transform
+        table (object): Pandas data frame of variables (features) across
+            columns and samples (cases, observations) across rows
+
+    raises:
+
+    returns:
+        (object): Pandas data frame
+
+    """
+
+    # Copy data.
+    table = table.copy(deep=True)
+    # Convert data variable types.
+    for column in columns:
+        column_log = str(column + "_log")
+        table[column_log] = calculate_array_translate_shift_logarithm_base(
+            array=table[column],
+            shift_minimum=1.0, # 0.001 or 1.0
+            base=math.e, # e, 2, 10, etc
+        )
+        # TODO: include Van Der Waerden transformation?
+    # Return information.
+    return table
+
+
+# This is inefficiently implemented... consider obsolete
 def calculate_pseudo_logarithm_signals(
     pseudo_count=None,
     base=None,
@@ -1506,7 +1584,7 @@ def calculate_pseudo_logarithm_signals(
     )
     return data_log
 
-
+# This is inefficiently implemented... consider obsolete
 def calculate_pseudo_logarithm_signals_negative(
     pseudo_count=None,
     base=None,
