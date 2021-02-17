@@ -1350,7 +1350,7 @@ def plot_heatmap_asymmetric_master_main_top_bottom(
 
 
 def plot_distribution_histogram(
-    series=None,
+    array=None,
     name=None,
     bin_method=None,
     bin_count=None,
@@ -1367,7 +1367,7 @@ def plot_distribution_histogram(
     distribution of a single series of values.
 
     arguments:
-        series (list<float>): series of counts
+        array (object): NumPy array of values
         name (str): name of series
         bin_method (str): method to define bins
         bin_count (int): count of bins to define and populate
@@ -1390,9 +1390,9 @@ def plot_distribution_histogram(
     # Bin method "auto" is useful.
     #values, edges = numpy.histogram(series, bins=count_bins)
     if bin_method == "count":
-        bin_edges = numpy.histogram_bin_edges(series, bins=bin_count)
+        bin_edges = numpy.histogram_bin_edges(array, bins=bin_count)
     else:
-        bin_edges = numpy.histogram_bin_edges(series, bins=bin_method)
+        bin_edges = numpy.histogram_bin_edges(array, bins=bin_method)
 
     # Create figure.
     figure = matplotlib.pyplot.figure(
@@ -1401,7 +1401,7 @@ def plot_distribution_histogram(
     )
     axes = matplotlib.pyplot.axes()
     values, bins, patches = axes.hist(
-        series,
+        array,
         bins=bin_edges,
         histtype="bar",
         align="left",
@@ -2407,13 +2407,21 @@ def plot_overlap_sets(
     return figure
 
 
-def write_figure(path=None, figure=None):
+def write_figure(
+    figure=None,
+    format=None,
+    resolution=None,
+    path=None,
+):
     """
     Writes figure to file.
 
     arguments:
-        path (str): path to directory and file
         figure (object): figure object
+        format (str): format suffix, "svg", "png"
+        resolution (int): dots per inch (dpi) density for bitmap image, set to
+            "None" with format "svg", otherwise "300" or "600"
+        path (str): path to directory and file
 
     raises:
 
@@ -2424,42 +2432,13 @@ def write_figure(path=None, figure=None):
     # Write information to file.
     figure.savefig(
         path,
-        #format="png",
-        format="svg",
-        #dpi=600,
+        format=format,
+        dpi=resolution,
         facecolor="w",
         edgecolor="w",
         transparent=False
     )
     pass
-
-
-def write_figure_png(path=None, figure=None):
-    """
-    Writes figure to file.
-
-    arguments:
-        path (str): path to directory and file
-        figure (object): figure object
-
-    raises:
-
-    returns:
-
-    """
-
-    # Write information to file.
-    figure.savefig(
-        path,
-        format="png",
-        dpi=300,
-        facecolor="w",
-        edgecolor="w",
-        transparent=False
-    )
-    pass
-
-
 
 
 # TODO: consider introducing a template set of functions... read, organize data, call appropriate plot function...
