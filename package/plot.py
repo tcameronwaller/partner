@@ -1469,12 +1469,12 @@ def plot_distribution_histogram(
             alpha=1.0,
             color=colors["orange"],
             linestyle="--",
-            linewidth=5.0, # 3.0, 7.5
+            linewidth=7.5, # 3.0, 7.5
         )
     if len(label_text) > 0:
         matplotlib.pyplot.text(
-            0.97,
-            0.98,
+            0.99,
+            0.99,
             label_text,
             horizontalalignment="right",
             verticalalignment="top",
@@ -1485,7 +1485,7 @@ def plot_distribution_histogram(
         )
     if label_report:
         matplotlib.pyplot.text(
-            0.98,
+            0.99,
             0.90,
             str("(count: " + str(count_values) + ")"),
             horizontalalignment="right",
@@ -1496,7 +1496,7 @@ def plot_distribution_histogram(
             fontproperties=fonts["properties"]["two"]
         )
         matplotlib.pyplot.text(
-            0.98,
+            0.99,
             0.85,
             str("(mean: " + str(mean_values) + ")"),
             horizontalalignment="right",
