@@ -1416,7 +1416,7 @@ def plot_distribution_histogram(
         rwidth=0.35,
         log=False,
         color=colors["blue"],
-        label=name,
+        label=title,
         stacked=False
     )
     if False:
