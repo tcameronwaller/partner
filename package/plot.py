@@ -1361,7 +1361,7 @@ def plot_distribution_histogram(
     line=None,
     line_position=None,
     label_text=None,
-    label_count=None,
+    label_report=None,
 ):
     """
     Creates a figure of a chart of type histogram to represent the frequency
@@ -1382,7 +1382,8 @@ def plot_distribution_histogram(
         line (bool): whether to draw a vertical line
         line_position (float): position for vertical line
         label_text (str): text to include on figure
-        label_count (bool): whether to include label for count of values
+        label_report (bool): whether to include label for report of count and
+            mean of values
 
     raises:
 
@@ -1391,8 +1392,9 @@ def plot_distribution_histogram(
 
     """
 
-    # Determine count of values in array.
+    # Determine count and mean of values in array.
     count_values = int(array.size)
+    mean_values = round(numpy.nanmean(array), 3)
     # Define and populate bins.
     # Bin method "auto" is useful.
     #values, edges = numpy.histogram(series, bins=count_bins)
@@ -1471,7 +1473,7 @@ def plot_distribution_histogram(
         )
     if len(label_text) > 0:
         matplotlib.pyplot.text(
-            0.95,
+            0.97,
             0.95,
             label_text,
             horizontalalignment="right",
@@ -1481,11 +1483,22 @@ def plot_distribution_histogram(
             color=colors["black"],
             fontproperties=fonts["properties"]["two"]
         )
-    if label_count:
+    if label_report:
         matplotlib.pyplot.text(
-            0.95,
+            0.97,
             0.90,
-            str("(" + str(count_values) + ")"),
+            str("(count: " + str(count_values) + ")"),
+            horizontalalignment="right",
+            verticalalignment="top",
+            transform=axes.transAxes,
+            backgroundcolor=colors["white"],
+            color=colors["black"],
+            fontproperties=fonts["properties"]["three"]
+        )
+        matplotlib.pyplot.text(
+            0.97,
+            0.85,
+            str("(mean: " + str(mean_values) + ")"),
             horizontalalignment="right",
             verticalalignment="top",
             transform=axes.transAxes,
