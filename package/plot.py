@@ -1351,7 +1351,7 @@ def plot_heatmap_asymmetric_master_main_top_bottom(
 
 def plot_distribution_histogram(
     array=None,
-    name=None,
+    title=None,
     bin_method=None,
     bin_count=None,
     label_bins=None,
@@ -1359,25 +1359,30 @@ def plot_distribution_histogram(
     fonts=None,
     colors=None,
     line=None,
-    position=None,
-    text=None,
+    line_position=None,
+    label_text=None,
+    label_count=None,
 ):
     """
     Creates a figure of a chart of type histogram to represent the frequency
     distribution of a single series of values.
 
+    Consider utility of numpy.digitize(), numpy.bincount(), numpy.unique(),
+    and numpy.histogram().
+
     arguments:
         array (object): NumPy array of values
-        name (str): name of series
-        bin_method (str): method to define bins
+        title (str): title for figure
+        bin_method (str): method to define bins, "count" or "auto"
         bin_count (int): count of bins to define and populate
         label_bins (str): label for bins
         label_counts (str): label for counts
         fonts (dict<object>): references to definitions of font properties
         colors (dict<tuple>): references to definitions of color properties
         line (bool): whether to draw a vertical line
-        position (float): position for vertical line
-        text (str): text to include on figure
+        line_position (float): position for vertical line
+        label_text (str): text to include on figure
+        label_count (bool): whether to include label for count of values
 
     raises:
 
@@ -1388,7 +1393,6 @@ def plot_distribution_histogram(
 
     # Determine count of values in array.
     count_values = int(array.size)
-
     # Define and populate bins.
     # Bin method "auto" is useful.
     #values, edges = numpy.histogram(series, bins=count_bins)
@@ -1417,7 +1421,7 @@ def plot_distribution_histogram(
     )
     if False:
         axes.set_title(
-            name,
+            title,
             #fontdict=fonts["properties"]["one"],
             loc="center",
         )
@@ -1457,7 +1461,7 @@ def plot_distribution_histogram(
     )
     if line:
         axes.axvline(
-            x=position,
+            x=line_position,
             ymin=0,
             ymax=1,
             alpha=1.0,
@@ -1465,11 +1469,11 @@ def plot_distribution_histogram(
             linestyle="--",
             linewidth=5.0, # 3.0, 7.5
         )
-    if len(text) > 0:
+    if len(label_text) > 0:
         matplotlib.pyplot.text(
             0.95,
             0.95,
-            text,
+            label_text,
             horizontalalignment="right",
             verticalalignment="top",
             transform=axes.transAxes,
@@ -1477,6 +1481,7 @@ def plot_distribution_histogram(
             color=colors["black"],
             fontproperties=fonts["properties"]["two"]
         )
+    if label_count:
         matplotlib.pyplot.text(
             0.95,
             0.90,
