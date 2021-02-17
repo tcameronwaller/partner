@@ -1386,6 +1386,9 @@ def plot_distribution_histogram(
 
     """
 
+    # Determine count of values in array.
+    count_values = int(array.size)
+
     # Define and populate bins.
     # Bin method "auto" is useful.
     #values, edges = numpy.histogram(series, bins=count_bins)
@@ -1472,7 +1475,18 @@ def plot_distribution_histogram(
             transform=axes.transAxes,
             backgroundcolor=colors["white"],
             color=colors["black"],
-            fontproperties=fonts["properties"]["one"]
+            fontproperties=fonts["properties"]["two"]
+        )
+        matplotlib.pyplot.text(
+            0.95,
+            0.90,
+            str("(" + count_values + ")"),
+            horizontalalignment="right",
+            verticalalignment="top",
+            transform=axes.transAxes,
+            backgroundcolor=colors["white"],
+            color=colors["black"],
+            fontproperties=fonts["properties"]["three"]
         )
     return figure
 
