@@ -1480,7 +1480,7 @@ def plot_distribution_histogram(
         matplotlib.pyplot.text(
             0.95,
             0.90,
-            str("(" + count_values + ")"),
+            str("(" + str(count_values) + ")"),
             horizontalalignment="right",
             verticalalignment="top",
             transform=axes.transAxes,
