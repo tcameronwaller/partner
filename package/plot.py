@@ -1464,8 +1464,8 @@ def plot_distribution_histogram(
         )
     if len(text) > 0:
         matplotlib.pyplot.text(
-            1,
-            1,
+            0.8,
+            0.8,
             text,
             horizontalalignment="right",
             verticalalignment="top",
