@@ -1395,6 +1395,7 @@ def plot_distribution_histogram(
     # Determine count and mean of values in array.
     count_values = int(array.size)
     mean_values = round(numpy.nanmean(array), 3)
+    median_values = round(numpy.nanmedian(array), 3)
     # Define and populate bins.
     # Bin method "auto" is useful.
     #values, edges = numpy.histogram(series, bins=count_bins)
@@ -1479,7 +1480,7 @@ def plot_distribution_histogram(
             horizontalalignment="right",
             verticalalignment="top",
             transform=axes.transAxes,
-            backgroundcolor=colors["white"],
+            backgroundcolor=colors["white_faint"],
             color=colors["black"],
             fontproperties=fonts["properties"]["one"]
         )
@@ -1491,7 +1492,7 @@ def plot_distribution_histogram(
             horizontalalignment="right",
             verticalalignment="top",
             transform=axes.transAxes,
-            backgroundcolor=colors["white"],
+            backgroundcolor=colors["white_faint"],
             color=colors["black"],
             fontproperties=fonts["properties"]["two"]
         )
@@ -1502,7 +1503,18 @@ def plot_distribution_histogram(
             horizontalalignment="right",
             verticalalignment="top",
             transform=axes.transAxes,
-            backgroundcolor=colors["white"],
+            backgroundcolor=colors["white_faint"],
+            color=colors["black"],
+            fontproperties=fonts["properties"]["two"]
+        )
+        matplotlib.pyplot.text(
+            0.99,
+            0.80,
+            str("(median: " + str(median_values) + ")"),
+            horizontalalignment="right",
+            verticalalignment="top",
+            transform=axes.transAxes,
+            backgroundcolor=colors["white_faint"],
             color=colors["black"],
             fontproperties=fonts["properties"]["two"]
         )
