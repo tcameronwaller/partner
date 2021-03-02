@@ -46,5 +46,5 @@ if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "----------"
   echo "----------"
-  #head $path_table_novel
+  head $path_table_novel
 fi
