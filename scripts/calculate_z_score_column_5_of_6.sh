@@ -30,7 +30,7 @@ if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "----------"
   echo "----------"
-  echo "Initial statistics for column 5 before z-score standardization..."
+  echo "Initial statistics for column ${column} before z-score standardization..."
   echo "----------"
   echo "Count: ${count}"
   echo "Sum: ${sum}"
@@ -40,12 +40,36 @@ if [[ "$report" == "true" ]]; then
   echo "Standard deviation: ${standard_deviation}"
 fi
 
-#head $path_table_original
-#rm $path_table_novel
-cat $path_table_original | awk 'BEGIN { FS=OFS=" "} NR == 1' > $path_table_novel
-cat $path_table_original | \
-awk -v column="$column" -v mean="$mean" -v stdev="$standard_deviation" \
-'BEGIN { FS=" "; OFS=" " } NR > 1 {print $1, $2, $3, $4, (($column - mean) / stdev), $6}' >> $path_table_novel
+# Determine whether standard deviation is close to zero.
+minimum=(-0.0001)
+maximum=0.0001
+zero_min=$(awk -v value=$standard_deviation -v minimum=$minimum \
+'BEGIN {print (value>minimum) }')
+zero_max=$(awk -v value=$standard_deviation -v maximum=$maximum \
+'BEGIN {print (value<maximum) }')
+if [[ $zero_min -eq 1 ]] && [[ $zero_max -eq 1 ]]; then
+  echo "----------"
+  echo "----------"
+  echo "----------"
+  echo "Standard deviation is close to zero."
+  echo "Mean center values only."
+  cat $path_table_original | awk 'BEGIN { FS=OFS=" " } NR == 1' > $path_table_novel
+  cat $path_table_original | \
+  awk -v column="$column" -v mean="$mean" -v \
+  'BEGIN { FS=" "; OFS=" " } NR > 1 {print $1, $2, $3, $4, ($column - mean), $6}' >> $path_table_novel
+else
+  echo "----------"
+  echo "----------"
+  echo "----------"
+  echo "Standard deviation is not close to zero."
+  echo "Z-score standardize values."
+  #head $path_table_original
+  #rm $path_table_novel
+  cat $path_table_original | awk 'BEGIN { FS=OFS=" "} NR == 1' > $path_table_novel
+  cat $path_table_original | \
+  awk -v column="$column" -v mean="$mean" -v stdev="$standard_deviation" \
+  'BEGIN { FS=" "; OFS=" " } NR > 1 {print $1, $2, $3, $4, (($column - mean) / stdev), $6}' >> $path_table_novel
+fi
 
 # Set column delimiter.
 # Calculate cumulative statistics.
@@ -64,7 +88,7 @@ standard_deviation=$(awk -v variations=$variations -v count=$count 'BEGIN {print
 # Report.
 if [[ "$report" == "true" ]]; then
   echo "----------"
-  echo "Final statistics for column 5 after z-score standardization..."
+  echo "Final statistics for column ${column} after mean center or z-score standardization..."
   echo "----------"
   echo "Count: ${count}"
   echo "Sum: ${sum}"
