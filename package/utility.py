@@ -320,6 +320,8 @@ def print_terminal_partition(level=None):
             ----------
 
         """)
+    elif level == 5:
+        partition = textwrap.dedent("""----------""")
     else:
         partition = ""
     print(partition)

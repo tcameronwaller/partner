@@ -26,13 +26,16 @@ sudo apt install atom
 
 # Discord
 cd ~/Downloads
-wget https://dl.discordapp.net/apps/linux/0.0.13/discord-0.0.13.deb
-sudo apt install ./discord-0.0.13.deb
+wget https://dl.discordapp.net/apps/linux/0.0.14/discord-0.0.14.deb
+#wget "https://discord.com/api/download?platform=linux&format=deb"
+sudo apt install ./discord-0.0.14.deb
+sudo apt remove discord
 
 # Zoom
 cd ~/Downloads
 wget https://zoom.us/client/latest/zoom_amd64.deb
 sudo apt install ./zoom_amd64.deb
+sudo apt remove zoom
 
 # GIMP
 sudo apt install flatpak
