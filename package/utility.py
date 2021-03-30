@@ -1460,8 +1460,8 @@ def calculate_table_false_discovery_rates(
             method="fdr_bh", # use Benjamini-Hochberg False Discovery Rate (FDR)
             is_sorted=False,
         )
-        rejects = report[0]
-        significances = numpy.invert(rejects)
+        significances = report[0] # valid to reject null hypothesis
+        #significances = numpy.invert(rejects)
         discoveries = report[1]
         table_valid[significance] = significances
         table_valid[discovery] = discoveries
