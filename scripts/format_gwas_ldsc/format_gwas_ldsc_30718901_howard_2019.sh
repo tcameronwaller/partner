@@ -11,7 +11,7 @@
 # phenotype: major depression
 # Human genome version: GRCh37, hg19 <-- assume since after 2009; but article methods, data servers, and README don't specify
 # variant identifier (rsID) version: ???
-# file: "PGC_UKB_depression_genome-wide.txt"
+# file: "PGC_UKB_depression_genome-wide.txt.gz"
 
 ###########################################################################
 ###########################################################################

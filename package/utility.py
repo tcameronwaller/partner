@@ -1412,23 +1412,24 @@ def filter_rows_columns_by_threshold_outer_proportion(
     return data_pass
 
 
-def calculate_false_discovery_rate(
+def calculate_table_false_discovery_rates(
     threshold=None,
     probability=None,
     discovery=None,
     significance=None,
-    data_probabilities=None,
+    table=None,
 ):
     """
-    Calculates false discovery rates from probabilities.
+    Calculates false discovery rates (FDRs) from probabilities.
 
     arguments:
         threshold (float): value of alpha, or family-wise error rate of false
             discoveries
-        probability (str): name of column of probabilities
-        discovery (str): name of column of false discovery rates
-        significance (str): name of column of significance
-        data_probabilities (object): Pandas data frame of probabilities
+        probability (str): name of table's column of probabilities
+        discovery (str): name for table's column of false discovery rates
+        significance (str): name for table's column of FDR significance
+        table (object): Pandas data frame with column of probabilities across
+            observations in rows
 
     raises:
 
@@ -1437,46 +1438,47 @@ def calculate_false_discovery_rate(
 
     """
 
-    # Copy data.
-    data_copy = data_probabilities.copy(deep=True)
+    # Copy information.
+    table = table.copy(deep=True)
 
     # False discovery rate method cannot accommodate missing values.
     # Remove null values.
-    data_null_boolean = pandas.isna(data_copy[probability])
-    data_null = data_copy.loc[data_null_boolean]
-    data_valid = data_copy.dropna(
+    table_null_boolean = pandas.isna(table[probability])
+    table_null = table.loc[table_null_boolean]
+    table_valid = table.dropna(
         axis="index",
         how="any",
+        subset=[probability],
         inplace=False,
     )
     # Calculate false discovery rates from probabilities.
-    probabilities = data_valid[probability].to_numpy()
+    probabilities = table_valid[probability].to_numpy()
     if len(probabilities) > 3:
         report = statsmodels.stats.multitest.multipletests(
             probabilities,
             alpha=threshold,
-            method="fdr_bh",
+            method="fdr_bh", # use Benjamini-Hochberg False Discovery Rate (FDR)
             is_sorted=False,
         )
-        significances = report[0]
+        rejects = report[0]
+        significances = numpy.invert(rejects)
         discoveries = report[1]
-        data_valid[significance] = significances
-        data_valid[discovery] = discoveries
+        table_valid[significance] = significances
+        table_valid[discovery] = discoveries
     else:
-        data_valid[significance] = float("nan")
-        data_valid[discovery] = float("nan")
+        table_valid[significance] = float("nan")
+        table_valid[discovery] = float("nan")
         pass
-    data_null[significance] = False
-    data_null[discovery] = float("nan")
+    table_null[significance] = False
+    table_null[discovery] = float("nan")
 
     # Combine null and valid portions of data.
-    data_discoveries = data_valid.append(
-        data_null,
+    table_discoveries = table_valid.append(
+        table_null,
         ignore_index=False,
     )
-
     # Return information.
-    return data_discoveries
+    return table_discoveries
 
 
 def calculate_array_translate_shift_logarithm_base(
