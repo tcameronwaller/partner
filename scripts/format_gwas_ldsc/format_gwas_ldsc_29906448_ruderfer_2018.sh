@@ -63,7 +63,7 @@ rm $path_gwas_format
 
 # Organize information from linear GWAS.
 echo "SNP A1 A2 N BETA P" > $path_gwas_collection
-zcat $path_source_file | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {print $2, toupper($4), toupper($5), (107620), log($9), $11}' >> $path_gwas_collection
+zcat $path_source_file | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {print $2, toupper($4), toupper($5), (38855), log($9), $11}' >> $path_gwas_collection
 # Calculate Z-score standardization of Beta coefficients.
 /usr/bin/bash $path_calculate_z_score \
 5 \
