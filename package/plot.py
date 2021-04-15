@@ -1392,7 +1392,7 @@ def plot_distribution_histogram(
 
     """
 
-    # Determine count and mean of values in array.
+    # Determine count, mean, and median of values in array.
     count_values = int(array.size)
     mean_values = round(numpy.nanmean(array), 3)
     median_values = round(numpy.nanmedian(array), 3)
