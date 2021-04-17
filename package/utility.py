@@ -328,6 +328,85 @@ def print_terminal_partition(level=None):
     pass
 
 
+def determine_logical_or_combination_binary_missing(
+    first=None,
+    second=None,
+    single_false_sufficient=None,
+):
+    """
+    Determines the logical "or" combination of two binary logical variables,
+    each of which can be "true" (1), "false" (0), or "missing" ("nan").
+
+    Option "single_false_sufficient" is most appropriate in cases in which both
+    variables have similar meaning and their combination has potential to reduce
+    missing information and loss of samples.
+
+    arguments:
+        first (float): first binary logical variable that can be true (1),
+            false (0), or missing ("nan")
+        second (float): second binary logical variable that can be true (1),
+            false (0), or missing ("nan")
+        single_false_sufficient (bool): whether to assign a false value if one
+            variable is valid and false while the other variable is missing
+
+    raises:
+
+    returns:
+        (float): interpretation value
+
+    """
+
+    # pandas.isna() or math.isnan()
+
+    # Comparison.
+    if (
+        ((not math.isnan(first)) and (first == 1)) or
+        ((not math.isnan(second)) and (second == 1))
+    ):
+        # Either one of the two variables is valid and true.
+        # Interpret as true even if one variable is true and the other is
+        # false.
+        # Also interpret as true even if only one variable is valid and true and
+        # the other is missing.
+        value = 1
+    elif (
+        ((not math.isnan(first)) and (first == 0)) and
+        ((not math.isnan(second)) and (second == 0))
+    ):
+        # Both variables are valid and false.
+        value = 0
+    elif (
+        ((not math.isnan(first)) and (first == 0)) and
+        ((math.isnan(second)))
+    ):
+        # Only first variable is valid and false.
+        # Second variable is missing and could either be true or false.
+        if (single_false_sufficient):
+            value = 0
+        else:
+            value = float("nan")
+    elif (
+        ((math.isnan(first))) and
+        ((not math.isnan(second)) and (second == 0))
+    ):
+        # Only second variable is valid and false.
+        # First variable is missing and could either be true or false.
+        if (single_false_sufficient):
+            value = 0
+        else:
+            value = float("nan")
+    elif (
+        (math.isnan(first)) and
+        (math.isnan(second))
+    ):
+        # Both variables are missing.
+        value = float("nan")
+    else:
+        value = float("nan")
+    # Return information.
+    return value
+
+
 ##########
 # Read text from file
 
