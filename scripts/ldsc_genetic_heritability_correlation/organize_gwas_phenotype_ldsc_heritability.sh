@@ -19,14 +19,11 @@ path_heritability=${6} # full path to parent directory for LDSC heritability est
 path_genetic_correlation=${7} # full path to parent directory for LDSC genetic correlation
 path_script_gwas_format=${8} # full path to script to use to organize format of GWAS summary statistics for phenotype
 path_promiscuity_scripts=${9} # complete path to directory of scripts for z-score standardization
-report=${10} # whether to print reports
+path_ldsc=${10} # path to LDSC
+report=${11} # whether to print reports
 
 ################################################################################
 # Organize variables.
-
-# Read private, local file paths.
-cd ~/paths
-path_ldsc=$(<"./tools_ldsc.txt")
 
 path_alleles="$path_genetic_reference/alleles"
 path_disequilibrium="$path_genetic_reference/disequilibrium"
@@ -101,3 +98,5 @@ fi
 # Remove temporary files.
 rm $path_gwas_collection
 rm $path_gwas_format
+rm $path_gwas_munge_suffix
+rm $path_gwas_munge_log
