@@ -5,13 +5,15 @@
 ###########################################################################
 
 # "Organize GWAS summary statistics."
-# PubMed: 30718901
-# author: Howard
-# date: 4 February 2019
-# phenotype: major depression
+# PubMed: pending
+# author: PGC3 pending
+# date: 2021
+# phenotype: bipolar disorder types I and II
 # Human genome version: GRCh37, hg19 <-- assume since after 2009; but article methods, data servers, and README don't specify
 # variant identifier (rsID) version: ???
-# file: "pgc_alcdep.discovery.aug2018_release.txt.gz"
+# file: "pgc-bip2021-all.vcf.tsv.gz", "pgc-bip2021-BDI.vcf.tsv.gz", "pgc-bip2021-BDII.vcf.tsv.gz"
+# note: on 5 April 2021, TCW confirmed that table body begins at "awk NR > 73" in all three files
+# note: on 5 April 2021, TCW confirmed that table columns have the same order in all three files
 
 ###########################################################################
 ###########################################################################
@@ -47,12 +49,12 @@ fi
 # Format of GWAS summary statistics for LDSC.
 # https://github.com/bulik/ldsc/wiki/Heritability-and-Genetic-Correlation#reformatting-summary-statistics
 # description: ............................ LDSC column ........... source column .......... position
-# variant identifier (RS ID): .............  "SNP" ................  "SNP" ................. 2
-# alternate allele (effect allele): .......  "A1" .................  "A1" .................. 4
-# reference allele (non-effect allele): ...  "A2" .................  "A2" .................. 5
-# sample size: ............................  "N" ..................  None .................. [samples = 52,848]
-# effect (coefficient or odds ratio): .....  "BETA" or "OR" .......  "Z" ................... 6
-# probability (p-value): ..................  "P" ..................  "P" ................... 7
+# variant identifier (RS ID): .............  "SNP" ................  "ID" ..................  3
+# alternate allele (effect allele): .......  "A1" .................  "A1" ..................  4
+# reference allele (non-effect allele): ...  "A2" .................  "A2" ..................  5
+# sample size: ............................  "N" ..................  "NCAS" + "NCON" .......  14 + 15
+# effect (coefficient or odds ratio): .....  "BETA" or "OR" .......  "BETA" ................  6
+# probability (p-value): ..................  "P" ..................  "PVAL" ................  8
 
 # Remove any previous versions of temporary files.
 rm $path_gwas_collection
@@ -60,7 +62,7 @@ rm $path_gwas_format
 
 # Organize information from linear GWAS.
 echo "SNP A1 A2 N BETA P" > $path_gwas_collection
-zcat $path_source_file | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {split($2,a,":"); print a[1], toupper($4), toupper($5), (52848), $6, $7}' >> $path_gwas_collection
+zcat $path_source_file | awk 'BEGIN { FS=" "; OFS=" " } NR > 73 {print $3, toupper($4), toupper($5), ($14 + $15), $6, $8}' >> $path_gwas_collection
 # Calculate Z-score standardization of Beta coefficients.
 /usr/bin/bash $path_calculate_z_score \
 5 \

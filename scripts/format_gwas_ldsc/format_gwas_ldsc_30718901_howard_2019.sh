@@ -47,7 +47,7 @@ fi
 # variant identifier (RS ID): .............  "SNP" ................  "MarkerName" .......... 1
 # alternate allele (effect allele): .......  "A1" .................  "A1" .................. 2
 # reference allele (non-effect allele): ...  "A2" .................  "A2" .................. 3
-# sample size: ............................  "N" ..................  None .................. [samples = 500,199]
+# sample size: ............................  "N" ..................  None .................. (170,756 + 329,443)
 # effect (coefficient or odds ratio): .....  "BETA" or "OR" .......  "LogOR" ............... 5
 # probability (p-value): ..................  "P" ..................  "P" ................... 7
 
@@ -57,7 +57,7 @@ rm $path_gwas_format
 
 # Organize information from linear GWAS.
 echo "SNP A1 A2 N BETA P" > $path_gwas_collection
-zcat $path_source_file | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {print $1, toupper($2), toupper($3), (500199), $5, $7}' >> $path_gwas_collection
+zcat $path_source_file | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {print $1, toupper($2), toupper($3), (170756 + 329443), $5, $7}' >> $path_gwas_collection
 # Calculate Z-score standardization of Beta coefficients.
 /usr/bin/bash $path_calculate_z_score \
 5 \

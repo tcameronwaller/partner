@@ -11,16 +11,15 @@
 ################################################################################
 # Organize arguments.
 study=${1} # identifier of GWAS study
-source_file=${2} # name of source file with GWAS summary statistics
-path_source_file=${3} # full path to source file with GWAS summary statistics
-path_genetic_reference=${4} # full path to parent directory with genetic reference files for LDSC
-path_gwas=${5} # full path to parent directory for formatted GWAS summary statistics
-path_heritability=${6} # full path to parent directory for LDSC heritability estimation
-path_genetic_correlation=${7} # full path to parent directory for LDSC genetic correlation
-path_script_gwas_format=${8} # full path to script to use to organize format of GWAS summary statistics for phenotype
-path_promiscuity_scripts=${9} # complete path to directory of scripts for z-score standardization
-path_ldsc=${10} # path to LDSC
-report=${11} # whether to print reports
+path_source_file=${2} # full path to source file with GWAS summary statistics
+path_genetic_reference=${3} # full path to parent directory with genetic reference files for LDSC
+path_gwas=${4} # full path to parent directory for formatted GWAS summary statistics
+path_heritability=${5} # full path to parent directory for LDSC heritability estimation
+path_genetic_correlation=${6} # full path to parent directory for LDSC genetic correlation
+path_script_gwas_format=${7} # full path to script to use to organize format of GWAS summary statistics for phenotype
+path_promiscuity_scripts=${8} # complete path to directory of scripts for z-score standardization
+path_ldsc=${9} # path to LDSC
+report=${10} # whether to print reports
 
 ################################################################################
 # Organize variables.
@@ -55,8 +54,7 @@ if [[ "$report" == "true" ]]; then
   echo "----------------------------------------------------------------------"
   echo "----------------------------------------------------------------------"
   echo "----------"
-  echo "file name: " $source_file
-  echo "path to original file: " $path_source_file
+  echo "path to original source file: " $path_source_file
   echo "path to new file: " $path_gwas_format
   echo "----------"
 fi

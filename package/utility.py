@@ -604,8 +604,8 @@ def determine_binary_categorical_products_of_two_binary_variables(
             "report: " +
             "determine_binary_categorical_products_of_two_binary_variables()"
         )
-        print_terminal_partition(level=3)
-        print(table_report)
+        #print_terminal_partition(level=3)
+        #print(table_report)
         print_terminal_partition(level=3)
         print("Counts of records (rows) in each product category...")
         print("Category 1: " + str(table_1.shape[0]))
