@@ -69,7 +69,6 @@ $path_gwas_format \
 $report
 
 # Compress file format.
-# No need in this situation, since each iteration replaces the previous file.
 gzip -cvf $path_gwas_format > $path_gwas_format_compress
 
 # Report.

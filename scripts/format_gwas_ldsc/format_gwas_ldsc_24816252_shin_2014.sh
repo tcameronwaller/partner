@@ -17,7 +17,7 @@
 ###########################################################################
 
 ################################################################################
-# Organize variables.
+# Organize arguments.
 study=${1} # unique identifier of the current GWAS study
 path_source_file=${2} # full path to source file with GWAS summary statistics
 path_gwas_collection=${3} # full path to temporary file for collection of GWAS summary statistics
@@ -25,6 +25,9 @@ path_gwas_format=${4} # full path to file for formatted GWAS summary statistics
 path_gwas_format_compress=${5} # full path to file for formatted GWAS summary statistics after compression
 path_promiscuity_scripts=${6} # complete path to directory of scripts for z-score standardization
 report=${7} # whether to print reports
+
+################################################################################
+# Organize variables.
 
 #path_calculate_z_score="$path_promiscuity_scripts/calculate_z_score_column_4_of_5.sh"
 path_calculate_z_score="$path_promiscuity_scripts/calculate_z_score_column_5_of_6.sh"
@@ -65,8 +68,7 @@ $path_gwas_format \
 $report
 
 # Compress file format.
-# No need in this situation, since each iteration replaces the previous file.
-#gzip -cvf $path_temporary_gwas_format > $path_temporary_gwas_format_zip
+gzip -cvf $path_gwas_format > $path_gwas_format_compress
 
 # Report.
 if [[ "$report" == "true" ]]; then
