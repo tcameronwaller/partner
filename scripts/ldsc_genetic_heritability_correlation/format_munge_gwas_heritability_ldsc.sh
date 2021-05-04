@@ -8,17 +8,22 @@
 ###########################################################################
 ###########################################################################
 
+# TODO: re-write this... define the study_gwas and study_heritability directories upstream...
+# That will make it possible to use this for metabolites...
+
+
 ################################################################################
 # Organize arguments.
 study=${1} # identifier of GWAS study
-path_source_file=${2} # full path to source file with GWAS summary statistics
-path_genetic_reference=${3} # full path to parent directory with genetic reference files for LDSC
-path_gwas=${4} # full path to parent directory for formatted GWAS summary statistics
-path_heritability=${5} # full path to parent directory for LDSC heritability estimation
-path_script_gwas_format=${6} # full path to script to use to organize format of GWAS summary statistics for phenotype
-path_promiscuity_scripts=${7} # complete path to directory of scripts for z-score standardization
-path_ldsc=${8} # path to LDSC
-report=${9} # whether to print reports
+name_prefix=${2} # file name prefix for GWAS files and heritability file or "null"
+path_source_file=${3} # full path to source file with GWAS summary statistics
+path_genetic_reference=${4} # full path to parent directory with genetic reference files for LDSC
+path_gwas_study=${5} # full path to parent directory for formatted GWAS summary statistics
+path_heritability_study=${6} # full path to parent directory for LDSC heritability estimation
+path_script_gwas_format=${7} # full path to script to use to organize format of GWAS summary statistics for phenotype
+path_promiscuity_scripts=${8} # complete path to directory of scripts for z-score standardization
+path_ldsc=${9} # path to LDSC
+report=${10} # whether to print reports
 
 ################################################################################
 # Organize variables.
@@ -29,16 +34,23 @@ path_baseline="$path_genetic_reference/baseline"
 path_weights="$path_genetic_reference/weights"
 path_frequencies="$path_genetic_reference/frequencies"
 
-path_study_gwas="${path_gwas}/${study}"
-path_study_heritability="${path_heritability}/${study}"
+if [[ "$name_prefix" != "null" ]]; then
+  path_gwas_collection="${path_gwas_study}/${name_prefix}_gwas_collection.txt"
+  path_gwas_format="${path_gwas_study}/${name_prefix}_gwas_format.txt"
+  path_gwas_munge="${path_gwas_study}/${name_prefix}_gwas_munge"
+  path_heritability_report="${path_heritability_study}/${name_prefix}_heritability_report"
+fi
 
-path_gwas_collection="${path_study_gwas}/gwas_collection.txt"
-path_gwas_format="${path_study_gwas}/gwas_format.txt"
+if [[ "$name_prefix" == "null" ]]; then
+  path_gwas_collection="${path_gwas_study}/gwas_collection.txt"
+  path_gwas_format="${path_gwas_study}/gwas_format.txt"
+  path_gwas_munge="${path_gwas_study}/gwas_munge"
+  path_heritability_report="${path_heritability_study}/heritability_report"
+fi
+
 path_gwas_format_compress="${path_gwas_format}.gz"
-path_gwas_munge="${path_study_gwas}/gwas_munge"
 path_gwas_munge_suffix="${path_gwas_munge}.sumstats.gz"
 path_gwas_munge_log="${path_gwas_munge}.log"
-path_heritability_report="${path_study_heritability}/heritability_report"
 path_heritability_report_suffix="${path_heritability_report}.log"
 
 #path_calculate_z_score="$path_promiscuity_scripts/calculate_z_score_column_4_of_5.sh"
@@ -56,11 +68,11 @@ if [[ "$report" == "true" ]]; then
 fi
 
 # Initialize directories.
-if [ ! -d $path_study_gwas ]; then
-    mkdir -p $path_study_gwas
+if [ ! -d $path_gwas_study ]; then
+    mkdir -p $path_gwas_study
 fi
-if [ ! -d $path_study_heritability ]; then
-    mkdir -p $path_study_heritability
+if [ ! -d $path_heritability_study ]; then
+    mkdir -p $path_heritability_study
 fi
 
 # Organize information in format for LDSC.
