@@ -24,14 +24,6 @@ report=${7} # whether to print reports
 ###########################################################################
 # Execute procedure.
 
-echo "----------"
-echo "path to original directory: " $path_source_directory
-echo "path to new file: " $path_gwas_concatenation
-echo "path to new file: " $path_gwas_concatenation_compress
-echo "start chromosome: " $chromosome_start
-echo "end chromosome: " $chromosome_end
-
-
 # Report.
 if [[ "$report" == "true" ]]; then
   echo "----------"
