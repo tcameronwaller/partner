@@ -39,7 +39,7 @@ rm $path_gwas_concatenation
 # Concatenate GWAS reports from selection chromosomes.
 for (( index=$chromosome_start; index<=$chromosome_end; index+=1 )); do
   path_source_chromosome="$path_source_directory/chromosome_${index}"
-  matches="${path_source_chromosome}/${pattern_source_file}"
+  matches=("${path_source_chromosome}/${pattern_source_file}")
   path_source_file=${matches[0]}
   echo "source file: " $path_source_file
   # Concatenate information from chromosome reports.
