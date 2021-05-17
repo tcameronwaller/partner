@@ -2088,7 +2088,7 @@ def report_contingency_table_stratification_by_missingness(
     raises:
 
     returns:
-        
+
 
     """
 
@@ -2168,7 +2168,7 @@ def report_contingency_table_stratification_by_missingness(
     )
     # Report.
     if report:
-        utility.print_terminal_partition(level=2)
+        print_terminal_partition(level=2)
         print(
             "Contingency table and Chi2 test for independence."
         )
@@ -2178,11 +2178,11 @@ def report_contingency_table_stratification_by_missingness(
         ))
         print("versus")
         print(str(column_missingness + " missingness"))
-        utility.print_terminal_partition(level=4)
+        print_terminal_partition(level=4)
         print(table_report)
         #print(table_contingency)
         #print(table_contingency.to_numpy())
-        utility.print_terminal_partition(level=5)
+        print_terminal_partition(level=5)
         print("chi2: " + str(chi2))
         print("probability: " + str(probability))
     pass
