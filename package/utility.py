@@ -2059,6 +2059,138 @@ def count_data_factors_groups_elements(
     )
     return data_counts
 
+
+def report_contingency_table_stratification_by_missingness(
+    column_stratification=None,
+    stratifications=None,
+    column_missingness=None,
+    table=None,
+    report=None,
+):
+    """
+    Organizes and reports information about a contingency table between two
+    values of two variables.
+
+    The primary variable is the priority for stratification.
+    The secondary variable has stratification by whether values are missing or
+    non-missing.
+
+    arguments:
+        column_stratification (str): name of column for primary stratification
+        stratifications (list): two values of the column by which to
+            stratify the table's rows
+        column_missingness (str): name of column for which to stratify valid
+            and null or missing values
+        table (object): Pandas data frame of features (columns) across
+            observations (rows)
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        
+
+    """
+
+    # Copy information.
+    table = table.copy(deep=True)
+    # Reset index.
+    table.reset_index(
+        level=None,
+        inplace=True
+    )
+    # Reduce the table to the relevant columns.
+    table = table.loc[
+        :, table.columns.isin([
+            column_stratification, column_missingness,
+        ])
+    ]
+    # Define binary representation of the two relevant values of the primary
+    # stratification column.
+    column_primary = str(column_stratification + "_relevant")
+    table[column_primary] = table[column_stratification].apply(
+        lambda value:
+            0 if (value == stratifications[0]) else
+            (1 if (value == stratifications[1]) else
+            (float("nan")))
+    )
+    # Define binary representation of missingness in the secondary column.
+    column_secondary = str(column_missingness + "_missing")
+    table[column_secondary] = table[column_missingness].apply(
+        lambda value:
+            0 if (not pandas.isna(value)) else 1
+    )
+    # Remove any rows with missing values in the primary or secondary columns.
+    table.dropna(
+        axis="index",
+        how="any",
+        subset=[column_primary, column_secondary],
+        inplace=True,
+    )
+    # Contingency table.
+    table_contingency = pandas.crosstab(
+        table[column_primary],
+        table[column_secondary],
+        rownames=[column_primary],
+        colnames=[column_secondary],
+    )
+    # Chi-square test.
+    (chi2, probability, freedom, expectation) = scipy.stats.chi2_contingency(
+        table_contingency.to_numpy(),
+        correction=True,
+    )
+    # Percentages.
+    count_total = table.shape[0]
+    count_0_0 = table_contingency.to_numpy()[0][0]
+    count_0_1 = table_contingency.to_numpy()[0][1]
+    count_1_0 = table_contingency.to_numpy()[1][0]
+    count_1_1 = table_contingency.to_numpy()[1][1]
+    percentage_0_0 = round(float((count_0_0 / count_total) * 100), 2)
+    percentage_0_1 = round(float((count_0_1 / count_total) * 100), 2)
+    percentage_1_0 = round(float((count_1_0 / count_total) * 100), 2)
+    percentage_1_1 = round(float((count_1_1 / count_total) * 100), 2)
+    entry_0_0 = str(str(count_0_0) + " (" + str(percentage_0_0) + "%)")
+    entry_0_1 = str(str(count_0_1) + " (" + str(percentage_0_1) + "%)")
+    entry_1_0 = str(str(count_1_0) + " (" + str(percentage_1_0) + "%)")
+    entry_1_1 = str(str(count_1_1) + " (" + str(percentage_1_1) + "%)")
+    name_missing_false = str(column_missingness + "-valid")
+    name_missing_true = str(column_missingness + "-missing")
+    entries = dict()
+    entries[column_stratification] = stratifications
+    entries[name_missing_false] = [entry_0_0, entry_1_0]
+    entries[name_missing_true] = [entry_0_1, entry_1_1]
+    table_report = pandas.DataFrame(data=entries)
+    table_report.set_index(
+        column_stratification,
+        append=False,
+        drop=True,
+        inplace=True
+    )
+    # Report.
+    if report:
+        utility.print_terminal_partition(level=2)
+        print(
+            "Contingency table and Chi2 test for independence."
+        )
+        print(str(
+            column_stratification + " values: " +
+            stratifications[0] + ", " + stratifications[1]
+        ))
+        print("versus")
+        print(str(column_missingness + " missingness"))
+        utility.print_terminal_partition(level=4)
+        print(table_report)
+        #print(table_contingency)
+        #print(table_contingency.to_numpy())
+        utility.print_terminal_partition(level=5)
+        print("chi2: " + str(chi2))
+        print("probability: " + str(probability))
+    pass
+
+
+
+
+
 ################### WORK ZONE ###########################
 
 
