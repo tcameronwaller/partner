@@ -2174,7 +2174,7 @@ def report_contingency_table_stratification_by_missingness(
         )
         print(str(
             column_stratification + " values: " +
-            stratifications[0] + ", " + stratifications[1]
+            str(stratifications[0]) + ", " + str(stratifications[1])
         ))
         print("versus")
         print(str(column_missingness + " missingness"))
@@ -2186,6 +2186,11 @@ def report_contingency_table_stratification_by_missingness(
         print("chi2: " + str(chi2))
         print("probability: " + str(probability))
     pass
+
+
+# Stratifications by continuous variables
+
+
 
 
 
