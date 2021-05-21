@@ -1847,6 +1847,61 @@ def transform_normalize_table_continuous_ratio_variables(
     return table
 
 
+def impute_continuous_variables_missing_values_half_minimum(
+    columns=None,
+    table=None,
+    report=None,
+):
+    """
+    Imputes missing values to half of their minimum value.
+
+    arguments:
+        columns (list<str>): names of columns for continuous, ratio-scale
+            variables for which to impute missing values
+        table (object): Pandas data frame of variables (features) across
+            columns and samples (cases, observations) across rows
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data frame
+
+    """
+
+    # Copy table.
+    table = table.copy(deep=True)
+    # Convert data variable types.
+    for column in columns:
+        # Determine name for new column.
+        column_imputation = str(column + "_imputation")
+        # Determine half minimum value.
+        minimum = numpy.nanmin(table[column].to_numpy())
+        half_minimum = float(minimum / 2)
+        # Report.
+        if report:
+            print_terminal_partition(level=2)
+            print(
+                "report: " +
+                "impute_continuous_variables_missing_values_half_minimum()"
+            )
+            print_terminal_partition(level=3)
+            print("column: " + str(column))
+            print("minimum: " + str(minimum))
+            print("half minimum: " + str(half_minimum))
+        # Impute missing values to half minimum.
+        table[column_imputation] = table[column].fillna(
+            value=half_minimum,
+            inplace=False,
+        )
+    # Return information.
+    return table
+
+
+
+
+
+
 # This is inefficiently implemented... consider obsolete
 def calculate_pseudo_logarithm_signals(
     pseudo_count=None,
