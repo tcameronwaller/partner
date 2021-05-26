@@ -33,7 +33,7 @@
 # Array batch indices cannot start at zero.
 ### -t 1-100:1
 # Limit on concurrent processes.
-#$ -tc 13
+#$ -tc 50
 
 # http://gridscheduler.sourceforge.net/htmlman/htmlman1/qsub.html
 
