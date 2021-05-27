@@ -27,7 +27,7 @@
 # Concurrent threads; assigns value to variable NSLOTS.
 # Important to specify 32 threads to avoid inconsistency with interactive
 # calculations.
-#$ -pe threaded 32
+#$ -pe threaded 8
 # Range of indices.
 # Specify as argument when calling qsub.
 # Array batch indices cannot start at zero.
@@ -36,6 +36,17 @@
 #$ -tc 50
 
 # http://gridscheduler.sourceforge.net/htmlman/htmlman1/qsub.html
+
+################################################################################
+# Note.
+
+# Collection and concatenation of GWAS summary statistics runs with 4 thread
+# slots ("-pe threaded 4") and 1 Gigabyte of memory ("-l h_vmem=1G"), even for
+# GWAS on > 300,000 persons.
+
+# LDSC Munge of GWAS summary statistics throws a memory error with 4 thread
+# slots ("-pe threaded 4") and 1 Gigabyte of memory ("-l h_vmem=1G").
+
 
 ################################################################################
 # Organize argument variables.
@@ -67,7 +78,7 @@ path_script_gwas_format="${path_scripts_format}/format_gwas_ldsc_plink_linear.sh
 # Execute procedure.
 
 # Concatenate GWAS across chromosomes.
-if true; then
+if false; then
   # Organize variables.
   pattern_source_file="report.*.glm.linear" # do not expand with full path yet
   path_source_directory="${path_gwas_parent}/${directory}"
