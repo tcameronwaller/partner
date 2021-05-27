@@ -77,6 +77,8 @@ fi
 
 # Organize information in format for LDSC.
 # Parameters.
+rm $path_gwas_format
+rm $path_gwas_format_compress
 /usr/bin/bash "$path_script_gwas_format" \
 $study \
 $path_source_file \
@@ -87,6 +89,8 @@ $path_promiscuity_scripts \
 $report
 
 # Munge GWAS summary statistics for use in LDSC.
+rm $path_gwas_munge_suffix
+rm $path_gwas_munge_log
 $path_ldsc/munge_sumstats.py \
 --sumstats $path_gwas_format_compress \
 --out $path_gwas_munge \
