@@ -23,11 +23,11 @@
 ### -p -10
 # Memory per iteration.
 # Segmentation errors commonly indicate a memory error.
-#$ -l h_vmem=1G
+#$ -l h_vmem=5G
 # Concurrent threads; assigns value to variable NSLOTS.
 # Important to specify 32 threads to avoid inconsistency with interactive
 # calculations.
-#$ -pe threaded 8
+#$ -pe threaded 4
 # Range of indices.
 # Specify as argument when calling qsub.
 # Array batch indices cannot start at zero.
