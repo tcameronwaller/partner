@@ -27,7 +27,7 @@
 # Concurrent threads; assigns value to variable NSLOTS.
 # Important to specify 32 threads to avoid inconsistency with interactive
 # calculations.
-#$ -pe threaded 32
+#$ -pe threaded 8
 # Range of indices.
 # Specify as argument when calling qsub.
 # Array batch indices cannot start at zero.
@@ -46,6 +46,9 @@
 
 # LDSC Munge of GWAS summary statistics throws a memory error with 4 thread
 # slots ("-pe threaded 4") and 1 Gigabyte of memory ("-l h_vmem=1G").
+
+# LDSC Munge of GWAS summary statistics runs with 8 thread slots
+# ("-pe threaded 8") and 1 Gigabyte of memory ("-l h_vmem=1G").
 
 
 ################################################################################
@@ -78,7 +81,7 @@ path_script_gwas_format="${path_scripts_format}/format_gwas_ldsc_plink_linear.sh
 # Execute procedure.
 
 # Concatenate GWAS across chromosomes.
-if false; then
+if true; then
   # Organize variables.
   pattern_source_file="report.*.glm.linear" # do not expand with full path yet
   path_source_directory="${path_gwas_parent}/${directory}"

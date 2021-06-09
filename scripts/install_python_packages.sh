@@ -30,3 +30,4 @@ pip3 install --target=${path_python_library} --upgrade pandas
 pip3 install --target=${path_python_library} --upgrade sklearn
 pip3 install --target=${path_python_library} --upgrade statsmodels
 pip3 install --target=${path_python_library} --upgrade matplotlib
+pip3 install --target=${path_python_library} --upgrade networkx
