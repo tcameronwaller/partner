@@ -96,6 +96,7 @@ $path_ldsc/munge_sumstats.py \
 --out $path_gwas_munge \
 --merge-alleles $path_alleles/w_hm3.snplist \
 #--a1-inc
+#--signed-sumstats BETA,0 # Brandon J. Coombes used this argument in a script, but I don't think it is necessary
 
 # Heritability.
 $path_ldsc/ldsc.py \
