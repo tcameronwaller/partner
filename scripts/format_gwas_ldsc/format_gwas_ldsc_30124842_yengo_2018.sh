@@ -59,7 +59,7 @@ echo "SNP A1 A2 N BETA P" > $path_gwas_collection
 zcat $path_source_file | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {print $3, toupper($4), toupper($5), $10, $7, $9}' >> $path_gwas_collection
 
 # Calculate Z-score standardization of Beta coefficients.
-if false; then
+if true; then
   /usr/bin/bash $path_calculate_z_score \
   5 \
   $path_gwas_collection \
