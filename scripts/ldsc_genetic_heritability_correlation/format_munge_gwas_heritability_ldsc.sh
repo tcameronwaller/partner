@@ -95,7 +95,7 @@ $path_ldsc/munge_sumstats.py \
 --sumstats $path_gwas_format_compress \
 --out $path_gwas_munge \
 --merge-alleles $path_alleles/w_hm3.snplist \
-#--a1-inc
+#--a1-inc # This flag tells LDSC that GWAS sumstats do not have signed Betas but are coded so that A1 allele always increases effect
 #--signed-sumstats BETA,0 # Brandon J. Coombes used this argument in a script, but I don't think it is necessary
 
 # Heritability.

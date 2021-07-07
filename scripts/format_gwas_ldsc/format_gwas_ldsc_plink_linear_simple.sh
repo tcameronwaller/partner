@@ -46,20 +46,10 @@ fi
 # PLINK2's format documentation also describes column "A1" as "Counted allele in
 # regression", and this description caused confusion. Column "A1" always matches
 # either column "REF" or column "ALT" (TCW, 7 July 2021).
-
-# The designations of "reference" and "alternative" alleles are irrelevant to
-# downstream analyses on GWAS summary statistics (such as LDSC).
-# What matters is which allele PLINK2 counted as the "effect" in regression and
-# which allele was the other allele.
-
-# Column "A1" is the "effect" allele that PLINK2 counted in the regression,
-# corresponding to the coefficient (beta).
-# Whichever
-
 # description: ............................ LDSC column ........... source column .......... position
 # variant identifier (RS ID): .............  "SNP" ................  "ID" .................. 3
-# alternate allele (effect allele): .......  "A1" .................  "A1" .................. 6
-# reference allele (non-effect allele): ...  "A2" .................  "REF" or "ALT" ........ 4 or 5
+# alternate allele (effect allele): .......  "A1" .................  "ALT" ................. 5
+# reference allele (non-effect allele): ...  "A2" .................  "REF" ................. 4
 # sample size: ............................  "N" ..................  "OBS_CT" .............. 8
 # effect (coefficient or odds ratio): .....  "BETA" or "OR" .......  "BETA" ................ 9
 # probability (p-value): ..................  "P" ..................  "P" ................... 12
@@ -70,14 +60,7 @@ rm $path_gwas_format
 
 # Organize information from linear GWAS.
 echo "SNP A1 A2 N BETA P" > $path_gwas_collection
-zcat $path_source_file | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
-  if ($6 == $5 && $6 != $4)
-    print $3, toupper($6), toupper($4), $8, $9, $12
-  else if ($6 == $4 && $6 != $5)
-    print $3, toupper($6), toupper($5), $8, $9, $12
-  else
-    print $3, toupper($6), "ERROR", $8, $9, $12
-  }' >> $path_gwas_collection
+zcat $path_source_file | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {print $3, toupper($5), toupper($4), $8, $9, $12}' >> $path_gwas_collection
 
 # Calculate Z-score standardization of Beta coefficients.
 if false; then
