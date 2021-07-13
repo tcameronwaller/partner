@@ -1950,7 +1950,7 @@ def plot_scatter_factor_groups(
     return figure
 
 
-def plot_scatter_point_ordinate_error_bars(
+def plot_scatter_points_ordinate_error_bars(
     table=None,
     abscissa=None,
     ordinate=None,
