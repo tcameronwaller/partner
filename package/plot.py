@@ -2007,7 +2007,7 @@ def plot_scatter_points_ordinate_error_bars(
     #    errors_ordinate_low, errors_ordinate_high
     #)))
     # Shape (2, n)
-    errors_ordinate = numpy.array(errors_ordinate_low, errors_ordinate_high)
+    errors_ordinate = numpy.array([errors_ordinate_low, errors_ordinate_high])
 
     ##########
     # Create figure.
