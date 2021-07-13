@@ -121,11 +121,22 @@ make install # TCW, 6 July 2021
 
 # Activate virtual environment.
 source "${path_environment_main}/bin/activate"
-
-
+which python3
+pip3 install --target=${path_python_library} --upgrade numpy
+pip3 install --target=${path_python_library} --upgrade scipy
+pip3 install --target=${path_python_library} --upgrade testresources
+pip3 install --target=${path_python_library} --upgrade pandas
+pip3 install --target=${path_python_library} --upgrade sklearn
+pip3 install --target=${path_python_library} --upgrade statsmodels
+pip3 install --target=${path_python_library} --upgrade matplotlib
+pip3 install --target=${path_python_library} --upgrade networkx
+deactivate
+which python3
 
 # Delete virtual environment.
 # rm -rf [virtual environment path and name] # remove virtual environment
+
+
 
 # Python standard module "virualenv" is the preferred Virtual Environment
 # manager for previous versions of Python, including Python 2

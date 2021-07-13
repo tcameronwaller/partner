@@ -1950,6 +1950,118 @@ def plot_scatter_factor_groups(
     return figure
 
 
+def plot_scatter_point_ordinate_error_bars(
+    table=None,
+    abscissa=None,
+    ordinate=None,
+    ordinate_error_low=None,
+    ordinate_error_high=None,
+    title_abscissa=None,
+    title_ordinate=None,
+    fonts=None,
+    colors=None,
+    size=None,
+):
+    """
+    Creates a figure of a chart of type scatter.
+
+    arguments:
+        table (object): Pandas data frame of feature variables across columns
+            and observation records across rows
+        abscissa (str): name of table's column with variable for horizontal (x)
+            axis
+        ordinate (str): name of table's column with variable for vertical (y)
+            axis
+        ordinate_error_low (str): name of table's column
+        ordinate_error_high (str): name of table's column
+        title_abscissa (str): title for abscissa on horizontal axis
+        title_ordinate (str): title for ordinate on vertical axis
+        factor (str): name of data column with groups or factors of samples
+        fonts (dict<object>): references to definitions of font properties
+        colors (dict<tuple>): references to definitions of color properties
+        size (int): size of marker
+
+    raises:
+
+    returns:
+        (object): figure object
+
+    """
+
+    # Organize data.
+    table = table.copy(deep=True)
+    table_selection = table.loc[
+        :, [abscissa, ordinate, ordinate_error_low, ordinate_error_high]
+    ]
+    table_selection.dropna(
+        axis="index",
+        how="any",
+        inplace=True,
+    )
+    values_abscissa = table_selection[abscissa].to_numpy()
+    values_ordinate = table_selection[ordinate].to_numpy()
+    errors_ordinate_low = table_selection[ordinate_error_low].to_list()
+    errors_ordinate_high = table_selection[ordinate_error_high].to_list()
+    # Shape (n, 2)
+    #errors_ordinate = numpy.array(list(zip(
+    #    errors_ordinate_low, errors_ordinate_high
+    #)))
+    # Shape (2, n)
+    errors_ordinate = numpy.array(errors_ordinate_low, errors_ordinate_high)
+
+    ##########
+    # Create figure.
+    figure = matplotlib.pyplot.figure(
+        figsize=(15.748, 11.811),
+        tight_layout=True
+    )
+    # Create axes.
+    axes = matplotlib.pyplot.axes()
+    axes.set_xlabel(
+        xlabel=title_abscissa,
+        labelpad=20,
+        alpha=1.0,
+        backgroundcolor=colors["white"],
+        color=colors["black"],
+        fontproperties=fonts["properties"]["one"]
+    )
+    axes.set_ylabel(
+        ylabel=title_ordinate,
+        labelpad=20,
+        alpha=1.0,
+        backgroundcolor=colors["white"],
+        color=colors["black"],
+        fontproperties=fonts["properties"]["one"]
+    )
+    axes.tick_params(
+        axis="both",
+        which="both",
+        direction="out",
+        length=5.0,
+        width=3.0,
+        color=colors["black"],
+        pad=5,
+        labelsize=fonts["values"]["one"]["size"],
+        labelcolor=colors["black"]
+    )
+    # Plot points for values from each group.
+    handle = axes.errorbar(
+        values_abscissa,
+        values_ordinate,
+        yerr=errors_ordinate,
+        xerr=None,
+        barsabove=True,
+        linestyle="",
+        marker="o",
+        markersize=size, # 5, 15
+        markeredgecolor=colors["blue"],
+        markerfacecolor=colors["blue"],
+    )
+
+    # Return figure.
+    return figure
+
+
 def plot_scatter(
     data=None,
     abscissa=None,
@@ -1990,8 +2102,8 @@ def plot_scatter(
         how="any",
         inplace=True,
     )
-    values_abscissa = data_selection[abscissa].values
-    values_ordinate = data_selection[ordinate].values
+    values_abscissa = data_selection[abscissa].to_numpy()
+    values_ordinate = data_selection[ordinate].to_nympy()
 
     ##########
     # Create figure.
@@ -2041,6 +2153,7 @@ def plot_scatter(
 
     # Return figure.
     return figure
+
 
 # TODO: probably obsolete?
 def plot_scatter_threshold(
