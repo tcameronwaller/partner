@@ -1990,8 +1990,9 @@ def plot_scatter_points_ordinate_error_bars(
 
     # Organize data.
     table = table.copy(deep=True)
+    columns = [abscissa, ordinate, ordinate_error_low, ordinate_error_high]
     table_selection = table.loc[
-        :, [abscissa, ordinate, ordinate_error_low, ordinate_error_high]
+        :, table.columns.isin(columns)
     ]
     table_selection.dropna(
         axis="index",
