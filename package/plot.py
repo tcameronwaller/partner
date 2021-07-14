@@ -1360,7 +1360,7 @@ def plot_distribution_histogram(
     colors=None,
     line=None,
     line_position=None,
-    label_text=None,
+    label_title=None,
     label_report=None,
 ):
     """
@@ -1381,7 +1381,7 @@ def plot_distribution_histogram(
         colors (dict<tuple>): references to definitions of color properties
         line (bool): whether to draw a vertical line
         line_position (float): position for vertical line
-        label_text (str): text to include on figure
+        label_title (str): text label title to include on figure
         label_report (bool): whether to include label for report of count and
             mean of values
 
@@ -1472,17 +1472,17 @@ def plot_distribution_histogram(
             linestyle="--",
             linewidth=7.5, # 3.0, 7.5
         )
-    if len(label_text) > 0:
+    if len(label_title) > 0:
         matplotlib.pyplot.text(
             0.99,
             0.99,
-            label_text,
+            label_title,
             horizontalalignment="right",
             verticalalignment="top",
             transform=axes.transAxes,
             backgroundcolor=colors["white_faint"],
             color=colors["black"],
-            fontproperties=fonts["properties"]["one"]
+            fontproperties=fonts["properties"]["two"]
         )
     if label_report:
         matplotlib.pyplot.text(
@@ -1961,6 +1961,7 @@ def plot_scatter_points_ordinate_error_bars(
     fonts=None,
     colors=None,
     size=None,
+    label_title=None,
 ):
     """
     Creates a figure of a chart of type scatter.
@@ -1980,6 +1981,7 @@ def plot_scatter_points_ordinate_error_bars(
         fonts (dict<object>): references to definitions of font properties
         colors (dict<tuple>): references to definitions of color properties
         size (int): size of marker
+        label_title (str): text label title to include on figure
 
     raises:
 
@@ -2051,6 +2053,7 @@ def plot_scatter_points_ordinate_error_bars(
         values_ordinate,
         yerr=errors_ordinate,
         xerr=None,
+        elinewidth=5.0,
         barsabove=True,
         linestyle="",
         marker="o",
@@ -2058,6 +2061,19 @@ def plot_scatter_points_ordinate_error_bars(
         markeredgecolor=colors["blue"],
         markerfacecolor=colors["blue"],
     )
+    # Include title label on plot.
+    if len(label_title) > 0:
+        matplotlib.pyplot.text(
+            0.99,
+            0.99,
+            label_title,
+            horizontalalignment="right",
+            verticalalignment="top",
+            transform=axes.transAxes,
+            backgroundcolor=colors["white_faint"],
+            color=colors["black"],
+            fontproperties=fonts["properties"]["two"]
+        )
 
     # Return figure.
     return figure
