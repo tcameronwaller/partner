@@ -88,6 +88,20 @@ $path_gwas_format_compress \
 $path_promiscuity_scripts \
 $report
 
+################################################################################
+# Activate Virtual Environment.
+
+# Read private, local file paths.
+#echo "read private file path variables and organize paths..."
+cd ~/paths
+path_tools=$(<"./waller_tools.txt")
+path_environment_ldsc="${path_tools}/python/environments/ldsc"
+source "${path_environment_ldsc}/bin/activate"
+which python2
+sleep 5s
+
+################################################################################
+
 # Munge GWAS summary statistics for use in LDSC.
 rm $path_gwas_munge_suffix
 rm $path_gwas_munge_log
@@ -119,3 +133,9 @@ rm $path_gwas_collection
 rm $path_gwas_format
 #rm $path_gwas_munge_suffix
 #rm $path_gwas_munge_log
+
+################################################################################
+# Deactivate Virtual Environment.
+
+deactivate
+which python2
