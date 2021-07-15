@@ -2020,6 +2020,7 @@ def plot_scatter_points_ordinate_error_bars(
     )
     # Create axes.
     axes = matplotlib.pyplot.axes()
+    #axes.set_ylim(ymin=0)
     axes.set_xlabel(
         xlabel=title_abscissa,
         labelpad=20,

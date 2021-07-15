@@ -25,7 +25,7 @@ set +x
 ###########################################################################
 # Organize directories.
 
-#rm -r $path_genetic_correlation
+rm -r $path_genetic_reference
 
 # Determine whether the temporary directory structure already exists.
 if [ ! -d $path_genetic_reference ]; then
