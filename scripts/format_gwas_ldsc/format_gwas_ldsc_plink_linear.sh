@@ -69,6 +69,7 @@ fi
 # Remove any previous versions of temporary files.
 rm $path_gwas_collection
 rm $path_gwas_format
+rm $path_gwas_format_compress
 
 # Organize information from linear GWAS.
 echo "SNP A1 A2 N BETA P" > $path_gwas_collection
@@ -104,3 +105,7 @@ if [[ "$report" == "true" ]]; then
   head -10 $path_gwas_format
   echo "----------"
 fi
+
+# Remove temporary files.
+rm $path_gwas_collection
+rm $path_gwas_format
