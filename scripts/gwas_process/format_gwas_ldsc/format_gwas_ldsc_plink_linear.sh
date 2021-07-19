@@ -12,16 +12,12 @@
 
 ################################################################################
 # Organize variables.
-study=${1} # unique identifier of the current GWAS study
-path_source_file=${2} # full path to source file with GWAS summary statistics
-path_gwas_collection=${3} # full path to temporary file for collection of GWAS summary statistics
-path_gwas_format=${4} # full path to file for formatted GWAS summary statistics
-path_gwas_format_compress=${5} # full path to file for formatted GWAS summary statistics after compression
-path_promiscuity_scripts=${6} # complete path to directory of scripts for z-score standardization
-report=${7} # whether to print reports
-
-#path_calculate_z_score="$path_promiscuity_scripts/calculate_z_score_column_4_of_5.sh"
-path_calculate_z_score="$path_promiscuity_scripts/calculate_z_score_column_5_of_6.sh"
+path_gwas_source=${1} # full path to source file with GWAS summary statistics
+path_gwas_collection=${2} # full path to temporary file for collection of GWAS summary statistics
+path_gwas_format=${3} # full path to file for formatted GWAS summary statistics
+path_gwas_format_compress=${4} # full path to file for formatted GWAS summary statistics after compression
+path_script_calculate_z_score=${5} # full path to directory of scripts for z-score standardization
+report=${6} # whether to print reports
 
 ###########################################################################
 # Execute procedure.
@@ -29,9 +25,8 @@ path_calculate_z_score="$path_promiscuity_scripts/calculate_z_score_column_5_of_
 # Report.
 if [[ "$report" == "true" ]]; then
   echo "----------"
-  echo "study: " $study
-  echo "path to original file: " $path_source_file
-  echo "path to new file: " $path_gwas_format
+  echo "path to source file: " $path_gwas_source
+  echo "path to target file: " $path_gwas_format_compress
 fi
 
 # Format of GWAS summary statistics for LDSC.
@@ -73,7 +68,7 @@ rm $path_gwas_format_compress
 
 # Organize information from linear GWAS.
 echo "SNP A1 A2 N BETA P" > $path_gwas_collection
-zcat $path_source_file | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
+zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   if ($6 == $5 && $6 != $4)
     print $3, toupper($6), toupper($4), $8, $9, $12
   else if ($6 == $4 && $6 != $5)
@@ -84,7 +79,7 @@ zcat $path_source_file | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
 
 # Calculate Z-score standardization of Beta coefficients.
 if false; then
-  /usr/bin/bash $path_calculate_z_score \
+  /usr/bin/bash $path_script_calculate_z_score \
   5 \
   $path_gwas_collection \
   $path_gwas_format \
