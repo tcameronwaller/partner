@@ -39,10 +39,13 @@ cd ~/paths
 path_tools=$(<"./waller_tools.txt")
 path_ldsc=$(<"./tools_ldsc.txt")
 path_environment_ldsc="${path_tools}/python/environments/ldsc"
-#source "${path_environment_ldsc}/bin/activate"
+source "${path_environment_ldsc}/bin/activate"
 echo "confirm Python Virtual Environment path..."
 which python2
 sleep 5s
+
+echo "here is the out path"
+echo $path_genetic_correlation_report
 
 ################################################################################
 # Estimate genetic correlation in LDSC.
@@ -54,7 +57,7 @@ $path_ldsc/ldsc.py \
 
 ################################################################################
 # Deactivate Virtual Environment.
-#deactivate
+deactivate
 which python2
 
 ################################################################################
