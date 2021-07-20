@@ -78,11 +78,12 @@ rm $path_gwas_format_compress
 # Print any rows with fewer than the expectation of columns.
 zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_collection
 zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
-  if ( NF < 12)
+  if ( NF != 12)
     print $0
   }' >> $path_gwas_collection
 
-echo "here are the rows with NF < 12"
+echo "----------"
+echo "here are the rows with NF != 12"
 head -10 $path_gwas_collection
 
 # Fill or drop any rows with empty cells.
