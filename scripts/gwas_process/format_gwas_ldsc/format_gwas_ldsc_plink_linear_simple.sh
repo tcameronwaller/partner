@@ -12,13 +12,12 @@
 
 ################################################################################
 # Organize variables.
-path_gwas_source=${1} # full path to source file with GWAS summary statistics, with gzip compression
+path_gwas_source=${1} # full path to source file with GWAS summary statistics
 path_gwas_collection=${2} # full path to temporary file for collection of GWAS summary statistics
 path_gwas_format=${3} # full path to file for formatted GWAS summary statistics
-path_gwas_standard=${4} # full path to file for GWAS summary statistics with standard z-scores
-path_gwas_format_compress=${5} # full path to file for formatted GWAS summary statistics after compression
-path_script_calculate_z_score=${6} # full path to directory of scripts for z-score standardization
-report=${7} # whether to print reports
+path_gwas_format_compress=${4} # full path to file for formatted GWAS summary statistics after compression
+path_script_calculate_z_score=${5} # full path to directory of scripts for z-score standardization
+report=${6} # whether to print reports
 
 ###########################################################################
 # Execute procedure.
@@ -65,60 +64,45 @@ fi
 # Remove any previous versions of temporary files.
 rm $path_gwas_collection
 rm $path_gwas_format
-rm $path_gwas_standard
 rm $path_gwas_format_compress
 
 # Organize information from linear GWAS.
-
-# Fill or drop any rows with empty cells.
-zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_collection
+# Select relevant columns and place them in the correct order.
+echo "SNP A1 A2 N BETA P" > $path_gwas_collection
+#echo "SNP A1 A2 N Z P" > $path_gwas_collection
 zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
-  if ( NF < 12)
-    print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
+  if ($6 == $5 && $6 != $4)
+    print $3, toupper($6), toupper($4), $8, $9, $12
+  else if ($6 == $4 && $6 != $5)
+    print $3, toupper($6), toupper($5), $8, $9, $12
+  else
+    print $3, toupper($6), "ERROR", $8, $9, $12
   }' >> $path_gwas_collection
 
-echo "here are the rows with NF < 12"
-head -10 $path_gwas_collection
-
+# Calculate Z-score standardization of Beta coefficients.
 if false; then
-  # Select relevant columns and place them in the correct order.
-  #echo "SNP A1 A2 N BETA P" > $path_gwas_collection
-  echo "SNP A1 A2 N Z P" > $path_gwas_format
-  zcat $path_gwas_collection | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
-    if ($6 == $5 && $6 != $4)
-      print $3, toupper($6), toupper($4), $8, $9, $12
-    else if ($6 == $4 && $6 != $5)
-      print $3, toupper($6), toupper($5), $8, $9, $12
-    else
-      print $3, toupper($6), "ERROR", $8, $9, $12
-    }' >> $path_gwas_format
-
-  # Calculate Z-score standardization of Beta coefficients.
-  if true; then
-    /usr/bin/bash $path_script_calculate_z_score \
-    5 \
-    $path_gwas_format \
-    $path_gwas_standard \
-    $report
-  else
-    cp $path_gwas_format $path_gwas_standard
-  fi
-
-  # Compress file format.
-  gzip -cvf $path_gwas_standard > $path_gwas_format_compress
-
-  # Report.
-  if [[ "$report" == "true" ]]; then
-    echo "----------"
-    echo "before standardization:"
-    head -10 $path_gwas_format
-    echo "after standardization:"
-    head -10 $path_gwas_standard
-    echo "----------"
-  fi
-
-  # Remove temporary files.
-  rm $path_gwas_collection
-  rm $path_gwas_format
-  rm $path_gwas_standard
+  /usr/bin/bash $path_script_calculate_z_score \
+  5 \
+  $path_gwas_collection \
+  $path_gwas_format \
+  $report
+else
+  cp $path_gwas_collection $path_gwas_format
 fi
+
+# Compress file format.
+gzip -cvf $path_gwas_format > $path_gwas_format_compress
+
+# Report.
+if [[ "$report" == "true" ]]; then
+  echo "----------"
+  echo "before standardization:"
+  head -10 $path_gwas_collection
+  echo "after standardization:"
+  head -10 $path_gwas_format
+  echo "----------"
+fi
+
+# Remove temporary files.
+rm $path_gwas_collection
+rm $path_gwas_format

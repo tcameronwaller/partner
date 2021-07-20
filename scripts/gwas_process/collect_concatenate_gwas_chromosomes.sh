@@ -43,7 +43,7 @@ path_source_chromosome="$path_gwas_source_parent/chromosome_1"
 matches=("${path_source_chromosome}/${pattern_source_file}")
 path_source_file="${matches[0]}"
 echo "source file for table column headers: " $path_source_file
-cat $path_source_file | awk 'BEGIN { FS=OFS=" "} NR == 1' > $path_gwas_concatenation
+cat $path_source_file | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_concatenation
 
 # Concatenate GWAS reports from selection chromosomes.
 for (( index=$chromosome_start; index<=$chromosome_end; index+=1 )); do
@@ -53,7 +53,7 @@ for (( index=$chromosome_start; index<=$chromosome_end; index+=1 )); do
   echo "source file: " $path_source_file
   # Concatenate information from chromosome reports.
   #cat $path_source_file >> $path_gwas_concatentation
-  cat $path_source_file | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12}' >> $path_gwas_concatenation
+  cat $path_source_file | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 { print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12 }' >> $path_gwas_concatenation
 done
 # Compress file format.
 gzip -cvf $path_gwas_concatenation > $path_gwas_concatenation_compress
