@@ -106,7 +106,10 @@ fi
 if true; then
   zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_collection
   zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
-    if ( $12 == "NA" )
+    if (
+      ( $12 != "NA" ) &&
+      ( ( $12 ~ /^[[:alpha:]]+$/ ) || ( $12 ~ /^[[:punct:]]+$/ ) )
+    )
       print $0
     else
       next
@@ -122,7 +125,13 @@ fi
 if false; then
   zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_collection
   zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
-    if ( $12 <= 1.0 )
+    if (
+      ( NF == 12 ) && # check that row cas correct count of columns
+      (
+        ( $12 == "NA" ) || # allow probability to have missing value
+        ( ( $12 ~ /^[0-9]+$/ ) && ( $12 <= 1.0 ) ) # require numeric probability to be less than or equal to one
+      )
+    )
       print $0
     else
       print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 1.0
