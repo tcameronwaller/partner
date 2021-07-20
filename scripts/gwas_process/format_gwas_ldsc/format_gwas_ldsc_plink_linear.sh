@@ -106,10 +106,7 @@ fi
 if true; then
   zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_collection
   zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
-    if (
-      ( $12 != "NA" ) &&
-      ( ( $12 ~ /^[[:alpha:]]+$/ ) || ( $12 ~ /^[[:punct:]]+$/ ) )
-    )
+    if ( ( $12 != "NA" ) && ( ( $12 ~ /^[[:alpha:]]+$/ ) || ( $12 ~ /^[[:punct:]]+$/ ) ) )
       print $0
     else
       next
