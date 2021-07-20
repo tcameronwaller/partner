@@ -37,10 +37,15 @@ fi
 rm $path_gwas_concatenation
 rm $path_gwas_concatenation_compress
 
-# TODO: make this more versatile by reading in the first row of the first chromosome file...
+# Initialize table columns by file for chromosome 1.
+# echo "#CHROM POS ID REF ALT A1 TEST OBS_CT BETA SE T_STAT P" > $path_gwas_concatenation
+path_source_chromosome="$path_gwas_source_parent/chromosome_1"
+matches=("${path_source_chromosome}/${pattern_source_file}")
+path_source_file="${matches[0]}"
+echo "source file for table column headers: " $path_source_file
+cat $path_source_file | awk 'BEGIN { FS=OFS=" "} NR == 1' > $path_gwas_concatenation
 
 # Concatenate GWAS reports from selection chromosomes.
-echo "#CHROM POS ID REF ALT A1 TEST OBS_CT BETA SE T_STAT P" > $path_gwas_concatenation
 for (( index=$chromosome_start; index<=$chromosome_end; index+=1 )); do
   path_source_chromosome="$path_gwas_source_parent/chromosome_${index}"
   matches=("${path_source_chromosome}/${pattern_source_file}")
