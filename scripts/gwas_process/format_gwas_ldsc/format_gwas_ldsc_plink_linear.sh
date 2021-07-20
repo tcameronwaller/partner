@@ -88,16 +88,36 @@ if false; then
 fi
 
 # Search the table for any invalid values of the probability column.
-if true; then
+# matches pattern "~"
+# does not match pattern "!~"
+if false; then
   zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_collection
   zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
-    if ( $12 !~ /^[0-9]+$/ )
+    if ( $12 =="NA" || $12 ~ /^[0-9]+$/ )
+      next
+    else
       print $0
     }' >> $path_gwas_collection
   echo "----------"
   echo "here are the rows with P non numeric"
   head -10 $path_gwas_collection
 fi
+
+if true; then
+  zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_collection
+  zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
+    if ( $12 == "NA" )
+      print $0
+    else
+      next
+    }' >> $path_gwas_collection
+  echo "----------"
+  echo "here are the rows with P equal to NA "
+  head -10 $path_gwas_collection
+fi
+
+
+
 
 if false; then
   zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_collection
