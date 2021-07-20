@@ -10,6 +10,10 @@
 ###########################################################################
 ###########################################################################
 
+# TODO: simplify arguments
+# 1. directory in which to write (and remove) temporary files
+# 2. full path to the format_compress file
+
 ################################################################################
 # Organize variables.
 path_gwas_source=${1} # full path to source file with GWAS summary statistics, with gzip compression
@@ -70,15 +74,18 @@ rm $path_gwas_format_compress
 
 # Organize information from linear GWAS.
 
-# Fill or drop any rows with empty cells.
+# Evaluate the table for rows with empty column cells.
+# Print any rows with fewer than the expectation of columns.
 zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_collection
 zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   if ( NF < 12)
-    print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
+    print $0
   }' >> $path_gwas_collection
 
 echo "here are the rows with NF < 12"
 head -10 $path_gwas_collection
+
+# Fill or drop any rows with empty cells.
 
 if false; then
   # Select relevant columns and place them in the correct order.

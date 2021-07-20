@@ -53,7 +53,8 @@ for (( index=$chromosome_start; index<=$chromosome_end; index+=1 )); do
   echo "source file: " $path_source_file
   # Concatenate information from chromosome reports.
   #cat $path_source_file >> $path_gwas_concatentation
-  cat $path_source_file | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 { print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12 }' >> $path_gwas_concatenation
+  #cat $path_source_file | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 { print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12 }' >> $path_gwas_concatenation
+  cat $path_source_file | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 { print $0 }' >> $path_gwas_concatenation
 done
 # Compress file format.
 gzip -cvf $path_gwas_concatenation > $path_gwas_concatenation_compress
