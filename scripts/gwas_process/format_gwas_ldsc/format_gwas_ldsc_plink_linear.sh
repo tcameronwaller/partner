@@ -74,19 +74,49 @@ rm $path_gwas_format_compress
 
 # Organize information from linear GWAS.
 
-# Evaluate the table for rows with empty column cells.
+# Search the table for rows with empty column cells.
 # Print any rows with fewer than the expectation of columns.
-zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_collection
-zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
-  if ( NF != 12)
-    print $0
-  }' >> $path_gwas_collection
+if false; then
+  zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_collection
+  zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
+    if ( NF != 12)
+      print $0
+    }' >> $path_gwas_collection
+  echo "----------"
+  echo "here are the rows with NF != 12"
+  head -10 $path_gwas_collection
+fi
 
-echo "----------"
-echo "here are the rows with NF != 12"
-head -10 $path_gwas_collection
+# Search the table for any invalid values of the probability column.
+if true; then
+  zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_collection
+  zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
+    if ( $12 !~ /^[0-9]+$/ )
+      print $0
+    }' >> $path_gwas_collection
+  echo "----------"
+  echo "here are the rows with P non numeric"
+  head -10 $path_gwas_collection
+fi
+
+if false; then
+  zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_collection
+  zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
+    if ( $12 <= 1.0 )
+      print $0
+    else
+      print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 1.0
+    }' >> $path_gwas_collection
+  echo "----------"
+  echo "here are the rows with P != 12"
+  head -10 $path_gwas_collection
+fi
+
+
 
 # Fill or drop any rows with empty cells.
+
+
 
 if false; then
   # Select relevant columns and place them in the correct order.
