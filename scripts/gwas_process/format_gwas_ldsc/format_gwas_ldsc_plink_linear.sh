@@ -43,7 +43,7 @@ fi
 # regression". Column "A1" always matches either column "REF" or column "ALT"
 # (TCW, 7 July 2021).
 
-# The designations of "reference" and "alternative" alleles are irrelevant to
+# The designations of "reference" and "alternate" alleles are irrelevant to
 # downstream analyses on GWAS summary statistics (such as LDSC).
 # What matters is which allele PLINK2 counted as the "effect" allele in GWAS
 # regression and which allele was the other allele.
@@ -51,7 +51,7 @@ fi
 # Column "A1" is the "effect" allele that PLINK2 counted in the regression,
 # corresponding to the coefficient (beta).
 # Determine the "non-effect" or "other" allele from either the "reference" or
-# "alternative" allele, whichever differs from the "effect" allele.
+# "alternate" allele, whichever differs from the "effect" allele.
 
 # description: ............................ LDSC column ........... PLINK column .......... position
 # variant identifier (RS ID): .............  "SNP" ................  "ID" .................. 3
