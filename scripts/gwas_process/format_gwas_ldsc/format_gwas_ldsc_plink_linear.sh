@@ -103,7 +103,7 @@ if false; then
   head -10 $path_gwas_collection
 fi
 
-if true; then
+if false; then
   zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_collection
   zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
     if ( ( $12 != "NA" ) && ( ( $12 ~ /^[[:alpha:]]+$/ ) || ( $12 ~ /^[[:punct:]]+$/ ) ) )
@@ -112,10 +112,22 @@ if true; then
       next
     }' >> $path_gwas_collection
   echo "----------"
-  echo "here are the rows with P equal to NA "
+  echo "here are the rows with P that is a alpha or punctuation character "
   head -10 $path_gwas_collection
 fi
 
+if true; then
+  zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_collection
+  zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
+    if ( ( $12 != "NA" ) && ( $12 > 1.0 ) )
+      print $0
+    else
+      next
+    }' >> $path_gwas_collection
+  echo "----------"
+  echo "here are the rows with P that is a alpha or punctuation character "
+  head -10 $path_gwas_collection
+fi
 
 
 
