@@ -119,7 +119,7 @@ fi
 if true; then
   zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_collection
   zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
-    if ( ( $12 != "NA" ) && ( $12 > 1.0 ) )
+    if ( ( $12 != "NA" ) && ( ($12 + 0) < 1.0E-100 ) )
       print $0
     else
       next
