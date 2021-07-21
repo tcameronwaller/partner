@@ -54,9 +54,9 @@ zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   if ( NF != 12)
     # Skip any rows with incorrect count of column fields.
     next
-  else if ( ( $12 != "NA" ) && ( ($12 + 0) < 1.0E-300 ) )
+  else if ( ( $12 != "NA" ) && ( ($12 + 0) < 1.0E-305 ) )
     # Constrain probability value.
-    print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, ( 1.0E-300 )
+    print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, ( 1.0E-305 )
   else if ( ( $12 != "NA" ) && ( ($12 + 0) > 1.0 ) )
     # Constrain probability value.
     print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, ( 1.0 )
