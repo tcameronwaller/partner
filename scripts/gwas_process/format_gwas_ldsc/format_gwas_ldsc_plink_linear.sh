@@ -34,6 +34,55 @@ if [[ "$report" == "true" ]]; then
   echo "path to target file: " $path_gwas_format_compress
 fi
 
+# Here are some useful regular expressions to evaluate values in "awk".
+# ( $12 ~ /^[0-9]+$/ ); ( $12 ~ /^[[:alpha:]]+$/ ); ( $12 ~ /^[[:punct:]]+$/ )
+
+# Remove any previous versions of temporary files.
+rm $path_gwas_collection
+rm $path_gwas_format
+rm $path_gwas_standard
+rm $path_gwas_format_compress
+
+# Constrain GWAS probability values within bounds for LDSC.
+# Probability values in column "P" from PLINK2 have values of "NA" for missing
+# or floating point values between zero and one.
+# LDSC uses 64-bit floating point precision (double precision) to represent
+# values from +/- 2.23E-308 to +/- 1.80E308 (https://github.com/bulik/ldsc/issues/144).
+# Constrain probability values from 1.0E-300 to 1.0.
+if false; then
+  zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_collection
+  zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
+    if ( NF != 12)
+      # Skip any rows with incorrect count of column fields.
+      next
+    else if ( ( $12 != "NA" ) && ( ($12 + 0) < 1.0E-300 ) )
+      # Constrain probability value.
+      print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, ( 1.0E-300 )
+    else if ( ( $12 != "NA" ) && ( ($12 + 0) > 1.0 ) )
+      # Constrain probability value.
+      print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, ( 1.0 )
+    else
+      print $0
+    }' >> $path_gwas_collection
+fi
+
+zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_collection
+zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
+  if ( NF != 12)
+    # Skip any rows with incorrect count of column fields.
+    next
+  else if ( ( $12 != "NA" ) && ( ($12 + 0) > 1.0 ) )
+    # Constrain probability value.
+    print $0
+  else
+    next
+  }' >> $path_gwas_collection
+
+echo "--------"
+echo "here it is!!!!"
+head -10 $path_gwas_collection
+
+
 # Format of GWAS summary statistics for LDSC.
 # https://github.com/bulik/ldsc/wiki/Heritability-and-Genetic-Correlation#reformatting-summary-statistics
 # Format of GWAS reports by PLINK2 for linear regression (".glm.linear").
@@ -66,90 +115,7 @@ fi
 # effect (coefficient or odds ratio): .....  "BETA" or "OR" .......  "BETA" ................ 9
 # probability (p-value): ..................  "P" ..................  "P" ................... 12
 
-# Remove any previous versions of temporary files.
-rm $path_gwas_collection
-rm $path_gwas_format
-rm $path_gwas_standard
-rm $path_gwas_format_compress
-
 # Organize information from linear GWAS.
-
-# Search the table for rows with empty column cells.
-# Print any rows with fewer than the expectation of columns.
-if false; then
-  zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_collection
-  zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
-    if ( NF != 12)
-      print $0
-    }' >> $path_gwas_collection
-  echo "----------"
-  echo "here are the rows with NF != 12"
-  head -10 $path_gwas_collection
-fi
-
-# Search the table for any invalid values of the probability column.
-# matches pattern "~"
-# does not match pattern "!~"
-if false; then
-  zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_collection
-  zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
-    if ( $12 =="NA" || $12 ~ /^[0-9]+$/ )
-      next
-    else
-      print $0
-    }' >> $path_gwas_collection
-  echo "----------"
-  echo "here are the rows with P non numeric"
-  head -10 $path_gwas_collection
-fi
-
-if false; then
-  zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_collection
-  zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
-    if ( ( $12 != "NA" ) && ( ( $12 ~ /^[[:alpha:]]+$/ ) || ( $12 ~ /^[[:punct:]]+$/ ) ) )
-      print $0
-    else
-      next
-    }' >> $path_gwas_collection
-  echo "----------"
-  echo "here are the rows with P that is a alpha or punctuation character "
-  head -10 $path_gwas_collection
-fi
-
-if true; then
-  zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_collection
-  zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
-    if ( ( $12 != "NA" ) && ( ($12 + 0) < 1.0E-300 ) )
-      print $0
-    else
-      next
-    }' >> $path_gwas_collection
-  echo "----------"
-  echo "here are the rows with P that is a alpha or punctuation character "
-  head -10 $path_gwas_collection
-fi
-
-
-
-if false; then
-  zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_collection
-  zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
-    if (
-      ( NF == 12 ) && # check that row cas correct count of columns
-      (
-        ( $12 == "NA" ) || # allow probability to have missing value
-        ( ( $12 ~ /^[0-9]+$/ ) && ( $12 <= 1.0 ) ) # require numeric probability to be less than or equal to one
-      )
-    )
-      print $0
-    else
-      print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 1.0
-    }' >> $path_gwas_collection
-  echo "----------"
-  echo "here are the rows with P != 12"
-  head -10 $path_gwas_collection
-fi
-
 
 
 # Fill or drop any rows with empty cells.
