@@ -20,7 +20,7 @@ report=${4} # whether to print reports
 # Paths.
 path_gwas_concatenation="${path_gwas_target_parent}/gwas_concatenation.txt"
 path_gwas_concatenation_compress="${path_gwas_target_parent}/gwas_concatenation.txt.gz"
-path_gwas_collection="${path_gwas_target_parent}/gwas_collection.txt"
+path_gwas_constraint="${path_gwas_target_parent}/gwas_constraint.txt"
 path_gwas_format="${path_gwas_target_parent}/gwas_format.txt"
 path_gwas_standard="${path_gwas_target_parent}/gwas_standard.txt"
 path_gwas_format_compress="${path_gwas_target_parent}/gwas_format.txt.gz"
@@ -51,7 +51,7 @@ $report
 path_gwas_source=$path_gwas_concatenation_compress
 /usr/bin/bash "$path_script_gwas_format" \
 $path_gwas_source \
-$path_gwas_collection \
+$path_gwas_constraint \
 $path_gwas_format \
 $path_gwas_standard \
 $path_gwas_format_compress \
