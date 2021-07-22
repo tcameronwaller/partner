@@ -60,7 +60,7 @@ sleep 5s
 # - "--signed-sumstats Z,0"
 $path_ldsc/munge_sumstats.py \
 --sumstats $path_gwas_format_compress \
---signed-sumstats Z,0 \
+--signed-sumstats BETA,0 \
 --merge-alleles $path_alleles/w_hm3.snplist \
 --out $path_gwas_munge
 
