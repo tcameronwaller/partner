@@ -98,7 +98,7 @@ zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
 
 # Organize information from linear GWAS.
 # Select relevant columns and place them in the correct order.
-echo "SNP A1 A2 N BETA P" > $path_gwas_constraint
+echo "SNP A1 A2 N BETA P" > $path_gwas_format
 #echo "SNP A1 A2 N Z P" > $path_gwas_format
 cat $path_gwas_constraint | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   if ($6 == $5 && $6 != $4)
