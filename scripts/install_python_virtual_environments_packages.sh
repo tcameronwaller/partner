@@ -15,13 +15,10 @@ path_python_2718="${path_python}/python_2.7.18"
 path_environment_main="${path_tools}/python/environments/main"
 path_environment_ldsc="${path_tools}/python/environments/ldsc"
 
-
 # Initialize directories.
 mkdir -p $path_python
 mkdir -p $path_python_396
 mkdir -p $path_python_2718
-
-
 
 ################################################################################
 # Python installation
@@ -90,19 +87,17 @@ make install # TCW, 6 July 2021
 # Remove installation.
 #rm -rf $path_python_2718
 
-
-
 ################################################################################
 # Pip
 # Install pip for specific installations of Python.
 
+# TODO: this doesn't upgrade pip in the specific python3 installation
+# TODO: hence necessary to upgrade within the environment
 "${path_python_396}/bin/python3" -m pip install --user --upgrade pip
-"${path_python_396}/bin/python3" -m pip --version # pip 21.1.3, TCW, 6 July 2021
+"${path_python_396}/bin/python3" -m pip --version # pip 21.2.1, TCW, 28 July 2021
 
 "${path_python_2718}/bin/python2" -m pip install --user --upgrade pip
 "${path_python_2718}/bin/python2" -m pip --version # pip 20.3.4, TCW, 6 July 2021
-
-
 
 ################################################################################
 # Python virtual environments
@@ -110,6 +105,8 @@ make install # TCW, 6 July 2021
 # specific path, then the Virtual Environment will remember those paths within
 # its own "PYTHONPATH" variable.
 
+################################################################################
+# Python3 virtual environment
 # Python standard module "venv" is the preferred Virtual Environment manager for
 # Python version 3.3 or higher.
 # https://docs.python.org/3/tutorial/venv.html
@@ -117,26 +114,33 @@ make install # TCW, 6 July 2021
 # source [virtual environment name]/bin/activate
 # deactivate
 
-"${path_python_396}/bin/python3" -m venv $path_environment_main
+"${path_python_396}/bin/python3" -m venv --help # TCW, 28 July 2021
+
+"${path_python_396}/bin/python3" -m venv $path_environment_main # TCW, 28 July 2021
 
 # Activate virtual environment.
+# Unable to install with "--user" flag within virtual environment.
 source "${path_environment_main}/bin/activate"
-which python3
-pip3 install --target=${path_python_library} --upgrade numpy
-pip3 install --target=${path_python_library} --upgrade scipy
-pip3 install --target=${path_python_library} --upgrade testresources
-pip3 install --target=${path_python_library} --upgrade pandas
-pip3 install --target=${path_python_library} --upgrade sklearn
-pip3 install --target=${path_python_library} --upgrade statsmodels
-pip3 install --target=${path_python_library} --upgrade matplotlib
-pip3 install --target=${path_python_library} --upgrade networkx
+which python3 # "${path_environment_main}/bin/python3" TCW, 28 July 2021
+python3 -m pip --version # "pip 21.1.3 from ${path_environment_main}/lib/python3.9/site-packages/pip (python 3.9)" TCW, 28 July 2021
+python3 -m pip install --upgrade pip
+python3 -m pip --version # "pip 21.2.1 from ${path_environment_main}/lib/python3.9/site-packages/pip (python 3.9)" TCW, 28 July 2021
+python3 -m pip install --upgrade numpy # "numpy-1.21.1" TCW, 28 July 2021
+python3 -m pip install --upgrade scipy # "scipy-1.7.0" TCW, 28 July 2021
+python3 -m pip install --upgrade testresources # "pbr-5.6.0 testresources-2.0.1" TCW, 28 July 2021
+python3 -m pip install --upgrade pandas # "pandas-1.3.1 python-dateutil-2.8.2 pytz-2021.1 six-1.16.0" TCW, 28 July 2021
+python3 -m pip install --upgrade sklearn # "joblib-1.0.1 scikit-learn-0.24.2 sklearn-0.0 threadpoolctl-2.2.0" TCW, 28 July 2021
+python3 -m pip install --upgrade statsmodels # "patsy-0.5.1 statsmodels-0.12.2" TCW, 28 July 2021
+python3 -m pip install --upgrade matplotlib # "cycler-0.10.0 kiwisolver-1.3.1 matplotlib-3.4.2 pillow-8.3.1 pyparsing-2.4.7" TCW, 28 July 2021
+python3 -m pip install --upgrade networkx # "networkx-2.6.2" TCW, 28 July 2021
 deactivate
 which python3
 
 # Delete virtual environment.
 # rm -rf [virtual environment path and name] # remove virtual environment
 
-
+################################################################################
+# Python2 virtual environment
 
 # Python standard module "virualenv" is the preferred Virtual Environment
 # manager for previous versions of Python, including Python 2
@@ -176,51 +180,20 @@ deactivate
 which python2 # "/usr/bin/python2" TCW, 7 July 2021
 
 ################################################################################
-# Stuff that still needs to be cleaned up...
-
-path_python="/usr/bin/python3"
-path_python_library="/home/tcameronwaller/project_local/python_library"
-
-# Echo each command to console.
-set -x
-
-cd ~
-
-# TODO: experiment with python virtual environments...
-
-
-# Python.
-python3 --version
-#wget "https://www.python.org/ftp/python/3.9.4/Python-3.9.4.tgz"
-#sudo apt update
-#sudo apt install python3.9
-
-# TODO: consider using a "requirements.txt" file to specify package names and versions
-
-# Pip.
-#python3 -m pip --version
-#python3 -m ensurepip --upgrade
-#sudo apt install python3-pip
-#python3 -m pip3 install --upgrade pip3
-pip3 --version
+################################################################################
+################################################################################
+# Notes
 
 # Install Python packages to specific location.
+# Prioritize packages at this path by appending it to the "PYTHONPATH" global variable.
+#path_python_library="/.../python_library"
+#PYTHONPATH=${path_python_library}:$PYTHONPATH
+#export PYTHONPATH
 # pip install --target=[path to installation] --upgrade [package]
 # pip install --install-option="--prefix=[path to installation]" --upgrade [package]
 
-
-
 # Install specific versions of Python packages
 # python -m pip install [requested package]=2.18.4
-
-pip3 install --target=${path_python_library} --upgrade numpy
-pip3 install --target=${path_python_library} --upgrade scipy
-pip3 install --target=${path_python_library} --upgrade testresources
-pip3 install --target=${path_python_library} --upgrade pandas
-pip3 install --target=${path_python_library} --upgrade sklearn
-pip3 install --target=${path_python_library} --upgrade statsmodels
-pip3 install --target=${path_python_library} --upgrade matplotlib
-pip3 install --target=${path_python_library} --upgrade networkx
 
 # Uninstall Python packages from specific location.
 # A reciprocal uninstall implementation does not yet exist.
