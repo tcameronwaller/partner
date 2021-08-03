@@ -1,6 +1,33 @@
 """
-...
+Supply basic plotting functionality.
 
+Author:
+
+    T. Cameron Waller
+    tcameronwaller@gmail.com
+    Rochester, Minnesota 55904
+    United States of America
+
+License:
+
+    This file is part of Promiscuity
+    (https://github.com/tcameronwaller/promiscuity/).
+
+    Promiscuity supports data analysis in multiple other projects.
+    Copyright (C) 2021 Thomas Cameron Waller
+
+    Promiscuity is free software: you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by the Free
+    Software Foundation, either version 3 of the License, or (at your option)
+    any later version.
+
+    Promiscuity is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+    more details.
+
+    You should have received a copy of the GNU General Public License along
+    with Promiscuity. If not, see <http://www.gnu.org/licenses/>.
 """
 
 ###############################################################################
@@ -1950,7 +1977,7 @@ def plot_scatter_factor_groups(
     return figure
 
 
-def plot_scatter_points_ordinate_error_bars(
+def plot_scatter_points_discrete_abscissa_ordinate_error_bars(
     table=None,
     abscissa=None,
     ordinate=None,
@@ -1966,6 +1993,11 @@ def plot_scatter_points_ordinate_error_bars(
     """
     Creates a figure of a chart of type scatter.
 
+    This plot's abscissa (horizontal, x axis) fits best for a variable with
+    discrete values.
+    This plot's ordinate (vertical, y axis) fits best for a variable with
+    continuous values.
+
     arguments:
         table (object): Pandas data frame of feature variables across columns
             and observation records across rows
@@ -1973,8 +2005,10 @@ def plot_scatter_points_ordinate_error_bars(
             axis
         ordinate (str): name of table's column with variable for vertical (y)
             axis
-        ordinate_error_low (str): name of table's column
-        ordinate_error_high (str): name of table's column
+        ordinate_error_low (str): name of table's column for the extent of the
+            bottom error bar below the dot
+        ordinate_error_high (str): name of table's column for the extent of the
+            top error bar above the dot
         title_abscissa (str): title for abscissa on horizontal axis
         title_ordinate (str): title for ordinate on vertical axis
         factor (str): name of data column with groups or factors of samples
