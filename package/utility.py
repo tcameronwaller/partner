@@ -1520,6 +1520,39 @@ def convert_dataframe_to_records(data=None):
     return data_copy.to_dict(orient="records")
 
 
+def convert_table_columns_variables_types_float(
+    columns=None,
+    table=None,
+):
+    """
+    Converts data variable types.
+
+    arguments:
+        columns (list<str>): names of columns
+        table (object): Pandas data frame of phenotype variables across UK
+            Biobank cohort
+
+    raises:
+
+    returns:
+        (object): Pandas data frame of phenotype variables across UK Biobank
+            cohort
+
+    """
+
+    # Copy data.
+    table = table.copy(deep=True)
+    # Convert data variable types.
+    for column in columns:
+        table[column] = pandas.to_numeric(
+            table[column],
+            errors="coerce", # force any invalid values to missing or null
+            downcast="float",
+        )
+    # Return information.
+    return table
+
+
 def segregate_data_two_thresholds(
     data=None,
     abscissa=None,

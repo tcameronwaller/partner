@@ -27,8 +27,9 @@ sudo apt update
 sudo apt install atom
 
 # Discord
+# Or use the web browser application.
 cd ~/Downloads
-wget https://dl.discordapp.net/apps/linux/0.0.14/discord-0.0.14.deb
+wget https://dl.discordapp.net/apps/linux/0.0.15/discord-0.0.15.deb
 #wget "https://discord.com/api/download?platform=linux&format=deb"
 sudo apt install ./discord-0.0.14.deb
 sudo apt remove discord
@@ -72,3 +73,24 @@ sudo apt install gnome-tweak-tool
 sudo add-apt-repository ppa:inkscape.dev/stable
 sudo apt update
 sudo apt install inkscape
+
+# Audacity
+# https://www.audacityteam.org/
+cd ~/Downloads
+wget https://github.com/audacity/audacity/releases/download/Audacity-3.0.3/audacity-linux-3.0.3-x86_64.AppImage
+chmod +x ./audacity-linux-3.0.3-x86_64.AppImage
+./audacity-linux-3.0.3-x86_64.AppImage
+
+# PulseAudio and PulseAudio Volume Control
+# PulseAudio improves performance of Audacity for audio recording.
+sudo apt install pulseaudio
+sudo apt install pavucontrol
+
+# Linux Multi-Media Studio (LMMS)
+# https://lmms.io
+# Set the download file to executable.
+# Run the AppImage directly.
+cd ~/Downloads
+wget https://github.com/LMMS/lmms/releases/download/v1.2.2/lmms-1.2.2-linux-x86_64.AppImage
+chmod +x ./lmms-1.2.2-linux-x86_64.AppImage
+./lmms-1.2.2-linux-x86_64.AppImage
