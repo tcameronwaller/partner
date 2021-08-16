@@ -1960,8 +1960,30 @@ def impute_continuous_variables_missing_values_half_minimum(
     return table
 
 
+def calculate_relative_variance(
+    array=None,
+):
+    """
+    Calculates the relative variance.
 
+    arguments:
+        array (object): NumPy array of ratio-scale values
 
+    raises:
+
+    returns:
+        (float): value of relative variance
+
+    """
+
+    mean = numpy.nanmean(array)
+    variance = numpy.nanvar(array)
+    if (mean != 0.0):
+        relative_variance = (variance / mean)
+    else:
+        relative_variance = float("nan")
+    # Return information.
+    return relative_variance
 
 
 # This is inefficiently implemented... consider obsolete
@@ -2064,8 +2086,8 @@ def standardize_table_values_by_column(
     # Calculate standard scores by column.
     # This method inserts missing values if the standard deviation is zero.
     table_scale = table.apply(
-        lambda series: scipy.stats.zscore(
-            series.to_numpy(),
+        lambda column: scipy.stats.zscore(
+            column.to_numpy(),
             axis=0,
             ddof=1, # sample standard deviation
             nan_policy="omit", # Ignore missing values.
