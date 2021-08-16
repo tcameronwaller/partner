@@ -58,7 +58,7 @@ import statsmodels.api
 
 # Custom
 
-import utility
+import promiscuity.utility as utility
 
 
 #dir()
