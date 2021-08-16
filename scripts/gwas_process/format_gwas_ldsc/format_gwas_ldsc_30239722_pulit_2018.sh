@@ -10,16 +10,13 @@
 
 ################################################################################
 # Organize variables.
-study=${1} # unique identifier of the current GWAS study
-path_source_file=${2} # full path to source file with GWAS summary statistics
-path_gwas_collection=${3} # full path to temporary file for collection of GWAS summary statistics
-path_gwas_format=${4} # full path to file for formatted GWAS summary statistics
+path_gwas_source=${1} # full path to source file with GWAS summary statistics, with gzip compression
+path_gwas_constraint=${2} # full path to temporary file for constraint of GWAS summary statistics to bounds
+path_gwas_format=${3} # full path to file for formatted GWAS summary statistics
+path_gwas_standard=${4} # full path to file for GWAS summary statistics with standard z-scores
 path_gwas_format_compress=${5} # full path to file for formatted GWAS summary statistics after compression
-path_promiscuity_scripts=${6} # complete path to directory of scripts for z-score standardization
+path_script_calculate_z_score=${6} # full path to directory of scripts for z-score standardization
 report=${7} # whether to print reports
-
-#path_calculate_z_score="$path_promiscuity_scripts/calculate_z_score_column_4_of_5.sh"
-path_calculate_z_score="$path_promiscuity_scripts/calculate_z_score_column_5_of_6.sh"
 
 ###########################################################################
 # Execute procedure.
@@ -27,10 +24,39 @@ path_calculate_z_score="$path_promiscuity_scripts/calculate_z_score_column_5_of_
 # Report.
 if [[ "$report" == "true" ]]; then
   echo "----------"
-  echo "study: " $study
-  echo "path to original file: " $path_source_file
-  echo "path to new file: " $path_gwas_format
+  echo "path to source file: " $path_gwas_source
+  echo "path to target file: " $path_gwas_format_compress
 fi
+
+# Here are some useful regular expressions to evaluate values in "awk".
+# ( $12 ~ /^[0-9]+$/ ); ( $12 ~ /^[[:alpha:]]+$/ ); ( $12 ~ /^[[:punct:]]+$/ )
+
+# Remove any previous versions of temporary files.
+rm $path_gwas_constraint
+rm $path_gwas_format
+rm $path_gwas_standard
+rm $path_gwas_format_compress
+
+# Constrain GWAS probability values within bounds for LDSC.
+# Probability values in column "P" from PLINK2 have values of "NA" for missing
+# or floating point values between zero and one.
+# LDSC uses 64-bit floating point precision (double precision) to represent
+# values from +/- 2.23E-308 to +/- 1.80E308 (https://github.com/bulik/ldsc/issues/144).
+# Constrain probability values from 1.0E-300 to 1.0.
+zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_constraint
+zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
+  if ( NF != 12)
+    # Skip any rows with incorrect count of column fields.
+    next
+  else if ( ( $12 != "NA" ) && ( ($12 + 0) < 1.0E-305 ) )
+    # Constrain probability value.
+    print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, ( 1.0E-305 )
+  else if ( ( $12 != "NA" ) && ( ($12 + 0) > 1.0 ) )
+    # Constrain probability value.
+    print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, ( 1.0 )
+  else
+    print $0
+  }' >> $path_gwas_constraint
 
 # Format of GWAS summary statistics for LDSC.
 # https://github.com/bulik/ldsc/wiki/Heritability-and-Genetic-Correlation#reformatting-summary-statistics
@@ -41,10 +67,6 @@ fi
 # sample size: ............................  "N" ..................  "N" ....................... 10
 # effect (coefficient or odds ratio): .....  "BETA" or "OR" .......  "BETA" or "BETA_COJO" ..... 7
 # probability (p-value): ..................  "P" ..................  "P" or "P_COJO" ........... 9
-
-# Remove any previous versions of temporary files.
-rm $path_gwas_collection
-rm $path_gwas_format
 
 # Organize information from linear GWAS.
 echo "SNP A1 A2 N BETA P" > $path_gwas_collection

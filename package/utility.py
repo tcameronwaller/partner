@@ -1540,6 +1540,8 @@ def convert_table_columns_variables_types_float(
 
     """
 
+    # pandas.DataFrame.astype()
+
     # Copy data.
     table = table.copy(deep=True)
     # Convert data variable types.
@@ -2306,11 +2308,6 @@ def report_contingency_table_stratification_by_missingness(
 # Stratifications by continuous variables
 
 
-
-
-
-
-
 ################### WORK ZONE ###########################
 
 
@@ -2319,7 +2316,67 @@ def report_contingency_table_stratification_by_missingness(
 # TODO: switch to statsmodels PCA
 # https://www.statsmodels.org/devel/generated/statsmodels.multivariate.pca.pca.html
 
-def calculate_principal_components(
+
+def calculate_principal_components_statsmodels(
+    table=None,
+    report=None,
+):
+    """
+    Calculates the principal components using the statsmodels package.
+
+    Format of data should have features across columns and observations across
+    rows.
+
+    This function then transforms the data frame to a matrix.
+
+    This matrix has observations across dimension zero and features across
+    dimension one.
+
+    arguments:
+        table (object): Pandas data frame of variables (features) across
+            columns and samples (cases, observations) across rows with an
+            explicit index
+        report (bool): whether to print reports to terminal
+
+    raises:
+
+    returns:
+        (dict): information about data's principal components
+
+    """
+
+    # Copy information.
+    table = table.copy(deep=True)
+    index = copy.deepcopy(table.index)
+    # Organize matrix.
+    # Matrix format has samples (cases, observations) across dimension 0 (rows)
+    # and variables (features) across dimension 1 (columns).
+    matrix = table.to_numpy()
+    # Calculate Principal Components.
+    # If there is specification of "ncomp", then function only returns
+    # Eigenvalues, loadings, Eigenvectors, and principal components to this
+    # count.
+    # Function sorts Eigenvalues in decreasing order.
+    # Sort order of Eigenvectors mush match the sort order of Eigenvalues.
+    # Statsmodels erroneously returns "loadings" that have identical values and
+    # dimensions as the Eigenvectors.
+    pail_components = statsmodels.multivariate.pca.PCA(
+        matrix,
+        ncomp=3, # None # temporarily reduce count to 3
+        standardize=True,
+        gls=False,
+        weights=None,
+        method="eig", # "svd", "eig", "nipals"
+        missing=None, # None or "drop-row"
+    )
+
+
+
+    pass
+
+
+
+def calculate_principal_components_sklearn(
     data=None,
     components=None,
     report=None,
@@ -2334,6 +2391,9 @@ def calculate_principal_components(
 
     This matrix has observations across dimension zero and features across
     dimension one.
+
+    TODO: (TCW 16 August 2021) I think the data format description is incorrect
+    ... I think features are across columns and observations across rows
 
     arguments:
         data (object): Pandas data frame of signals with features across rows
