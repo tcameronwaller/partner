@@ -371,10 +371,7 @@ def calculate_sort_singular_value_decomposition_factors(
         )
         utility.print_terminal_partition(level=4)
         # Compare original matrix to matrix calculation from SVD factors.
-        print(
-            "Shape of original matrix: " +
-            str(pail_organization["matrix"].shape)
-        )
+        print("Shape of original matrix: " + str(matrix_source.shape))
         print("Shape of product matrix: " + str(matrix_product.shape))
         print(
             "Shape of sorted product matrix: " + str(matrix_product_sort.shape)
@@ -923,7 +920,7 @@ def calculate_principal_components_by_sklearn(
         )
         utility.print_terminal_partition(level=4)
         # Compare matrices.
-        print("Shape of source matrix: " + str(source_matrix.shape))
+        print("Shape of source matrix: " + str(matrix_source.shape))
         print(
             "Shape of score matrix: " + str(matrix_scores.shape)
         )
