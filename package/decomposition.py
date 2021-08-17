@@ -52,6 +52,7 @@ import math
 
 import pandas
 import sklearn
+import sklearn.decomposition
 import scipy
 import numpy
 import statsmodels.api
@@ -721,7 +722,7 @@ def calculate_principal_component_loadings_from_direct_factors(
 
 
 def calculate_principal_component_scores_from_factors(
-    source_matrix=None,
+    matrix_source=None,
     u_left_singular_vectors_columns=None,
     s_singular_values=None,
     s_singular_values_diagonal=None,
@@ -733,8 +734,9 @@ def calculate_principal_component_scores_from_factors(
     Singular Value Decomposition (SVD).
 
     arguments:
-        source_matrix (object): NumPy matrix source for Singular Value
-            Decomposition
+        matrix_source (object): NumPy matrix with samples (cases, observations)
+            across rows (dimension 0) and variables (features) across columns
+            (dimension 1)
         u_left_singular_vectors_columns (object): Numpy matrix
         s_singular_values (object): Numpy matrix
         s_singular_values_diagonal (object): Numpy matrix
@@ -756,8 +758,8 @@ def calculate_principal_component_scores_from_factors(
     vt = numpy.copy(vt_right_singular_vectors_rows)
 
     # Calculate the Principal Component Scores.
-    matrix_product_first = numpy.dot(u, s_diagonal)
-    matrix_product_second = numpy.dot(source_matrix, vt)
+    matrix_scores_first = numpy.dot(u, s_diagonal)
+    matrix_scores_second = numpy.dot(source_matrix, vt)
 
     # Report.
     if report:
@@ -785,8 +787,8 @@ def calculate_principal_component_scores_from_factors(
         ))
     # Compile information.
     pail = dict()
-    pail["matrix_product_first"] = matrix_product_first
-    pail["matrix_product_second"] = matrix_product_second
+    pail["matrix_scores_first"] = matrix_product_first
+    pail["matrix_scores_second"] = matrix_product_second
     # Return.
     return pail
 
@@ -990,6 +992,23 @@ def compare_principal_components_methods(
             report=report,
         )
     )
+    pail_scores = (
+        calculate_principal_component_scores_from_factors(
+            matrix_source=pail_organization["matrix"],
+            u_left_singular_vectors_columns=(
+                pail_decomposition["u_left_singular_vectors_columns"]
+            ),
+            s_singular_values=(
+                pail_decomposition["s_singular_values"]
+            ),
+            s_singular_values_diagonal=(
+                pail_decomposition["s_singular_values_diagonal"]
+            ),
+            vt_right_singular_vectors_rows=(
+                pail_decomposition["vt_right_singular_vectors_rows"]
+            ),
+            report=report,
+    ))
 
 
 
