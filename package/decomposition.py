@@ -744,6 +744,7 @@ def calculate_principal_component_loadings_from_direct_factors(
 def calculate_principal_component_scores_organize_table(
     source_matrix=None,
     source_index=None,
+    index_name=None,
     u_left_singular_vectors_columns=None,
     s_singular_values=None,
     s_singular_values_diagonal=None,
@@ -760,6 +761,7 @@ def calculate_principal_component_scores_organize_table(
         source_matrix (object): NumPy matrix source for Singular Value
             Decomposition
         source_index (object): Pandas series of index from original table
+        index_name (str): name of table's index column
         u_left_singular_vectors_columns (object): Numpy matrix
         s_singular_values (object): Numpy matrix
         s_singular_values_diagonal (object): Numpy matrix
@@ -772,7 +774,7 @@ def calculate_principal_component_scores_organize_table(
     raises:
 
     returns:
-        (object): Pandas data frame of principal component scores across samples
+        (dict): collection of information about the principal component scores
 
     """
 
@@ -786,6 +788,43 @@ def calculate_principal_component_scores_organize_table(
     # Calculate the Principal Component Scores.
     matrix_product_first = numpy.dot(u, s_diagonal)
     matrix_product_second = numpy.dot(source_matrix, vt)
+
+    # Organize table.
+    count_columns = matrix_product_first.shape[1]
+    count = 1
+    columns = list()
+    for component in range(0, count_columns, 1):
+        column = str(str(prefix) + str(separator) + str(count))
+        columns.append(column)
+        count += 1
+    table_first = pandas.DataFrame(
+        data=matrix_product_first,
+        index=source_index,
+        columns=columns,
+        dtype="float32",
+        copy=True,
+    )
+    table_first.rename_axis(
+        index=index_name,
+        axis="index",
+        copy=False,
+        inplace=True,
+    )
+
+    table_second = pandas.DataFrame(
+        data=matrix_product_second,
+        index=source_index,
+        columns=columns,
+        dtype="float32",
+        copy=True,
+    )
+    table_second.rename_axis(
+        index=index_name,
+        axis="index",
+        copy=False,
+        inplace=True,
+    )
+
 
     # Report.
     if report:
@@ -807,14 +846,24 @@ def calculate_principal_component_scores_organize_table(
         print("Are the product matrices nearly identical?: ")
         print(numpy.allclose(
             matrix_product_first, matrix_product_second,
-            rtol=5e-2, # relative tolerance
+            rtol=5e-2, # relative tolerance, 5%
             atol=1e-3, # absolute tolerance
             equal_nan=False,
         ))
-    # Return.
-    #return table
-    pass
+        utility.print_terminal_partition(level=4)
+        print("first table...")
+        print(table_first)
+        utility.print_terminal_partition(level=4)
+        print("second table...")
+        print(table_second)
 
+    # Compile information.
+    pail = dict()
+    pail["table"] = table_first
+    pail["matrix_product_first"] = matrix_product_first
+    pail["matrix_product_second"] = matrix_product_second
+    # Return.
+    return pail
 
 
 
@@ -829,6 +878,7 @@ def calculate_principal_component_scores_organize_table(
 
 def organize_principal_components_by_singular_value_decomposition(
     table=None,
+    index_name=None,
     prefix=None,
     separator=None,
     report=None,
@@ -897,6 +947,7 @@ def organize_principal_components_by_singular_value_decomposition(
         table (object): Pandas data frame of variables (features) across
             columns and samples (cases, observations) across rows with an
             explicit index
+        index_name (str): name of table's index column
         prefix (str): prefix for names of new principal component columns in
             table
         separator (str): separator for names of new columns
@@ -949,10 +1000,11 @@ def organize_principal_components_by_singular_value_decomposition(
 
     # TODO: calculate "loadings" as S [dot] V
 
-    table_principal_component_scores = (
+    pail_scores = (
         calculate_principal_component_scores_organize_table(
             source_matrix=pail_decomposition["matrix"],
             source_index=pail_decomposition["index"],
+            index_name=index_name,
             u_left_singular_vectors_columns=(
                 pail_decomposition["u_left_singular_vectors_columns"]
             ),
