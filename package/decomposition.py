@@ -81,6 +81,10 @@ def organize_table_matrix_for_singular_value_decomposition(
     Organizes a table and relevant information for Singular Value Decomposition
     (SVD).
 
+    Notice that "count_samples" represents the count of samples in the matrix
+    after thresholding. This is the count of samples for the actual calculation
+    of the Singular Value Decomposition.
+
     arguments:
         threshold_valid_proportion_per_column (float): minimal proportion of
             a column's rows that must have a valid value
@@ -220,10 +224,10 @@ def sort_decomposition_factors_by_decreasing_singular_values(
     Sort dimension 0 of matrix "vt".
 
     arguments:
-        u (object): unitary matrix with left singular vectors as columns
+        u (object): Numpy matrix with left singular vectors as columns
             (dimension 1)
-        s (object): singular values
-        vt (object): unitary matrix with right singular vectors as rows
+        s (object): Numpy matrix of singular values
+        vt (object): Numpy matrix with right singular vectors as rows
             (dimension 0)
         report (bool): whether to print reports
 
@@ -275,7 +279,7 @@ def sort_decomposition_factors_by_decreasing_singular_values(
     return pail
 
 
-def calculate_singular_value_decomposition_factors(
+def calculate_sort_singular_value_decomposition_factors(
     threshold_valid_proportion_per_column=None,
     threshold_column_relative_variance=None,
     table=None,
@@ -283,6 +287,8 @@ def calculate_singular_value_decomposition_factors(
 ):
     """
     Calculates the initial, raw factors of a Singular Value Decomposition (SVD).
+
+    Sorts decomposition factors by decreasing singular values.
 
     Table format: Pandas data frame with variables (features) across columns and
     their samples (cases, observations) across rows with an explicit index
@@ -429,9 +435,9 @@ def calculate_singular_value_decomposition_factors(
     pail["matrix"] = pail_organization["matrix"]
     pail["count_samples"] = pail_organization["count_samples"]
     pail["count_variables"] = pail_organization["count_variables"]
-    pail["left_singular_vectors_columns"] = pail_sort["u"]
-    pail["singular_values"] = pail_sort["s"]
-    pail["right_singular_vectors_rows"] = pail_sort["vt"]
+    pail["u_left_singular_vectors_columns"] = pail_sort["u"]
+    pail["s_singular_values"] = pail_sort["s"]
+    pail["vt_right_singular_vectors_rows"] = pail_sort["vt"]
     # Return.
     return pail
 
@@ -493,6 +499,103 @@ def calculate_principal_component_eigenvalues_from_singular_values(
         print(eigenvalues)
     # Return.
     return eigenvalues
+
+
+def calculate_principal_component_explanation_variance_proportions(
+    eigenvalues=None,
+    report=None,
+):
+    """
+    Calculates the proportion of variance explained by Eigenvectors of Principal
+    Components Analysis (PCA).
+
+    Sum of proportional variance explained across all Eigenvectors is one.
+
+    arguments:
+        eigenvalues (object): NumPy array of Eigenvalues
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): NumPy array of proportions of variance explained
+
+    """
+
+    def divide_by_total(value, total):
+        return (value / (total))
+    array_divide_by_total = numpy.vectorize(divide_by_total)
+
+    # Copy information.
+    eigenvalues = numpy.copy(eigenvalues)
+    # Calculate total variance across all Eigenvectors.
+    variance_total = numpy.sum(eigenvalues)
+    # Calculate proportional variance across Eigenvectors.
+    variance_proportions = array_divide_by_total(
+        eigenvalues, variance_total
+    )
+    # Return.
+    variance_proportions
+
+
+
+
+
+
+
+# TODO: make this function more of a driver
+# 1. calculate SVD factors
+
+
+def organize_principal_components_by_singular_value_decomposition(
+    table=None,
+    report=None,
+):
+    """
+    Organizes a Principal Components Analysis (PCA) by Singular Value
+    Decomposition (SVD).
+
+    Table format: Pandas data frame with variables (features) across columns and
+    their samples (cases, observations) across rows with an explicit index
+
+    Relevant dimension: Principal Components represent variance across features
+
+    arguments:
+        table (object): Pandas data frame of variables (features) across
+            columns and samples (cases, observations) across rows with an
+            explicit index
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict): collection of information about the Principal Components
+            Analysis (PCA)
+
+    """
+
+    # Threshold and organize original matrix.
+    # Calculate and sort Singular Value Decomposition (SVD) factors.
+    pail_decomposition = (
+        calculate_sort_singular_value_decomposition_factors(
+            threshold_valid_proportion_per_column=0.5,
+            threshold_column_relative_variance=0.5,
+            table=table,
+            report=report,
+        )
+    )
+    # Derive factors and summaries for Principal Component Analysis (PCA).
+    eigenvalues = (
+        calculate_principal_component_eigenvalues_from_singular_values(
+            singular_values=pail_decomposition["s_singular_values"],
+            count_samples=pail_decomposition["count_samples"],
+            report=report,
+    ))
+
+
+    pass
+
+
 
 
 
