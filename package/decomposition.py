@@ -807,8 +807,8 @@ def calculate_principal_component_scores_organize_table(
         print("Are the product matrices nearly identical?: ")
         print(numpy.allclose(
             matrix_product_first, matrix_product_second,
-            rtol=1e-2,
-            atol=1e-3,
+            rtol=5e-2, # relative tolerance
+            atol=1e-3, # absolute tolerance
             equal_nan=False,
         ))
     # Return.
