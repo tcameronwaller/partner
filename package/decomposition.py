@@ -568,7 +568,7 @@ def calculate_principal_component_explanation_variance_proportions(
         print("Variance proportions...")
         print(variance_proportions)
     # Return.
-    variance_proportions
+    return variance_proportions
 
 
 def organize_principal_component_variance_proportion_table(
