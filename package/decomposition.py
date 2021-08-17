@@ -71,7 +71,7 @@ import promiscuity.utility as utility
 # Singular Value Decomposition and Principal Components Analysis
 
 
-def organize_table_matrix_for_singular_value_decomposition(
+def organize_table_matrix_for_decomposition(
     threshold_valid_proportion_per_column=None,
     threshold_column_relative_variance=None,
     table=None,
@@ -80,6 +80,9 @@ def organize_table_matrix_for_singular_value_decomposition(
     """
     Organizes a table and relevant information for Singular Value Decomposition
     (SVD).
+
+    Table format: Pandas data frame with variables (features) across columns and
+    their samples (cases, observations) across rows with an explicit index
 
     Notice that "count_samples" represents the count of samples in the matrix
     after thresholding. This is the count of samples for the actual calculation
@@ -280,18 +283,13 @@ def sort_decomposition_factors_by_decreasing_singular_values(
 
 
 def calculate_sort_singular_value_decomposition_factors(
-    threshold_valid_proportion_per_column=None,
-    threshold_column_relative_variance=None,
-    table=None,
+    matrix_source=None,
     report=None,
 ):
     """
     Calculates the initial, raw factors of a Singular Value Decomposition (SVD).
 
     Sorts decomposition factors by decreasing singular values.
-
-    Table format: Pandas data frame with variables (features) across columns and
-    their samples (cases, observations) across rows with an explicit index
 
     Matrix format: NumPy matrix with samples (cases, observations) across rows
     (dimension 0) and variables (features) across columns (dimension 1)
@@ -321,13 +319,9 @@ def calculate_sort_singular_value_decomposition_factors(
     - - shape of matrix "Vt": (n, n) or (n, k)
 
     arguments:
-        threshold_valid_proportion_per_column (float): minimal proportion of
-            a column's rows that must have a valid value
-        threshold_column_relative_variance (float): minimal relative variance in
-            each column's values
-        table (object): Pandas data frame with variables (features) across
-            columns and samples (cases, observations) across rows with an
-            explicit index
+        matrix_source (object): NumPy matrix with samples (cases, observations)
+            across rows (dimension 0) and variables (features) across columns
+            (dimension 1)
         report (bool): whether to print reports
 
     raises:
@@ -338,22 +332,12 @@ def calculate_sort_singular_value_decomposition_factors(
 
     """
 
-    # Organize matrix.
-    pail_organization = (
-        organize_table_matrix_for_singular_value_decomposition(
-            threshold_valid_proportion_per_column=(
-                threshold_valid_proportion_per_column
-            ),
-            threshold_column_relative_variance=(
-                threshold_column_relative_variance
-            ),
-            table=table,
-            report=report,
-    ))
+    # Copy information.
+    matrix_source = numpy.copy(matrix_source)
 
     # Calculate Singular Value Decomposition (SVD).
     u, s, vt = scipy.linalg.svd(
-        numpy.copy(pail_organization["matrix"]),
+        matrix_source,
         full_matrices=False, # Full matrices do not convey more information.
         compute_uv=True,
         overwrite_a=False,
@@ -435,12 +419,7 @@ def calculate_sort_singular_value_decomposition_factors(
         pass
     # Compile information.
     pail = dict()
-    pail["table_threshold"] = pail_organization["table_threshold"]
-    pail["table_threshold_scale"] = pail_organization["table_threshold_scale"]
-    pail["index"] = pail_organization["index"]
-    pail["matrix"] = pail_organization["matrix"]
-    pail["count_samples"] = pail_organization["count_samples"]
-    pail["count_variables"] = pail_organization["count_variables"]
+    pail["matrix_source"] = matrix_source
     pail["u_left_singular_vectors_columns"] = pail_sort["u"]
     pail["ut_left_singular_vectors_rows"] = ut_sort
     pail["s_singular_values"] = pail_sort["s"]
@@ -741,16 +720,12 @@ def calculate_principal_component_loadings_from_direct_factors(
     return loadings
 
 
-def calculate_principal_component_scores_organize_table(
+def calculate_principal_component_scores_from_factors(
     source_matrix=None,
-    source_index=None,
-    index_name=None,
     u_left_singular_vectors_columns=None,
     s_singular_values=None,
     s_singular_values_diagonal=None,
     vt_right_singular_vectors_rows=None,
-    prefix=None,
-    separator=None,
     report=None,
 ):
     """
@@ -760,15 +735,10 @@ def calculate_principal_component_scores_organize_table(
     arguments:
         source_matrix (object): NumPy matrix source for Singular Value
             Decomposition
-        source_index (object): Pandas series of index from original table
-        index_name (str): name of table's index column
         u_left_singular_vectors_columns (object): Numpy matrix
         s_singular_values (object): Numpy matrix
         s_singular_values_diagonal (object): Numpy matrix
         vt_right_singular_vectors_rows (object): Numpy matrix
-        prefix (str): prefix for names of new principal component columns in
-            table
-        separator (str): separator for names of new columns
         report (bool): whether to print reports
 
     raises:
@@ -789,49 +759,12 @@ def calculate_principal_component_scores_organize_table(
     matrix_product_first = numpy.dot(u, s_diagonal)
     matrix_product_second = numpy.dot(source_matrix, vt)
 
-    # Organize table.
-    count_columns = matrix_product_first.shape[1]
-    count = 1
-    columns = list()
-    for component in range(0, count_columns, 1):
-        column = str(str(prefix) + str(separator) + str(count))
-        columns.append(column)
-        count += 1
-    table_first = pandas.DataFrame(
-        data=matrix_product_first,
-        index=source_index,
-        columns=columns,
-        dtype="float32",
-        copy=True,
-    )
-    table_first.rename_axis(
-        index=index_name,
-        axis="index",
-        copy=False,
-        inplace=True,
-    )
-
-    table_second = pandas.DataFrame(
-        data=matrix_product_second,
-        index=source_index,
-        columns=columns,
-        dtype="float32",
-        copy=True,
-    )
-    table_second.rename_axis(
-        index=index_name,
-        axis="index",
-        copy=False,
-        inplace=True,
-    )
-
-
     # Report.
     if report:
         utility.print_terminal_partition(level=2)
         print(
             "Report from: " +
-            "calculate_principal_component_scores_organize_table()"
+            "calculate_principal_component_scores_from_factors()"
         )
         utility.print_terminal_partition(level=4)
         # Compare alternative calculations of the scores.
@@ -850,20 +783,80 @@ def calculate_principal_component_scores_organize_table(
             atol=1e-3, # absolute tolerance
             equal_nan=False,
         ))
-        utility.print_terminal_partition(level=4)
-        print("first table...")
-        print(table_first)
-        utility.print_terminal_partition(level=4)
-        print("second table...")
-        print(table_second)
-
     # Compile information.
     pail = dict()
-    pail["table"] = table_first
     pail["matrix_product_first"] = matrix_product_first
     pail["matrix_product_second"] = matrix_product_second
     # Return.
     return pail
+
+
+def organize_principal_component_scores_table(
+    matrix=None,
+    index=None,
+    index_name=None,
+    prefix=None,
+    separator=None,
+    report=None,
+):
+    """
+    Organizes a table with Principal Components Analysis (PCA) Scores.
+
+    arguments:
+        matrix (object): NumPy matrix of Principal Component Scores
+        index (object): Pandas series of index from original table
+        index_name (str): name of table's index column
+        prefix (str): prefix for names of new principal component columns in
+            table
+        separator (str): separator for names of new columns
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data frame of Principal Component Scores
+
+    """
+
+    # Copy information.
+    matrix= numpy.copy(matrix)
+
+    # Organize table.
+    count_columns = matrix.shape[1]
+    count = 1
+    columns = list()
+    for component in range(0, count_columns, 1):
+        column = str(str(prefix) + str(separator) + str(count))
+        columns.append(column)
+        count += 1
+    table_first = pandas.DataFrame(
+        data=matrix,
+        index=index,
+        columns=columns,
+        dtype="float32",
+        copy=True,
+    )
+    table_first.rename_axis(
+        index=index_name,
+        axis="index",
+        copy=False,
+        inplace=True,
+    )
+    # Report.
+    if report:
+        utility.print_terminal_partition(level=2)
+        print(
+            "Report from: " +
+            "organize_principal_component_scores_table()"
+        )
+        utility.print_terminal_partition(level=4)
+        # Compare alternative calculations of the scores.
+        print("Shape of source matrix: " + str(matrix.shape))
+        utility.print_terminal_partition(level=4)
+        print("table...")
+        print(table)
+    # Return.
+    return table
 
 
 
@@ -874,6 +867,135 @@ def calculate_principal_component_scores_organize_table(
 
 # TODO: make this function more of a driver
 # 1. calculate SVD factors
+
+
+def calculate_principal_components_by_sklearn(
+    matrix_source=None,
+    report=None,
+):
+    """
+    Organizes a Principal Components Analysis (PCA) by SKLearn.
+
+    Table format: Pandas data frame with variables (features) across columns and
+    their samples (cases, observations) across rows with an explicit index
+
+    Relevant dimension: Principal Components represent variance across features
+
+    arguments:
+        matrix_source (object): NumPy matrix with samples (cases, observations)
+            across rows (dimension 0) and variables (features) across columns
+            (dimension 1)
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict): collection of information about the Principal Components
+            Analysis (PCA)
+
+    """
+
+    # Copy information.
+    matrix_source = numpy.copy(matrix_source)
+    # Execute principle component analysis.
+    pca = sklearn.decomposition.PCA(n_components=None)
+    #report = pca.fit_transform(matrix)
+    pca.fit(matrix_source)
+    # Report extent of variance that each principal component explains.
+    variance_ratios = pca.explained_variance_ratio_
+    component_numbers = range(len(variance_ratios) + 1)
+    variance_series = {
+        "components": component_numbers[1:],
+        "variance": variance_ratios
+    }
+    table_component_variance = pandas.DataFrame(data=variance_series)
+    # Transform data by principal components.
+    matrix_scores = pca.transform(matrix_source)
+
+    # Report.
+    if report:
+        utility.print_terminal_partition(level=2)
+        print(
+            "Report from: " +
+            "calculate_principal_components_by_sklearn()"
+        )
+        utility.print_terminal_partition(level=4)
+        # Compare matrices.
+        print("Shape of source matrix: " + str(source_matrix.shape))
+        print(
+            "Shape of score matrix: " + str(matrix_scores.shape)
+        )
+        utility.print_terminal_partition(level=4)
+        print("Proportional variance for each component...")
+        print(table_component_variance)
+    # Compile information.
+    pail = dict()
+    pail["table_component_variance"] = table_component_variance
+    pail["matrix_scores"] = matrix_scores
+    # Return.
+    return pail
+
+
+def compare_principal_components_methods(
+    table=None,
+    report=None,
+):
+    """
+    Organizes a Principal Components Analysis (PCA) by Singular Value
+    Decomposition (SVD).
+
+    Table format: Pandas data frame with variables (features) across columns and
+    their samples (cases, observations) across rows with an explicit index
+
+    Relevant dimension: Principal Components represent variance across features
+
+    Principal Components factorize covariance or correlation into direction
+    (Eigenvectors) and scale (Eigenvalues).
+    The Eigenvalues impart scale or weight to each Eigenvector.
+    Each Eigenvector has its own Eigenvalue, and their sort orders mush match.
+
+    arguments:
+        table (object): Pandas data frame of variables (features) across
+            columns and samples (cases, observations) across rows with an
+            explicit index
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict): collection of information about the Principal Components
+            Analysis (PCA)
+
+    """
+
+    # Threshold and organize original matrix.
+    pail_organization = (
+        organize_table_matrix_for_decomposition(
+            threshold_valid_proportion_per_column=0.5,
+            threshold_column_relative_variance=0.5,
+            table=table,
+            report=report,
+    ))
+
+    # Calculate Principal Component Scores in SKLearn.
+    pail_sklearn = calculate_principal_components_by_sklearn(
+        matrix_source=pail_organization["matrix"],
+        report=report,
+    )
+
+    # Calculate and sort Singular Value Decomposition (SVD) factors.
+    pail_decomposition = (
+        calculate_sort_singular_value_decomposition_factors(
+            matrix_source=pail_organization["matrix"],
+            report=report,
+        )
+    )
+
+
+
+
+    pass
+
 
 
 def organize_principal_components_by_singular_value_decomposition(
@@ -962,12 +1084,18 @@ def organize_principal_components_by_singular_value_decomposition(
     """
 
     # Threshold and organize original matrix.
-    # Calculate and sort Singular Value Decomposition (SVD) factors.
-    pail_decomposition = (
-        calculate_sort_singular_value_decomposition_factors(
+    pail_organization = (
+        organize_table_matrix_for_decomposition(
             threshold_valid_proportion_per_column=0.5,
             threshold_column_relative_variance=0.5,
             table=table,
+            report=report,
+    ))
+
+    # Calculate and sort Singular Value Decomposition (SVD) factors.
+    pail_decomposition = (
+        calculate_sort_singular_value_decomposition_factors(
+            matrix_source=pail_organization["matrix"],
             report=report,
         )
     )
@@ -975,7 +1103,7 @@ def organize_principal_components_by_singular_value_decomposition(
     eigenvalues = (
         calculate_principal_component_eigenvalues_from_singular_values(
             singular_values=pail_decomposition["s_singular_values"],
-            count_samples=pail_decomposition["count_samples"],
+            count_samples=pail_organization["count_samples"],
             report=report,
     ))
     variance_proportions = (
@@ -1001,10 +1129,8 @@ def organize_principal_components_by_singular_value_decomposition(
     # TODO: calculate "loadings" as S [dot] V
 
     pail_scores = (
-        calculate_principal_component_scores_organize_table(
-            source_matrix=pail_decomposition["matrix"],
-            source_index=pail_decomposition["index"],
-            index_name=index_name,
+        calculate_principal_component_scores_from_factors(
+            source_matrix=pail_organization["matrix"],
             u_left_singular_vectors_columns=(
                 pail_decomposition["u_left_singular_vectors_columns"]
             ),
@@ -1017,13 +1143,20 @@ def organize_principal_components_by_singular_value_decomposition(
             vt_right_singular_vectors_rows=(
                 pail_decomposition["vt_right_singular_vectors_rows"]
             ),
-            prefix=prefix,
-            separator=separator,
             report=report,
     ))
+    table_scores = organize_principal_component_scores_table(
+        matrix=pail_scores["matrix_product_first"],
+        index=pail_decomposition["index"],
+        index_name=index_name,
+        prefix=prefix,
+        separator=separator,
+        report=report,
+    )
 
-    # TODO: now calculate the principal component transformations of the original
-    # columns...
+
+
+    # TODO: now calculate the principal components using sklearn function???
 
 
     pass
