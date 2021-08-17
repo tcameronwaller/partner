@@ -748,7 +748,7 @@ def calculate_principal_component_scores_from_factors(
     """
 
     # Copy information.
-    source_matrix= numpy.copy(source_matrix)
+    matrix_source = numpy.copy(matrix_source)
     u = numpy.copy(u_left_singular_vectors_columns)
     s = numpy.copy(s_singular_values)
     s_diagonal = numpy.copy(s_singular_values_diagonal)
@@ -756,7 +756,7 @@ def calculate_principal_component_scores_from_factors(
 
     # Calculate the Principal Component Scores.
     matrix_scores_first = numpy.dot(u, s_diagonal)
-    matrix_scores_second = numpy.dot(source_matrix, vt)
+    matrix_scores_second = numpy.dot(matrix_source, vt)
 
     # Report.
     if report:
@@ -767,7 +767,7 @@ def calculate_principal_component_scores_from_factors(
         )
         utility.print_terminal_partition(level=4)
         # Compare alternative calculations of the scores.
-        print("Shape of source matrix: " + str(source_matrix.shape))
+        print("Shape of source matrix: " + str(matrix_source.shape))
         print(
             "Shape of first product matrix: " + str(matrix_product_first.shape)
         )
