@@ -596,16 +596,7 @@ def organize_principal_component_variance_proportion_table(
     """
 
     # Copy information.
-    utility.print_terminal_partition(level=2)
-    print(
-        "Report from: " +
-        "organize_principal_component_variance_proportion_table()"
-    )
-    print(variance_proportions)
-    # .flatten(order="C").tolist()
-    variance_proportions = numpy.copy(variance_proportions)
-    variance_proportions_list = variance_proportions.tolist()
-    print(variance_proportions_list)
+    variance_proportions = numpy.copy(variance_proportions).tolist()
     # Organize information.
     count = 1
     records = list()
@@ -630,6 +621,8 @@ def organize_principal_component_variance_proportion_table(
     return table
 
 
+
+# TODO: next... calculate the components...
 
 
 
