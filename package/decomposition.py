@@ -205,6 +205,7 @@ def organize_table_matrix_for_singular_value_decomposition(
 
 def calculate_singular_value_decomposition_factors(
     threshold_valid_proportion_per_column=None,
+    threshold_column_relative_variance=None,
     table=None,
     report=None,
 ):
