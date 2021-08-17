@@ -129,7 +129,7 @@ def organize_table_matrix_for_singular_value_decomposition(
             inplace=True,
         )
     # Drop any columns with minimal relative variance.
-    if (0.1 <= threshold_column_relative_variance)
+    if (0.1 <= threshold_column_relative_variance):
         series_relative_variance = table.aggregate(
             lambda column: utility.calculate_relative_variance(
                 array=column.to_numpy()
