@@ -591,7 +591,7 @@ def organize_principal_component_variance_proportion_table(
     # Organize information.
     count = 1
     records = list()
-    for variance_proportion in range(0, variance_proportions.shape[0], 1):
+    for variance_proportion in variance_proportions:
         record = dict()
         record[index_name] = str(prefix + str(count))
         record["variance_proportion"] = variance_proportion
