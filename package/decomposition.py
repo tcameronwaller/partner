@@ -277,74 +277,64 @@ def calculate_singular_value_decomposition_factors(
             report=report,
     ))
 
-    if False:
-        # Calculate Singular Value Decomposition (SVD).
-        u, s, vh = scipy.linalg.svd(
-            pail_organization["matrix"],
-            full_matrices=False, # Full matrices do not convey more information.
-            compute_uv=True,
-            overwrite_a=False,
-            check_finite=True,
-            lapack_driver="gesdd",
+    # Calculate Singular Value Decomposition (SVD).
+    u, s, vh = scipy.linalg.svd(
+        numpy.copy(pail_organization["matrix"]),
+        full_matrices=False, # Full matrices do not convey more information.
+        compute_uv=True,
+        overwrite_a=False,
+        check_finite=True,
+        lapack_driver="gesdd",
+    )
+    # Calculate the original data matrix as a product of the SVD factors.
+    s_diagonal = numpy.diag(s)
+    matrix_product = numpy.dot(u, numpy.dot(s_diagonal, vh))
+
+    # Report.
+    if report:
+        utility.print_terminal_partition(level=2)
+        print(
+            "Report from: " +
+            "calculate_singular_value_decomposition_factors()"
         )
-        # Calculate the original data matrix as a product of the SVD factors.
-        s_diagonal = numpy.diag(s)
-        matrix_product = numpy.dot(u, numpy.dot(s_diagonal, vh))
-
-        # Report.
-        if report:
-            utility.print_terminal_partition(level=2)
-            print(
-                "Report from: " +
-                "calculate_singular_value_decomposition_factors()"
-            )
-            utility.print_terminal_partition(level=2)
-
-            # Original matrix has shape (M, N)
-            print(
-                "Shape of original matrix: " +
-                str(pail_organization["matrix"].shape)
-            )
-            print("Shape of product matrix: " + str(matrix_product.shape))
-            print("rows (dimension 0): samples (cases, observations)")
-            print("columns (dimension 1): variables (features)")
-            # M: count of samples (cases)
-            # N: count of variables (features)
-            # K: minimum of M or N
-            # Matrix "u" has shape (M, K)
-            print("Shape of matrix U (left singular vectors): " + str(u.shape))
-            # Matrix "s" has shape (K, )
-            # Matrix "s" is basically a one-dimensional array.
-            print("Shape of matrix S (singular values): " + str(s.shape))
-            # Matrix "vt" has shape (K, N)
-            print(
-                "Shape of matrix VT (transpose right singular vectors): " +
-                str(vt.shape)
-            )
-            # Compare original matrix to matrix calculation from SVD factors.
-            print("Compare original matrix to product of SVD factors: ")
-            print(numpy.allclose(
-                pail_organization["matrix"], matrix_product,
-                rtol=1e-2,
-                atol=1e-3,
-                equal_nan=False,
-            ))
-
-            pass
-        # Compile information.
-        pail = dict()
-        pail["table_valid_scale"] = pail_organization["table_valid_scale"]
-        pail["index"] = pail_organization["index"]
-        pail["matrix"] = pail_organization["matrix"]
-        pail["count_samples"] = pail_organization["count_samples"]
-        pail["count_variables"] = pail_organization["count_variables"]
-        pail["left_singular_vectors_columns"] = u
-        pail["singular_values"] = s
-        pail["right_singular_vectors_rows"] = vt
-        # Return.
-        return pail
-    pass
-
+        utility.print_terminal_partition(level=4)
+        # Compare original matrix to matrix calculation from SVD factors.
+        print(
+            "Shape of original matrix: " +
+            str(pail_organization["matrix"].shape)
+        )
+        print("Shape of product matrix: " + str(matrix_product.shape))
+        print("rows (dimension 0): samples (cases, observations)")
+        print("columns (dimension 1): variables (features)")
+        print("Compare original matrix to product of SVD factors: ")
+        print(numpy.allclose(
+            pail_organization["matrix"], matrix_product,
+            rtol=1e-2,
+            atol=1e-3,
+            equal_nan=False,
+        ))
+        # Describe SVD factor matrices.
+        utility.print_terminal_partition(level=4)
+        print("Shape of matrix U (left singular vectors): " + str(u.shape))
+        print("Shape of matrix S (singular values): " + str(s.shape))
+        print("Shape of matrix S (singular values): " + str(s_diagonal.shape))
+        print(
+            "Shape of matrix Vh (transpose right singular vectors): " +
+            str(vh.shape)
+        )
+        pass
+    # Compile information.
+    pail = dict()
+    pail["table_valid_scale"] = pail_organization["table_valid_scale"]
+    pail["index"] = pail_organization["index"]
+    pail["matrix"] = pail_organization["matrix"]
+    pail["count_samples"] = pail_organization["count_samples"]
+    pail["count_variables"] = pail_organization["count_variables"]
+    pail["left_singular_vectors_columns"] = u
+    pail["singular_values"] = s
+    pail["right_singular_vectors_rows"] = vh
+    # Return.
+    return pail
 
 
 
