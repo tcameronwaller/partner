@@ -504,10 +504,19 @@ def calculate_principal_component_eigenvalues_from_singular_values(
         )
         utility.print_terminal_partition(level=2)
         print("Singular values...")
+        print(
+            "- - - shape: " + str(singular_values.shape)
+        )
         print(singular_values)
         print("Eigenvalues first method...")
+        print(
+            "- - - shape: " + str(eigenvalues_first.shape)
+        )
         print(eigenvalues_first)
         print("Eigenvalues second method...")
+        print(
+            "- - - shape: " + str(eigenvalues_second.shape)
+        )
         print(eigenvalues_second)
     # Return.
     return eigenvalues_second
@@ -587,7 +596,9 @@ def organize_principal_component_variance_proportion_table(
     """
 
     # Copy information.
-    variance_proportions = numpy.copy(variance_proportions).tolist()
+    variance_proportions = numpy.copy(
+        variance_proportions
+    ).flatten(order="C").tolist()
     print(variance_proportions)
     # Organize information.
     count = 1
