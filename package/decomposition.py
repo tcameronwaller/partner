@@ -380,7 +380,7 @@ def calculate_sort_singular_value_decomposition_factors(
         print("columns (dimension 1): variables (features)")
         print("Compare original matrix to product of SVD factors: ")
         print(numpy.allclose(
-            pail_organization["matrix"], matrix_product,
+            matrix_source, matrix_product,
             rtol=1e-2,
             atol=1e-3,
             equal_nan=False,
@@ -1007,6 +1007,43 @@ def compare_principal_components_methods(
             report=report,
     ))
 
+    # Report.
+    if report:
+        utility.print_terminal_partition(level=2)
+        print(
+            "Report from: " +
+            "compare_principal_components_methods()"
+        )
+        utility.print_terminal_partition(level=4)
+        # Compare original matrix to matrix calculation from SVD factors.
+        print(
+            "Shape of source matrix: " + str(pail_organization["matrix"].shape)
+        )
+        utility.print_terminal_partition(level=4)
+        print("Shapes of matrices for Principal Component Scores")
+        print("SKLearn: " + str(pail_sklearn["matrix_scores"].shape))
+        print(
+            "SVD product first: " +
+            str(pail_scores["matrix_scores_first"].shape)
+        )
+        print(
+            "SVD product second: " +
+            str(pail_scores["matrix_scores_second"].shape)
+        )
+        utility.print_terminal_partition(level=4)
+        print("Compare score matrices")
+        print(numpy.allclose(
+            pail_sklearn["matrix_scores"], pail_scores["matrix_scores_first"],
+            rtol=1e-2,
+            atol=1e-3,
+            equal_nan=False,
+        ))
+        print(numpy.allclose(
+            pail_sklearn["matrix_scores"], pail_scores["matrix_scores_second"],
+            rtol=1e-2,
+            atol=1e-3,
+            equal_nan=False,
+        ))
 
 
 
