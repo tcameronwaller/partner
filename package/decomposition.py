@@ -562,6 +562,54 @@ def calculate_principal_component_explanation_variance_proportions(
     variance_proportions
 
 
+def organize_principal_component_variance_proportion_table(
+    variance_proportions=None,
+    prefix=None,
+    index_name=None,
+    report=None,
+):
+    """
+    Organizes a table of proportion of variance explained by each Eigenvector
+    and Principal Component factor.
+
+    arguments:
+        variance_proportions (object): NumPy array of proportions of variance
+            explained
+        prefix (str): prefix for names of component columns
+        index_name (str): name for table's index column
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict): collection of information
+
+    """
+
+    # Copy information.
+    variance_proportions = numpy.copy(variance_proportions)
+    # Organize information.
+    count = 1
+    records = list()
+    for variance_proportion in range(0, variance_proportions.shape[0], 1):
+        record = dict()
+        record[index_name] = str(prefix + str(count))
+        record["variance_proportion"] = variance_proportion
+        records.append(record)
+        count += 1
+    table = pandas.DataFrame(data=records)
+    # Report.
+    if report:
+        utility.print_terminal_partition(level=2)
+        print(
+            "Report from: " +
+            "organize_principal_component_variance_proportion_table()"
+        )
+        utility.print_terminal_partition(level=3)
+        print("Table after organization:")
+        print(table)
+    # Return.
+    return table
 
 
 
@@ -583,6 +631,10 @@ def organize_principal_components_by_singular_value_decomposition(
     their samples (cases, observations) across rows with an explicit index
 
     Relevant dimension: Principal Components represent variance across features
+
+    Reference:
+    "https://stats.stackexchange.com/questions/134282/
+    relationship-between-svd-and-pca-how-to-use-svd-to-perform-pca"
 
     arguments:
         table (object): Pandas data frame of variables (features) across
@@ -618,6 +670,13 @@ def organize_principal_components_by_singular_value_decomposition(
     variance_proportions = (
         calculate_principal_component_explanation_variance_proportions(
             eigenvalues=eigenvalues,
+            report=report,
+    ))
+    table_component_variance_proportions = (
+        organize_principal_component_variance_proportion_table(
+            variance_proportions=variance_proportions,
+            prefix="component_",
+            index_name="eigenvectors_components",
             report=report,
     ))
 
