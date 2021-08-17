@@ -546,6 +546,18 @@ def calculate_principal_component_explanation_variance_proportions(
     variance_proportions = array_divide_by_total(
         eigenvalues, variance_total
     )
+    # Report.
+    if report:
+        utility.print_terminal_partition(level=2)
+        print(
+            "Report from: " +
+            "calculate_principal_component_explanation_variance_proportions()"
+        )
+        utility.print_terminal_partition(level=2)
+        print("Eigenvalues...")
+        print(eigenvalues)
+        print("Variance proportions...")
+        print(variance_proportions)
     # Return.
     variance_proportions
 
@@ -603,7 +615,12 @@ def organize_principal_components_by_singular_value_decomposition(
             count_samples=pail_decomposition["count_samples"],
             report=report,
     ))
-    
+    variance_proportions = (
+        calculate_principal_component_explanation_variance_proportions(
+            eigenvalues=eigenvalues,
+            report=report,
+    ))
+
 
     pass
 
