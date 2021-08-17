@@ -296,33 +296,29 @@ def calculate_sort_singular_value_decomposition_factors(
     Matrix format: NumPy matrix with samples (cases, observations) across rows
     (dimension 0) and variables (features) across columns (dimension 1)
 
-    Factorize covariance or correlation into direction (eigenvectors) and scale
-    (eigenvalues).
-    The eigenvalues impart scale or weight to each eigenvector.
-    Each eigenvector has its own eigenvalue, and their sort orders mush match.
-
-    loadings = eigenvectors [dot] square_root(eigenvalues)
-    Loadings include aspects of both direction (eigenvectors) and scale
-    (eigenvalues).
-
     Singular Value Decomposition assigns Eigenvector direction (sign, positive
     or negative) at random.
 
     Terminology
 
-    a: original data matrix
-    - - shape of matrix "a": (m, n)
-    a = u [dot] s_diagonal [dot] vh
-
-    m: count of samples (cases)
-    n: count of variables (features)
+    m: count of samples (cases, observations) in original data matrix
+    n: count of variables (features) in original data matrix
     k = min(m, n)
-    u: unitary matrix with left singular vectors as columns (dimension 1)
-    - - shape of matrix "u": (m, m) or (m, k)
-    s: singular values
-    - - shape of matrix "s": (k,)
-    vt: unitary matrix with right singular vectors as rows (dimension 0)
-    - - shape of matrix "vh": (n, n) or (k, n)
+
+    A: original data matrix
+    - - shape of matrix "A": (m, n)
+    A = U <dot product> S_diagonal <dot product> Vt
+
+    U: matrix with left singular vectors as columns (dimension 1)
+    - - shape of matrix "U": (m, m) or (m, k)
+    Ut: matrix with left singular vectors as rows (dimension 0)
+    - - shape of matrix "Ut": (m, m) or (k, m)
+    S: singular values
+    - - shape of matrix "S": (k,)
+    Vt: matrix with right singular vectors as rows (dimension 0)
+    - - shape of matrix "Vt": (n, n) or (k, n)
+    V: matrix with right singular vectors as columns (dimension 1)
+    - - shape of matrix "Vt": (n, n) or (n, k)
 
     arguments:
         threshold_valid_proportion_per_column (float): minimal proportion of
@@ -371,6 +367,8 @@ def calculate_sort_singular_value_decomposition_factors(
         vt=vt,
         report=report,
     )
+    ut_sort = numpy.copy(numpy.transpose(pail_sort["u"]))
+    v_sort = numpy.copy(numpy.transpose(pail_sort["vt"]))
     # Calculate the original data matrix as a product of the SVD factors.
     s_diagonal = numpy.diag(s)
     matrix_product = numpy.dot(u, numpy.dot(s_diagonal, vt))
@@ -419,12 +417,20 @@ def calculate_sort_singular_value_decomposition_factors(
             str(pail_sort["u"].shape)
         )
         print(
+            "Shape of sorted matrix Ut (transpose left singular vectors): " +
+            str(ut_sort.shape)
+        )
+        print(
             "Shape of sorted matrix S (singular values): " +
             str(pail_sort["s"].shape)
         )
         print(
             "Shape of sorted matrix Vt (transpose right singular vectors): " +
             str(pail_sort["vt"].shape)
+        )
+        print(
+            "Shape of sorted matrix V (right singular vectors): " +
+            str(v_sort.shape)
         )
         pass
     # Compile information.
@@ -436,8 +442,10 @@ def calculate_sort_singular_value_decomposition_factors(
     pail["count_samples"] = pail_organization["count_samples"]
     pail["count_variables"] = pail_organization["count_variables"]
     pail["u_left_singular_vectors_columns"] = pail_sort["u"]
+    pail["ut_left_singular_vectors_rows"] = ut_sort
     pail["s_singular_values"] = pail_sort["s"]
     pail["vt_right_singular_vectors_rows"] = pail_sort["vt"]
+    pail["v_right_singular_vectors_columns"] = v_sort
     # Return.
     return pail
 
@@ -456,10 +464,6 @@ def calculate_principal_component_eigenvalues_from_singular_values(
     l = eigenvalue of covariance matrix of original data matrix "a"
 
     l = ( (s^2) / (n - 1))
-
-    References:
-    "https://towardsdatascience.com/singular-value-decomposition-and-its-"
-    + "applications-in-principal-component-analysis-5b7a5f08d0bd"
 
     arguments:
         singular_values (object): NumPy array of Singular Values
@@ -643,9 +647,40 @@ def organize_principal_components_by_singular_value_decomposition(
 
     Relevant dimension: Principal Components represent variance across features
 
+    Principal Components factorize covariance or correlation into direction
+    (Eigenvectors) and scale (Eigenvalues).
+    The Eigenvalues impart scale or weight to each Eigenvector.
+    Each Eigenvector has its own Eigenvalue, and their sort orders mush match.
+
+    A: original data matrix
+    N = count of samples (cases, observations) in original matrix, "A"
+    U: matrix with left singular vectors as columns (dimension 1)
+    Ut: matrix with left singular vectors as rows (dimension 0)
+    S = singular values
+    Vt = matrix with right singular vectors as rows (dimension 0)
+    V = matrix with right singular vectors as columns (dimension 1)
+
+    Eigenvalue = ( (S^2) / (N - 1))
+    Proportional Variance = Eigenvalue / sum( Eigenvalues )
+    Eigenvectors = V columns
+    - - also U columns (depending on dimension of interest, I think)
+    Loadings include aspects of both direction (Eigenvectors) and scale
+    (Eigenvalues).
+    Loadings = ( S [dot] V ) / ( (N - 1)^0.5 )
+    Loadings = Eigenvectors [dot] (Eigenvalues)^0.5
+    Principal Component Scores = U [dot] S
+    Principal Component Scores = A [dot] V
+
     Reference:
-    "https://stats.stackexchange.com/questions/134282/
-    relationship-between-svd-and-pca-how-to-use-svd-to-perform-pca"
+
+    "https://towardsdatascience.com/singular-value-decomposition-and-its-"
+    + "applications-in-principal-component-analysis-5b7a5f08d0bd"
+
+    "https://towardsdatascience.com/principal-component-analysis-for-"
+    + "dimensionality-reduction-115a3d157bad
+
+    "https://stats.stackexchange.com/questions/134282/relationship-between-svd-"
+    + "and-pca-how-to-use-svd-to-perform-pca"
 
     arguments:
         table (object): Pandas data frame of variables (features) across
@@ -690,6 +725,18 @@ def organize_principal_components_by_singular_value_decomposition(
             index_name="eigenvectors_components",
             report=report,
     ))
+    table_principal_components = (
+        organize_principal_component_variance_proportion_table(
+            variance_proportions=variance_proportions,
+            prefix="component_",
+            index_name="eigenvectors_components",
+            report=report,
+    ))
+
+    # TODO: calculate "loadings" as S [dot] V
+
+    # TODO: now calculate the principal component transformations of the original
+    # columns...
 
 
     pass
