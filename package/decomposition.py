@@ -478,12 +478,22 @@ def calculate_principal_component_eigenvalues_from_singular_values(
         return (value / (count_samples - 1))
     array_divide_by_sample_count = numpy.vectorize(divide_by_sample_count)
 
+    def square_divide_by_sample_count(value, count_samples):
+        return ((math.pow(value, 2)) / (count_samples - 1))
+    array_square_divide_by_sample_count = numpy.vectorize(
+        square_divide_by_sample_count
+    )
+
     # Copy information.
     singular_values = numpy.copy(singular_values)
-    # Calculate Eigenvalues.
+    # Calculate Eigenvalues first method.
     singular_values_square = numpy.square(singular_values)
-    eigenvalues = array_divide_by_sample_count(
+    eigenvalues_first = array_divide_by_sample_count(
         singular_values_square, count_samples
+    )
+    # Calculate Eigenvalues second method.
+    eigenvalues_second = array_square_divide_by_sample_count(
+        singular_values, count_samples
     )
     # Report.
     if report:
@@ -495,10 +505,12 @@ def calculate_principal_component_eigenvalues_from_singular_values(
         utility.print_terminal_partition(level=2)
         print("Singular values...")
         print(singular_values)
-        print("Eigenvalues...")
-        print(eigenvalues)
+        print("Eigenvalues first method...")
+        print(eigenvalues_first)
+        print("Eigenvalues second method...")
+        print(eigenvalues_second)
     # Return.
-    return eigenvalues
+    return eigenvalues_second
 
 
 def calculate_principal_component_explanation_variance_proportions(
@@ -591,7 +603,7 @@ def organize_principal_components_by_singular_value_decomposition(
             count_samples=pail_decomposition["count_samples"],
             report=report,
     ))
-
+    
 
     pass
 
