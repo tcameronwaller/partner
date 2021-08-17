@@ -769,23 +769,23 @@ def calculate_principal_component_scores_from_factors(
         # Compare alternative calculations of the scores.
         print("Shape of source matrix: " + str(matrix_source.shape))
         print(
-            "Shape of first product matrix: " + str(matrix_product_first.shape)
+            "Shape of first product matrix: " + str(matrix_scores_first.shape)
         )
         print(
             "Shape of second product matrix: " +
-            str(matrix_product_second.shape)
+            str(matrix_scores_second.shape)
         )
         print("Are the product matrices nearly identical?: ")
         print(numpy.allclose(
-            matrix_product_first, matrix_product_second,
-            rtol=5e-2, # relative tolerance, 5%
+            matrix_scores_first, matrix_scores_second,
+            rtol=1e-2, # relative tolerance, 1%
             atol=1e-3, # absolute tolerance
             equal_nan=False,
         ))
     # Compile information.
     pail = dict()
-    pail["matrix_scores_first"] = matrix_product_first
-    pail["matrix_scores_second"] = matrix_product_second
+    pail["matrix_scores_first"] = matrix_scores_first
+    pail["matrix_scores_second"] = matrix_scores_second
     # Return.
     return pail
 
@@ -1034,13 +1034,13 @@ def compare_principal_components_methods(
         print("Compare score matrices")
         print(numpy.allclose(
             pail_sklearn["matrix_scores"], pail_scores["matrix_scores_first"],
-            rtol=1e-2,
+            rtol=1e-2, # relative tolerance, 1%
             atol=1e-3,
             equal_nan=False,
         ))
         print(numpy.allclose(
             pail_sklearn["matrix_scores"], pail_scores["matrix_scores_second"],
-            rtol=1e-2,
+            rtol=1e-2, # relative tolerance, 1%
             atol=1e-3,
             equal_nan=False,
         ))
