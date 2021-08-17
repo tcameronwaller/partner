@@ -387,7 +387,7 @@ def calculate_sort_singular_value_decomposition_factors(
         ))
         print("Compare original matrix to product of sorted SVD factors: ")
         print(numpy.allclose(
-            pail_organization["matrix"], matrix_product_sort,
+            matrix_source, matrix_product_sort,
             rtol=1e-2,
             atol=1e-3,
             equal_nan=False,
