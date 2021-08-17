@@ -587,7 +587,8 @@ def organize_principal_component_variance_proportion_table(
     """
 
     # Copy information.
-    variance_proportions = numpy.copy(variance_proportions)
+    variance_proportions = numpy.copy(variance_proportions).tolist()
+    print(variance_proportions)
     # Organize information.
     count = 1
     records = list()
