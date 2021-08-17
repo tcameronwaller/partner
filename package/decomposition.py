@@ -73,6 +73,7 @@ import promiscuity.utility as utility
 
 def organize_table_matrix_for_singular_value_decomposition(
     threshold_valid_proportion_per_column=None,
+    threshold_column_relative_variance=None,
     table=None,
     report=None,
 ):
@@ -81,8 +82,10 @@ def organize_table_matrix_for_singular_value_decomposition(
     (SVD).
 
     arguments:
-        threshold_valid_proportion_per_column (float): proportion of rows that
-            must have a valid value for a column in order to keep the column
+        threshold_valid_proportion_per_column (float): minimal proportion of
+            a column's rows that must have a valid value
+        threshold_column_relative_variance (float): minimal relative variance in
+            each column's values
         table (object): Pandas data frame with variables (features) across
             columns and samples (cases, observations) across rows with an
             explicit index
@@ -95,10 +98,28 @@ def organize_table_matrix_for_singular_value_decomposition(
 
     """
 
+    def match_column_variance(
+        name=None,
+        threshold_column_relative_variance=None,
+        variances=None,
+    ):
+        if (str(name) in variances.keys()):
+            variance = variances[name]
+            if (
+                (not pandas.isna(variance)) and
+                (threshold_column_relative_variance <= variance)
+            ):
+                match = True
+            else:
+                match = False
+        else:
+            match = False
+        return match
+
     # Copy information.
     table = table.copy(deep=True)
     # Drop any columns with inadequate valid values across rows.
-    if (threshold_valid_proportion_per_column > 0.1):
+    if (0.1 <= threshold_valid_proportion_per_column):
         rows = table.shape[0]
         threshold = round(rows*threshold_valid_proportion_per_column)
         table.dropna(
@@ -107,6 +128,29 @@ def organize_table_matrix_for_singular_value_decomposition(
             subset=None,
             inplace=True,
         )
+    # Drop any columns with minimal relative variance.
+    if (0.1 <= threshold_column_relative_variance)
+        series_relative_variance = table.aggregate(
+            lambda column: utility.calculate_relative_variance(
+                array=column.to_numpy()
+            ),
+            axis="index", # apply function to each column
+        )
+        variances = series_relative_variance.to_dict()
+        columns = copy.deepcopy(table.columns.to_list())
+        columns_variance = list(filter(
+            lambda column_trial: match_column_variance(
+                name=column_trial,
+                threshold_column_relative_variance=(
+                    threshold_column_relative_variance
+                ),
+                variances=variances,
+            ),
+            columns
+        ))
+        table = table.loc[
+            :, table.columns.isin(columns_variance)
+        ]
     # Drop any rows with null values in any columns.
     table.dropna(
         axis="index",
@@ -114,14 +158,6 @@ def organize_table_matrix_for_singular_value_decomposition(
         subset=None,
         inplace=True,
     )
-    # Drop any columns with minimal relative variance.
-    series_relative_variance = table.aggregate(
-        lambda column: utility.calculate_relative_variance(
-            array=column.to_numpy()
-        ),
-        axis="index", # apply function to each column
-    )
-
 
     # Principal components analysis assumptions require at least centering the
     # means (mean = 0) of variables (features).
@@ -135,29 +171,34 @@ def organize_table_matrix_for_singular_value_decomposition(
     )
     # Copy information.
     index = copy.deepcopy(table_scale.index)
+    count_index = len(index.to_list())
     # Organize matrix.
     # Matrix format has samples (cases, observations) across rows (dimension 0)
     # and variables (features) across columns (dimension 1).
     #matrix = numpy.transpose(table_scale.to_numpy())
     matrix = numpy.copy(table_scale.to_numpy())
-
+    count_samples = copy.deepcopy(matrix.shape[0])
+    count_variables = copy.deepcopy(matrix.shape[1])
     # Report.
     if report:
         utility.print_terminal_partition(level=2)
         print(
             "Report from: " +
-            "copy_organize_table_matrix_for_singular_value_decomposition()"
+            "organize_table_matrix_for_singular_value_decomposition()"
         )
         utility.print_terminal_partition(level=3)
-        print(series_relative_variance)
+        print("count matrix samples (dimension 0): " + str(count_samples))
+        print("count matrix variables (dimension 1): " + str(count_variables))
+        print("count index: " + str(count_index))
     # Compile information.
     pail = dict()
-    pail["table_valid"] = table
-    pail["table_valid_scale"] = table_scale
+    pail["table"] = table
+    pail["table_scale"] = table_scale
     pail["index"] = index
+    pail["count_index"] = count_index
     pail["matrix"] = matrix
-    pail["count_samples"] = copy.deepcopy(matrix.shape[0])
-    pail["count_variables"] = copy.deepcopy(matrix.shape[1])
+    pail["count_samples"] = count_samples
+    pail["count_variables"] = count_variables
     # Return.
     return pail
 
@@ -175,8 +216,6 @@ def calculate_singular_value_decomposition_factors(
 
     Matrix format: NumPy matrix with samples (cases, observations) across rows
     (dimension 0) and variables (features) across columns (dimension 1)
-
-
 
     Factorize covariance or correlation into direction (eigenvectors) and scale
     (eigenvalues).
@@ -207,8 +246,10 @@ def calculate_singular_value_decomposition_factors(
     - - shape of matrix "vh": (n, n) or (k, n)
 
     arguments:
-        threshold_valid_proportion_per_column (float): proportion of rows that
-            must have a valid value for a column in order to keep the column
+        threshold_valid_proportion_per_column (float): minimal proportion of
+            a column's rows that must have a valid value
+        threshold_column_relative_variance (float): minimal relative variance in
+            each column's values
         table (object): Pandas data frame with variables (features) across
             columns and samples (cases, observations) across rows with an
             explicit index
@@ -227,6 +268,9 @@ def calculate_singular_value_decomposition_factors(
         organize_table_matrix_for_singular_value_decomposition(
             threshold_valid_proportion_per_column=(
                 threshold_valid_proportion_per_column
+            ),
+            threshold_column_relative_variance=(
+                threshold_column_relative_variance
             ),
             table=table,
             report=report,
@@ -251,7 +295,7 @@ def calculate_singular_value_decomposition_factors(
             utility.print_terminal_partition(level=2)
             print(
                 "Report from: " +
-                "calculate_initial_raw_singular_value_decomposition_factors()"
+                "calculate_singular_value_decomposition_factors()"
             )
             utility.print_terminal_partition(level=2)
 
