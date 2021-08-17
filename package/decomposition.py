@@ -192,13 +192,85 @@ def organize_table_matrix_for_singular_value_decomposition(
         print("count index: " + str(count_index))
     # Compile information.
     pail = dict()
-    pail["table"] = table
-    pail["table_scale"] = table_scale
+    pail["table_threshold"] = table
+    pail["table_threshold_scale"] = table_scale
     pail["index"] = index
     pail["count_index"] = count_index
     pail["matrix"] = matrix
     pail["count_samples"] = count_samples
     pail["count_variables"] = count_variables
+    # Return.
+    return pail
+
+
+def sort_decomposition_factors_by_decreasing_singular_values(
+    u=None,
+    s=None,
+    vt=None,
+    report=None,
+):
+    """
+    Sorts factors from Singular Value Decomposition (SVD) in order of decreasing
+    singular values.
+
+    Sort dimensions of left (u) and right (vt) singular vectors that correspond to the
+    singular values (s).
+
+    Sort dimension 1 of matrix "u".
+    Sort dimension 0 of matrix "vt".
+
+    arguments:
+        u (object): unitary matrix with left singular vectors as columns
+            (dimension 1)
+        s (object): singular values
+        vt (object): unitary matrix with right singular vectors as rows
+            (dimension 0)
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict): collection of factors from Singular Value Decomposition (SVD)
+
+    """
+
+    # Copy information.
+    u = numpy.copy(u)
+    s = numpy.copy(s)
+    vt = numpy.copy(vt)
+    # Calculate sort indices for Singular Values in decreasing order.
+    # Reverse an increasing sort order with either "numpy.flip" or "[::-1]".
+    indices_sort_increasing = numpy.argsort(
+        s,
+        axis=-1,
+        kind="stable",
+    )
+    indices_sort = numpy.flip(
+        indices_sort_increasing,
+        axis=0,
+    )
+    # Apply sort order indices.
+    u_sort = u[:,indices_sort]
+    s_sort = s[indices_sort]
+    vt_sort = vt[indices_sort,:]
+    # Report.
+    if report:
+        utility.print_terminal_partition(level=2)
+        print(
+            "Report from: " +
+            "sort_decomposition_factors_by_decreasing_singular_values()"
+        )
+        utility.print_terminal_partition(level=3)
+        print("singular values before sort: ")
+        print(s)
+        utility.print_terminal_partition(level=5)
+        print("singular values after sort: ")
+        print(s_sort)
+    # Compile information.
+    pail = dict()
+    pail["u"] = u_sort
+    pail["s"] = s_sort
+    pail["vt"] = vt_sort
     # Return.
     return pail
 
@@ -239,11 +311,11 @@ def calculate_singular_value_decomposition_factors(
     m: count of samples (cases)
     n: count of variables (features)
     k = min(m, n)
-    u: unitary matrix with left singular vectors as columns
+    u: unitary matrix with left singular vectors as columns (dimension 1)
     - - shape of matrix "u": (m, m) or (m, k)
     s: singular values
     - - shape of matrix "s": (k,)
-    vh: unitary matrix with right singular vectors as rows
+    vt: unitary matrix with right singular vectors as rows (dimension 0)
     - - shape of matrix "vh": (n, n) or (k, n)
 
     arguments:
@@ -278,7 +350,7 @@ def calculate_singular_value_decomposition_factors(
     ))
 
     # Calculate Singular Value Decomposition (SVD).
-    u, s, vh = scipy.linalg.svd(
+    u, s, vt = scipy.linalg.svd(
         numpy.copy(pail_organization["matrix"]),
         full_matrices=False, # Full matrices do not convey more information.
         compute_uv=True,
@@ -286,9 +358,20 @@ def calculate_singular_value_decomposition_factors(
         check_finite=True,
         lapack_driver="gesdd",
     )
+    # Sort SVD factors in order of decreasing singular values.
+    pail_sort = sort_decomposition_factors_by_decreasing_singular_values(
+        u=u,
+        s=s,
+        vt=vt,
+        report=report,
+    )
     # Calculate the original data matrix as a product of the SVD factors.
     s_diagonal = numpy.diag(s)
-    matrix_product = numpy.dot(u, numpy.dot(s_diagonal, vh))
+    matrix_product = numpy.dot(u, numpy.dot(s_diagonal, vt))
+    s_sort_diagonal = numpy.diag(pail_sort["s"])
+    matrix_product_sort = numpy.dot(
+        pail_sort["u"], numpy.dot(s_sort_diagonal, pail_sort["vt"])
+    )
 
     # Report.
     if report:
@@ -304,6 +387,9 @@ def calculate_singular_value_decomposition_factors(
             str(pail_organization["matrix"].shape)
         )
         print("Shape of product matrix: " + str(matrix_product.shape))
+        print(
+            "Shape of sorted product matrix: " + str(matrix_product_sort.shape)
+        )
         print("rows (dimension 0): samples (cases, observations)")
         print("columns (dimension 1): variables (features)")
         print("Compare original matrix to product of SVD factors: ")
@@ -313,28 +399,101 @@ def calculate_singular_value_decomposition_factors(
             atol=1e-3,
             equal_nan=False,
         ))
+        print("Compare original matrix to product of sorted SVD factors: ")
+        print(numpy.allclose(
+            pail_organization["matrix"], matrix_product_sort,
+            rtol=1e-2,
+            atol=1e-3,
+            equal_nan=False,
+        ))
         # Describe SVD factor matrices.
         utility.print_terminal_partition(level=4)
-        print("Shape of matrix U (left singular vectors): " + str(u.shape))
-        print("Shape of matrix S (singular values): " + str(s.shape))
-        print("Shape of matrix S (singular values): " + str(s_diagonal.shape))
         print(
-            "Shape of matrix Vh (transpose right singular vectors): " +
-            str(vh.shape)
+            "Shape of sorted matrix U (left singular vectors): " +
+            str(pail_sort["u"].shape)
+        )
+        print(
+            "Shape of sorted matrix S (singular values): " +
+            str(pail_sort["s"].shape)
+        )
+        print(
+            "Shape of sorted matrix Vt (transpose right singular vectors): " +
+            str(pail_sort["vt"].shape)
         )
         pass
     # Compile information.
     pail = dict()
-    pail["table_valid_scale"] = pail_organization["table_valid_scale"]
+    pail["table_threshold"] = pail_organization["table_threshold"]
+    pail["table_threshold_scale"] = pail_organization["table_threshold_scale"]
     pail["index"] = pail_organization["index"]
     pail["matrix"] = pail_organization["matrix"]
     pail["count_samples"] = pail_organization["count_samples"]
     pail["count_variables"] = pail_organization["count_variables"]
-    pail["left_singular_vectors_columns"] = u
-    pail["singular_values"] = s
-    pail["right_singular_vectors_rows"] = vh
+    pail["left_singular_vectors_columns"] = pail_sort["u"]
+    pail["singular_values"] = pail_sort["s"]
+    pail["right_singular_vectors_rows"] = pail_sort["vt"]
     # Return.
     return pail
+
+
+def calculate_principal_component_eigenvalues_from_singular_values(
+    singular_values=None,
+    count_samples=None,
+    report=None,
+):
+    """
+    Calculates Principal Components Analysis (PCA) Eigenvalues from Singular
+    Values of Singular Value Decomposition (SVD).
+
+    s = singular value from SVD on original data matrix "a"
+    n = count of samples in original data matrix "a"
+    l = eigenvalue of covariance matrix of original data matrix "a"
+
+    l = ( (s^2) / (n - 1))
+
+    References:
+    "https://towardsdatascience.com/singular-value-decomposition-and-its-"
+    + "applications-in-principal-component-analysis-5b7a5f08d0bd"
+
+    arguments:
+        singular_values (object): NumPy array of Singular Values
+        count_samples (float): count of samples in the original Singular Value
+            Decomposition
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): NumPy array of Eigenvalues
+
+    """
+
+    def divide_by_sample_count(value, count_samples):
+        return (value / (count_samples - 1))
+    array_divide_by_sample_count = numpy.vectorize(divide_by_sample_count)
+
+    # Copy information.
+    singular_values = numpy.copy(singular_values)
+    # Calculate Eigenvalues.
+    singular_values_square = numpy.square(singular_values)
+    eigenvalues = array_divide_by_sample_count(
+        singular_values_square, count_samples
+    )
+    # Report.
+    if report:
+        utility.print_terminal_partition(level=2)
+        print(
+            "Report from: " +
+            "calculate_principal_component_eigenvalues_from_singular_values()"
+        )
+        utility.print_terminal_partition(level=2)
+        print("Singular values...")
+        print(singular_values)
+        print("Eigenvalues...")
+        print(eigenvalues)
+    # Return.
+    return eigenvalues
+
 
 
 
