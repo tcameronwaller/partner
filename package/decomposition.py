@@ -444,6 +444,7 @@ def calculate_sort_singular_value_decomposition_factors(
     pail["u_left_singular_vectors_columns"] = pail_sort["u"]
     pail["ut_left_singular_vectors_rows"] = ut_sort
     pail["s_singular_values"] = pail_sort["s"]
+    pail["s_singular_values_diagonal"] = s_sort_diagonal
     pail["vt_right_singular_vectors_rows"] = pail_sort["vt"]
     pail["v_right_singular_vectors_columns"] = v_sort
     # Return.
@@ -626,6 +627,198 @@ def organize_principal_component_variance_proportion_table(
 
 
 
+# Useful
+def calculate_principal_component_loadings_from_eigen_values_vectors(
+    eigenvectors=None,
+    eigenvalues=None,
+    report=None,
+):
+    """
+    Calculates Principal Components Analysis (PCA) loadings from Eigenvectors
+    and Eigenvalues.
+
+    Statsmodels erroneously returns "loadings" that have identical values and
+    dimensions as the Eigenvectors; however, Eigenvectors and Loadings are not
+    equivalent.
+
+    loadings = eigenvectors [dot] square_root(eigenvalues)
+    Loadings include aspects of both direction (eigenvectors) and scale
+    (eigenvalues).
+
+    Reference:
+    "https://stats.stackexchange.com/questions/143905/
+    loadings-vs-eigenvectors-in-pca-when-to-use-one-or-another"
+
+    arguments:
+        eigenvectors (object): NumPy array matrix of Eigenvectors
+        eigenvalues (object): NumPy array matrix of Eigenvalues
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict): collection of information
+
+    """
+
+    # Copy information.
+    eigenvectors = numpy.copy(eigenvectors)
+    eigenvalues = numpy.copy(eigenvalues)
+    # Calculate square roots of Eigenvalues.
+    # Organize a diagonal matrix of square roots of Eigenvalues.
+    eigenvalues_square_root = numpy.sqrt(eigenvalues)
+    eigenvalues_root_diagonal = numpy.diag(eigenvalues_square_root)
+    # Calculate loadings.
+    loadings = numpy.dot(eigenvectors, eigenvalues_root_diagonal)
+    # Report.
+    if report:
+        utility.print_terminal_partition(level=2)
+        print(
+            "Report from: " +
+            "calculate_principal_component_loadings_from_eigen_values_vectors()"
+        )
+        utility.print_terminal_partition(level=2)
+        print("Loadings = Eigenvectors [dot] square_root(diagonal Eigenvalues)")
+        print(loadings)
+    # Return.
+    return loadings
+
+# Useful
+def calculate_principal_component_loadings_from_direct_factors(
+    s=None,
+    vh=None,
+    count_samples=None,
+    report=None,
+):
+    """
+    Calculates Principal Components Analysis (PCA) loadings from direct factors
+    of Singular Value Decomposition.
+
+    Reference:
+    "https://stats.stackexchange.com/questions/134282/
+    relationship-between-svd-and-pca-how-to-use-svd-to-perform-pca"
+
+    arguments:
+        s (object): NumPy array of Singular Values
+        vh (object): NumPy unitary matrix with right singular vectors as rows
+        count_samples (float): count of samples in the original Singular Value
+            Decomposition
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict): collection of information
+
+    """
+
+    def divide_by_sample_count(value, count_samples):
+        return (value / math.sqrt(count_samples - 1))
+    array_divide_by_sample_count = numpy.vectorize(divide_by_sample_count)
+
+
+    # Copy information.
+    s = numpy.copy(s)
+    vh = numpy.copy(vh)
+    # Calculate loadings.
+    v = numpy.transpose(vh)
+    s_diagonal = numpy.diag(s)
+    product = numpy.dot(v, s_diagonal)
+    loadings = array_divide_by_sample_count(
+        product, count_samples
+    )
+    # Report.
+    if report:
+        utility.print_terminal_partition(level=2)
+        print(
+            "Report from: " +
+            "calculate_principal_component_loadings_from_direct_factors()"
+        )
+        utility.print_terminal_partition(level=2)
+        print("Loadings = (V [dot] S) / square_root(samples - 1)")
+        print(loadings)
+    # Return.
+    return loadings
+
+
+def calculate_principal_component_scores_organize_table(
+    source_matrix=None,
+    source_index=None,
+    u_left_singular_vectors_columns=None,
+    s_singular_values=None,
+    s_singular_values_diagonal=None,
+    vt_right_singular_vectors_rows=None,
+    prefix=None,
+    separator=None,
+    report=None,
+):
+    """
+    Calculates Principal Components Analysis (PCA) scores from factors of
+    Singular Value Decomposition (SVD).
+
+    arguments:
+        source_matrix (object): NumPy matrix source for Singular Value
+            Decomposition
+        source_index (object): Pandas series of index from original table
+        u_left_singular_vectors_columns (object): Numpy matrix
+        s_singular_values (object): Numpy matrix
+        s_singular_values_diagonal (object): Numpy matrix
+        vt_right_singular_vectors_rows (object): Numpy matrix
+        prefix (str): prefix for names of new principal component columns in
+            table
+        separator (str): separator for names of new columns
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data frame of principal component scores across samples
+
+    """
+
+    # Copy information.
+    source_matrix= numpy.copy(source_matrix)
+    u = numpy.copy(u_left_singular_vectors_columns)
+    s = numpy.copy(s_singular_values)
+    s_diagonal = numpy.copy(s_singular_values_diagonal)
+    vt = numpy.copy(vt_right_singular_vectors_rows)
+
+    # Calculate the Principal Component Scores.
+    matrix_product_first = numpy.dot(u, s_diagonal)
+    matrix_product_second = numpy.dot(source_matrix, vt)
+
+    # Report.
+    if report:
+        utility.print_terminal_partition(level=2)
+        print(
+            "Report from: " +
+            "calculate_principal_component_scores_organize_table()"
+        )
+        utility.print_terminal_partition(level=4)
+        # Compare alternative calculations of the scores.
+        print("Shape of source matrix: " + str(source_matrix.shape))
+        print(
+            "Shape of first product matrix: " + str(matrix_product_first.shape)
+        )
+        print(
+            "Shape of second product matrix: " +
+            str(matrix_product_second.shape)
+        )
+        print("Are the product matrices nearly identical?: ")
+        print(numpy.allclose(
+            matrix_product_first, matrix_product_second,
+            rtol=1e-2,
+            atol=1e-3,
+            equal_nan=False,
+        ))
+    # Return.
+    #return table
+    pass
+
+
+
+
+
 # TODO: next... calculate the components...
 
 
@@ -636,6 +829,8 @@ def organize_principal_component_variance_proportion_table(
 
 def organize_principal_components_by_singular_value_decomposition(
     table=None,
+    prefix=None,
+    separator=None,
     report=None,
 ):
     """
@@ -652,24 +847,40 @@ def organize_principal_components_by_singular_value_decomposition(
     The Eigenvalues impart scale or weight to each Eigenvector.
     Each Eigenvector has its own Eigenvalue, and their sort orders mush match.
 
-    A: original data matrix
-    N = count of samples (cases, observations) in original matrix, "A"
-    U: matrix with left singular vectors as columns (dimension 1)
-    Ut: matrix with left singular vectors as rows (dimension 0)
-    S = singular values
-    Vt = matrix with right singular vectors as rows (dimension 0)
-    V = matrix with right singular vectors as columns (dimension 1)
+    Terminology
 
-    Eigenvalue = ( (S^2) / (N - 1))
+    m: count of samples (cases, observations) in original data matrix
+    n: count of variables (features) in original data matrix
+    k = min(m, n)
+
+    A: original data matrix
+    - - shape of matrix "A": (m, n)
+    A = U <dot product> S_diagonal <dot product> Vt
+
+    U: matrix with left singular vectors as columns (dimension 1)
+    - - shape of matrix "U": (m, m) or (m, k)
+    Ut: matrix with left singular vectors as rows (dimension 0)
+    - - shape of matrix "Ut": (m, m) or (k, m)
+    S: singular values
+    - - shape of matrix "S": (k,)
+    Vt: matrix with right singular vectors as rows (dimension 0)
+    - - shape of matrix "Vt": (n, n) or (k, n)
+    V: matrix with right singular vectors as columns (dimension 1)
+    - - shape of matrix "Vt": (n, n) or (n, k)
+
+    Definitions
+
+    Eigenvalue = ( (S^2) / (m - 1))
     Proportional Variance = Eigenvalue / sum( Eigenvalues )
-    Eigenvectors = V columns
-    - - also U columns (depending on dimension of interest, I think)
+    Eigenvectors = V columns (right singular vectors)
+    - - specifically in this context
+    - - left singular vectors can be Eigenvectors in another context
     Loadings include aspects of both direction (Eigenvectors) and scale
     (Eigenvalues).
-    Loadings = ( S [dot] V ) / ( (N - 1)^0.5 )
+    Loadings = ( S [dot] V ) / ( (m - 1)^0.5 )
     Loadings = Eigenvectors [dot] (Eigenvalues)^0.5
     Principal Component Scores = U [dot] S
-    Principal Component Scores = A [dot] V
+    Principal Component Scores = A [dot] Vt
 
     Reference:
 
@@ -686,6 +897,9 @@ def organize_principal_components_by_singular_value_decomposition(
         table (object): Pandas data frame of variables (features) across
             columns and samples (cases, observations) across rows with an
             explicit index
+        prefix (str): prefix for names of new principal component columns in
+            table
+        separator (str): separator for names of new columns
         report (bool): whether to print reports
 
     raises:
@@ -725,7 +939,7 @@ def organize_principal_components_by_singular_value_decomposition(
             index_name="eigenvectors_components",
             report=report,
     ))
-    table_principal_components = (
+    table_components_variance = (
         organize_principal_component_variance_proportion_table(
             variance_proportions=variance_proportions,
             prefix="component_",
@@ -734,6 +948,27 @@ def organize_principal_components_by_singular_value_decomposition(
     ))
 
     # TODO: calculate "loadings" as S [dot] V
+
+    table_principal_component_scores = (
+        calculate_principal_component_scores_organize_table(
+            source_matrix=pail_decomposition["matrix"],
+            source_index=pail_decomposition["index"],
+            u_left_singular_vectors_columns=(
+                pail_decomposition["u_left_singular_vectors_columns"]
+            ),
+            s_singular_values=(
+                pail_decomposition["s_singular_values"]
+            ),
+            s_singular_values_diagonal=(
+                pail_decomposition["s_singular_values_diagonal"]
+            ),
+            vt_right_singular_vectors_rows=(
+                pail_decomposition["vt_right_singular_vectors_rows"]
+            ),
+            prefix=prefix,
+            separator=separator,
+            report=report,
+    ))
 
     # TODO: now calculate the principal component transformations of the original
     # columns...
