@@ -641,10 +641,10 @@ def calculate_loadings_from_decomposition_factors(
 
     # Copy information.
     s = numpy.copy(s_singular_values)
-    s_diagonal = numpy.copy(s_singular_values_diagonal)
+    #s_diagonal = numpy.copy(s_singular_values_diagonal)
     v = numpy.copy(v_right_singular_vectors_columns)
     # Calculate loadings.
-    product = numpy.dot(v, s_diagonal)
+    product = numpy.dot(v, s)
     loadings = array_divide_by_sample_count(
         product, count_samples
     )
@@ -1097,8 +1097,8 @@ def organize_principal_components_by_singular_value_decomposition(
     - - left singular vectors can be Eigenvectors in another context
     Loadings include aspects of both direction (Eigenvectors) and scale
     (Eigenvalues).
-    Loadings = ( S <dot> V ) / ( (m - 1)^0.5 )
     Loadings = Eigenvectors <dot> (Eigenvalues)^0.5
+    Loadings = ( V <dot> S ) / ( (m - 1)^0.5 )
 
     Principal Component Scores = A <dot> Loadings
     Principal Component Scores = A <dot> Vt <dot> S
