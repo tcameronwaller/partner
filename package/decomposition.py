@@ -592,7 +592,8 @@ def calculate_loadings_from_eigenvalues_eigenvectors(
     eigenvalues_square_root = numpy.sqrt(eigenvalues)
     #eigenvalues_root_diagonal = numpy.diag(eigenvalues_square_root)
     # Calculate loadings.
-    loadings = numpy.dot(eigenvectors, eigenvalues_square_root)
+    #loadings = numpy.dot(eigenvectors, eigenvalues_square_root)
+    loadings = (eigenvectors * eigenvalues_square_root)
     # Report.
     if report:
         utility.print_terminal_partition(level=2)
@@ -647,7 +648,8 @@ def calculate_loadings_from_decomposition_factors(
     quotient = array_divide_by_sample_count(
         s, count_samples
     )
-    loadings = numpy.dot(v, quotient)
+    #loadings = numpy.dot(v, quotient)
+    loadings = (v * quotient)
     # Report.
     if report:
         utility.print_terminal_partition(level=2)
@@ -1098,7 +1100,7 @@ def organize_principal_components_by_singular_value_decomposition(
     Loadings include aspects of both direction (Eigenvectors) and scale
     (Eigenvalues).
     Loadings = Eigenvectors <dot> (Eigenvalues)^0.5
-    Loadings = ( V <dot> S ) / ( (m - 1)^0.5 )
+    Loadings = V <dot> (S / ( (m - 1)^0.5 ))
 
     Principal Component Scores = A <dot> Loadings
     Principal Component Scores = A <dot> Vt <dot> S
