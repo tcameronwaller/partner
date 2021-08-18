@@ -590,9 +590,10 @@ def calculate_loadings_from_eigenvalues_eigenvectors(
     # Calculate square roots of Eigenvalues.
     # Organize a diagonal matrix of square roots of Eigenvalues.
     eigenvalues_square_root = numpy.sqrt(eigenvalues)
-    #eigenvalues_root_diagonal = numpy.diag(eigenvalues_square_root)
+    eigenvalues_root_diagonal = numpy.diag(eigenvalues_square_root)
     # Calculate loadings.
-    loadings = numpy.dot(eigenvectors, eigenvalues_square_root)
+    #loadings = numpy.dot(eigenvectors, eigenvalues_square_root)
+    loadings = numpy.dot(eigenvectors, eigenvalues_root_diagonal)
     #loadings = (eigenvectors * eigenvalues_square_root)
     # Report.
     if report:
@@ -645,10 +646,11 @@ def calculate_loadings_from_decomposition_factors(
     #s_diagonal = numpy.copy(s_singular_values_diagonal)
     vt = numpy.copy(vt_right_singular_vectors_rows)
     # Calculate loadings.
-    quotient = array_divide_by_sample_count(
+    quotients = array_divide_by_sample_count(
         s, count_samples
     )
-    loadings = numpy.dot(vt, quotient)
+    quotients_diagonal = numpy.diag(quotients)
+    loadings = numpy.dot(vt, quotients_diagonal)
     # Report.
     if report:
         utility.print_terminal_partition(level=2)
@@ -663,6 +665,54 @@ def calculate_loadings_from_decomposition_factors(
         print(loadings)
     # Return.
     return loadings
+
+
+def calculate_principal_component_loadings(
+    eigenvectors=None,
+    eigenvalues=None,
+    report=None,
+):
+    """
+    Calculates Principal Components Analysis (PCA) loadings.
+
+    arguments:
+        eigenvectors (object): NumPy matrix of Eigenvectors
+        eigenvalues (object): NumPy array of Eigenvalues
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Numpy array of loadings
+
+    """
+
+    # Copy information.
+    eigenvectors = numpy.copy(eigenvectors)
+    eigenvalues = numpy.copy(eigenvalues)
+    # Calculate square roots of Eigenvalues.
+    # Organize a diagonal matrix of square roots of Eigenvalues.
+    eigenvalues_square_root = numpy.sqrt(eigenvalues)
+    #eigenvalues_root_diagonal = numpy.diag(eigenvalues_square_root)
+    # Calculate loadings.
+    loadings = numpy.dot(eigenvectors, eigenvalues_square_root)
+    #loadings = (eigenvectors * eigenvalues_square_root)
+    # Report.
+    if report:
+        utility.print_terminal_partition(level=2)
+        print(
+            "Report from: " +
+            "calculate_loadings_from_eigenvalues_eigenvectors()"
+        )
+        utility.print_terminal_partition(level=3)
+        print("Shape of loadings: " + str(loadings.shape))
+        utility.print_terminal_partition(level=4)
+        print("Loadings = Eigenvectors [dot] square_root(diagonal Eigenvalues)")
+        print(loadings)
+    # Return.
+    return loadings
+
+
 
 
 def organize_principal_component_variance_proportion_table(
