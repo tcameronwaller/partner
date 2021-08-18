@@ -592,9 +592,7 @@ def calculate_loadings_from_eigenvalues_eigenvectors(
     eigenvalues_square_root = numpy.sqrt(eigenvalues)
     eigenvalues_root_diagonal = numpy.diag(eigenvalues_square_root)
     # Calculate loadings.
-    #loadings = numpy.dot(eigenvectors, eigenvalues_square_root)
     loadings = numpy.dot(eigenvectors, eigenvalues_root_diagonal)
-    #loadings = (eigenvectors * eigenvalues_square_root)
     # Report.
     if report:
         utility.print_terminal_partition(level=2)
@@ -613,7 +611,6 @@ def calculate_loadings_from_eigenvalues_eigenvectors(
 
 def calculate_loadings_from_decomposition_factors(
     s_singular_values=None,
-    s_singular_values_diagonal=None,
     vt_right_singular_vectors_rows=None,
     count_samples=None,
     report=None,
@@ -624,7 +621,6 @@ def calculate_loadings_from_decomposition_factors(
 
     arguments:
         s_singular_values (object): Numpy matrix of Singular Values
-        s_singular_values_diagonal (object): Numpy matrix
         vt_right_singular_vectors_rows (object): Numpy matrix
         count_samples (float): count of samples in the original source matrix
             for Singular Value Decomposition
@@ -643,7 +639,6 @@ def calculate_loadings_from_decomposition_factors(
 
     # Copy information.
     s = numpy.copy(s_singular_values)
-    #s_diagonal = numpy.copy(s_singular_values_diagonal)
     vt = numpy.copy(vt_right_singular_vectors_rows)
     # Calculate loadings.
     quotients = array_divide_by_sample_count(
@@ -670,6 +665,9 @@ def calculate_loadings_from_decomposition_factors(
 def calculate_principal_component_loadings(
     eigenvectors=None,
     eigenvalues=None,
+    s_singular_values=None,
+    vt_right_singular_vectors_rows=None,
+    count_samples=None,
     report=None,
 ):
     """
@@ -678,6 +676,10 @@ def calculate_principal_component_loadings(
     arguments:
         eigenvectors (object): NumPy matrix of Eigenvectors
         eigenvalues (object): NumPy array of Eigenvalues
+        s_singular_values (object): Numpy matrix of Singular Values
+        vt_right_singular_vectors_rows (object): Numpy matrix
+        count_samples (float): count of samples in the original source matrix
+            for Singular Value Decomposition
         report (bool): whether to print reports
 
     raises:
@@ -687,32 +689,39 @@ def calculate_principal_component_loadings(
 
     """
 
-    # Copy information.
-    eigenvectors = numpy.copy(eigenvectors)
-    eigenvalues = numpy.copy(eigenvalues)
-    # Calculate square roots of Eigenvalues.
-    # Organize a diagonal matrix of square roots of Eigenvalues.
-    eigenvalues_square_root = numpy.sqrt(eigenvalues)
-    #eigenvalues_root_diagonal = numpy.diag(eigenvalues_square_root)
-    # Calculate loadings.
-    loadings = numpy.dot(eigenvectors, eigenvalues_square_root)
-    #loadings = (eigenvectors * eigenvalues_square_root)
+    # Eigenvectors and Eigenvalues.
+    loadings_eigen = calculate_loadings_from_eigenvalues_eigenvectors(
+        eigenvectors=eigenvectors,
+        eigenvalues=eigenvalues,
+        report=report,
+    )
+    # Raw decomposition factors.
+    loadings_decomposition = calculate_loadings_from_decomposition_factors(
+        s_singular_values=s_singular_values,
+        vt_right_singular_vectors_rows=vt_right_singular_vectors_rows,
+        count_samples=count_samples,
+        report=report,
+    )
+
     # Report.
     if report:
         utility.print_terminal_partition(level=2)
         print(
             "Report from: " +
-            "calculate_loadings_from_eigenvalues_eigenvectors()"
+            "calculate_principal_component_loadings()"
         )
         utility.print_terminal_partition(level=3)
         print("Shape of loadings: " + str(loadings.shape))
         utility.print_terminal_partition(level=4)
-        print("Loadings = Eigenvectors [dot] square_root(diagonal Eigenvalues)")
-        print(loadings)
+        print("Compare loadings from both methods: ")
+        print(numpy.allclose(
+            loadings_eigen, loadings_decomposition,
+            rtol=1e-2,
+            atol=1e-3,
+            equal_nan=False,
+        ))
     # Return.
-    return loadings
-
-
+    return loadings_eigen
 
 
 def organize_principal_component_variance_proportion_table(
@@ -767,11 +776,8 @@ def organize_principal_component_variance_proportion_table(
 
 def calculate_principal_component_scores_from_factors(
     matrix_source=None,
-    loadings=None,
     u_left_singular_vectors_columns=None,
-    s_singular_values=None,
     s_singular_values_diagonal=None,
-    vt_right_singular_vectors_rows=None,
     v_right_singular_vectors_columns=None,
     report=None,
 ):
@@ -789,11 +795,8 @@ def calculate_principal_component_scores_from_factors(
         matrix_source (object): NumPy matrix with samples (cases, observations)
             across rows (dimension 0) and variables (features) across columns
             (dimension 1)
-        loadings (object): NumPy array of Principal Component Loadings
         u_left_singular_vectors_columns (object): Numpy matrix
-        s_singular_values (object): Numpy matrix of Singular Values
         s_singular_values_diagonal (object): Numpy matrix
-        vt_right_singular_vectors_rows (object): Numpy matrix
         v_right_singular_vectors_columns (object): Numpy matrix
         report (bool): whether to print reports
 
@@ -807,11 +810,8 @@ def calculate_principal_component_scores_from_factors(
 
     # Copy information.
     a = numpy.copy(matrix_source)
-    loadings = numpy.copy(loadings)
     u = numpy.copy(u_left_singular_vectors_columns)
-    s = numpy.copy(s_singular_values)
     s_diagonal = numpy.copy(s_singular_values_diagonal)
-    vt = numpy.copy(vt_right_singular_vectors_rows)
     v = numpy.copy(v_right_singular_vectors_columns)
 
     # Calculate the Principal Component Scores.
@@ -845,7 +845,7 @@ def calculate_principal_component_scores_from_factors(
         ))
     # Compile information.
     pail = dict()
-    pail["matrix_scores"] = matrix_scores_first
+    pail["matrix_scores"] = matrix_scores_second
     # Return.
     return pail
 
@@ -983,43 +983,31 @@ def compare_principal_components_methods(
             report=report,
     ))
     # Loadings
-    loadings_eigen = calculate_loadings_from_eigenvalues_eigenvectors(
+    loadings = calculate_principal_component_loadings(
         eigenvectors=pail_decomposition["vt_right_singular_vectors_rows"],
         eigenvalues=eigenvalues,
-        report=report,
-    )
-    loadings_decomposition = calculate_loadings_from_decomposition_factors(
         s_singular_values=pail_decomposition["s_singular_values"],
-        s_singular_values_diagonal=(
-            pail_decomposition["s_singular_values_diagonal"]
-        ),
         vt_right_singular_vectors_rows=(
             pail_decomposition["vt_right_singular_vectors_rows"]
         ),
         count_samples=pail_organization["count_samples"],
         report=report,
     )
-    pail_svd = (
-        calculate_principal_component_scores_from_factors(
-            matrix_source=pail_organization["matrix"],
-            loadings=loadings_eigen,
-            u_left_singular_vectors_columns=(
-                pail_decomposition["u_left_singular_vectors_columns"]
-            ),
-            s_singular_values=(
-                pail_decomposition["s_singular_values"]
-            ),
-            s_singular_values_diagonal=(
-                pail_decomposition["s_singular_values_diagonal"]
-            ),
-            vt_right_singular_vectors_rows=(
-                pail_decomposition["vt_right_singular_vectors_rows"]
-            ),
-            v_right_singular_vectors_columns=(
-                pail_decomposition["v_right_singular_vectors_columns"]
-            ),
-            report=report,
-    ))
+
+    # Principal Component Scores
+    pail_svd = calculate_principal_component_scores_from_factors(
+        matrix_source=pail_organization["matrix"],
+        u_left_singular_vectors_columns=(
+            pail_decomposition["u_left_singular_vectors_columns"]
+        ),
+        s_singular_values_diagonal=(
+            pail_decomposition["s_singular_values_diagonal"]
+        ),
+        v_right_singular_vectors_columns=(
+            pail_decomposition["v_right_singular_vectors_columns"]
+        ),
+        report=report,
+    )
 
     # Report.
     if report:
@@ -1052,10 +1040,9 @@ def compare_principal_components_methods(
     pass
 
 
-# TODO: TCW 17 August 2021
-# TODO: after A LOT of work, I still have problems with the SVD method
-# TODO: the two methods for calculation of loadings are inconsistent
-# TODO: the Principal Component scores differ from those of the SKLearn method
+# Note: TCW 17 August 2021
+# The SVD method delivers Principal Components that match the SKLearn method.
+# I need to confirm that both methods deliver identical loadings.
 
 def organize_principal_components_by_singular_value_decomposition(
     table=None,
@@ -1204,16 +1191,10 @@ def organize_principal_components_by_singular_value_decomposition(
     ))
 
     # Loadings
-    loadings_eigen = calculate_loadings_from_eigenvalues_eigenvectors(
+    loadings = calculate_principal_component_loadings(
         eigenvectors=pail_decomposition["vt_right_singular_vectors_rows"],
         eigenvalues=eigenvalues,
-        report=report,
-    )
-    loadings_decomposition = calculate_loadings_from_decomposition_factors(
         s_singular_values=pail_decomposition["s_singular_values"],
-        s_singular_values_diagonal=(
-            pail_decomposition["s_singular_values_diagonal"]
-        ),
         vt_right_singular_vectors_rows=(
             pail_decomposition["vt_right_singular_vectors_rows"]
         ),
@@ -1222,27 +1203,19 @@ def organize_principal_components_by_singular_value_decomposition(
     )
 
     # Principal Component Scores
-    pail_scores = (
-        calculate_principal_component_scores_from_factors(
-            matrix_source=pail_organization["matrix"],
-            loadings=loadings_eigen,
-            u_left_singular_vectors_columns=(
-                pail_decomposition["u_left_singular_vectors_columns"]
-            ),
-            s_singular_values=(
-                pail_decomposition["s_singular_values"]
-            ),
-            s_singular_values_diagonal=(
-                pail_decomposition["s_singular_values_diagonal"]
-            ),
-            vt_right_singular_vectors_rows=(
-                pail_decomposition["vt_right_singular_vectors_rows"]
-            ),
-            v_right_singular_vectors_columns=(
-                pail_decomposition["v_right_singular_vectors_columns"]
-            ),
-            report=report,
-    ))
+    pail_scores = calculate_principal_component_scores_from_factors(
+        matrix_source=pail_organization["matrix"],
+        u_left_singular_vectors_columns=(
+            pail_decomposition["u_left_singular_vectors_columns"]
+        ),
+        s_singular_values_diagonal=(
+            pail_decomposition["s_singular_values_diagonal"]
+        ),
+        v_right_singular_vectors_columns=(
+            pail_decomposition["v_right_singular_vectors_columns"]
+        ),
+        report=report,
+    )
     table_scores = organize_principal_component_scores_table(
         matrix=pail_scores["matrix_product_first"],
         index=pail_decomposition["index"],
