@@ -1049,8 +1049,6 @@ def compare_principal_components_methods(
     pass
 
 
-# TODO: return principal component scores and other information...
-
 def organize_principal_components_by_singular_value_decomposition(
     table=None,
     index_name=None,
@@ -1223,7 +1221,7 @@ def organize_principal_components_by_singular_value_decomposition(
         ),
         report=report,
     )
-    table_scores = organize_principal_component_scores_table(
+    table_component_scores = organize_principal_component_scores_table(
         matrix=pail_scores["matrix_scores"],
         index=pail_organization["index"],
         index_name=index_name,
@@ -1232,10 +1230,17 @@ def organize_principal_components_by_singular_value_decomposition(
         report=report,
     )
 
-    # TODO: now calculate the principal components using sklearn function???
-
-
-    pass
+    # Compile information.
+    pail = dict()
+    pail["table_source_threshold"] = (pail_organization["table_threshold"])
+    pail["table_source_threshold_scale"] = (
+        pail_organization["table_threshold_scale"]
+    )
+    pail["count_samples"] = pail_organization["count_samples"]
+    pail["count_variables"] = pail_organization["count_variables"]
+    pail["table_component_scores"] = table_component_scores
+    # Return.
+    return pail
 
 
 # SKLearn
