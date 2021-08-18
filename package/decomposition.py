@@ -998,7 +998,7 @@ def compare_principal_components_methods(
     )
     pail_svd = (
         calculate_principal_component_scores_from_factors(
-            source_matrix=pail_organization["matrix"],
+            matrix_source=pail_organization["matrix"],
             loadings=loadings_eigen,
             u_left_singular_vectors_columns=(
                 pail_decomposition["u_left_singular_vectors_columns"]
