@@ -592,8 +592,8 @@ def calculate_loadings_from_eigenvalues_eigenvectors(
     eigenvalues_square_root = numpy.sqrt(eigenvalues)
     #eigenvalues_root_diagonal = numpy.diag(eigenvalues_square_root)
     # Calculate loadings.
-    #loadings = numpy.dot(eigenvectors, eigenvalues_square_root)
-    loadings = (eigenvectors * eigenvalues_square_root)
+    loadings = numpy.dot(eigenvectors, eigenvalues_square_root)
+    #loadings = (eigenvectors * eigenvalues_square_root)
     # Report.
     if report:
         utility.print_terminal_partition(level=2)
@@ -613,7 +613,7 @@ def calculate_loadings_from_eigenvalues_eigenvectors(
 def calculate_loadings_from_decomposition_factors(
     s_singular_values=None,
     s_singular_values_diagonal=None,
-    v_right_singular_vectors_columns=None,
+    vt_right_singular_vectors_rows=None,
     count_samples=None,
     report=None,
 ):
@@ -624,7 +624,7 @@ def calculate_loadings_from_decomposition_factors(
     arguments:
         s_singular_values (object): Numpy matrix of Singular Values
         s_singular_values_diagonal (object): Numpy matrix
-        v_right_singular_vectors_columns (object): Numpy matrix
+        vt_right_singular_vectors_rows (object): Numpy matrix
         count_samples (float): count of samples in the original source matrix
             for Singular Value Decomposition
         report (bool): whether to print reports
@@ -643,13 +643,12 @@ def calculate_loadings_from_decomposition_factors(
     # Copy information.
     s = numpy.copy(s_singular_values)
     #s_diagonal = numpy.copy(s_singular_values_diagonal)
-    v = numpy.copy(v_right_singular_vectors_columns)
+    vt = numpy.copy(vt_right_singular_vectors_rows)
     # Calculate loadings.
     quotient = array_divide_by_sample_count(
         s, count_samples
     )
-    #loadings = numpy.dot(v, quotient)
-    loadings = (v * quotient)
+    loadings = numpy.dot(vt, quotient)
     # Report.
     if report:
         utility.print_terminal_partition(level=2)
@@ -887,6 +886,10 @@ def compare_principal_components_methods(
     The Eigenvalues impart scale or weight to each Eigenvector.
     Each Eigenvector has its own Eigenvalue, and their sort orders mush match.
 
+    Singular Value Decomposition assigns Eigenvector direction (sign, positive
+    or negative) at random. Hence, take the absolute value of Principal
+    Components before comparing matrices between different methods.
+
     arguments:
         table (object): Pandas data frame of variables (features) across
             columns and samples (cases, observations) across rows with an
@@ -1055,11 +1058,22 @@ def organize_principal_components_by_singular_value_decomposition(
     - - some sources refer to V Eigenvectors as "loadings"
     Loadings include aspects of both direction (Eigenvectors) and scale
     (Eigenvalues).
+    Loadings are most useful to understand the contribution of each variable
+    (feature) to each Principal Component.
+    Loadings matrix is generally square.
     Loadings = Eigenvectors <dot> (Eigenvalues)^0.5
-    Loadings = V <dot> (S / ( (m - 1)^0.5 ))
+    - - matrix multiplication involves rows of first matrix and columns of
+    - - second
+    - - Eigenvectors are Vt in this case so that singular fectors are across
+    - - rows
+    Loadings = Vt <dot> (S / ( (m - 1)^0.5 ))
+    - - matrix multiplication involves rows of first matrix and columns of
+    - - second
+    - - use Vt in this case so that singular fectors are across rows
 
     A = U <dot> S_diagonal <dot> Vt
     A / Vt = U <dot> S_diagonal
+    1 / Vt = V
     A <dot> V = U <dot> S_diagonal
     Principal Component Scores = A <dot> V
     Principal Component Scores = U <dot> S_diagonal
@@ -1149,8 +1163,8 @@ def organize_principal_components_by_singular_value_decomposition(
         s_singular_values_diagonal=(
             pail_decomposition["s_singular_values_diagonal"]
         ),
-        v_right_singular_vectors_columns=(
-            pail_decomposition["v_right_singular_vectors_columns"]
+        vt_right_singular_vectors_rows=(
+            pail_decomposition["vt_right_singular_vectors_rows"]
         ),
         count_samples=pail_organization["count_samples"],
         report=report,
