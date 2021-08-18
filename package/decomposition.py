@@ -932,6 +932,7 @@ def compare_principal_components_methods(
             count_samples=pail_organization["count_samples"],
             report=report,
     ))
+    # Loadings
     loadings_eigen = calculate_loadings_from_eigenvalues_eigenvectors(
         eigenvectors=pail_decomposition["vt_right_singular_vectors_rows"],
         eigenvalues=eigenvalues,
@@ -942,8 +943,8 @@ def compare_principal_components_methods(
         s_singular_values_diagonal=(
             pail_decomposition["s_singular_values_diagonal"]
         ),
-        v_right_singular_vectors_columns=(
-            pail_decomposition["v_right_singular_vectors_columns"]
+        vt_right_singular_vectors_rows=(
+            pail_decomposition["vt_right_singular_vectors_rows"]
         ),
         count_samples=pail_organization["count_samples"],
         report=report,
