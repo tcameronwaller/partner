@@ -600,7 +600,9 @@ def calculate_loadings_from_eigenvalues_eigenvectors(
             "Report from: " +
             "calculate_loadings_from_eigenvalues_eigenvectors()"
         )
-        utility.print_terminal_partition(level=2)
+        utility.print_terminal_partition(level=3)
+        print("Shape of loadings: " + str(loadings.shape))
+        utility.print_terminal_partition(level=4)
         print("Loadings = Eigenvectors [dot] square_root(diagonal Eigenvalues)")
         print(loadings)
     # Return.
@@ -653,7 +655,9 @@ def calculate_loadings_from_decomposition_factors(
             "Report from: " +
             "calculate_loadings_from_decomposition_factors()"
         )
-        utility.print_terminal_partition(level=2)
+        utility.print_terminal_partition(level=3)
+        print("Shape of loadings: " + str(loadings.shape))
+        utility.print_terminal_partition(level=4)
         print("Loadings = (V [dot] S) / square_root(samples - 1)")
         print(loadings)
     # Return.
