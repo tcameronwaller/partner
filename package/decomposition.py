@@ -644,10 +644,10 @@ def calculate_loadings_from_decomposition_factors(
     #s_diagonal = numpy.copy(s_singular_values_diagonal)
     v = numpy.copy(v_right_singular_vectors_columns)
     # Calculate loadings.
-    product = numpy.dot(v, s)
-    loadings = array_divide_by_sample_count(
-        product, count_samples
+    quotient = array_divide_by_sample_count(
+        s, count_samples
     )
+    loadings = numpy.dot(v, quotient)
     # Report.
     if report:
         utility.print_terminal_partition(level=2)
@@ -658,7 +658,7 @@ def calculate_loadings_from_decomposition_factors(
         utility.print_terminal_partition(level=3)
         print("Shape of loadings: " + str(loadings.shape))
         utility.print_terminal_partition(level=4)
-        print("Loadings = (V [dot] S) / square_root(samples - 1)")
+        print("Loadings = (V [dot] (S / square_root(samples - 1)))")
         print(loadings)
     # Return.
     return loadings
