@@ -590,9 +590,9 @@ def calculate_loadings_from_eigenvalues_eigenvectors(
     # Calculate square roots of Eigenvalues.
     # Organize a diagonal matrix of square roots of Eigenvalues.
     eigenvalues_square_root = numpy.sqrt(eigenvalues)
-    eigenvalues_root_diagonal = numpy.diag(eigenvalues_square_root)
+    #eigenvalues_root_diagonal = numpy.diag(eigenvalues_square_root)
     # Calculate loadings.
-    loadings = numpy.dot(eigenvectors, eigenvalues_root_diagonal)
+    loadings = numpy.dot(eigenvectors, eigenvalues_square_root)
     # Report.
     if report:
         utility.print_terminal_partition(level=2)
@@ -1037,7 +1037,8 @@ def compare_principal_components_methods(
         utility.print_terminal_partition(level=4)
         print("Compare score matrices")
         print(numpy.allclose(
-            pail_sklearn["matrix_scores"], pail_svd["matrix_scores"],
+            numpy.absolute(pail_sklearn["matrix_scores"]),
+            numpy.absolute(pail_svd["matrix_scores"]),
             rtol=1e-2, # relative tolerance, 1%
             atol=1e-3,
             equal_nan=False,
