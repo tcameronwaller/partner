@@ -662,6 +662,10 @@ def calculate_loadings_from_decomposition_factors(
     return loadings
 
 
+# TODO: TCW 17 August 2021
+# TODO: organize table with labels of rows and columns
+# TODO: feature X PC (which dimension is which?)
+
 def calculate_principal_component_loadings(
     eigenvectors=None,
     eigenvalues=None,
@@ -1030,7 +1034,8 @@ def compare_principal_components_methods(
             str(pail_svd["matrix_scores"].shape)
         )
         utility.print_terminal_partition(level=4)
-        print("Compare score matrices")
+        print("Compare score matrices between methods")
+        print("SKLearn versus SVD... match?")
         print(numpy.allclose(
             numpy.absolute(pail_sklearn["matrix_scores"]),
             numpy.absolute(pail_svd["matrix_scores"]),
@@ -1218,15 +1223,13 @@ def organize_principal_components_by_singular_value_decomposition(
         report=report,
     )
     table_scores = organize_principal_component_scores_table(
-        matrix=pail_scores["matrix_product_first"],
-        index=pail_decomposition["index"],
+        matrix=pail_scores["matrix_scores"],
+        index=pail_organization["index"],
         index_name=index_name,
         prefix=prefix,
         separator=separator,
         report=report,
     )
-
-
 
     # TODO: now calculate the principal components using sklearn function???
 
