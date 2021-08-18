@@ -70,6 +70,9 @@ import promiscuity.utility as utility
 
 
 # Singular Value Decomposition and Principal Components Analysis
+# Note: TCW 17 August 2021
+# The SVD method delivers Principal Components that match the SKLearn method.
+# I need to confirm that both methods deliver identical loadings.
 
 
 def organize_table_matrix_for_decomposition(
@@ -893,14 +896,14 @@ def organize_principal_component_scores_table(
         column = str(str(prefix) + str(separator) + str(count))
         columns.append(column)
         count += 1
-    table_first = pandas.DataFrame(
+    table = pandas.DataFrame(
         data=matrix,
         index=index,
         columns=columns,
         dtype="float32",
         copy=True,
     )
-    table_first.rename_axis(
+    table.rename_axis(
         index=index_name,
         axis="index",
         copy=False,
@@ -1046,9 +1049,7 @@ def compare_principal_components_methods(
     pass
 
 
-# Note: TCW 17 August 2021
-# The SVD method delivers Principal Components that match the SKLearn method.
-# I need to confirm that both methods deliver identical loadings.
+# TODO: return principal component scores and other information...
 
 def organize_principal_components_by_singular_value_decomposition(
     table=None,
