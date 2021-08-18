@@ -696,7 +696,7 @@ def calculate_principal_component_loadings(
         report=report,
     )
     # Raw decomposition factors.
-    loadings_decomposition = calculate_loadings_from_decomposition_factors(
+    loadings_factor = calculate_loadings_from_decomposition_factors(
         s_singular_values=s_singular_values,
         vt_right_singular_vectors_rows=vt_right_singular_vectors_rows,
         count_samples=count_samples,
@@ -711,11 +711,12 @@ def calculate_principal_component_loadings(
             "calculate_principal_component_loadings()"
         )
         utility.print_terminal_partition(level=3)
-        print("Shape of loadings: " + str(loadings.shape))
+        print("Shape of Eigen loadings: " + str(loadings_eigen.shape))
+        print("Shape of factor loadings: " + str(loadings_factor.shape))
         utility.print_terminal_partition(level=4)
         print("Compare loadings from both methods: ")
         print(numpy.allclose(
-            loadings_eigen, loadings_decomposition,
+            loadings_eigen, loadings_factor,
             rtol=1e-2,
             atol=1e-3,
             equal_nan=False,
