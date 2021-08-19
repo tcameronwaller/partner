@@ -59,7 +59,7 @@ import statsmodels.api
 
 # Custom
 
-import promiscuity.utility as utility
+import promiscuity.utility as utility # this import path for subpackage
 
 
 #dir()
@@ -70,6 +70,7 @@ import promiscuity.utility as utility
 
 
 # Singular Value Decomposition and Principal Components Analysis
+
 # Note: TCW 17 August 2021
 # The SVD method delivers Principal Components that match the SKLearn method.
 # I need to confirm that both methods deliver identical loadings.
@@ -134,7 +135,7 @@ def organize_table_matrix_for_decomposition(
         rows = table.shape[0]
         threshold = round(rows*threshold_valid_proportion_per_column)
         table.dropna(
-            axis="columns",
+            axis="columns", # drop columns
             thresh=threshold,
             subset=None,
             inplace=True,
@@ -164,7 +165,7 @@ def organize_table_matrix_for_decomposition(
         ]
     # Drop any rows with null values in any columns.
     table.dropna(
-        axis="index",
+        axis="index", # drop rows
         how="any",
         subset=None,
         inplace=True,
