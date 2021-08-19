@@ -170,7 +170,9 @@ def regress_linear_ordinary_least_squares(
         pail_raw = model.fit()
         # Report.
         if report:
-            utility.print_terminal_partition(level=2)
+            print("--------------------------------------------------")
+            print("--------------------------------------------------")
+            print("--------------------------------------------------")
             print(
                 "Report source: " +
                 "regress_dependent_independent_variables_linear_ordinary()"
