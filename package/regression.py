@@ -56,7 +56,7 @@ import sklearn.decomposition
 import scipy
 import numpy
 import statsmodels.api
-import statsmodels.api.outliers_influence
+import statsmodels.stats.outliers_influence
 
 # Custom
 
