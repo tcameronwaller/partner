@@ -73,7 +73,8 @@ import promiscuity.utility as utility # this import path for subpackage
 
 
 # TODO: TCW 19 August 2021
-# TODO: I need to filter and standardize the table columns... BEFORE
+# TODO: I need to filter and standardize the table columns... BEFORE passing to this function
+# TODO: implement a driver function to filter and standardize before calling the regression function?
 
 def regress_linear_ordinary_least_squares(
     dependence=None,
@@ -171,13 +172,11 @@ def regress_linear_ordinary_least_squares(
         # Report.
         if report:
             print("--------------------------------------------------")
-            print("--------------------------------------------------")
-            print("--------------------------------------------------")
             print(
                 "Report source: " +
                 "regress_dependent_independent_variables_linear_ordinary()"
             )
-            utility.print_terminal_partition(level=3)
+            print("--------------------------------------------------")
             print("Information from regression:")
             print(pail_raw.summary())
             #utility.print_terminal_partition(level=3)
