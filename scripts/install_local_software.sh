@@ -83,8 +83,37 @@ chmod +x ./audacity-linux-3.0.3-x86_64.AppImage
 
 # PulseAudio and PulseAudio Volume Control
 # PulseAudio improves performance of Audacity for audio recording.
+# PulseAudio might conflict with Jack Audio
 sudo apt install pulseaudio
 sudo apt install pavucontrol
+
+# Jack Audio Connection Kit
+sudo apt install jackd
+sudo apt install qjackctl
+whereis jackd
+whereis qjackctl
+qjackctl &
+# Enable Realtime scheduling and memory locking explicitly for user.
+# Make sure file exists: "/etc/security/limits.d/audio.conf".
+# If file exists: "/etc/security/limits.d/audio.conf.disabled" then rename to "/etc/security/limits.d/audio.conf".
+# Run command: "sudo usermod -a -G audio tcameronwaller"
+# Restart system to enact changes.
+
+# Manager for CPU Frequency Scaling
+# Select "performance" setting to optimize CPU performance frequency.
+# Important for recording audio with low latency.
+sudo apt install linux-tools-common
+sudo apt install linux-tools-generic
+sudo apt install linux-tools-5.11.0-27-generic
+sudo cpupower -c all frequency-set -g performance
+
+# Ardour
+# http://ardour.org/first_time_linux.html
+cd /folder/where/you/saved/the/file
+/bin/sh ./<DOWNLOADED_FILENAME>.run
+# Uninstall
+cd /opt
+/bin/sh ./Ardour_<VERSION>.uninstall.sh
 
 # Linux Multi-Media Studio (LMMS)
 # https://lmms.io
