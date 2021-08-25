@@ -43,12 +43,13 @@ rm $path_gwas_format
 rm $path_gwas_standard
 rm $path_gwas_format_compress
 
+##########
 # Constrain GWAS probability values within bounds for LDSC.
 # Probability values in column "P" from PLINK2 have values of "NA" for missing
 # or floating point values between zero and one.
 # LDSC uses 64-bit floating point precision (double precision) to represent
 # values from +/- 2.23E-308 to +/- 1.80E308 (https://github.com/bulik/ldsc/issues/144).
-# Constrain probability values from 1.0E-300 to 1.0.
+# Constrain probability values from 1.0E-305 to 1.0.
 zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_constraint
 zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   if ( NF != 12)
@@ -64,6 +65,7 @@ zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
     print $0
   }' >> $path_gwas_constraint
 
+##########
 # Format of GWAS summary statistics for LDSC.
 # https://github.com/bulik/ldsc/wiki/Heritability-and-Genetic-Correlation#reformatting-summary-statistics
 # Format of GWAS reports by PLINK2 for linear regression (".glm.linear").
@@ -108,6 +110,9 @@ cat $path_gwas_constraint | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   else
     next
   }' >> $path_gwas_format
+
+
+##########
 
 # Calculate Z-score standardization of Beta coefficients.
 if false; then

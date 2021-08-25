@@ -15,7 +15,8 @@ path_gwas_source_parent=${1} # full path to parent directory for source GWAS sum
 path_gwas_target_parent=${2} # full path to parent directory for target GWAS summary statistics
 path_heritability_parent=${3} # full path to directory for heritability report
 path_genetic_reference=${4} # full path to directory for genetic reference information
-report=${4} # whether to print reports
+effect=${5} # whether GWAS effect is coefficients ("beta") or z-scores ("z")
+report=${6} # whether to print reports
 
 ################################################################################
 # Paths.
@@ -58,11 +59,22 @@ sleep 5s
 # - "--signed-sumstats BETA,0"
 # - "--signed-sumstats OR,1"
 # - "--signed-sumstats Z,0"
-$path_ldsc/munge_sumstats.py \
---sumstats $path_gwas_format_compress \
---signed-sumstats BETA,0 \
---merge-alleles $path_alleles/w_hm3.snplist \
---out $path_gwas_munge
+
+if [[ "$effect" == "beta" ]]; then
+  $path_ldsc/munge_sumstats.py \
+  --sumstats $path_gwas_format_compress \
+  --signed-sumstats BETA,0 \
+  --merge-alleles $path_alleles/w_hm3.snplist \
+  --out $path_gwas_munge
+elif [[ "$effect" == "z" ]]; then
+  $path_ldsc/munge_sumstats.py \
+  --sumstats $path_gwas_format_compress \
+  --signed-sumstats Z,0 \
+  --merge-alleles $path_alleles/w_hm3.snplist \
+  --out $path_gwas_munge
+else
+  echo "invalid specification of GWAS effect"
+fi
 
 ################################################################################
 # Estimate phenotype heritability in LDSC.

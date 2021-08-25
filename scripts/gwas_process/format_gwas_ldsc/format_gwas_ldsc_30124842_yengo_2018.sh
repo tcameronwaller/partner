@@ -45,67 +45,73 @@ rm $path_gwas_format
 rm $path_gwas_standard
 rm $path_gwas_format_compress
 
-# TODO: TCW 13 August 2021
-# In both Yengo and Pulit scripts
-# 1. check the count of columns
-# 2. check the column number for the p-value (constraint)
-# 3. no need to do the allele check since only 2 allele columns
-
+##########
 # Constrain GWAS probability values within bounds for LDSC.
 # Probability values in column "P" from PLINK2 have values of "NA" for missing
 # or floating point values between zero and one.
 # LDSC uses 64-bit floating point precision (double precision) to represent
 # values from +/- 2.23E-308 to +/- 1.80E308 (https://github.com/bulik/ldsc/issues/144).
-# Constrain probability values from 1.0E-300 to 1.0.
+# Constrain probability values from 1.0E-305 to 1.0.
 zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_constraint
 zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
-  if ( NF != 12)
+  if ( NF != 10)
     # Skip any rows with incorrect count of column fields.
     next
-  else if ( ( $12 != "NA" ) && ( ($12 + 0) < 1.0E-305 ) )
+  else if ( ( $9 != "NA" ) && ( ($9 + 0) < 1.0E-305 ) )
     # Constrain probability value.
-    print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, ( 1.0E-305 )
-  else if ( ( $12 != "NA" ) && ( ($12 + 0) > 1.0 ) )
+    print $1, $2, $3, $4, $5, $6, $7, $8, ( 1.0E-305 ), $10
+  else if ( ( $9 != "NA" ) && ( ($9 + 0) > 1.0 ) )
     # Constrain probability value.
-    print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, ( 1.0 )
+    print $1, $2, $3, $4, $5, $6, $7, $8, ( 1.0 ), $10
   else
     print $0
   }' >> $path_gwas_constraint
 
+##########
 # Format of GWAS summary statistics for LDSC.
 # https://github.com/bulik/ldsc/wiki/Heritability-and-Genetic-Correlation#reformatting-summary-statistics
+
 # description: ............................ LDSC column ........... source column .............. position
 # variant identifier (RS ID): .............  "SNP" ................  "SNP" ..................... 3
 # alternate allele (effect allele): .......  "A1" .................  "Tested_Allele" ........... 4
 # reference allele (non-effect allele): ...  "A2" .................  "Other_Allele" ............ 5
-# sample size: ............................  "N" ..................  "N" ....................... 10
-# effect (coefficient or odds ratio): .....  "BETA" or "OR" .......  "BETA" or "BETA_COJO" ..... 7
-# probability (p-value): ..................  "P" ..................  "P" or "P_COJO" ........... 9
+# sample size: ............................  "N" ..................  "N" ...................... 10
+# effect (coefficient or odds ratio): .....  "BETA" or "OR" .......  "BETA" .................... 7
+# probability (p-value): ..................  "P" ..................  "P" ....................... 9
 
 # Organize information from linear GWAS.
-echo "SNP A1 A2 N BETA P" > $path_gwas_collection
-zcat $path_source_file | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {print $3, toupper($4), toupper($5), $10, $7, $9}' >> $path_gwas_collection
+echo "SNP A1 A2 N BETA P" > $path_gwas_format
+zcat $path_gwas_constraint | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {print $3, toupper($4), toupper($5), $10, $7, $9}' >> $path_gwas_format
+
+##########
 
 # Calculate Z-score standardization of Beta coefficients.
 if false; then
-  /usr/bin/bash $path_calculate_z_score \
+  /usr/bin/bash $path_script_calculate_z_score \
   5 \
-  $path_gwas_collection \
   $path_gwas_format \
+  $path_gwas_standard \
   $report
 else
-  cp $path_gwas_collection $path_gwas_format
+  cp $path_gwas_format $path_gwas_standard
 fi
 
 # Compress file format.
-gzip -cvf $path_gwas_format > $path_gwas_format_compress
+gzip -cvf $path_gwas_standard > $path_gwas_format_compress
 
 # Report.
 if [[ "$report" == "true" ]]; then
   echo "----------"
+  echo "after bound constraints:"
+  head -10 $path_gwas_constraint
   echo "before standardization:"
-  head -10 $path_gwas_collection
-  echo "after standardization:"
   head -10 $path_gwas_format
+  echo "after standardization:"
+  head -10 $path_gwas_standard
   echo "----------"
 fi
+
+# Remove temporary files.
+rm $path_gwas_constraint
+rm $path_gwas_format
+rm $path_gwas_standard
