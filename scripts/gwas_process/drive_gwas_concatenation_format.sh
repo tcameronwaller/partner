@@ -9,6 +9,15 @@
 ################################################################################
 ################################################################################
 
+# TODO: TCW 26 August 2021
+# TODO: I think this function ought to accept an argument for the format script to use
+# TODO: need to switch between linear formatting and logistic formatting
+
+# TODO: TCW 26 August 2021
+# TODO: this script also ought to accept argument for the "pattern_source_file"
+# TODO: because this pattern depends on whether linear or logistic GWAS
+
+
 ################################################################################
 # Organize arguments.
 path_gwas_source_parent=${1} # full path to parent directory for source GWAS summary statistics
