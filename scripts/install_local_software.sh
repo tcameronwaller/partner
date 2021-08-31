@@ -81,6 +81,16 @@ wget https://github.com/audacity/audacity/releases/download/Audacity-3.0.3/audac
 chmod +x ./audacity-linux-3.0.3-x86_64.AppImage
 ./audacity-linux-3.0.3-x86_64.AppImage
 
+# MuseScore
+# https://musescore.org/en
+#cd ~/Downloads
+#wget https://musescore.org/en/download/musescore-x86_64.AppImage
+#chmod +x
+#./musescore-x86_64.AppImage
+sudo add-apt-repository ppa:mscore-ubuntu/mscore-stable
+sudo apt-get update
+sudo apt install musescore
+
 # PulseAudio and PulseAudio Volume Control
 # PulseAudio improves performance of Audacity for audio recording.
 # PulseAudio might conflict with Jack Audio
