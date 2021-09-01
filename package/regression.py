@@ -466,31 +466,43 @@ def determine_cohort_model_variables_from_reference_table(
     table_cohort = table.loc[
         table["cohort"] == cohort, :
     ]
-    # Select table records for model.
-    table_model = table_cohort.loc[
-        table_cohort["model"] == model, :
-    ]
     # Select table records for dependent variable.
-    table_dependence = table_model.loc[
-        table_model["dependence"] == dependence, :
+    table_dependence = table_cohort.loc[
+        table_cohort["dependence"] == dependence, :
     ]
-    # Determine whether cohort-model-dependence defines a single set of
-    # independent variables.
-    if (int(table_dependence.shape[0]) == 1):
-        independence_string = copy.deepcopy(
-            table_dependence.iloc[0].at["independence"]
-        )
+    # Select table records for model.
+    match_model = (model in table_dependence["model"].to_list())
+    if (match_model):
+        table_model = table_dependence.loc[
+            table_dependence["model"] == model, :
+        ]
+        # Determine whether cohort-model-dependence defines a single set of
+        # independent variables.
+        if (int(table_model.shape[0]) == 1):
+            independence_string = copy.deepcopy(
+                table_model.iloc[0].at["independence"]
+            )
+        elif (int(table_dependence.shape[0]) > 1):
+            print(
+                "WARNING: multiple sets of independent variables for given " +
+                "cohort, model, and dependent variable."
+            )
+            print(
+                "Returning first set of independent variables."
+            )
+            independence_string = copy.deepcopy(
+                table_model["independence"].to_list()[0]
+            )
     else:
         print(
-            "WARNING: multiple sets of independent variables for given " +
+            "WARNING: no information for given " +
             "cohort, model, and dependent variable."
         )
         print(
-            "Returning first set of independent variables."
+            "Returning empty set of independent variables."
         )
-        independence_string = copy.deepcopy(
-            table_dependence["independence"].to_list()[0]
-        )
+        independence_string = ""
+
     # Extract names of independent variables.
     independence_split = independence_string.split(";")
     independence_strip = list(map(
@@ -500,6 +512,7 @@ def determine_cohort_model_variables_from_reference_table(
     pail = dict()
     pail["cohort"] = cohort
     pail["model"] = model
+    pail["match"] = match_model
     pail["dependence"] = dependence
     pail["independence"] = independence_strip
     # Return information.
@@ -546,26 +559,32 @@ def drive_cohort_model_linear_regression(
         table=table_cohort_model,
         report=report,
     )
-    # Report.
-    if report:
-        utility.print_terminal_partition(level=2)
-        print("report: ")
-        print("drive_cohort_model_linear_regression()")
-        utility.print_terminal_partition(level=5)
-        print("cohort: " + str(cohort))
-        print("model: " + str(model))
-        print("dependent variable: " + str(dependence))
-        print("independent variables: ")
-        print(pail_model["independence"])
-        utility.print_terminal_partition(level=5)
-    pail_regression = drive_organize_table_regress_linear_ordinary_least_squares(
-        dependence=dependence,
-        independence=pail_model["independence"],
-        standard_scale=True,
-        threshold_samples=100,
-        table=table,
-        report=report,
-    )
+    if (pail_model["match"]):
+        # Report.
+        if report:
+            utility.print_terminal_partition(level=2)
+            print("report: ")
+            print("drive_cohort_model_linear_regression()")
+            utility.print_terminal_partition(level=5)
+            print("cohort: " + str(cohort))
+            print("model: " + str(model))
+            print("dependent variable: " + str(dependence))
+            print("independent variables: ")
+            print(pail_model["independence"])
+            utility.print_terminal_partition(level=5)
+        pail_regression = drive_organize_table_regress_linear_ordinary_least_squares(
+            dependence=dependence,
+            independence=pail_model["independence"],
+            standard_scale=True,
+            threshold_samples=100,
+            table=table,
+            report=report,
+        )
+    else:
+        pail_regression = create_regression_missing_values(
+            dependence=dependence,
+            independence=pail_model["independence"],
+        )
     return pail_regression
 
 
