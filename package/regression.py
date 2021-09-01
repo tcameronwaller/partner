@@ -188,6 +188,8 @@ def regress_linear_ordinary_least_squares(
         (dict): collection of regression's residuals and statistics
     """
 
+    # Determine count of valid samples (cases, observations).
+    count_samples = int(table.shape[0])
     # Extract values of dependent and independent variables.
     values_dependence = table[dependence].to_numpy()
     # Keep independent variables in Pandas dataframe to preserve variables'
