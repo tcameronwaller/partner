@@ -71,15 +71,83 @@ import promiscuity.utility as utility # this import path for subpackage
 
 
 
+def organize_table_cohort_model_variables_for_regression(
+    dependence=None,
+    independence=None,
+    standard_scale=None,
+    table=None,
+    report=None,
+):
+    """
+    This function accepts the pre-determined dependent and independent variables.
 
-# TODO: TCW 19 August 2021
-# TODO: I need to filter and standardize the table columns... BEFORE passing to this function
+    Table format must have samples (cases, observations) across rows and
+    dependent and independent variables (features) across columns.
+
+    1. select relevant columns in table
+    2. drop records with any missing variables
+    3. transform dependent and independent variables to z-score standard scale
+
+    arguments:
+        dependence (str): name of table's column for dependent variable
+        independence (list<str>): names of table's columns for independent
+            variables
+        standard_scale (bool): whether to transform all dependent and
+            independent variables to z-score standard scale
+        table (object): Pandas data frame of dependent and independent variables
+            for regression
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict): collection of information for regression
+
+    """
+
+    # Copy information.
+    table = table.copy(deep=True)
+    # Remove observations with any missing values.
+    columns = copy.deepcopy(independence)
+    columns.insert(0, dependence)
+    table = table.loc[:, table.columns.isin(columns)]
+    table.dropna(
+        axis="index",
+        how="any",
+        subset=None,
+        inplace=True,
+    )
+    table = table[[*columns]]
+    # Determine count of valid samples (cases, observations).
+    count_samples = int(table.shape[0])
+    # Determine whether to transform all dependent and independent variables to
+    # z-score standard scale.
+    if (standard_scale):
+        table = utility.standardize_table_values_by_column(
+            table=table,
+            report=report,
+        )
+
+        pass
+    # Collect information for regression.
+    pail = dict()
+    pail["table"] = table
+    pail["count_samples"] = count_samples
+    # Return information.
+    return pail
+
+
+# TODO: TCW 31 August 2021
+# TODO: call "organize_table_cohort_model_variables_for_regression()" to organize table and variables BEFORE this function
 # TODO: implement a driver function to filter and standardize before calling the regression function?
+# TODO: do the "if count_samples >= threshold_samples:" check in driver function
+# TODO: keep dependent and independent variables within SAME table until the REGRESSION function itself
+# TODO: -- avoid loss of matching between records...
+# TODO: define new function to define missing regression values...
 
 def regress_linear_ordinary_least_squares(
     dependence=None,
     independence=None,
-    threshold_samples=None,
     table=None,
     report=None,
 ):
@@ -87,8 +155,8 @@ def regress_linear_ordinary_least_squares(
     Regresses a quantitative continuous dependent variable against multiple
     independent variables and returns relevant parameters and statistics.
 
-    Table format must have samples (observations) across rows and dependent and
-    independent variables (features) across columns.
+    Table format must have samples (cases, observations) across rows and
+    dependent and independent variables (features) across columns.
 
     Description of formats for StatsModels...
 
@@ -110,6 +178,215 @@ def regress_linear_ordinary_least_squares(
         dependence (str): name of table's column for dependent variable
         independence (list<str>): names of table's columns for independent
             variables
+        table (object): Pandas data frame of dependent and independent variables
+            for regression
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict): collection of regression's residuals and statistics
+    """
+
+    # Extract values of dependent and independent variables.
+    values_dependence = table[dependence].to_numpy()
+    # Keep independent variables in Pandas dataframe to preserve variables'
+    # names.
+    #values_independence = data.loc[ :, independence].to_numpy()
+    table_independence = table.loc[ :, independence]
+    # Introduce constant value for intercept.
+    # If any column in the independent variables already has constant
+    # values, then the function skips it by default.
+    # It is necessary to change parameter "has_constant" to avoid this
+    # conditional behavior.
+    table_independence_intercept = statsmodels.api.add_constant(
+        table_independence,
+        prepend=True, # insert intercept constant first
+        has_constant="add", # Introduce new intercept constant regardless
+    )
+    columns_independence = copy.deepcopy(
+        table_independence_intercept.columns.to_list()
+    )
+    #matrix_independence = table.to_numpy()
+    # Define model.
+    model = statsmodels.api.OLS(
+        values_dependence,
+        table_independence_intercept,
+        missing="drop",
+    )
+    pail_raw = model.fit()
+    # Report.
+    if report:
+        print("--------------------------------------------------")
+        print(
+            "Report source: " +
+            "regress_dependent_independent_variables_linear_ordinary()"
+        )
+        print("--------------------------------------------------")
+        print("Information from regression:")
+        print(pail_raw.summary())
+        #utility.print_terminal_partition(level=3)
+        #print(dir(pail_raw))
+        #print(pail_raw.params)
+        #print(pail_raw.pvalues)
+        pass
+
+    # Organize residuals.
+    residuals = pail_raw.resid
+    # Collect parameters, probabilities, and statistics.
+    model_parameters = pandas.Series(data=pail_raw.params)
+    model_probabilities = pandas.Series(data=pail_raw.pvalues)
+    parameters = dict()
+    probabilities = dict()
+    inflations = dict()
+    if ("const" in model_parameters.index):
+        #parameters["intercept_parameter"] = report.params[0]
+        parameters["intercept_parameter"] = model_parameters["const"]
+    else:
+        parameters["intercept_parameter"] = float("nan")
+        # Report.
+        if report:
+            utility.print_terminal_partition(level=4)
+            print("Warning: regression data does not have constant intercept.")
+            print(independence)
+    if ("const" in model_probabilities.index):
+        #probabilities["intercept_probability"] = report.pvalues[0]
+        probabilities["intercept_probability"] = (
+            model_probabilities["const"]
+        )
+    else:
+        probabilities["intercept_probability"] = float("nan")
+        # Report.
+        if report:
+            utility.print_terminal_partition(level=4)
+            print("Warning: regression data does not have constant intercept.")
+            print(independence)
+    inflations["intercept_inflation"] = float("nan")
+    # Iterate on each independent variable.
+    # Initiate counter at 1 to assume that intercept is at index 0.
+    counter = 1
+    # Accommodate index for intercept.
+    for variable in independence:
+        # Coefficient or parameter.
+        parameter = str(variable + ("_parameter"))
+        #parameters[parameter] = report.params[counter]
+        parameters[parameter] = model_parameters[variable]
+        # Probability.
+        probability = str(variable + ("_probability"))
+        #probabilities[probability] = report.pvalues[counter]
+        probabilities[probability] = model_probabilities[variable]
+        # Variance Inflation Factor (VIF).
+        inflation = str(variable + ("_inflation"))
+        inflation_value = (
+            statsmodels.stats.outliers_influence.variance_inflation_factor(
+                table_independence_intercept.to_numpy(),
+                counter
+            )
+        )
+        inflations[inflation] = round(inflation_value, 2)
+        # Increment index.
+        counter += 1
+        pass
+    summary = {
+        "freedom": pail_raw.df_model,
+        "observations": pail_raw.nobs,
+        "samples": count_samples,
+        "r_square": pail_raw.rsquared,
+        "r_square_adjust": pail_raw.rsquared_adj,
+        "log_likelihood": pail_raw.llf,
+        "akaike": pail_raw.aic,
+        "bayes": pail_raw.bic,
+        "condition": pail_raw.condition_number,
+    }
+    summary.update(parameters)
+    summary.update(probabilities)
+    summary.update(inflations)
+
+    # Compile information.
+    pail = dict()
+    pail["summary"] = summary
+    pail["residuals"] = residuals
+    # Return information.
+    return pail
+
+
+def create_regression_missing_values(
+    dependence=None,
+    independence=None,
+):
+    """
+    Creates missing values for a regression.
+
+    arguments:
+        dependence (str): name of table's column for dependent variable
+        independence (list<str>): names of table's columns for independent
+            variables
+
+    raises:
+
+    returns:
+        (dict): collection of regression's residuals and statistics
+    """
+
+    # Create missing values for regression.
+    #probabilities = list(
+    #    itertools.repeat(float("nan"), len(values_independence_intercept))
+    #)
+    parameters = dict()
+    probabilities = dict()
+    inflations = dict()
+    parameters["intercept_parameter"] = float("nan")
+    probabilities["intercept_probability"] = float("nan")
+    inflations["intercept_inflation"] = float("nan")
+    for variable in independence:
+        parameter = str(variable + ("_parameter"))
+        parameters[parameter] = float("nan")
+        probability = str(variable + ("_probability"))
+        probabilities[probability] = float("nan")
+        inflation = str(variable + ("_inflation"))
+        inflations[inflation] = float("nan")
+        pass
+    summary = {
+        "freedom": float("nan"),
+        "observations": float("nan"),
+        "samples": float("nan"),
+        "r_square": float("nan"),
+        "r_square_adjust": float("nan"),
+        "log_likelihood": float("nan"),
+        "akaike": float("nan"),
+        "bayes": float("nan"),
+        "condition": float("nan"),
+    }
+    summary.update(parameters)
+    summary.update(probabilities)
+    summary.update(inflations)
+    residuals = numpy.empty(0)
+    # Compile information.
+    pail = dict()
+    pail["summary"] = summary
+    pail["residuals"] = residuals
+    # Return information.
+    return pail
+
+
+def drive_organize_table_regress_linear_ordinary_least_squares(
+    dependence=None,
+    independence=None,
+    standard_scale=None,
+    threshold_samples=None,
+    table=None,
+    report=None,
+):
+    """
+    Drive the organization of a table and regression.
+
+    Table format must have samples (cases, observations) across rows and
+    dependent and independent variables (features) across columns.
+
+    arguments:
+        dependence (str): name of table's column for dependent variable
+        independence (list<str>): names of table's columns for independent
+            variables
         threshold_samples (float): minimal count of samples with non-missing
             values of dependent and independent variables to perform regression
         table (object): Pandas data frame of dependent and independent variables
@@ -122,179 +399,173 @@ def regress_linear_ordinary_least_squares(
         (dict): collection of regression's residuals and statistics
     """
 
+    # Organize table for regression.
+    pail_organization = organize_table_cohort_model_variables_for_regression(
+        dependence=dependence,
+        independence=independence,
+        standard_scale=standard_scale,
+        table=table,
+        report=report,
+    )
+    # Determine whether dependent and independent variables (features) have
+    # sufficient observations for regression.
+    if (pail_organization["count_samples"] >= threshold_samples):
+        pail_regression = regress_linear_ordinary_least_squares(
+            dependence=dependence,
+            independence=independence,
+            table=pail_organization["table"],
+            report=report,
+        )
+    else:
+        pail_regression = create_regression_missing_values(
+            dependence=dependence,
+            independence=independence,
+        )
+    # Return information.
+    return pail_regression
+
+
+def determine_cohort_model_variables_from_reference_table(
+    cohort=None,
+    model=None,
+    dependence=None,
+    table=None,
+    report=None,
+):
+    """
+    Determine the independent variables for a regression model that match a
+    cohort and dependent variable in a reference table.
+
+    Table format must have columns "cohort", "dependence", and "independence".
+    Rows in Column "dependence" have actual names of variable columns in the
+    main source table (not visible to this function).
+    Rows in Column "independence" have list of independent variables with
+    semicolon (";") delimiters.
+
+    arguments:
+        cohort (str): name of a stratification cohort for regression analysis
+        model (str): name of a model for regression analysis, normally
+            "complex", "simple", or "unadjust"
+        dependence (str): name of table's column for dependent variable
+        table (object): Pandas data frame of cohorts, models, dependent
+            variables, and independent variables for regression
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict): collection of names of cohort, dependent variable, and
+            independent variables for regression
+    """
+
     # Copy information.
     table = table.copy(deep=True)
-    # Remove observations with any missing values.
-    columns = copy.deepcopy(independence)
-    columns.insert(0, dependence)
-    table = table.loc[:, table.columns.isin(columns)]
-    table.dropna(
-        axis="index",
-        how="any",
-        subset=None,
-        inplace=True,
-    )
-    table = table[[*columns]]
-    # Determine count of valid samples (observations).
-    count_samples = table.shape[0]
-
-    # Note
-    # It is very important to keep track of the order of independent variables
-    # in order to match parameters and probabilities to the correct variables.
-
-    # Determine whether data have sufficient observations for regression.
-    if count_samples >= threshold_samples:
-        # Extract values of dependent and independent variables.
-        values_dependence = table[dependence].to_numpy()
-        #values_independence = data.loc[ :, independence].to_numpy()
-        table_independence = table.loc[ :, independence]
-        # Introduce constant value for intercept.
-        # If any column in the independent variables already has constant
-        # values, then the function skips it by default.
-        # It is necessary to change parameter "has_constant" to avoid this
-        # conditional behavior.
-        table_independence_intercept = statsmodels.api.add_constant(
-            table_independence,
-            prepend=True, # insert intercept constant first
-            has_constant="add", # Introduce new intercept constant regardless
+    # Select table records for cohort.
+    table_cohort = table.loc[
+        table["cohort"] == cohort, :
+    ]
+    # Select table records for model.
+    table_model = table_cohort.loc[
+        table_cohort["model"] == model, :
+    ]
+    # Select table records for dependent variable.
+    table_dependence = table_model.loc[
+        table_model["dependence"] == dependence, :
+    ]
+    # Determine whether cohort-model-dependence defines a single set of
+    # independent variables.
+    if (int(table_dependence.shape[0]) == 1):
+        independence_string = copy.deepcopy(
+            table_dependence.iloc[0].at["independence"]
         )
-        columns_independence = copy.deepcopy(
-            table_independence_intercept.columns.to_list()
-        )
-        #matrix_independence = table.to_numpy()
-        # Define model.
-        model = statsmodels.api.OLS(
-            values_dependence,
-            table_independence_intercept,
-            missing="drop",
-        )
-        pail_raw = model.fit()
-        # Report.
-        if report:
-            print("--------------------------------------------------")
-            print(
-                "Report source: " +
-                "regress_dependent_independent_variables_linear_ordinary()"
-            )
-            print("--------------------------------------------------")
-            print("Information from regression:")
-            print(pail_raw.summary())
-            #utility.print_terminal_partition(level=3)
-            #print(dir(pail_raw))
-            #print(pail_raw.params)
-            #print(pail_raw.pvalues)
-            pass
-
-        # Organize residuals.
-        residuals = pail_raw.resid
-        # Collect parameters, probabilities, and statistics.
-        model_parameters = pandas.Series(data=pail_raw.params)
-        model_probabilities = pandas.Series(data=pail_raw.pvalues)
-        parameters = dict()
-        probabilities = dict()
-        inflations = dict()
-        if ("const" in model_parameters.index):
-            #parameters["intercept_parameter"] = report.params[0]
-            parameters["intercept_parameter"] = model_parameters["const"]
-        else:
-            parameters["intercept_parameter"] = float("nan")
-            # Report.
-            if report:
-                utility.print_terminal_partition(level=4)
-                print("Warning: regression data does not have constant intercept.")
-                print(independence)
-        if ("const" in model_probabilities.index):
-            #probabilities["intercept_probability"] = report.pvalues[0]
-            probabilities["intercept_probability"] = (
-                model_probabilities["const"]
-            )
-        else:
-            probabilities["intercept_probability"] = float("nan")
-            # Report.
-            if report:
-                utility.print_terminal_partition(level=4)
-                print("Warning: regression data does not have constant intercept.")
-                print(independence)
-        inflations["intercept_inflation"] = float("nan")
-        # Iterate on each independent variable.
-        # Initiate counter at 1 to assume that intercept is at index 0.
-        counter = 1
-        # Accommodate index for intercept.
-        for variable in independence:
-            # Coefficient or parameter.
-            parameter = str(variable + ("_parameter"))
-            #parameters[parameter] = report.params[counter]
-            parameters[parameter] = model_parameters[variable]
-            # Probability.
-            probability = str(variable + ("_probability"))
-            #probabilities[probability] = report.pvalues[counter]
-            probabilities[probability] = model_probabilities[variable]
-            # Variance Inflation Factor (VIF).
-            inflation = str(variable + ("_inflation"))
-            inflation_value = (
-                statsmodels.stats.outliers_influence.variance_inflation_factor(
-                    table_independence_intercept.to_numpy(),
-                    counter
-                )
-            )
-            inflations[inflation] = round(inflation_value, 2)
-            # Increment index.
-            counter += 1
-            pass
-        summary = {
-            "freedom": pail_raw.df_model,
-            "observations": pail_raw.nobs,
-            "samples": count_samples,
-            "r_square": pail_raw.rsquared,
-            "r_square_adjust": pail_raw.rsquared_adj,
-            "log_likelihood": pail_raw.llf,
-            "akaike": pail_raw.aic,
-            "bayes": pail_raw.bic,
-            "condition": pail_raw.condition_number,
-        }
-        summary.update(parameters)
-        summary.update(probabilities)
-        summary.update(inflations)
     else:
-        # Compile information.
-        #probabilities = list(
-        #    itertools.repeat(float("nan"), len(values_independence_intercept))
-        #)
-        parameters = dict()
-        probabilities = dict()
-        inflations = dict()
-        parameters["intercept_parameter"] = float("nan")
-        probabilities["intercept_probability"] = float("nan")
-        inflations["intercept_inflation"] = float("nan")
-        for variable in independence:
-            parameter = str(variable + ("_parameter"))
-            parameters[parameter] = float("nan")
-            probability = str(variable + ("_probability"))
-            probabilities[probability] = float("nan")
-            inflation = str(variable + ("_inflation"))
-            inflations[inflation] = float("nan")
-            pass
-        summary = {
-            "freedom": float("nan"),
-            "observations": float("nan"),
-            "samples": float("nan"),
-            "r_square": float("nan"),
-            "r_square_adjust": float("nan"),
-            "log_likelihood": float("nan"),
-            "akaike": float("nan"),
-            "bayes": float("nan"),
-            "condition": float("nan"),
-        }
-        summary.update(parameters)
-        summary.update(probabilities)
-        summary.update(inflations)
-        residuals = numpy.empty(0)
-    # Compile information.
+        print(
+            "WARNING: multiple sets of independent variables for given " +
+            "cohort, model, and dependent variable."
+        )
+        print(
+            "Returning first set of independent variables."
+        )
+        independence_string = copy.deepcopy(
+            table_dependence["independence"].to_list()[0]
+        )
+    # Extract names of independent variables.
+    independence_split = independence_string.split(";")
+    independence_strip = list(map(
+        lambda value: value.strip(), independence_split
+    ))
+    # Collect information.
     pail = dict()
-    pail["summary"] = summary
-    pail["residuals"] = residuals
+    pail["cohort"] = cohort
+    pail["model"] = model
+    pail["dependence"] = dependence
+    pail["independence"] = independence_strip
     # Return information.
     return pail
+
+
+def drive_cohort_model_linear_regression(
+    table=None,
+    table_cohort_model=None,
+    cohort=None,
+    model=None,
+    dependence=None,
+    report=None,
+):
+    """
+    Organize regressions.
+
+    Table format must have samples (cases, observations) across rows and
+    dependent and independent variables (features) across columns.
+
+    arguments:
+        table (object): Pandas data frame of dependent and independent variables
+            (features) across columns and samples (cases, observations) within
+            a specific cohort across rows
+        table_cohort_model (object): Pandas data frame of cohorts, models,
+            dependent variables, and independent variables for regression
+        cohort (str): name of a stratification cohort for regression analysis
+        model (str): name of a model for regression analysis, normally
+            "complex", "simple", or "unadjust"
+        dependence (str): name of table's column for dependent variable
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict): information from regressions
+
+    """
+
+    independences = determine_cohort_model_variables_from_reference_table(
+        cohort=cohort,
+        model=model,
+        dependence=dependence,
+        table=table_cohort_model,
+        report=report,
+    )
+    # Report.
+    if report:
+        utility.print_terminal_partition(level=3)
+        print("report: ")
+        print("drive_cohort_model_linear_regression()")
+        utility.print_terminal_partition(level=5)
+        print("cohort: " + str(cohort))
+        print("model: " + str(model))
+        print("dependent variable: " + str(dependence))
+        print("independent variables: ")
+        print(independences)
+        utility.print_terminal_partition(level=5)
+    pail_regression = regress_linear_ordinary_least_squares(
+        dependence=dependence, # parameter
+        independence=independences, # parameter
+        threshold_samples=100,
+        table=table,
+        report=report,
+    )
+    return pail_regression
+
+
 
 
 

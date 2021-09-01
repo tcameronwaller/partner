@@ -15,7 +15,7 @@ path_gwas_source_parent=${1} # full path to parent directory for source GWAS sum
 path_gwas_target_parent=${2} # full path to parent directory for target GWAS summary statistics
 path_heritability_parent=${3} # full path to directory for heritability report
 path_genetic_reference=${4} # full path to directory for genetic reference information
-effect=${5} # whether GWAS effect is coefficients ("beta") or z-scores ("z")
+response=${5} # whether GWAS response is beta coefficient ("coefficient"), odds ratio ("odds_ratio"), or z-scores ("z_score")
 report=${6} # whether to print reports
 
 ################################################################################
@@ -60,16 +60,22 @@ sleep 5s
 # - "--signed-sumstats OR,1"
 # - "--signed-sumstats Z,0"
 
-if [[ "$effect" == "beta" ]]; then
+if [[ "$response" == "coefficient" ]]; then
   $path_ldsc/munge_sumstats.py \
   --sumstats $path_gwas_format_compress \
   --signed-sumstats BETA,0 \
   --merge-alleles $path_alleles/w_hm3.snplist \
   --out $path_gwas_munge
-elif [[ "$effect" == "z" ]]; then
+elif [[ "$response" == "z_score" ]]; then
   $path_ldsc/munge_sumstats.py \
   --sumstats $path_gwas_format_compress \
   --signed-sumstats Z,0 \
+  --merge-alleles $path_alleles/w_hm3.snplist \
+  --out $path_gwas_munge
+elif [[ "$response" == "odds_ratio" ]]; then
+  $path_ldsc/munge_sumstats.py \
+  --sumstats $path_gwas_format_compress \
+  --signed-sumstats OR,1 \
   --merge-alleles $path_alleles/w_hm3.snplist \
   --out $path_gwas_munge
 else

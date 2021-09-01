@@ -55,15 +55,15 @@ rm $path_gwas_format_compress
 # Constrain probability values from 1.0E-305 to 1.0.
 zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_constraint
 zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
-  if ( NF != 8)
+  if ( NF != 10)
     # Skip any rows with incorrect count of column fields.
     next
-  else if ( ( $7 != "NA" ) && ( ($7 + 0) < 1.0E-305 ) )
+  else if ( ( $9 != "NA" ) && ( ($9 + 0) < 1.0E-305 ) )
     # Constrain probability value.
-    print $1, $2, $3, $4, $5, $6, ( 1.0E-305 ), $8
-  else if ( ( $7 != "NA" ) && ( ($7 + 0) > 1.0 ) )
+    print $1, $2, $3, $4, $5, $6, $7, $8, ( 1.0E-305 ), $10
+  else if ( ( $9 != "NA" ) && ( ($9 + 0) > 1.0 ) )
     # Constrain probability value.
-    print $1, $2, $3, $4, $5, $6, ( 1.0E-305 ), $8
+    print $1, $2, $3, $4, $5, $6, $7, $8, ( 1.0E-305 ), $10
   else
     print $0
   }' >> $path_gwas_constraint
@@ -76,13 +76,13 @@ zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
 # variant identifier (RS ID): .............  "SNP" ................  "SNP" ................. 2
 # alternate allele (effect allele): .......  "A1" .................  "A1" .................. 4
 # reference allele (non-effect allele): ...  "A2" .................  "A2" .................. 5
-# sample size: ............................  "N" ..................  None .................. (38,686 = 10,206 + 28,480)
-# effect (coefficient or odds ratio): .....  "BETA" or "OR" .......  "Z" ................... 6
-# probability (p-value): ..................  "P" ..................  "P" ................... 7
+# sample size: ............................  "N" ..................  None .................. (8,537 = 2,504 + 6,033)
+# effect (coefficient or odds ratio): .....  "BETA" or "OR" .......  "OR" .................. 7
+# probability (p-value): ..................  "P" ..................  "P" ................... 9
 
 # Organize information from linear GWAS.
-echo "SNP A1 A2 N Z P" > $path_gwas_format
-cat $path_gwas_constraint | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {split($2,a,":"); print a[1], toupper($4), toupper($5), (10206 + 28480), $6, $7}' >> $path_gwas_format
+echo "SNP A1 A2 N OR P" > $path_gwas_format
+cat $path_gwas_constraint | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {print $2, toupper($4), toupper($5), (2504 + 6033), $6, $7}' >> $path_gwas_format
 
 ##########
 
