@@ -537,7 +537,7 @@ def drive_cohort_model_linear_regression(
 
     """
 
-    independences = determine_cohort_model_variables_from_reference_table(
+    pail_model = determine_cohort_model_variables_from_reference_table(
         cohort=cohort,
         model=model,
         dependence=dependence,
@@ -554,11 +554,12 @@ def drive_cohort_model_linear_regression(
         print("model: " + str(model))
         print("dependent variable: " + str(dependence))
         print("independent variables: ")
-        print(independences)
+        print(pail_model["independence"])
         utility.print_terminal_partition(level=5)
-    pail_regression = regress_linear_ordinary_least_squares(
-        dependence=dependence, # parameter
-        independence=independences, # parameter
+    pail_regression = drive_organize_table_regress_linear_ordinary_least_squares(
+        dependence=dependence,
+        independence=pail_model["independence"],
+        standard_scale=True,
         threshold_samples=100,
         table=table,
         report=report,
