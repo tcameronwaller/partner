@@ -548,7 +548,7 @@ def drive_cohort_model_linear_regression(
     )
     # Report.
     if report:
-        utility.print_terminal_partition(level=3)
+        utility.print_terminal_partition(level=2)
         print("report: ")
         print("drive_cohort_model_linear_regression()")
         utility.print_terminal_partition(level=5)
