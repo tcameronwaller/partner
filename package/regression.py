@@ -581,6 +581,20 @@ def drive_cohort_model_linear_regression(
             report=report,
         )
     else:
+        # Report.
+        if report:
+            utility.print_terminal_partition(level=2)
+            print("report: ")
+            print("drive_cohort_model_linear_regression()")
+            utility.print_terminal_partition(level=5)
+            print("cohort: " + str(cohort))
+            print("model: " + str(model))
+            print("dependent variable: " + str(dependence))
+            print("independent variables: ")
+            print(pail_model["independence"])
+            utility.print_terminal_partition(level=5)
+            print("Missing information for model...")
+            utility.print_terminal_partition(level=5)
         pail_regression = create_regression_missing_values(
             dependence=dependence,
             independence=pail_model["independence"],
