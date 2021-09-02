@@ -82,7 +82,7 @@ zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
 
 # Organize information from linear GWAS.
 echo "SNP A1 A2 N OR P" > $path_gwas_format
-cat $path_gwas_constraint | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {print $2, toupper($4), toupper($5), (2504 + 6033), $6, $7}' >> $path_gwas_format
+cat $path_gwas_constraint | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {print $2, toupper($4), toupper($5), (2504 + 6033), $7, $9}' >> $path_gwas_format
 
 ##########
 
