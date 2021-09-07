@@ -13,17 +13,13 @@
 # TODO: I think this function ought to accept an argument for the format script to use
 # TODO: need to switch between linear formatting and logistic formatting
 
-# TODO: TCW 26 August 2021
-# TODO: this script also ought to accept argument for the "pattern_source_file"
-# TODO: because this pattern depends on whether linear or logistic GWAS
-
-
 ################################################################################
 # Organize arguments.
-path_gwas_source_parent=${1} # full path to parent directory for source GWAS summary statistics
-path_gwas_target_parent=${2} # full path to parent directory for target GWAS summary statistics
-path_promiscuity_scripts=${3} # full path to directory of general scripts
-report=${4} # whether to print reports
+pattern_gwas_report_file=${1} # string glob pattern by which to recognize PLINK2 GWAS report files
+path_gwas_source_parent=${2} # full path to parent directory for source GWAS summary statistics
+path_gwas_target_parent=${3} # full path to parent directory for target GWAS summary statistics
+path_promiscuity_scripts=${4} # full path to directory of general scripts
+report=${5} # whether to print reports
 
 ################################################################################
 # Paths.
@@ -43,11 +39,10 @@ path_script_calculate_z_score="${path_scripts_gwas_process}/calculate_z_score_co
 
 ################################################################################
 # Concatenation across chromosomes
-pattern_source_file="report.*.glm.linear" # do not expand with full path yet
 chromosome_start=1
 chromosome_end=22
 /usr/bin/bash "$path_script_gwas_collect_concatenate" \
-$pattern_source_file \
+$pattern_gwas_report_file \
 $path_gwas_source_parent \
 $chromosome_start \
 $chromosome_end \

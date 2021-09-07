@@ -10,7 +10,7 @@
 
 ################################################################################
 # Organize arguments.
-pattern_source_file=${1} # glob pattern by which to recognize relevant files in source directory
+pattern_gwas_report_file=${1} # string glob pattern by which to recognize PLINK2 GWAS report files
 path_gwas_source_parent=${2} # full path to parent directory for GWAS across chromosomes
 chromosome_start=${3}
 chromosome_end=${4}
@@ -40,7 +40,7 @@ rm $path_gwas_concatenation_compress
 # Initialize table columns by file for chromosome 1.
 # echo "#CHROM POS ID REF ALT A1 TEST OBS_CT BETA SE T_STAT P" > $path_gwas_concatenation
 path_source_chromosome="$path_gwas_source_parent/chromosome_1"
-matches=("${path_source_chromosome}/${pattern_source_file}")
+matches=("${path_source_chromosome}/${pattern_gwas_report_file}")
 path_source_file="${matches[0]}"
 echo "source file for table column headers: " $path_source_file
 cat $path_source_file | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_concatenation
@@ -48,7 +48,7 @@ cat $path_source_file | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_con
 # Concatenate GWAS reports from selection chromosomes.
 for (( index=$chromosome_start; index<=$chromosome_end; index+=1 )); do
   path_source_chromosome="$path_gwas_source_parent/chromosome_${index}"
-  matches=("${path_source_chromosome}/${pattern_source_file}")
+  matches=("${path_source_chromosome}/${pattern_gwas_report_file}")
   path_source_file="${matches[0]}"
   echo "source file: " $path_source_file
   # Concatenate information from chromosome reports.
