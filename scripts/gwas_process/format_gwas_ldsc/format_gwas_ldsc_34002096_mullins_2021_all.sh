@@ -88,29 +88,39 @@ zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 73 {
 # effect (coefficient or odds ratio): .....  "BETA" or "OR" .......  "BETA" ................  6
 # probability (p-value): ..................  "P" ..................  "PVAL" ................  8
 
-# Remove any previous versions of temporary files.
-rm $path_gwas_collection
-rm $path_gwas_format
-
 # Organize information from linear GWAS.
-echo "SNP A1 A2 N BETA P" > $path_gwas_collection
-zcat $path_source_file | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {print $3, toupper($4), toupper($5), ($14 + $15), $6, $8}' >> $path_gwas_collection
+echo "SNP A1 A2 N BETA P" > $path_gwas_format
+cat $path_gwas_constraint | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {print $3, toupper($4), toupper($5), ($14 + $15), $6, $8}' >> $path_gwas_format
+
+##########
+
 # Calculate Z-score standardization of Beta coefficients.
-/usr/bin/bash $path_calculate_z_score \
-5 \
-$path_gwas_collection \
-$path_gwas_format \
-$report
+if false; then
+  /usr/bin/bash $path_script_calculate_z_score \
+  5 \
+  $path_gwas_format \
+  $path_gwas_standard \
+  $report
+else
+  cp $path_gwas_format $path_gwas_standard
+fi
 
 # Compress file format.
-gzip -cvf $path_gwas_format > $path_gwas_format_compress
+gzip -cvf $path_gwas_standard > $path_gwas_format_compress
 
 # Report.
 if [[ "$report" == "true" ]]; then
   echo "----------"
+  echo "after bound constraints:"
+  head -10 $path_gwas_constraint
   echo "before standardization:"
-  head -10 $path_gwas_collection
-  echo "after standardization:"
   head -10 $path_gwas_format
+  echo "after standardization:"
+  head -10 $path_gwas_standard
   echo "----------"
 fi
+
+# Remove temporary files.
+rm $path_gwas_constraint
+rm $path_gwas_format
+rm $path_gwas_standard

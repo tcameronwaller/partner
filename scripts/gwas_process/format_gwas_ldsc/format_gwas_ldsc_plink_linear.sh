@@ -111,7 +111,6 @@ cat $path_gwas_constraint | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
     next
   }' >> $path_gwas_format
 
-
 ##########
 
 # Calculate Z-score standardization of Beta coefficients.
