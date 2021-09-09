@@ -18,8 +18,9 @@
 pattern_gwas_report_file=${1} # string glob pattern by which to recognize PLINK2 GWAS report files
 path_gwas_source_parent=${2} # full path to parent directory for source GWAS summary statistics
 path_gwas_target_parent=${3} # full path to parent directory for target GWAS summary statistics
-path_promiscuity_scripts=${4} # full path to directory of general scripts
-report=${5} # whether to print reports
+response_standard_scale=${4} # whether to convert response (coefficient) to z-score standard scale
+path_promiscuity_scripts=${5} # full path to directory of general scripts
+report=${6} # whether to print reports
 
 ################################################################################
 # Paths.
@@ -60,6 +61,7 @@ $path_gwas_format \
 $path_gwas_standard \
 $path_gwas_format_compress \
 $path_script_calculate_z_score \
+$response_standard_scale \
 $report
 
 ################################################################################
