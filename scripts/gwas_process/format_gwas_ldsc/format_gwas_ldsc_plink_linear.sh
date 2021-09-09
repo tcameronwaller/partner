@@ -101,7 +101,7 @@ zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
 
 # Organize information from linear GWAS.
 # Select relevant columns and place them in the correct order.
-if [ "$response_standard_scale" == "true" ]]; then
+if [ "$response_standard_scale" == "yes" ]]; then
   echo "SNP A1 A2 N Z P" > $path_gwas_format
 else
   echo "SNP A1 A2 N BETA P" > $path_gwas_format
@@ -118,7 +118,7 @@ cat $path_gwas_constraint | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
 ##########
 
 # Calculate Z-score standardization of Beta coefficients.
-if [ "$response_standard_scale" == "true" ]]; then
+if [ "$response_standard_scale" == "yes" ]]; then
   /usr/bin/bash $path_script_calculate_z_score \
   5 \
   $path_gwas_format \
@@ -136,6 +136,7 @@ if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "after bound constraints:"
   head -10 $path_gwas_constraint
+  echo "standardize scale of response: ${response_standard_scale}"
   echo "before standardization:"
   head -10 $path_gwas_format
   echo "after standardization:"
