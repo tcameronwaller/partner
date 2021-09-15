@@ -9,6 +9,8 @@
 ################################################################################
 ################################################################################
 
+# TODO: Need to include liability scale in heritability estimates for case-control studies
+
 ################################################################################
 # Organize arguments.
 path_gwas_source_parent=${1} # full path to parent directory for source GWAS summary statistics
