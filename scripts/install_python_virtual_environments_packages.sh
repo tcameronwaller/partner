@@ -44,7 +44,13 @@ mkdir -p $path_python_2718
 # scripts.
 # #! $path_python_396
 
-# TODO: It MIGHT be necessary to install dependencies BEFORE installing Python2 and Python3 from source...
+# Install dependencies before installing Python2 and Python3 from source.
+# https://tttapa.github.io/Pages/Ubuntu/Software-Installation/Python.html
+sudo apt install dpkg-dev build-essential
+sudo apt install zlib1g-dev libbz2-dev libssl-dev uuid-dev libffi-dev libreadline-dev libsqlite3-dev tk-dev libbz2-dev libncurses5-dev libreadline6-dev libgdbm-dev liblzma-dev
+sudo apt install libgdbm-compat-dev
+sudo apt install libffi-dev libssl-dev openssl-devel
+sudo apt install python-dev python3-dev
 
 # Latest
 # Python 3.9.6, release date: 28 June 2021
@@ -55,6 +61,7 @@ wget https://www.python.org/ftp/python/3.9.6/Python-3.9.6.tgz # TCW, 6 July 2021
 tar -xzvf Python-3.9.6.tgz
 #find ~/python -type d | xargs chmod 0755
 cd Python-3.9.6
+# Argument "--prefix" needs a full, explicit path.
 ./configure --prefix=$path_python_396 # TCW, 6 July 2021
 make # TCW, 6 July 2021
 make test # TCW, 6 July 2021
@@ -91,8 +98,8 @@ make install # TCW, 6 July 2021
 # Pip
 # Install pip for specific installations of Python.
 
-# TODO: this doesn't upgrade pip in the specific python3 installation
-# TODO: hence necessary to upgrade within the environment
+# Note: this doesn't upgrade pip in the specific python3 installation
+# Note: hence necessary to upgrade within the environment
 "${path_python_396}/bin/python3" -m pip install --user --upgrade pip
 "${path_python_396}/bin/python3" -m pip --version # pip 21.2.1, TCW, 28 July 2021
 
@@ -120,8 +127,11 @@ make install # TCW, 6 July 2021
 
 # Activate virtual environment.
 # Unable to install with "--user" flag within virtual environment.
+# ERROR: Can not perform a '--user' install. User site-packages are not visible in this virtualenv.
 source "${path_environment_main}/bin/activate"
 which python3 # "${path_environment_main}/bin/python3" TCW, 28 July 2021
+# Pip installation within virtual environment should not require "sudo" permissions.
+python3 -m pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org pip setuptools
 python3 -m pip --version # "pip 21.1.3 from ${path_environment_main}/lib/python3.9/site-packages/pip (python 3.9)" TCW, 28 July 2021
 python3 -m pip install --upgrade pip
 python3 -m pip --version # "pip 21.2.1 from ${path_environment_main}/lib/python3.9/site-packages/pip (python 3.9)" TCW, 28 July 2021
