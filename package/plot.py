@@ -2322,7 +2322,7 @@ def plot_scatter_points_forest_category_ordinate(
         width=3.0,
         color=colors["black"],
         pad=5,
-        labelsize=fonts["values"]["three"]["size"],
+        labelsize=fonts["values"]["one"]["size"],
         labelcolor=colors["black"]
     )
     axes.tick_params(

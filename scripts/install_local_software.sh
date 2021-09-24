@@ -35,13 +35,20 @@ sudo apt install ./discord-0.0.14.deb
 sudo apt remove discord
 
 # Zoom
+# "W: Repository is broken: zoom:amd64 (= 5.7.31792.0820) has no Size information"
 # https://zoom.us/download
 # - Ubuntu Linux
 # - 64 bit
 # - 16.04+
+sudo apt install libglib2.0-0 libxcb-shape0 libxcb-shm0 libxcb-xfixes0 libxcb-randr0 libxcb-image0 libfontconfig1 libgl1-mesa-glx libxi6 libsm6 libxrender1 libpulse0 libxcomposite1 libxslt1.1 libsqlite3-0 libxcb-keysyms1 libxcb-xtest0 ibus
+# libgstreamer-plugins-base0.10-0
 cd ~/Downloads
 wget https://zoom.us/client/latest/zoom_amd64.deb
-sudo apt install ./zoom_amd64.deb
+wget https://zoom.us/linux/download/pubkey
+#rpm --import package-signing-key.pub
+rpm --import pubkey
+sudo dpkg -i ./zoom_amd64.deb
+#sudo apt install ./zoom_amd64.deb
 sudo apt remove zoom
 
 # GIMP
