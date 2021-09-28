@@ -127,7 +127,6 @@ def organize_table_cohort_model_variables_for_regression(
             table=table,
             report=report,
         )
-
         pass
     # Collect information for regression.
     pail = dict()
@@ -136,14 +135,6 @@ def organize_table_cohort_model_variables_for_regression(
     # Return information.
     return pail
 
-
-# TODO: TCW 31 August 2021
-# TODO: call "organize_table_cohort_model_variables_for_regression()" to organize table and variables BEFORE this function
-# TODO: implement a driver function to filter and standardize before calling the regression function?
-# TODO: do the "if count_samples >= threshold_samples:" check in driver function
-# TODO: keep dependent and independent variables within SAME table until the REGRESSION function itself
-# TODO: -- avoid loss of matching between records...
-# TODO: define new function to define missing regression values...
 
 def regress_linear_ordinary_least_squares(
     dependence=None,
@@ -204,7 +195,7 @@ def regress_linear_ordinary_least_squares(
     table_independence_intercept = statsmodels.api.add_constant(
         table_independence,
         prepend=True, # insert intercept constant first
-        has_constant="add", # Introduce new intercept constant regardless
+        has_constant="add", # introduce new intercept constant regardless
     )
     columns_independence = copy.deepcopy(
         table_independence_intercept.columns.to_list()
@@ -232,6 +223,10 @@ def regress_linear_ordinary_least_squares(
         #print(pail_raw.params)
         #print(pail_raw.pvalues)
         pass
+
+    # TODO: TCW 28 September 2021
+    # TODO: I need to collect the parameters and their standard errors
+    print(pail_raw)
 
     # Organize residuals.
     residuals = pail_raw.resid
@@ -572,14 +567,15 @@ def drive_cohort_model_linear_regression(
             print("independent variables: ")
             print(pail_model["independence"])
             utility.print_terminal_partition(level=5)
-        pail_regression = drive_organize_table_regress_linear_ordinary_least_squares(
-            dependence=dependence,
-            independence=pail_model["independence"],
-            standard_scale=True,
-            threshold_samples=100,
-            table=table,
-            report=report,
-        )
+        pail_regression = (
+            drive_organize_table_regress_linear_ordinary_least_squares(
+                dependence=dependence,
+                independence=pail_model["independence"],
+                standard_scale=True,
+                threshold_samples=50,
+                table=table,
+                report=report,
+        ))
     else:
         # Report.
         if report:
