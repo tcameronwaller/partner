@@ -70,7 +70,6 @@ import promiscuity.utility as utility # this import path for subpackage
 # Functionality
 
 
-
 def organize_table_cohort_model_variables_for_regression(
     dependence=None,
     independence=None,
@@ -235,6 +234,7 @@ def regress_linear_ordinary_least_squares(
     model_probabilities = pandas.Series(data=pail_raw.pvalues)
     parameters = dict()
     parameter_errors = dict()
+    parameter_intervals = dict()
     probabilities = dict()
     inflations = dict()
     if ("const" in model_parameters.index):
@@ -249,8 +249,12 @@ def regress_linear_ordinary_least_squares(
             print(independence)
     if ("const" in model_parameter_errors.index):
         parameter_errors["intercept_error"] = model_parameter_errors["const"]
+        parameter_intervals["intercept_interval_95"] = float(
+            1.96 * parameter_errors["intercept_error"]
+        )
     else:
         parameter_errors["intercept_error"] = float("nan")
+        parameter_intervals["intercept_interval_95"] = float("nan")
         # Report.
         if report:
             utility.print_terminal_partition(level=4)
@@ -281,6 +285,11 @@ def regress_linear_ordinary_least_squares(
         # Parameter standard error
         parameter_error = str(variable + ("_error"))
         parameter_errors[parameter_error] = model_parameter_errors[variable]
+        parameter_interval = str(variable + ("_interval_95"))
+        parameter_intervals[parameter_interval] = float(
+            1.96 * parameter_errors[parameter_error]
+        )
+
         # Probability.
         probability = str(variable + ("_probability"))
         #probabilities[probability] = report.pvalues[counter]
@@ -298,6 +307,7 @@ def regress_linear_ordinary_least_squares(
         counter += 1
         pass
     summary = {
+        "independence": ";".join(independence),
         "freedom": pail_raw.df_model,
         "observations": pail_raw.nobs,
         "samples": count_samples,
@@ -310,6 +320,7 @@ def regress_linear_ordinary_least_squares(
     }
     summary.update(parameters)
     summary.update(parameter_errors)
+    summary.update(parameter_intervals)
     summary.update(probabilities)
     summary.update(inflations)
 
@@ -345,10 +356,12 @@ def create_regression_missing_values(
     #)
     parameters = dict()
     parameter_errors = dict()
+    parameter_intervals = dict()
     probabilities = dict()
     inflations = dict()
     parameters["intercept_parameter"] = float("nan")
     parameter_errors["intercept_error"] = float("nan")
+    parameter_intervals["intercept_interval_95"] = float("nan")
     probabilities["intercept_probability"] = float("nan")
     inflations["intercept_inflation"] = float("nan")
     for variable in independence:
@@ -356,12 +369,15 @@ def create_regression_missing_values(
         parameters[parameter] = float("nan")
         parameter_error = str(variable + ("_error"))
         parameter_errors[parameter_error] = float("nan")
+        parameter_interval = str(variable + ("_interval_95"))
+        parameter_intervals[parameter_interval] = float("nan")
         probability = str(variable + ("_probability"))
         probabilities[probability] = float("nan")
         inflation = str(variable + ("_inflation"))
         inflations[inflation] = float("nan")
         pass
     summary = {
+        "independence": "",
         "freedom": float("nan"),
         "observations": float("nan"),
         "samples": float("nan"),
@@ -374,6 +390,7 @@ def create_regression_missing_values(
     }
     summary.update(parameters)
     summary.update(parameter_errors)
+    summary.update(parameter_intervals)
     summary.update(probabilities)
     summary.update(inflations)
     residuals = numpy.empty(0)
@@ -617,6 +634,66 @@ def drive_cohort_model_linear_regression(
     return pail_regression
 
 
+def organize_table_regression_summaries(
+    independence=None,
+    table=None,
+    report=None,
+):
+    """
+    This function organizes the summary table with information for multiple
+    regressions.
+
+    arguments:
+        independence (list<str>): name of independent variables of interest
+        table (object): Pandas data frame of summary information from multiple
+            regressions
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data frame of summary information from multiple
+            regressions
+
+    """
+
+    # Copy information.
+    table = table.copy(deep=True)
+    # Define columns of interest.
+    columns = list()
+    columns.append("name")
+    columns.append("cohort")
+    columns.append("dependence")
+    columns.append("model")
+    columns.append("independence")
+    columns.append("freedom")
+    columns.append("observations")
+    columns.append("samples")
+    columns.append("r_square")
+    columns.append("r_square_adjust")
+    columns.append("log_likelihood")
+    columns.append("akaike")
+    columns.append("bayes")
+    columns.append("condition")
+    for variable in independence:
+        parameter = str(variable + ("_parameter"))
+        parameter_error = str(variable + ("_error"))
+        parameter_interval = str(variable + ("_interval_95"))
+        probability = str(variable + ("_probability"))
+        inflation = str(variable + ("_inflation"))
+        columns.append(parameter)
+        columns.append(parameter_error)
+        columns.append(parameter_interval)
+        columns.append(probability)
+        columns.append(inflation)
+        pass
+    # Select columns.
+    # columns.insert(0, dependence)
+    table = table.loc[:, table.columns.isin(columns)]
+    # Sort columns.
+    table = table[[*columns]]
+    # Return information.
+    return table
 
 
 
