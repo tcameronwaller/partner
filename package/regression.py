@@ -219,16 +219,14 @@ def regress_linear_ordinary_least_squares(
         print("Version check: TCW 28 September 2021")
         print("Information from regression:")
         print(pail_raw.summary())
-        #utility.print_terminal_partition(level=3)
-        #print(dir(pail_raw))
+        utility.print_terminal_partition(level=3)
+        print(dir(pail_raw))
         #print(pail_raw.params)
         #print(pail_raw.pvalues)
         pass
 
     # TODO: TCW 28 September 2021
     # TODO: I need to collect the parameters and their standard errors
-    print(pail_raw)
-    print(pail_raw.keys())
 
     # Organize residuals.
     residuals = pail_raw.resid
