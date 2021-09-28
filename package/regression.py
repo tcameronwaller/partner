@@ -232,10 +232,14 @@ def regress_linear_ordinary_least_squares(
 
     # Organize residuals.
     residuals = pail_raw.resid
-    # Collect parameters, probabilities, and statistics.
+
+    ##########
+    # Collect parameters, errors, probabilities, and statistics.
     model_parameters = pandas.Series(data=pail_raw.params)
+    model_parameter_errors = pandas.Series(data=pail_raw.bse)
     model_probabilities = pandas.Series(data=pail_raw.pvalues)
     parameters = dict()
+    parameter_errors = dict()
     probabilities = dict()
     inflations = dict()
     if ("const" in model_parameters.index):
@@ -243,6 +247,15 @@ def regress_linear_ordinary_least_squares(
         parameters["intercept_parameter"] = model_parameters["const"]
     else:
         parameters["intercept_parameter"] = float("nan")
+        # Report.
+        if report:
+            utility.print_terminal_partition(level=4)
+            print("Warning: regression data does not have constant intercept.")
+            print(independence)
+    if ("const" in model_parameter_errors.index):
+        parameter_errors["intercept_error"] = model_parameter_errors["const"]
+    else:
+        parameter_errors["intercept_error"] = float("nan")
         # Report.
         if report:
             utility.print_terminal_partition(level=4)
@@ -270,6 +283,9 @@ def regress_linear_ordinary_least_squares(
         parameter = str(variable + ("_parameter"))
         #parameters[parameter] = report.params[counter]
         parameters[parameter] = model_parameters[variable]
+        # Parameter standard error
+        parameter_error = str(variable + ("_error"))
+        parameter_errors[parameter_error] = model_parameter_errors[variable]
         # Probability.
         probability = str(variable + ("_probability"))
         #probabilities[probability] = report.pvalues[counter]
@@ -298,6 +314,7 @@ def regress_linear_ordinary_least_squares(
         "condition": pail_raw.condition_number,
     }
     summary.update(parameters)
+    summary.update(parameter_errors)
     summary.update(probabilities)
     summary.update(inflations)
 
@@ -332,14 +349,18 @@ def create_regression_missing_values(
     #    itertools.repeat(float("nan"), len(values_independence_intercept))
     #)
     parameters = dict()
+    parameter_errors = dict()
     probabilities = dict()
     inflations = dict()
     parameters["intercept_parameter"] = float("nan")
+    parameter_errors["intercept_error"] = float("nan")
     probabilities["intercept_probability"] = float("nan")
     inflations["intercept_inflation"] = float("nan")
     for variable in independence:
         parameter = str(variable + ("_parameter"))
         parameters[parameter] = float("nan")
+        parameter_error = str(variable + ("_error"))
+        parameter_errors[parameter_error] = float("nan")
         probability = str(variable + ("_probability"))
         probabilities[probability] = float("nan")
         inflation = str(variable + ("_inflation"))
@@ -357,6 +378,7 @@ def create_regression_missing_values(
         "condition": float("nan"),
     }
     summary.update(parameters)
+    summary.update(parameter_errors)
     summary.update(probabilities)
     summary.update(inflations)
     residuals = numpy.empty(0)
