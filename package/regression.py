@@ -227,6 +227,8 @@ def regress_linear_ordinary_least_squares(
 
     # TODO: TCW 28 September 2021
     # TODO: I need to collect the parameters and their standard errors
+    print("test beta standard errors?")
+    print(pail_raw.bse)
 
     # Organize residuals.
     residuals = pail_raw.resid
@@ -280,7 +282,7 @@ def regress_linear_ordinary_least_squares(
                 counter
             )
         )
-        inflations[inflation] = round(inflation_value, 2)
+        inflations[inflation] = round(inflation_value, 3)
         # Increment index.
         counter += 1
         pass
