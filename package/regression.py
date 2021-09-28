@@ -227,6 +227,7 @@ def regress_linear_ordinary_least_squares(
     # TODO: TCW 28 September 2021
     # TODO: I need to collect the parameters and their standard errors
     print(pail_raw)
+    print(pail_raw.keys())
 
     # Organize residuals.
     residuals = pail_raw.resid
