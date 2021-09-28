@@ -216,6 +216,7 @@ def regress_linear_ordinary_least_squares(
             "regress_dependent_independent_variables_linear_ordinary()"
         )
         print("--------------------------------------------------")
+        print("Version check: TCW 28 September 2021")
         print("Information from regression:")
         print(pail_raw.summary())
         #utility.print_terminal_partition(level=3)
