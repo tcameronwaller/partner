@@ -2213,10 +2213,11 @@ def plot_scatter_points_forest_category_ordinate(
     ordinate=None,
     abscissa_interval_low=None,
     abscissa_interval_high=None,
-    title_abscissa=None,
     title_ordinate=None,
+    title_abscissa=None,
     minimum_abscissa=None,
     maximum_abscissa=None,
+    label_size_ordinate_categories=None,
     fonts=None,
     colors=None,
     size=None,
@@ -2244,10 +2245,12 @@ def plot_scatter_points_forest_category_ordinate(
             left error bar below the dot
         abscissa_interval_high (str): name of table's column for the extent of the
             right error bar above the dot
-        title_abscissa (str): title for abscissa on horizontal axis
         title_ordinate (str): title for ordinate on vertical axis
+        title_abscissa (str): title for abscissa on horizontal axis
         minimum_abscissa (float): minimal value for abscissa axis' range
         maximum_abscissa (float): minimal value for abscissa axis' range
+        label_size_ordinate_categories (str): label size for categories on
+            vertical axis
         fonts (dict<object>): references to definitions of font properties
         colors (dict<tuple>): references to definitions of color properties
         size (int): size of marker
@@ -2322,7 +2325,7 @@ def plot_scatter_points_forest_category_ordinate(
         width=3.0,
         color=colors["black"],
         pad=5,
-        labelsize=fonts["values"]["one"]["size"],
+        labelsize=fonts["values"][label_size_ordinate_categories]["size"],
         labelcolor=colors["black"]
     )
     axes.tick_params(
@@ -2376,6 +2379,175 @@ def plot_scatter_points_forest_category_ordinate(
 
     # Return figure.
     return figure
+
+
+def plot_scatter_points_dot_category_abscissa(
+    table=None,
+    abscissa=None,
+    ordinate=None,
+    ordinate_interval_low=None,
+    ordinate_interval_high=None,
+    title_ordinate=None,
+    title_abscissa=None,
+    label_size_abscissa_categories=None,
+    fonts=None,
+    colors=None,
+    size=None,
+    label_title=None,
+):
+    """
+    Creates a figure of a chart of type scatter.
+
+    Common name is "Dot Plot" or "Point Plot".
+
+    This plot's abscissa (horizontal, x axis) fits best for a variable with
+    discrete categorical values that serve as names.
+
+    This plot's ordinate (vertical, y axis) fits best for a variable with
+    continuous, ratio-scale values that base on zero.
+
+    arguments:
+        table (object): Pandas data frame of feature variables across columns
+            and observation records across rows
+        abscissa (str): name of table's column with variable for horizontal (x)
+            axis
+        ordinate (str): name of table's column with variable for vertical (y)
+            axis
+        ordinate_interval_low (str): name of table's column for the extent of the
+            left error bar below the dot
+        ordinate_interval_high (str): name of table's column for the extent of the
+            right error bar above the dot
+        title_ordinate (str): title for ordinate on vertical axis
+        title_abscissa (str): title for abscissa on horizontal axis
+        minimum_abscissa (float): minimal value for abscissa axis' range
+        maximum_abscissa (float): minimal value for abscissa axis' range
+        label_size_abscissa_categories (str): label size for categories on
+            horizontal axis
+        fonts (dict<object>): references to definitions of font properties
+        colors (dict<tuple>): references to definitions of color properties
+        size (int): size of marker
+        label_title (str): text label title to include on figure
+
+    raises:
+
+    returns:
+        (object): figure object
+
+    """
+
+    # Organize data.
+    table = table.copy(deep=True)
+    columns = [
+        abscissa, ordinate, ordinate_interval_low, ordinate_interval_high,
+    ]
+    table_selection = table.loc[
+        :, table.columns.isin(columns)
+    ]
+    #table_selection.dropna(
+    #    axis="index",
+    #    how="any",
+    #    inplace=True,
+    #)
+    values_abscissa = table_selection[abscissa].to_list()
+    values_ordinate = table_selection[ordinate].to_numpy()
+    intervals_ordinate_low = table_selection[ordinate_interval_low].to_numpy()
+    intervals_ordinate_high = table_selection[ordinate_interval_high].to_numpy()
+    # Shape (n, 2)
+    #errors_ordinate = numpy.array(list(zip(
+    #    errors_ordinate_low, errors_ordinate_high
+    #)))
+    # Shape (2, n)
+    intervals_ordinate = numpy.array(
+        [intervals_ordinate_low, intervals_ordinate_high]
+    )
+
+    ##########
+    # Create figure.
+    figure = matplotlib.pyplot.figure(
+        figsize=(15.748, 11.811),
+        tight_layout=True
+    )
+    # Create axes.
+    axes = matplotlib.pyplot.axes()
+    #axes.set_xlim(
+    #    xmin=minimum_abscissa,
+    #    xmax=maximum_abscissa,
+    #)
+    axes.set_xlabel(
+        xlabel=title_abscissa,
+        labelpad=20,
+        alpha=1.0,
+        backgroundcolor=colors["white"],
+        color=colors["black"],
+        fontproperties=fonts["properties"]["one"]
+    )
+    axes.set_ylabel(
+        ylabel=title_ordinate,
+        labelpad=20,
+        alpha=1.0,
+        backgroundcolor=colors["white"],
+        color=colors["black"],
+        fontproperties=fonts["properties"]["one"]
+    )
+    axes.tick_params(
+        axis="y",
+        which="both",
+        direction="out",
+        length=5.0,
+        width=3.0,
+        color=colors["black"],
+        pad=5,
+        labelsize=fonts["values"]["one"]["size"],
+        labelcolor=colors["black"]
+    )
+    axes.tick_params(
+        axis="x",
+        which="both",
+        direction="out",
+        length=5.0,
+        width=3.0,
+        color=colors["black"],
+        pad=5,
+        labelsize=fonts["values"][label_size_abscissa_categories]["size"],
+        labelcolor=colors["black"],
+        labelrotation=45,
+    )
+    # Plot points for values from each group.
+    handle = axes.errorbar(
+        values_abscissa,
+        values_ordinate,
+        yerr=intervals_ordinate,
+        xerr=None,
+        elinewidth=5.0,
+        barsabove=True,
+        linestyle="",
+        marker="o",
+        markersize=size, # 5, 15
+        markeredgecolor=colors["blue"],
+        markerfacecolor=colors["blue"],
+    )
+    # Include title label on plot.
+    if len(label_title) > 0:
+        matplotlib.pyplot.text(
+            0.3, # horizontal position (0: left, 1: right)
+            0.99, # vertical position
+            label_title,
+            horizontalalignment="left",
+            verticalalignment="top",
+            transform=axes.transAxes,
+            backgroundcolor=colors["white_faint"],
+            color=colors["black"],
+            fontproperties=fonts["properties"]["four"]
+        )
+
+    # Return figure.
+    return figure
+
+
+
+
+
+
 
 
 # TODO: probably obsolete?
@@ -2861,8 +3033,11 @@ def write_product_plots_child_directories(
     """
     Writes product information to file.
 
+    First dictionary tier names the child directory.
+    Second dictionary tier names the file.
+
     arguments:
-        information (object): information to write to file
+        information (dict<dict<object>>): information to write to file
         path_parent (str): path to parent directory
 
     raises:
@@ -2902,6 +3077,99 @@ def write_product_plots_child_directories(
 # Drivers
 
 
+def split_mean_interval_table_plot_dot_category(
+    column_group=None,
+    column_category=None,
+    column_mean=None,
+    column_interval_low=None,
+    column_interval_high=None,
+    table=None,
+    title_ordinate=None,
+    title_abscissa=None,
+    label_size_abscissa_categories=None,
+):
+    """
+    Splits a table by groups and plots correlation Forest Charts for each group.
+
+    arguments:
+        column_group (str): name of table's column by which to group and split
+            records for each plot
+        column_category (str): name of table's column for labels for discrete
+            categories
+        column_mean (str): name of table's column for means
+        column_interval_low (str): name of table's column for lesser interval
+        column_interval_high (str): name of table's column for greater interval
+        table (object): Pandas data frame of phenotype variables across UK
+            Biobank cohort
+        title_ordinate (str): title for ordinate on vertical axis
+        title_abscissa (str): title for abscissa on horizontal axis
+        label_size_abscissa_categories (str): label size for categories on
+            horizontal axis
+
+    raises:
+
+    returns:
+        (dict): collection of figure objects from MatPlotLib
+
+    """
+
+    # Define fonts.
+    fonts = define_font_properties()
+    # Define colors.
+    colors = define_color_properties()
+
+    # Organize information for plot.
+    # Copy information.
+    table = table.copy(deep=True)
+    # Select relevant information.
+    table.reset_index(
+        level=None,
+        inplace=True,
+        drop=False,
+    )
+    columns = [
+        column_group, column_category, column_mean,
+        column_interval_low, column_interval_high,
+    ]
+    table = table.loc[
+        :, table.columns.isin(columns)
+    ]
+    # Split table by groups.
+    table.set_index(
+        [column_group],
+        append=False,
+        drop=True,
+        inplace=True
+    )
+    groups = table.groupby(level=[column_group], axis="index",)
+    # Collect tables for groups.
+    pail = dict()
+    for name, group in groups:
+        table_group = group.reset_index(
+            level=None,
+            inplace=False,
+            drop=False,
+        )
+        print(table_group)
+        # Create figure.
+        pail[name] = plot_scatter_points_dot_category_abscissa(
+            table=table_group,
+            abscissa=column_category,
+            ordinate=column_mean,
+            ordinate_interval_low=column_interval_low,
+            ordinate_interval_high=column_interval_high,
+            title_ordinate=title_ordinate,
+            title_abscissa=title_abscissa,
+            label_size_abscissa_categories=label_size_abscissa_categories,
+            fonts=fonts,
+            colors=colors,
+            size=20,
+            label_title=str("pheno: " + name),
+        )
+        pass
+    # Return.
+    return pail
+
 
 def split_correlation_table_plot_forest_category(
     column_group=None,
@@ -2910,6 +3178,11 @@ def split_correlation_table_plot_forest_category(
     column_interval_low=None,
     column_interval_high=None,
     table=None,
+    title_ordinate=None,
+    title_abscissa=None,
+    minimum_abscissa=None,
+    maximum_abscissa=None,
+    label_size_ordinate_categories=None,
 ):
     """
     Splits a table by groups and plots correlation Forest Charts for each group.
@@ -2924,6 +3197,12 @@ def split_correlation_table_plot_forest_category(
         column_interval_high (str): name of table's column for greater interval
         table (object): Pandas data frame of phenotype variables across UK
             Biobank cohort
+        title_ordinate (str): title for ordinate on vertical axis
+        title_abscissa (str): title for abscissa on horizontal axis
+        minimum_abscissa (float): minimal value for abscissa axis' range
+        maximum_abscissa (float): minimal value for abscissa axis' range
+        label_size_ordinate_categories (str): label size for categories on
+            vertical axis
 
     raises:
 
@@ -2977,18 +3256,22 @@ def split_correlation_table_plot_forest_category(
             ordinate=column_category,
             abscissa_interval_low=column_interval_low,
             abscissa_interval_high=column_interval_high,
-            title_abscissa="Correlation (95% C.I.)",
-            title_ordinate="Hormone or Protein",
-            minimum_abscissa=-0.7,
-            maximum_abscissa=0.7,
+            title_ordinate=title_ordinate,
+            title_abscissa=title_abscissa,
+            minimum_abscissa=minimum_abscissa,
+            maximum_abscissa=maximum_abscissa,
+            label_size_ordinate_categories=label_size_ordinate_categories,
             fonts=fonts,
             colors=colors,
             size=20,
-            label_title=str("cohort: " + name),
+            label_title=str("pheno: " + name),
         )
         pass
     # Return.
     return pail
+
+
+
 
 
 # TODO: consider introducing a template set of functions... read, organize data, call appropriate plot function...
