@@ -2347,7 +2347,7 @@ def plot_scatter_points_forest_category_ordinate(
         alpha=1.0,
         color=colors["orange"],
         linestyle="--",
-        linewidth=5.0,
+        linewidth=7.5,
     )
     # Plot points for values from each group.
     handle = axes.errorbar(
@@ -2355,7 +2355,7 @@ def plot_scatter_points_forest_category_ordinate(
         values_ordinate,
         yerr=None,
         xerr=intervals_abscissa,
-        elinewidth=5.0,
+        elinewidth=7.5,
         barsabove=True,
         linestyle="",
         marker="o",
@@ -2518,7 +2518,7 @@ def plot_scatter_points_dot_category_abscissa(
         values_ordinate,
         yerr=intervals_ordinate,
         xerr=None,
-        elinewidth=5.0,
+        elinewidth=7.5,
         barsabove=True,
         linestyle="",
         marker="o",
@@ -3163,7 +3163,7 @@ def split_mean_interval_table_plot_dot_category(
             label_size_abscissa_categories=label_size_abscissa_categories,
             fonts=fonts,
             colors=colors,
-            size=20,
+            size=25,
             label_title=str("pheno: " + name),
         )
         pass
@@ -3263,7 +3263,7 @@ def split_correlation_table_plot_forest_category(
             label_size_ordinate_categories=label_size_ordinate_categories,
             fonts=fonts,
             colors=colors,
-            size=20,
+            size=25,
             label_title=str("pheno: " + name),
         )
         pass
