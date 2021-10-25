@@ -40,6 +40,11 @@ path_script_calculate_z_score="${path_scripts_gwas_process}/calculate_z_score_co
 
 ################################################################################
 # Concatenation across chromosomes
+
+# TODO: TCW 25 October 2021
+# TODO: I need to replace "chromosome_start" and "chromosome_end" with an array
+# TODO: this array ought to include chromosome X
+
 chromosome_start=1
 chromosome_end=22
 /usr/bin/bash "$path_script_gwas_collect_concatenate" \
