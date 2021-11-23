@@ -643,6 +643,8 @@ def organize_table_regression_summaries(
     This function organizes the summary table with information for multiple
     regressions.
 
+    A primary function is to filter the table.
+
     arguments:
         independence (list<str>): name of independent variables of interest
         table (object): Pandas data frame of summary information from multiple
