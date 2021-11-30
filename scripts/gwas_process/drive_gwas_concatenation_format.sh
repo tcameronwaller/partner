@@ -34,7 +34,7 @@ path_gwas_format_compress="${path_gwas_target_parent}/gwas_format.txt.gz"
 ################################################################################
 # Scripts.
 path_scripts_gwas_process="${path_promiscuity_scripts}/gwas_process"
-path_script_gwas_collect_concatenate="${path_scripts_gwas_process}/collect_concatenate_gwas_chromosomes.sh"
+path_script_gwas_collect_concatenate="${path_scripts_gwas_process}/concatenate_compress_gwas_chromosomes.sh"
 path_script_gwas_format="${path_scripts_gwas_process}/format_gwas_ldsc/format_gwas_ldsc_plink_linear.sh"
 path_script_calculate_z_score="${path_scripts_gwas_process}/calculate_z_score_column_5_of_6.sh"
 

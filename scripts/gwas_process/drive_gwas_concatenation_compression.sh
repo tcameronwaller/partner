@@ -25,7 +25,7 @@ path_gwas_concatenation_compress="${path_gwas_target_parent}/gwas_concatenation.
 ################################################################################
 # Scripts.
 path_scripts_gwas_process="${path_promiscuity_scripts}/gwas_process"
-path_script_gwas_collect_concatenate="${path_scripts_gwas_process}/collect_concatenate_gwas_chromosomes.sh"
+path_script_gwas_collect_concatenate="${path_scripts_gwas_process}/concatenate_compress_gwas_chromosomes.sh"
 
 ################################################################################
 # Concatenation across chromosomes
