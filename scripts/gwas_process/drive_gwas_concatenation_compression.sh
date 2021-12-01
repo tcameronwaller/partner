@@ -15,7 +15,8 @@ pattern_gwas_report_file=${1} # string glob pattern by which to recognize PLINK2
 path_gwas_source_parent=${2} # full path to parent directory for source GWAS summary statistics
 path_gwas_target_parent=${3} # full path to parent directory for target GWAS summary statistics
 path_promiscuity_scripts=${4} # full path to directory of general scripts
-report=${5} # whether to print reports
+chromosome_x=${5} # whether to collect GWAS summary statistics report for Chromosome X
+report=${6} # whether to print reports
 
 ################################################################################
 # Paths.
@@ -35,6 +36,7 @@ $pattern_gwas_report_file \
 $path_gwas_source_parent \
 $path_gwas_concatenation \
 $path_gwas_concatenation_compress \
+$chromosome_x \
 $report
 
 ################################################################################

@@ -14,7 +14,8 @@ pattern_gwas_report_file=${1} # string glob pattern by which to recognize PLINK2
 path_gwas_source_parent=${2} # full path to parent directory for GWAS across chromosomes
 path_gwas_concatenation=${3} # full path to file for concatenation of GWAS across chromosomes
 path_gwas_concatenation_compress=${4} # full path to file for concatenation of GWAS across chromosomes
-report=${5} # whether to print reports
+chromosome_x=${5} # whether to collect GWAS summary statistics report for Chromosome X
+report=${6} # whether to print reports
 
 ################################################################################
 # Organize variables.
@@ -46,7 +47,11 @@ cat $path_source_file | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_con
 
 # Concatenate GWAS reports from selection chromosomes.
 #for (( index=$chromosome_start; index<=$chromosome_end; index+=1 )); do
-chromosomes=("1" "2" "3" "4" "5" "6" "7" "8" "9" "10" "11" "12" "13" "14" "15" "16" "17" "18" "19" "20" "21" "22" "x")
+if [[ "$chromosome_x" == "true" ]]; then
+  chromosomes=("1" "2" "3" "4" "5" "6" "7" "8" "9" "10" "11" "12" "13" "14" "15" "16" "17" "18" "19" "20" "21" "22" "x")
+else
+  chromosomes=("1" "2" "3" "4" "5" "6" "7" "8" "9" "10" "11" "12" "13" "14" "15" "16" "17" "18" "19" "20" "21" "22")
+fi
 for chromosome in "${chromosomes[@]}"; do
   path_source_chromosome="$path_gwas_source_parent/chromosome_${chromosome}"
   matches=$(find "${path_source_chromosome}" -name "$pattern_gwas_report_file")
