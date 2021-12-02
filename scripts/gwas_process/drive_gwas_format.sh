@@ -15,7 +15,8 @@ path_gwas_concatenation_compress=${1} # full path to file for source GWAS summar
 path_gwas_target_parent=${2} # full path to parent directory for target GWAS summary statistics
 path_promiscuity_scripts=${3} # full path to directory of general scripts
 path_script_gwas_format=${4} # full path to script for format adjustment
-report=${5} # whether to print reports
+response_standard_scale=${5} # whether to convert reponse (effect, coefficient) to z-score standard scale ("true" or "false")
+report=${6} # whether to print reports
 
 ################################################################################
 # Paths.
@@ -39,6 +40,7 @@ $path_gwas_format \
 $path_gwas_standard \
 $path_gwas_format_compress \
 $path_script_calculate_z_score \
+$response_standard_scale \
 $report
 
 ################################################################################

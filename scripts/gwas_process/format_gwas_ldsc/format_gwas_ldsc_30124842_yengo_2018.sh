@@ -24,7 +24,8 @@ path_gwas_format=${3} # full path to file for formatted GWAS summary statistics
 path_gwas_standard=${4} # full path to file for GWAS summary statistics with standard z-scores
 path_gwas_format_compress=${5} # full path to file for formatted GWAS summary statistics after compression
 path_script_calculate_z_score=${6} # full path to directory of scripts for z-score standardization
-report=${7} # whether to print reports
+response_standard_scale=${7} # whether to convert reponse (effect, coefficient) to z-score standard scale ("true" or "false")
+report=${8} # whether to print reports
 
 ###########################################################################
 # Execute procedure.

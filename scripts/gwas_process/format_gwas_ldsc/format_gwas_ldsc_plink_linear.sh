@@ -22,7 +22,7 @@ path_gwas_format=${3} # full path to file for formatted GWAS summary statistics
 path_gwas_standard=${4} # full path to file for GWAS summary statistics with standard z-scores
 path_gwas_format_compress=${5} # full path to file for formatted GWAS summary statistics after compression
 path_script_calculate_z_score=${6} # full path to directory of scripts for z-score standardization
-response_standard_scale=${7} # whether to convert response (coefficient) to z-score standard scale
+response_standard_scale=${7} # whether to convert reponse (effect, coefficient) to z-score standard scale ("true" or "false")
 report=${8} # whether to print reports
 
 ###########################################################################
@@ -101,7 +101,7 @@ zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
 
 # Organize information from linear GWAS.
 # Select relevant columns and place them in the correct order.
-if [[ "$response_standard_scale" == "yes" ]]; then
+if [[ "$response_standard_scale" == "true" ]]; then
   echo "SNP A1 A2 N Z P" > $path_gwas_format
 else
   echo "SNP A1 A2 N BETA P" > $path_gwas_format
@@ -118,7 +118,7 @@ cat $path_gwas_constraint | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
 ##########
 
 # Calculate Z-score standardization of Beta coefficients.
-if [[ "$response_standard_scale" == "yes" ]]; then
+if [[ "$response_standard_scale" == "true" ]]; then
   /usr/bin/bash $path_script_calculate_z_score \
   5 \
   $path_gwas_format \
