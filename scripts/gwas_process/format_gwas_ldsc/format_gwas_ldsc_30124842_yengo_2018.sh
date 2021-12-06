@@ -12,6 +12,10 @@
 # "Human genome version: GRCh37, hg19"
 # "variant identifier (rsID) version: dbSNP151"
 
+# review:
+# TCW 2 December 2021
+# TCW 6 December 2021
+
 ###########################################################################
 ###########################################################################
 ###########################################################################
@@ -81,13 +85,17 @@ zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
 # probability (p-value): ..................  "P" ..................  "P" ....................... 9
 
 # Organize information from linear GWAS.
-echo "SNP A1 A2 N BETA P" > $path_gwas_format
+if [[ "$response_standard_scale" == "true" ]]; then
+  echo "SNP A1 A2 N Z P" > $path_gwas_format
+else
+  echo "SNP A1 A2 N BETA P" > $path_gwas_format
+fi
 cat $path_gwas_constraint | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {print $3, toupper($4), toupper($5), $10, $7, $9}' >> $path_gwas_format
 
 ##########
 
 # Calculate Z-score standardization of Beta coefficients.
-if false; then
+if [[ "$response_standard_scale" == "true" ]]; then
   /usr/bin/bash $path_script_calculate_z_score \
   5 \
   $path_gwas_format \
@@ -105,6 +113,7 @@ if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "after bound constraints:"
   head -10 $path_gwas_constraint
+  echo "standardize scale of response: ${response_standard_scale}"
   echo "before standardization:"
   head -10 $path_gwas_format
   echo "after standardization:"

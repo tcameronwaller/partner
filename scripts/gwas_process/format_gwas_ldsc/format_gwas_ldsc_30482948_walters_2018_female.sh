@@ -11,7 +11,9 @@
 # phenotype: alcohol dependence
 # Human genome version: GRCh37, hg19 <-- assume since after 2009; but article methods, data servers, and README don't specify
 # variant identifier (rsID) version: ???
-# file: "pgc_alcdep.discovery.aug2018_release.txt.gz"
+# file: "pgc_alcdep_eur_female_public.gz"
+
+# review: TCW 2 December 2021
 
 ###########################################################################
 ###########################################################################
@@ -25,7 +27,8 @@ path_gwas_format=${3} # full path to file for formatted GWAS summary statistics
 path_gwas_standard=${4} # full path to file for GWAS summary statistics with standard z-scores
 path_gwas_format_compress=${5} # full path to file for formatted GWAS summary statistics after compression
 path_script_calculate_z_score=${6} # full path to directory of scripts for z-score standardization
-report=${7} # whether to print reports
+response_standard_scale=${7} # whether to convert reponse (effect, coefficient) to z-score standard scale ("true" or "false")
+report=${8} # whether to print reports
 
 ###########################################################################
 # Execute procedure.
@@ -63,7 +66,7 @@ zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
     print $1, $2, $3, $4, $5, $6, $7, $8, ( 1.0E-305 ), $10
   else if ( ( $9 != "NA" ) && ( ($9 + 0) > 1.0 ) )
     # Constrain probability value.
-    print $1, $2, $3, $4, $5, $6, $7, $8, ( 1.0E-305 ), $10
+    print $1, $2, $3, $4, $5, $6, $7, $8, ( 1.0 ), $10
   else
     print $0
   }' >> $path_gwas_constraint
