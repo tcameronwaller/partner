@@ -13,7 +13,9 @@
 # variant identifier (rsID) version: ???
 # file: "pgc_alcdep_eur_female_public.gz"
 
-# review: TCW 2 December 2021
+# review:
+# TCW 2 December 2021
+# TCW 7 December 2021
 
 ###########################################################################
 ###########################################################################
@@ -84,13 +86,19 @@ zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
 # probability (p-value): ..................  "P" ..................  "P" ................... 9
 
 # Organize information from linear GWAS.
-echo "SNP A1 A2 N OR P" > $path_gwas_format
+if [[ "$response_standard_scale" == "true" ]]; then
+  echo "SNP A1 A2 N Z P" > $path_gwas_format
+  # Note: Need to convert odds ratio to coefficient before Z-score scale
+  # standardization.
+else
+  echo "SNP A1 A2 N OR P" > $path_gwas_format
+fi
 cat $path_gwas_constraint | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {print $2, toupper($4), toupper($5), (2504 + 6033), $7, $9}' >> $path_gwas_format
 
 ##########
 
 # Calculate Z-score standardization of Beta coefficients.
-if false; then
+if [[ "$response_standard_scale" == "true" ]]; then
   /usr/bin/bash $path_script_calculate_z_score \
   5 \
   $path_gwas_format \

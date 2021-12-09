@@ -5,17 +5,16 @@
 ###########################################################################
 
 # "Organize GWAS summary statistics."
-# PubMed: 30482948
-# author: Walters
+# PubMed: 30336701
+# author: Sanchez-Roige
 # date: ___ 2018
-# phenotype: alcohol dependence
-# Human genome version: GRCh37, hg19 <-- assume since after 2009; but article methods, data servers, and README don't specify
+# phenotype: AUDIT
+# Human genome version: GRCh37, hg19
 # variant identifier (rsID) version: ???
-# file: "pgc_alcdep.eur_unrelated.aug2018_release.txt.gz"
+# file: "AUDIT_UKB_2018_AJP.txt.gz"
 
 # review:
-# TCW 2 December 2021
-# TCW 7 December 2021
+# TCW 9 December 2021
 
 ###########################################################################
 ###########################################################################
@@ -60,15 +59,15 @@ rm $path_gwas_format_compress
 # Constrain probability values from 1.0E-305 to 1.0.
 zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_constraint
 zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
-  if ( NF != 8)
+  if ( NF != 15)
     # Skip any rows with incorrect count of column fields.
     next
-  else if ( ( $7 != "NA" ) && ( ($7 + 0) < 1.0E-305 ) )
+  else if ( ( $8 != "NA" ) && ( ($8 + 0) < 1.0E-305 ) )
     # Constrain probability value.
-    print $1, $2, $3, $4, $5, $6, ( 1.0E-305 ), $8
-  else if ( ( $7 != "NA" ) && ( ($7 + 0) > 1.0 ) )
+    print $1, $2, $3, $4, $5, $6, $7, ( 1.0E-305 ), $9, $10, $11, $12, $13, $14, $15
+  else if ( ( $8 != "NA" ) && ( ($8 + 0) > 1.0 ) )
     # Constrain probability value.
-    print $1, $2, $3, $4, $5, $6, ( 1.0 ), $8
+    print $1, $2, $3, $4, $5, $6, $7, ( 1.0 ), $9, $10, $11, $12, $13, $14, $15
   else
     print $0
   }' >> $path_gwas_constraint
@@ -78,12 +77,12 @@ zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
 # https://github.com/bulik/ldsc/wiki/Heritability-and-Genetic-Correlation#reformatting-summary-statistics
 
 # description: ............................ LDSC column ........... source column .......... position
-# variant identifier (RS ID): .............  "SNP" ................  "SNP" ................. 2
-# alternate allele (effect allele): .......  "A1" .................  "A1" .................. 4
-# reference allele (non-effect allele): ...  "A2" .................  "A2" .................. 5
-# sample size: ............................  "N" ..................  None .................. (38,686 = 10,206 + 28,480)
-# effect (coefficient or odds ratio): .....  "BETA" or "OR" .......  "Z" ................... 6
-# probability (p-value): ..................  "P" ..................  "P" ................... 7
+# variant identifier (RS ID): .............  "SNP" ................  "rsid" .................. 2
+# alternate allele (effect allele): .......  "A1" .................  "a_1" ................... 4
+# reference allele (non-effect allele): ...  "A2" .................  "a_0" ................... 3
+# sample size: ............................  "N" ..................  "N" .................... 15
+# effect (coefficient or odds ratio): .....  "BETA" or "OR" .......  "beta_T" ................ 6
+# probability (p-value): ..................  "P" ..................  "p_T" ................... 8
 
 # Organize information from linear GWAS.
 if [[ "$response_standard_scale" == "true" ]]; then
@@ -91,9 +90,9 @@ if [[ "$response_standard_scale" == "true" ]]; then
   # Note: Need to convert odds ratio to coefficient before Z-score scale
   # standardization.
 else
-  echo "SNP A1 A2 N Z P" > $path_gwas_format
+  echo "SNP A1 A2 N BETA P" > $path_gwas_format
 fi
-cat $path_gwas_constraint | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {split($2,a,":"); print a[1], toupper($4), toupper($5), (10206 + 28480), $6, $7}' >> $path_gwas_format
+cat $path_gwas_constraint | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {split($2,a,":"); identifier="rs"a[2]; print identifier, toupper($4), toupper($3), $15, $6, $8}' >> $path_gwas_format
 
 ##########
 

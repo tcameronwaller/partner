@@ -5,16 +5,15 @@
 ###########################################################################
 
 # "Organize GWAS summary statistics."
-# PubMed: 30482948
-# author: Walters
-# date: ___ 2018
-# phenotype: alcohol dependence
+# "PubMed: 30643251"
+# "author: Liu"
+# "date: 14 January 2019"
+# "phenotype: Drinks per Week"
 # Human genome version: GRCh37, hg19 <-- assume since after 2009; but article methods, data servers, and README don't specify
 # variant identifier (rsID) version: ???
-# file: "pgc_alcdep.eur_unrelated.aug2018_release.txt.gz"
+# file: "DrinksPerWeek.WithoutUKB.txt.gz"
 
 # review:
-# TCW 2 December 2021
 # TCW 7 December 2021
 
 ###########################################################################
@@ -60,15 +59,15 @@ rm $path_gwas_format_compress
 # Constrain probability values from 1.0E-305 to 1.0.
 zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_constraint
 zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
-  if ( NF != 8)
+  if ( NF != 13)
     # Skip any rows with incorrect count of column fields.
     next
-  else if ( ( $7 != "NA" ) && ( ($7 + 0) < 1.0E-305 ) )
+  else if ( ( $8 != "NA" ) && ( ($8 + 0) < 1.0E-305 ) )
     # Constrain probability value.
-    print $1, $2, $3, $4, $5, $6, ( 1.0E-305 ), $8
-  else if ( ( $7 != "NA" ) && ( ($7 + 0) > 1.0 ) )
+    print $1, $2, $3, $4, $5, $6, $7, ( 1.0E-305 ), $9, $10, $11, $12, $13
+  else if ( ( $8 != "NA" ) && ( ($8 + 0) > 1.0 ) )
     # Constrain probability value.
-    print $1, $2, $3, $4, $5, $6, ( 1.0 ), $8
+    print $1, $2, $3, $4, $5, $6, $7, ( 1.0 ), $9, $10, $11, $12, $13
   else
     print $0
   }' >> $path_gwas_constraint
@@ -77,23 +76,21 @@ zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
 # Format of GWAS summary statistics for LDSC.
 # https://github.com/bulik/ldsc/wiki/Heritability-and-Genetic-Correlation#reformatting-summary-statistics
 
-# description: ............................ LDSC column ........... source column .......... position
-# variant identifier (RS ID): .............  "SNP" ................  "SNP" ................. 2
-# alternate allele (effect allele): .......  "A1" .................  "A1" .................. 4
-# reference allele (non-effect allele): ...  "A2" .................  "A2" .................. 5
-# sample size: ............................  "N" ..................  None .................. (38,686 = 10,206 + 28,480)
-# effect (coefficient or odds ratio): .....  "BETA" or "OR" .......  "Z" ................... 6
-# probability (p-value): ..................  "P" ..................  "P" ................... 7
+# description: ............................ LDSC column ........... source column .............. position
+# variant identifier (RS ID): .............  "SNP" ................  "RSID" .................... 3
+# alternate allele (effect allele): .......  "A1" .................  "ALT" ..................... 5
+# reference allele (non-effect allele): ...  "A2" .................  "REF" ..................... 4
+# sample size: ............................  "N" ..................  "N" ...................... 11
+# effect (coefficient or odds ratio): .....  "BETA" or "OR" .......  "BETA" .................... 9
+# probability (p-value): ..................  "P" ..................  "PVALUE" .................. 8
 
 # Organize information from linear GWAS.
 if [[ "$response_standard_scale" == "true" ]]; then
   echo "SNP A1 A2 N Z P" > $path_gwas_format
-  # Note: Need to convert odds ratio to coefficient before Z-score scale
-  # standardization.
 else
-  echo "SNP A1 A2 N Z P" > $path_gwas_format
+  echo "SNP A1 A2 N BETA P" > $path_gwas_format
 fi
-cat $path_gwas_constraint | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {split($2,a,":"); print a[1], toupper($4), toupper($5), (10206 + 28480), $6, $7}' >> $path_gwas_format
+cat $path_gwas_constraint | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {print $3, toupper($5), toupper($4), $11, $9, $8}' >> $path_gwas_format
 
 ##########
 
@@ -116,6 +113,7 @@ if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "after bound constraints:"
   head -10 $path_gwas_constraint
+  echo "standardize scale of response: ${response_standard_scale}"
   echo "before standardization:"
   head -10 $path_gwas_format
   echo "after standardization:"

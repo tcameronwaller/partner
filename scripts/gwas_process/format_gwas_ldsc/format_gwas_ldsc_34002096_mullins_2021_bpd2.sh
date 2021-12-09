@@ -17,6 +17,9 @@
 
 # zcat ./pgc-bip2021-BDII.vcf.tsv.gz | head -n 73
 
+# review:
+# TCW 7 December 2021
+
 ###########################################################################
 ###########################################################################
 ###########################################################################
@@ -29,7 +32,8 @@ path_gwas_format=${3} # full path to file for formatted GWAS summary statistics
 path_gwas_standard=${4} # full path to file for GWAS summary statistics with standard z-scores
 path_gwas_format_compress=${5} # full path to file for formatted GWAS summary statistics after compression
 path_script_calculate_z_score=${6} # full path to directory of scripts for z-score standardization
-report=${7} # whether to print reports
+response_standard_scale=${7} # whether to convert reponse (effect, coefficient) to z-score standard scale ("true" or "false")
+report=${8} # whether to print reports
 
 ###########################################################################
 # Execute procedure.
@@ -85,13 +89,17 @@ zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 73 {
 # probability (p-value): ..................  "P" ..................  "PVAL" ................  8
 
 # Organize information from linear GWAS.
-echo "SNP A1 A2 N BETA P" > $path_gwas_format
+if [[ "$response_standard_scale" == "true" ]]; then
+  echo "SNP A1 A2 N Z P" > $path_gwas_format
+else
+  echo "SNP A1 A2 N BETA P" > $path_gwas_format
+fi
 cat $path_gwas_constraint | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {print $3, toupper($4), toupper($5), ($14 + $15), $6, $8}' >> $path_gwas_format
 
 ##########
 
 # Calculate Z-score standardization of Beta coefficients.
-if false; then
+if [[ "$response_standard_scale" == "true" ]]; then
   /usr/bin/bash $path_script_calculate_z_score \
   5 \
   $path_gwas_format \
