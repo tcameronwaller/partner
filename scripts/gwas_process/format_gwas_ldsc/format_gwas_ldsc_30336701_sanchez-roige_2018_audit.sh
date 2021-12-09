@@ -92,7 +92,7 @@ if [[ "$response_standard_scale" == "true" ]]; then
 else
   echo "SNP A1 A2 N BETA P" > $path_gwas_format
 fi
-cat $path_gwas_constraint | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {split($2,a,":"); identifier="rs"a[2]; print identifier, toupper($4), toupper($3), $15, $6, $8}' >> $path_gwas_format
+cat $path_gwas_constraint | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {split($2,a,":"); split(a[2],b,"_"); identifier="rs"b[1]; print identifier, toupper($4), toupper($3), $15, $6, $8}' >> $path_gwas_format
 
 ##########
 
