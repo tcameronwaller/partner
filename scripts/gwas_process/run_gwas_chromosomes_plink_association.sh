@@ -7,6 +7,14 @@
 ################################################################################
 # Organize argument variables.
 
+# TODO: TCW 15 December 2021
+# TODO: include "X" and "XY" chromosome regions
+# TODO: need to specify genotype and sample files for XY chromosome
+# TODO: include argument for path to UK Biobank allele frequencies (previously calculated)
+# TODO: include PLINK2 parameter "--read-freq" with path to UK Biobank allele frequencies
+
+
+
 path_table_phenotypes_covariates=${1} # full path to file for table with phenotypes and covariates
 path_report=${2} # full path to parent directory for GWAS summary statistics
 analysis=${3} # unique name for association analysis
@@ -26,7 +34,7 @@ path_ukb_genotype=$(<"./ukbiobank_genotype.txt")
 
 # Iterate on chromosomes.
 #chromosomes=("x")
-chromosomes=("1" "2" "3" "4" "5" "6" "7" "8" "9" "10" "11" "12" "13" "14" "15" "16" "17" "18" "19" "20" "21" "22" "x")
+chromosomes=("1" "2" "3" "4" "5" "6" "7" "8" "9" "10" "11" "12" "13" "14" "15" "16" "17" "18" "19" "20" "21" "22" "x" "xy")
 for chromosome in "${chromosomes[@]}"; do
   #echo "chromosome: ${chromosome}"
 
@@ -54,17 +62,20 @@ for chromosome in "${chromosomes[@]}"; do
 
   if true; then
     # Call PLINK2.
-    # This call to PLINK2 includes "--freq" and produces a report of allele
-    # frequencies.
     # PLINK2 command "--glm" drives genotypic association analyses, either
     # linear or logistic regressions across Simple Nucleotide Polymorphisms
     # (SNPs).
     # 90,000 Mebibytes (MiB) is 94.372 Gigabytes (GB)
-    # --pfilter 1 \
-    # --pfilter drops SNPs with null p-values and any beyond threshold (such as 1)
-    # But, maybe pfilter is actually a problem.
-    # Argument "--reference-allele" allows to give an explicit list of alleles to designate as "A1".
-    # "Warning: No --bgen REF/ALT mode specified ('ref-first', 'ref-last', or 'ref-unknown'). This will be required as of alpha 3."
+    # Parameter ""--pfilter 1" tells PLINK2 to drop SNPs with null p-values or
+    # any beyond threshold (such as 1).
+    # Parameter "--bgen ref-first" tells PLINK2 always to consider the first
+    # allele in the genotype file as the reference allele.
+    # Parameter "--reference-allele" gives an explicit list of alleles to
+    # designate as "A1" test allele.
+    # Parameter "--freq" produces a report of allele frequencies.
+    # Parameter "--glm cols=+a1freq,+a1freqcc" tells PLINK2 to include columns
+    # in GWAS report table for frequency of A1 allele and to stratify this
+    # frequency between cases and controls if GWAS is a logistic regression.
     $path_plink2 \
     --memory 90000 \
     --threads $threads \
@@ -76,9 +87,9 @@ for chromosome in "${chromosomes[@]}"; do
     --covar $path_table_phenotypes_covariates \
     --covar-name $covariates \
     --maf $maf \
-    --xchr-model 1 \
+    --xchr-model 2 \
     --freq \
-    --glm omit-ref no-x-sex hide-covar \
+    --glm omit-ref no-x-sex hide-covar cols=+a1freq,+a1freqcc \
     --out report
   fi
 done
