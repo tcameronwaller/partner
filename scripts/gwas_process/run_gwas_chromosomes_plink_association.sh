@@ -7,17 +7,9 @@
 ################################################################################
 # Organize argument variables.
 
-# TODO: TCW 15 December 2021
-# TODO: include "X" and "XY" chromosome regions
-# TODO: need to specify genotype and sample files for XY chromosome
-# TODO: include argument for path to UK Biobank allele frequencies (previously calculated)
-# TODO: include PLINK2 parameter "--read-freq" with path to UK Biobank allele frequencies
-
-
-
 path_table_phenotypes_covariates=${1} # full path to file for table with phenotypes and covariates
-path_report=${2} # full path to parent directory for GWAS summary statistics
-analysis=${3} # unique name for association analysis
+path_gwas_study_parent=${2} # full path to parent directory for GWAS summary statistics
+name_study=${3} # unique name for association analysis study
 phenotypes=${4} # names of table's column or columns for single or multiple phenotypes, dependent variables
 covariates=${5} # name of table's columns for covariates, independent variables
 threads=${6} # count of processing threads to use
@@ -39,7 +31,7 @@ for chromosome in "${chromosomes[@]}"; do
   #echo "chromosome: ${chromosome}"
 
   # Specify target directory.
-  path_chromosome="$path_report/chromosome_${chromosome}"
+  path_chromosome="$path_gwas_study_parent/chromosome_${chromosome}"
   # Determine whether the temporary directory structure already exists.
   if [ ! -d $path_chromosome ]; then
       # Directory does not already exist.
@@ -55,6 +47,9 @@ for chromosome in "${chromosomes[@]}"; do
     # "They were missing chrom X and I asked them to download that in March/April of this year I think?  So that's why it looks different."
     path_genotype="$path_ukb_genotype/Chromosome/ukb22828_cX_b0_v3.bgen"
     path_sample="$path_ukb_genotype/Chromosome/ukb22828_cX_b0_v3_s486620.sample"
+  elif [[ "$chromosome" == "xy" ]]; then
+    path_genotype="$path_ukb_genotype/Chromosome/ukb22828_cXY_b0_v3.bgen"
+    path_sample="$path_ukb_genotype/Chromosome/ukb22828_cXY_b0_v3_s486306.sample"
   else
     path_genotype="$path_ukb_genotype/Chromosome/ukb_imp_chr${chromosome}_v3.bgen"
     path_sample="$path_ukb_genotype/Chromosome/ukb46237_imp_chr${chromosome}_v3_s487320.sample"
@@ -76,6 +71,9 @@ for chromosome in "${chromosomes[@]}"; do
     # Parameter "--glm cols=+a1freq,+a1freqcc" tells PLINK2 to include columns
     # in GWAS report table for frequency of A1 allele and to stratify this
     # frequency between cases and controls if GWAS is a logistic regression.
+    # Parameter "--xchr-model 2" tells PLINK2 to use the same dosages (0, 1, 2)
+    # for alleles on the X chromosome in both females and males.
+    ### --read-freq $path_reference_allele_frequency \
     $path_plink2 \
     --memory 90000 \
     --threads $threads \
