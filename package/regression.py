@@ -495,17 +495,17 @@ def determine_cohort_model_variables_from_reference_table(
     table = table.copy(deep=True)
     # Select table records for cohort.
     table_cohort = table.loc[
-        table["cohort"] == cohort, :
+        table["cohort"] == str(cohort), :
     ]
     # Select table records for dependent variable.
     table_dependence = table_cohort.loc[
-        table_cohort["dependence"] == dependence, :
+        table_cohort["dependence"] == str(dependence), :
     ]
     # Select table records for model.
-    match_model = (model in table_dependence["model"].to_list())
+    match_model = (str(model) in table_dependence["model"].to_list())
     if (match_model):
         table_model = table_dependence.loc[
-            table_dependence["model"] == model, :
+            table_dependence["model"] == str(model), :
         ]
         # Determine whether cohort-model-dependence defines a single set of
         # independent variables.
@@ -552,7 +552,7 @@ def determine_cohort_model_variables_from_reference_table(
 
 def drive_cohort_model_linear_regression(
     table=None,
-    table_cohort_model=None,
+    table_cohorts_models=None,
     cohort=None,
     model=None,
     dependence=None,
@@ -568,7 +568,7 @@ def drive_cohort_model_linear_regression(
         table (object): Pandas data frame of dependent and independent variables
             (features) across columns and samples (cases, observations) within
             a specific cohort across rows
-        table_cohort_model (object): Pandas data frame of cohorts, models,
+        table_cohorts_models (object): Pandas data frame of cohorts, models,
             dependent variables, and independent variables for regression
         cohort (str): name of a stratification cohort for regression analysis
         model (str): name of a model for regression analysis, normally
@@ -587,7 +587,7 @@ def drive_cohort_model_linear_regression(
         cohort=cohort,
         model=model,
         dependence=dependence,
-        table=table_cohort_model,
+        table=table_cohorts_models,
         report=report,
     )
     if (pail_model["match"]):
