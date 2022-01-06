@@ -135,6 +135,34 @@ def organize_table_cohort_model_variables_for_regression(
     return pail
 
 
+def determine_confidence_interval_range_text(
+    estimate=None,
+    interval_low=None,
+    interval_high=None,
+):
+    """
+    Prepares a textual representation of the confidence interval range about an
+    estimate.
+
+    arguments:
+        estimate (float): value of an estimate
+        interval_low (float): value of lower confidence interval
+        interval_high (float): value of higher confidence interval
+
+    raises:
+
+    returns:
+        (str): textual representation of confidence interval range
+    """
+
+    range = str(
+        str(round((float(estimate) - float(interval_low)), 5)) +
+        " ... " +
+        str(round((float(estimate) + float(interval_high)), 5))
+    )
+    return range
+
+
 def regress_linear_ordinary_least_squares(
     dependence=None,
     independence=None,
@@ -235,6 +263,7 @@ def regress_linear_ordinary_least_squares(
     parameters = dict()
     parameter_errors = dict()
     parameter_intervals = dict()
+    parameter_ranges = dict()
     probabilities = dict()
     inflations = dict()
     if ("const" in model_parameters.index):
@@ -252,9 +281,16 @@ def regress_linear_ordinary_least_squares(
         parameter_intervals["intercept_interval_95"] = float(
             1.96 * parameter_errors["intercept_error"]
         )
+        parameter_ranges["intercept_range_95"] = (
+            determine_confidence_interval_range_text(
+                estimate=parameters["intercept_parameter"],
+                interval_low=parameter_intervals["intercept_interval_95"],
+                interval_high=parameter_intervals["intercept_interval_95"],
+        ))
     else:
         parameter_errors["intercept_error"] = float("nan")
         parameter_intervals["intercept_interval_95"] = float("nan")
+        parameter_ranges["intercept_range_95"] = str("nan ... nan")
         # Report.
         if report:
             utility.print_terminal_partition(level=4)
@@ -289,7 +325,13 @@ def regress_linear_ordinary_least_squares(
         parameter_intervals[parameter_interval] = float(
             1.96 * parameter_errors[parameter_error]
         )
-
+        parameter_range = str(variable + ("_range_95"))
+        parameter_ranges[parameter_range] = (
+            determine_confidence_interval_range_text(
+                estimate=parameters[parameter],
+                interval_low=parameter_intervals[parameter_interval],
+                interval_high=parameter_intervals[parameter_interval],
+        ))
         # Probability.
         probability = str(variable + ("_probability"))
         #probabilities[probability] = report.pvalues[counter]
@@ -321,6 +363,7 @@ def regress_linear_ordinary_least_squares(
     summary.update(parameters)
     summary.update(parameter_errors)
     summary.update(parameter_intervals)
+    summary.update(parameter_ranges)
     summary.update(probabilities)
     summary.update(inflations)
 
@@ -357,11 +400,13 @@ def create_regression_missing_values(
     parameters = dict()
     parameter_errors = dict()
     parameter_intervals = dict()
+    parameter_ranges = dict()
     probabilities = dict()
     inflations = dict()
     parameters["intercept_parameter"] = float("nan")
     parameter_errors["intercept_error"] = float("nan")
     parameter_intervals["intercept_interval_95"] = float("nan")
+    parameter_ranges["intercept_range_95"] = str("nan ... nan")
     probabilities["intercept_probability"] = float("nan")
     inflations["intercept_inflation"] = float("nan")
     for variable in independence:
@@ -371,6 +416,8 @@ def create_regression_missing_values(
         parameter_errors[parameter_error] = float("nan")
         parameter_interval = str(variable + ("_interval_95"))
         parameter_intervals[parameter_interval] = float("nan")
+        parameter_range = str(variable + ("_range_95"))
+        parameter_ranges[parameter_range] = str("nan ... nan")
         probability = str(variable + ("_probability"))
         probabilities[probability] = float("nan")
         inflation = str(variable + ("_inflation"))
@@ -391,6 +438,7 @@ def create_regression_missing_values(
     summary.update(parameters)
     summary.update(parameter_errors)
     summary.update(parameter_intervals)
+    summary.update(parameter_ranges)
     summary.update(probabilities)
     summary.update(inflations)
     residuals = numpy.empty(0)
@@ -681,11 +729,13 @@ def organize_table_regression_summaries(
         parameter = str(variable + ("_parameter"))
         parameter_error = str(variable + ("_error"))
         parameter_interval = str(variable + ("_interval_95"))
+        parameter_range = str(variable + ("_range_95"))
         probability = str(variable + ("_probability"))
         inflation = str(variable + ("_inflation"))
         columns.append(parameter)
         columns.append(parameter_error)
         columns.append(parameter_interval)
+        columns.append(parameter_range)
         columns.append(probability)
         columns.append(inflation)
         pass
