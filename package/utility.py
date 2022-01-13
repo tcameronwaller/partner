@@ -364,14 +364,14 @@ def determine_logical_or_combination_binary_missing(
     Determines the logical "or" combination of two binary logical variables,
     each of which can be "true" (1), "false" (0), or "missing" ("nan").
 
-    Option "single_false_sufficient" is most appropriate in cases in which both
-    variables have similar meaning and their combination has potential to reduce
-    missing information and loss of samples.
-
     Current implementation evaluates to "true" (1) even if only one of the
     variables is true and the other is false or missing. This interpretation is
     consistent with "or" logic for the "true" scenario, but not for the "false"
-    scenario.
+    scenario. Hence in this implementation, a single "true" is sufficient.
+
+    Option "single_false_sufficient" is most appropriate in cases in which both
+    variables have similar meaning and their combination has potential to reduce
+    missing information and loss of samples.
 
     arguments:
         first (float): first binary logical variable that can be true (1),
