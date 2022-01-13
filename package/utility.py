@@ -908,6 +908,74 @@ def print_file_lines(path_file=None, start=None, stop=None):
             count += 1
 
 
+def parse_text_list_values(
+    collection=None,
+    delimiter=None,
+):
+    """
+    Parse a textual representation of a list or array of values.
+
+    arguments:
+        collection (str): textual string of values in a list or array
+        delimiter (str): delimiter between values
+
+    raises:
+
+    returns:
+        (list<str>): values
+
+    """
+
+    if (
+        (len(str(collection)) > 0) and (delimiter in str(collection))
+    ):
+        values_split = str(collection).split(delimiter)
+        #values = list()
+        #for value_raw in values_split:
+        #    value = str(value_raw).strip()
+        #    if (len(value) > 0):
+        #        values.append(str(value))
+        #    pass
+        values_strip = list(map(lambda value: str(value).strip(), values_split))
+        values = list(filter(lambda value: (len(str(value)) > 0), values_strip))
+    else:
+        values = list()
+    return values
+
+
+def determine_any_actual_values_match_comparisons(
+    values_actual=None,
+    values_comparison=None,
+):
+    """
+    Determines whether any actual values match a list of comparison values.
+
+    arguments:
+        values_actual (list<str>): actual values to test for any matches to
+            comparison values
+        values_comparison (list<str>): set of values for comparison
+
+    raises:
+
+    returns:
+        (bool): whether any actual values match the comparison values
+
+    """
+
+    match = False
+    if (len(values_actual) > 0):
+        for value in values_actual:
+            if (
+                (len(str(value)) > 0) and
+                (value in values_comparison)
+            ):
+                match = True
+                pass
+            pass
+        pass
+    return match
+
+
 def find(match=None, sequence=None):
     """
     Finds the first element in a sequence to match a condition, otherwise none
