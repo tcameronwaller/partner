@@ -927,8 +927,15 @@ def organize_principal_component_scores_table(
     return table
 
 
+
+# TODO: TCW, 26 January 2022
+# TODO: compare the proportional variance for each component by both methods
+
 def compare_principal_components_methods(
     table=None,
+    index_name=None,
+    prefix=None,
+    separator=None,
     report=None,
 ):
     """
@@ -953,6 +960,10 @@ def compare_principal_components_methods(
         table (object): Pandas data frame of variables (features) across
             columns and samples (cases, observations) across rows with an
             explicit index
+        index_name (str): name of table's index column
+        prefix (str): prefix for names of new principal component columns in
+            table
+        separator (str): separator for names of new columns
         report (bool): whether to print reports
 
     raises:
@@ -969,53 +980,23 @@ def compare_principal_components_methods(
             threshold_valid_proportion_per_column=0.5,
             threshold_column_relative_variance=0.5,
             table=table,
-            report=report,
+            report=False,
     ))
-
     # Calculate Principal Component Scores in SKLearn.
-    pail_sklearn = calculate_principal_components_by_sklearn(
-        matrix_source=pail_organization["matrix"],
-        report=report,
+    pail_sklearn = organize_principal_components_by_sklearn(
+        table=table,
+        index_name=index_name,
+        prefix=prefix,
+        separator=separator,
+        report=False,
     )
-
-    # Calculate Principal Component Scores by Singular Value Decomposition.
-    pail_decomposition = (
-        calculate_sort_singular_value_decomposition_factors(
-            matrix_source=pail_organization["matrix"],
-            report=report,
-        )
-    )
-    eigenvalues = (
-        calculate_principal_component_eigenvalues_from_singular_values(
-            s_singular_values=pail_decomposition["s_singular_values"],
-            count_samples=pail_organization["count_samples"],
-            report=report,
-    ))
-    # Loadings
-    loadings = calculate_principal_component_loadings(
-        eigenvectors=pail_decomposition["vt_right_singular_vectors_rows"],
-        eigenvalues=eigenvalues,
-        s_singular_values=pail_decomposition["s_singular_values"],
-        vt_right_singular_vectors_rows=(
-            pail_decomposition["vt_right_singular_vectors_rows"]
-        ),
-        count_samples=pail_organization["count_samples"],
-        report=report,
-    )
-
-    # Principal Component Scores
-    pail_svd = calculate_principal_component_scores_from_factors(
-        matrix_source=pail_organization["matrix"],
-        u_left_singular_vectors_columns=(
-            pail_decomposition["u_left_singular_vectors_columns"]
-        ),
-        s_singular_values_diagonal=(
-            pail_decomposition["s_singular_values_diagonal"]
-        ),
-        v_right_singular_vectors_columns=(
-            pail_decomposition["v_right_singular_vectors_columns"]
-        ),
-        report=report,
+    # Calculate Prinicipal Component Scores by Singular Value Decomposition.
+    pail_svd = organize_principal_components_by_singular_value_decomposition(
+        table=table,
+        index_name=index_name,
+        prefix=prefix,
+        separator=separator,
+        report=False,
     )
 
     # Report.
@@ -1032,14 +1013,14 @@ def compare_principal_components_methods(
         )
         utility.print_terminal_partition(level=4)
         print("Shapes of matrices for Principal Component Scores")
-        print("SKLearn: " + str(pail_sklearn["matrix_scores"].shape))
+        print("SKLearn: " + str(pail_sklearn["matrix_component_scores"].shape))
         print(
             "SVD factor product: " +
-            str(pail_svd["matrix_scores"].shape)
+            str(pail_svd["matrix_component_scores"].shape)
         )
         utility.print_terminal_partition(level=4)
-        print("Compare score matrices between methods")
-        print("SKLearn versus SVD... match?")
+        print("Compare score matrices between methods...")
+        print("SKLearn versus SVD match:")
         print(numpy.allclose(
             numpy.absolute(pail_sklearn["matrix_scores"]),
             numpy.absolute(pail_svd["matrix_scores"]),
@@ -1047,6 +1028,14 @@ def compare_principal_components_methods(
             atol=1e-3,
             equal_nan=False,
         ))
+        utility.print_terminal_partition(level=4)
+        print("Compare proportions of variance for principal components...")
+        print("SKLearn:")
+        print(pail_sklearn["table_component_variance_proportions"])
+        utility.print_terminal_partition(level=5)
+        print("SVD:")
+        print(pail_svd["table_component_variance_proportions"])
+
     pass
 
 
@@ -1239,7 +1228,11 @@ def organize_principal_components_by_singular_value_decomposition(
     )
     pail["count_samples"] = pail_organization["count_samples"]
     pail["count_variables"] = pail_organization["count_variables"]
+    pail["matrix_component_scores"] = pail_scores["matrix_scores"]
     pail["table_component_scores"] = table_component_scores
+    pail["table_component_variance_proportions"] = (
+        table_component_variance_proportions
+    )
     # Return.
     return pail
 
@@ -1286,7 +1279,9 @@ def calculate_principal_components_by_sklearn(
         "components": component_numbers[1:],
         "variance": variance_ratios
     }
-    table_component_variance = pandas.DataFrame(data=variance_series)
+    table_component_variance_proportions = pandas.DataFrame(
+        data=variance_series
+    )
     # Transform data by principal components.
     matrix_scores = pca.transform(matrix_source)
 
@@ -1305,10 +1300,12 @@ def calculate_principal_components_by_sklearn(
         )
         utility.print_terminal_partition(level=4)
         print("Proportional variance for each component...")
-        print(table_component_variance)
+        print(table_component_variance_proportions)
     # Compile information.
     pail = dict()
-    pail["table_component_variance"] = table_component_variance
+    pail["table_component_variance_proportions"] = (
+        table_component_variance_proportions
+    )
     pail["matrix_scores"] = matrix_scores
     # Return.
     return pail
@@ -1367,7 +1364,7 @@ def organize_principal_components_by_sklearn(
         report=report,
     )
 
-    table_scores = organize_principal_component_scores_table(
+    table_component_scores = organize_principal_component_scores_table(
         matrix=pail_sklearn["matrix_scores"],
         index=pail_organization["index"],
         index_name=index_name,
@@ -1376,12 +1373,21 @@ def organize_principal_components_by_sklearn(
         report=report,
     )
 
-
-
-    # TODO: now calculate the principal components using sklearn function???
-
-
-    pass
+    # Compile information.
+    pail = dict()
+    pail["table_source_threshold"] = (pail_organization["table_threshold"])
+    pail["table_source_threshold_scale"] = (
+        pail_organization["table_threshold_scale"]
+    )
+    pail["count_samples"] = pail_organization["count_samples"]
+    pail["count_variables"] = pail_organization["count_variables"]
+    pail["matrix_component_scores"] = pail_sklearn["matrix_scores"]
+    pail["table_component_scores"] = table_component_scores
+    pail["table_component_variance_proportions"] = (
+        pail_sklearn["table_component_variance_proportions"]
+    )
+    # Return.
+    return pail
 
 
 
