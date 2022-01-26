@@ -71,7 +71,11 @@ import promiscuity.utility as utility # this import path for subpackage
 
 # Singular Value Decomposition and Principal Components Analysis
 
-# Note: TCW 17 August 2021
+# Note: TCW, 26 January 2022
+# Principal Component scores and proportional explanation of variance match
+# between SKLearn and Singular Value Decomposition (SVD) methods.
+
+# Note: TCW, 17 August 2021
 # The SVD method delivers Principal Components that match the SKLearn method.
 # I need to confirm that both methods deliver identical loadings.
 
