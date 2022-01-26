@@ -927,118 +927,6 @@ def organize_principal_component_scores_table(
     return table
 
 
-
-# TODO: TCW, 26 January 2022
-# TODO: compare the proportional variance for each component by both methods
-
-def compare_principal_components_methods(
-    table=None,
-    index_name=None,
-    prefix=None,
-    separator=None,
-    report=None,
-):
-    """
-    Organizes a Principal Components Analysis (PCA) by Singular Value
-    Decomposition (SVD).
-
-    Table format: Pandas data frame with variables (features) across columns and
-    their samples (cases, observations) across rows with an explicit index
-
-    Relevant dimension: Principal Components represent variance across features
-
-    Principal Components factorize covariance or correlation into direction
-    (Eigenvectors) and scale (Eigenvalues).
-    The Eigenvalues impart scale or weight to each Eigenvector.
-    Each Eigenvector has its own Eigenvalue, and their sort orders mush match.
-
-    Singular Value Decomposition assigns Eigenvector direction (sign, positive
-    or negative) at random. Hence, take the absolute value of Principal
-    Components before comparing matrices between different methods.
-
-    arguments:
-        table (object): Pandas data frame of variables (features) across
-            columns and samples (cases, observations) across rows with an
-            explicit index
-        index_name (str): name of table's index column
-        prefix (str): prefix for names of new principal component columns in
-            table
-        separator (str): separator for names of new columns
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (dict): collection of information about the Principal Components
-            Analysis (PCA)
-
-    """
-
-    # Threshold and organize original matrix.
-    pail_organization = (
-        organize_table_matrix_for_decomposition(
-            threshold_valid_proportion_per_column=0.5,
-            threshold_column_relative_variance=0.5,
-            table=table,
-            report=False,
-    ))
-    # Calculate Principal Component Scores in SKLearn.
-    pail_sklearn = organize_principal_components_by_sklearn(
-        table=table,
-        index_name=index_name,
-        prefix=prefix,
-        separator=separator,
-        report=False,
-    )
-    # Calculate Prinicipal Component Scores by Singular Value Decomposition.
-    pail_svd = organize_principal_components_by_singular_value_decomposition(
-        table=table,
-        index_name=index_name,
-        prefix=prefix,
-        separator=separator,
-        report=False,
-    )
-
-    # Report.
-    if report:
-        utility.print_terminal_partition(level=2)
-        print(
-            "Report from: " +
-            "compare_principal_components_methods()"
-        )
-        utility.print_terminal_partition(level=4)
-        # Compare original matrix to matrix calculation from SVD factors.
-        print(
-            "Shape of source matrix: " + str(pail_organization["matrix"].shape)
-        )
-        utility.print_terminal_partition(level=4)
-        print("Shapes of matrices for Principal Component Scores")
-        print("SKLearn: " + str(pail_sklearn["matrix_component_scores"].shape))
-        print(
-            "SVD factor product: " +
-            str(pail_svd["matrix_component_scores"].shape)
-        )
-        utility.print_terminal_partition(level=4)
-        print("Compare score matrices between methods...")
-        print("SKLearn versus SVD match:")
-        print(numpy.allclose(
-            numpy.absolute(pail_sklearn["matrix_scores"]),
-            numpy.absolute(pail_svd["matrix_scores"]),
-            rtol=1e-2, # relative tolerance, 1%
-            atol=1e-3,
-            equal_nan=False,
-        ))
-        utility.print_terminal_partition(level=4)
-        print("Compare proportions of variance for principal components...")
-        print("SKLearn:")
-        print(pail_sklearn["table_component_variance_proportions"])
-        utility.print_terminal_partition(level=5)
-        print("SVD:")
-        print(pail_svd["table_component_variance_proportions"])
-
-    pass
-
-
 def organize_principal_components_by_singular_value_decomposition(
     table=None,
     index_name=None,
@@ -1388,6 +1276,118 @@ def organize_principal_components_by_sklearn(
     )
     # Return.
     return pail
+
+
+
+# Comparison of SKLearn and SVD methods
+
+
+def compare_principal_components_methods(
+    table=None,
+    index_name=None,
+    prefix=None,
+    separator=None,
+    report=None,
+):
+    """
+    Organizes a Principal Components Analysis (PCA) by Singular Value
+    Decomposition (SVD).
+
+    Table format: Pandas data frame with variables (features) across columns and
+    their samples (cases, observations) across rows with an explicit index
+
+    Relevant dimension: Principal Components represent variance across features
+
+    Principal Components factorize covariance or correlation into direction
+    (Eigenvectors) and scale (Eigenvalues).
+    The Eigenvalues impart scale or weight to each Eigenvector.
+    Each Eigenvector has its own Eigenvalue, and their sort orders mush match.
+
+    Singular Value Decomposition assigns Eigenvector direction (sign, positive
+    or negative) at random. Hence, take the absolute value of Principal
+    Components before comparing matrices between different methods.
+
+    arguments:
+        table (object): Pandas data frame of variables (features) across
+            columns and samples (cases, observations) across rows with an
+            explicit index
+        index_name (str): name of table's index column
+        prefix (str): prefix for names of new principal component columns in
+            table
+        separator (str): separator for names of new columns
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict): collection of information about the Principal Components
+            Analysis (PCA)
+
+    """
+
+    # Threshold and organize original matrix.
+    pail_organization = (
+        organize_table_matrix_for_decomposition(
+            threshold_valid_proportion_per_column=0.5,
+            threshold_column_relative_variance=0.5,
+            table=table,
+            report=False,
+    ))
+    # Calculate Principal Component Scores in SKLearn.
+    pail_sklearn = organize_principal_components_by_sklearn(
+        table=table,
+        index_name=index_name,
+        prefix=prefix,
+        separator=separator,
+        report=False,
+    )
+    # Calculate Prinicipal Component Scores by Singular Value Decomposition.
+    pail_svd = organize_principal_components_by_singular_value_decomposition(
+        table=table,
+        index_name=index_name,
+        prefix=prefix,
+        separator=separator,
+        report=False,
+    )
+
+    # Report.
+    if report:
+        utility.print_terminal_partition(level=2)
+        print(
+            "Report from: " +
+            "compare_principal_components_methods()"
+        )
+        utility.print_terminal_partition(level=4)
+        # Compare original matrix to matrix calculation from SVD factors.
+        print(
+            "Shape of source matrix: " + str(pail_organization["matrix"].shape)
+        )
+        utility.print_terminal_partition(level=4)
+        print("Shapes of matrices for Principal Component Scores")
+        print("SKLearn: " + str(pail_sklearn["matrix_component_scores"].shape))
+        print(
+            "SVD factor product: " +
+            str(pail_svd["matrix_component_scores"].shape)
+        )
+        utility.print_terminal_partition(level=4)
+        print("Compare score matrices between methods...")
+        print("SKLearn versus SVD match:")
+        print(numpy.allclose(
+            numpy.absolute(pail_sklearn["matrix_component_scores"]),
+            numpy.absolute(pail_svd["matrix_component_scores"]),
+            rtol=1e-2, # relative tolerance, 1%
+            atol=1e-3,
+            equal_nan=False,
+        ))
+        utility.print_terminal_partition(level=4)
+        print("Compare proportions of variance for principal components...")
+        print("SKLearn:")
+        print(pail_sklearn["table_component_variance_proportions"])
+        utility.print_terminal_partition(level=5)
+        print("SVD:")
+        print(pail_svd["table_component_variance_proportions"])
+
+    pass
 
 
 
