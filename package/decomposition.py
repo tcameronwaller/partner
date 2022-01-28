@@ -931,6 +931,10 @@ def organize_principal_component_scores_table(
     return table
 
 
+# TODO: TCW, 27 January 2022
+# TODO: the threshold on relative variance might be too strict...
+
+
 def organize_principal_components_by_singular_value_decomposition(
     table=None,
     index_name=None,
