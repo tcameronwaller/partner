@@ -542,7 +542,7 @@ def drive_organize_table_regress_linear_ordinary_least_squares(
     pail_organization = organize_table_cohort_model_variables_for_regression(
         dependence=dependence,
         independence=independence,
-        threshold_column_relative_variance=0.1,
+        threshold_column_relative_variance=0.5,
         standard_scale=standard_scale,
         table=table,
         report=False,
