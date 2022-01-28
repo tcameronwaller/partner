@@ -73,6 +73,7 @@ import promiscuity.utility as utility # this import path for subpackage
 def organize_table_cohort_model_variables_for_regression(
     dependence=None,
     independence=None,
+    threshold_column_relative_variance=None,
     standard_scale=None,
     table=None,
     report=None,
@@ -91,6 +92,8 @@ def organize_table_cohort_model_variables_for_regression(
         dependence (str): name of table's column for dependent variable
         independence (list<str>): names of table's columns for independent
             variables
+        threshold_column_relative_variance (float): minimal relative variance in
+            each column's values
         standard_scale (bool): whether to transform all dependent and
             independent variables to z-score standard scale
         table (object): Pandas data frame of dependent and independent variables
@@ -103,6 +106,24 @@ def organize_table_cohort_model_variables_for_regression(
         (dict): collection of information for regression
 
     """
+
+    def match_column_variance(
+        name=None,
+        threshold_column_relative_variance=None,
+        variances=None,
+    ):
+        if (str(name) in variances.keys()):
+            variance = variances[name]
+            if (
+                (not pandas.isna(variance)) and
+                (threshold_column_relative_variance <= variance)
+            ):
+                match = True
+            else:
+                match = False
+        else:
+            match = False
+        return match
 
     # Copy information.
     table = table.copy(deep=True)
@@ -119,6 +140,29 @@ def organize_table_cohort_model_variables_for_regression(
     table = table[[*columns]]
     # Determine count of valid samples (cases, observations).
     count_samples = int(table.shape[0])
+    # Drop any columns with minimal relative variance.
+    if (0.1 <= threshold_column_relative_variance):
+        series_relative_variance = table.aggregate(
+            lambda column: utility.calculate_relative_variance(
+                array=column.to_numpy()
+            ),
+            axis="index", # apply function to each column
+        )
+        variances = series_relative_variance.to_dict()
+        columns = copy.deepcopy(table.columns.to_list())
+        columns_variance = list(filter(
+            lambda column_trial: match_column_variance(
+                name=column_trial,
+                threshold_column_relative_variance=(
+                    threshold_column_relative_variance
+                ),
+                variances=variances,
+            ),
+            columns
+        ))
+        table = table.loc[
+            :, table.columns.isin(columns_variance)
+        ]
     # Determine whether to transform all dependent and independent variables to
     # z-score standard scale.
     if (standard_scale):
@@ -498,6 +542,7 @@ def drive_organize_table_regress_linear_ordinary_least_squares(
     pail_organization = organize_table_cohort_model_variables_for_regression(
         dependence=dependence,
         independence=independence,
+        threshold_column_relative_variance=0.1,
         standard_scale=standard_scale,
         table=table,
         report=False,
