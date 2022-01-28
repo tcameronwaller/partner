@@ -160,6 +160,7 @@ def organize_table_cohort_model_variables_for_regression(
             ),
             columns
         ))
+        columns_variance.insert(0, dependence) # ensure that dependence stays
         table = table.loc[
             :, table.columns.isin(columns_variance)
         ]
