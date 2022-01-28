@@ -228,8 +228,6 @@ def regress_linear_ordinary_least_squares(
     # names.
     #values_independence = data.loc[ :, independence].to_numpy()
     table_independence = table.loc[ :, independence]
-
-    print(table_independence)
     # Introduce constant value for intercept.
     # If any column in the independent variables already has constant
     # values, then the function skips it by default.
