@@ -163,6 +163,20 @@ def determine_confidence_interval_range_text(
     return range
 
 
+# TODO: TCW, 27 January 2022
+# TODO: implement logistic regression...
+
+# statsmodels.discrete.discrete_model.Logit
+
+#    model = statsmodels.api.Logit(
+#        values_dependence,
+#        table_independence_intercept,
+#        missing="drop",
+#    )
+#    pail_raw = model.fit()
+
+
+
 def regress_linear_ordinary_least_squares(
     dependence=None,
     independence=None,
