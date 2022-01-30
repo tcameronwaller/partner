@@ -164,6 +164,12 @@ def determine_confidence_interval_range_text(
     return range
 
 
+# TODO: TCW, 30 January 2022
+# TODO: implement a filter on columns for INDEPENDENT variables
+# TODO: drop INDEPENDENT variables that lack adequate non-missing values or variance
+# TODO: for example if an INDEPENDENT variable has all the same value, then it is useless
+
+
 # TODO: TCW, 27 January 2022
 # TODO: implement logistic regression...
 
