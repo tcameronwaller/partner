@@ -68,11 +68,17 @@ for chromosome in "${chromosomes[@]}"; do
     # Parameter "--reference-allele" gives an explicit list of alleles to
     # designate as "A1" test allele.
     # Parameter "--freq" produces a report of allele frequencies.
+    # Parameter "--glm no-x-sex" tells PLINK2 not to introduce an additional
+    # sex covariate for regressions on the X chromosome to avoid collinearity
+    # with any existing sex covariate.
     # Parameter "--glm cols=+a1freq,+a1freqcc" tells PLINK2 to include columns
     # in GWAS report table for frequency of A1 allele and to stratify this
     # frequency between cases and controls if GWAS is a logistic regression.
     # Parameter "--xchr-model 2" tells PLINK2 to use the same dosages (0, 1, 2)
     # for alleles on the X chromosome in both females and males.
+    # Parameter "--variance-standardize" tells PLINK2 to apply a linear
+    # transformation to standardize all quantitative phenotypes and covariates
+    # to mean of zero and variance of one.
     ### --read-freq $path_reference_allele_frequency \
     $path_plink2 \
     --memory 90000 \
@@ -84,6 +90,7 @@ for chromosome in "${chromosomes[@]}"; do
     --pheno-name $phenotypes \
     --covar $path_table_phenotypes_covariates \
     --covar-name $covariates \
+    --variance-standardize \
     --maf $maf \
     --xchr-model 2 \
     --freq \
