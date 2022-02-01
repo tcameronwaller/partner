@@ -48,7 +48,7 @@ cat $path_source_file | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_con
 # Concatenate GWAS reports from selection chromosomes.
 #for (( index=$chromosome_start; index<=$chromosome_end; index+=1 )); do
 if [[ "$chromosome_x" == "true" ]]; then
-  chromosomes=("1" "2" "3" "4" "5" "6" "7" "8" "9" "10" "11" "12" "13" "14" "15" "16" "17" "18" "19" "20" "21" "22" "x")
+  chromosomes=("1" "2" "3" "4" "5" "6" "7" "8" "9" "10" "11" "12" "13" "14" "15" "16" "17" "18" "19" "20" "21" "22" "x" "xy")
 else
   chromosomes=("1" "2" "3" "4" "5" "6" "7" "8" "9" "10" "11" "12" "13" "14" "15" "16" "17" "18" "19" "20" "21" "22")
 fi
