@@ -8,6 +8,7 @@
 
 # review:
 # TCW 6 December 2021
+# TCW __ February 2022
 
 ###########################################################################
 ###########################################################################
@@ -56,15 +57,15 @@ rm $path_gwas_format_compress
 # Constrain probability values from 1.0E-305 to 1.0.
 zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_gwas_constraint
 zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
-  if ( NF != 12)
+  if ( NF != 13)
     # Skip any rows with incorrect count of column fields.
     next
-  else if ( ( $12 != "NA" ) && ( ($12 + 0) < 1.0E-305 ) )
+  else if ( ( $13 != "NA" ) && ( ($13 + 0) < 1.0E-305 ) )
     # Constrain probability value.
-    print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, ( 1.0E-305 )
-  else if ( ( $12 != "NA" ) && ( ($12 + 0) > 1.0 ) )
+    print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, ( 1.0E-305 )
+  else if ( ( $13 != "NA" ) && ( ($13 + 0) > 1.0 ) )
     # Constrain probability value.
-    print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, ( 1.0 )
+    print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, ( 1.0 )
   else
     print $0
   }' >> $path_gwas_constraint
@@ -98,9 +99,9 @@ zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
 # variant identifier (RS ID): .............  "SNP" ................  "ID" .................. 3
 # alternate allele (effect allele): .......  "A1" .................  "A1" .................. 6
 # reference allele (non-effect allele): ...  "A2" .................  "REF" or "ALT" ........ 4 or 5
-# sample size: ............................  "N" ..................  "OBS_CT" .............. 8
-# effect (coefficient or odds ratio): .....  "BETA" or "OR" .......  "BETA" ................ 9
-# probability (p-value): ..................  "P" ..................  "P" ................... 12
+# sample size: ............................  "N" ..................  "OBS_CT" .............. 9
+# effect (coefficient or odds ratio): .....  "BETA" or "OR" .......  "BETA" ................ 10
+# probability (p-value): ..................  "P" ..................  "P" ................... 13
 
 # Organize information from linear GWAS.
 # Select relevant columns and place them in the correct order.
@@ -111,9 +112,9 @@ else
 fi
 cat $path_gwas_constraint | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   if ($6 == $5 && $6 != $4)
-    print $3, toupper($6), toupper($4), $8, $9, $12
+    print $3, toupper($6), toupper($4), $9, $10, $13
   else if ($6 == $4 && $6 != $5)
-    print $3, toupper($6), toupper($5), $8, $9, $12
+    print $3, toupper($6), toupper($5), $9, $10, $13
   else
     next
   }' >> $path_gwas_format
