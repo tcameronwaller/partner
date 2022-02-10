@@ -548,16 +548,9 @@ def drive_organize_table_regress_linear_ordinary_least_squares(
             utility.print_terminal_partition(level=5)
             print("Missing information for model...")
             print(
-                "Either inadequate samples, or there is inadequate variance " +
-                "in a dependent or independent variable."
+                "There may be inadequate samples with non-missing values " +
+                "or adequate variance in relevant variables."
             )
-            utility.print_terminal_partition(level=5)
-            table_report_deviation = pail_organization["table"].aggregate(
-                lambda series: series.nanstd(),
-                axis="index", # Apply function to each column of table.
-            )
-            print("Standard deviation")
-            print(table_report_deviation.iloc[0:10])
         pail_regression = create_regression_missing_values(
             dependence=dependence,
             independence=independence,
