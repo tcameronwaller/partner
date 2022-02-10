@@ -2468,7 +2468,7 @@ def filter_table_columns_by_nonmissing_relative_variance(
     # Drop any columns with minimal relative variance.
     if (0.01 <= threshold_column_relative_variance):
         series_relative_variance = table_product.aggregate(
-            lambda column: utility.calculate_relative_variance(
+            lambda column: calculate_relative_variance(
                 array=column.to_numpy()
             ),
             axis="index", # apply function to each column
@@ -2496,12 +2496,12 @@ def filter_table_columns_by_nonmissing_relative_variance(
 
     # Report.
     if report:
-        utility.print_terminal_partition(level=2)
+        print_terminal_partition(level=2)
         print(
             "Report from: " +
             "filter_table_columns_by_nonmissing_relative_variance()"
         )
-        utility.print_terminal_partition(level=3)
+        print_terminal_partition(level=3)
         print("count rows in source table: " + str(table_source.shape[0]))
         print("count columns in source table: " + str(table_source.shape[1]))
         print("count rows in product table: " + str(table_product.shape[0]))
