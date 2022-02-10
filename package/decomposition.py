@@ -114,59 +114,18 @@ def organize_table_matrix_for_decomposition(
 
     """
 
-    def match_column_variance(
-        name=None,
-        threshold_column_relative_variance=None,
-        variances=None,
-    ):
-        if (str(name) in variances.keys()):
-            variance = variances[name]
-            if (
-                (not pandas.isna(variance)) and
-                (threshold_column_relative_variance <= variance)
-            ):
-                match = True
-            else:
-                match = False
-        else:
-            match = False
-        return match
-
     # Copy information.
     table = table.copy(deep=True)
-    # Drop any columns with inadequate valid values across rows.
-    if (0.1 <= threshold_valid_proportion_per_column):
-        rows = table.shape[0]
-        threshold = round(rows*threshold_valid_proportion_per_column)
-        table.dropna(
-            axis="columns", # drop columns
-            thresh=threshold,
-            subset=None,
-            inplace=True,
-        )
-    # Drop any columns with minimal relative variance.
-    if (0.1 <= threshold_column_relative_variance):
-        series_relative_variance = table.aggregate(
-            lambda column: utility.calculate_relative_variance(
-                array=column.to_numpy()
-            ),
-            axis="index", # apply function to each column
-        )
-        variances = series_relative_variance.to_dict()
-        columns = copy.deepcopy(table.columns.to_list())
-        columns_variance = list(filter(
-            lambda column_trial: match_column_variance(
-                name=column_trial,
-                threshold_column_relative_variance=(
-                    threshold_column_relative_variance
-                ),
-                variances=variances,
-            ),
-            columns
-        ))
-        table = table.loc[
-            :, table.columns.isin(columns_variance)
-        ]
+    # Remove columns with inadequate non-missing values or inadequate relative
+    # variances across rows.
+    table = utility.filter_table_columns_by_nonmissing_relative_variance(
+        threshold_valid_proportion_per_column=(
+            threshold_valid_proportion_per_column
+        ),
+        threshold_column_relative_variance=(threshold_column_relative_variance),
+        table=table,
+        report=report,
+    )
     # Drop any rows with null values in any columns.
     table.dropna(
         axis="index", # drop rows

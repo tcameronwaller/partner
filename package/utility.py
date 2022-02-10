@@ -2039,6 +2039,9 @@ def calculate_relative_variance(
     """
     Calculates the relative variance.
 
+    Variance is mathematically never negative.
+    Use the absolute value of the mean.
+
     arguments:
         array (object): NumPy array of ratio-scale values
 
@@ -2050,9 +2053,10 @@ def calculate_relative_variance(
     """
 
     mean = numpy.nanmean(array)
+    mean_absolute = math.fabs(mean)
     variance = numpy.nanvar(array)
-    if (mean != 0.0):
-        relative_variance = (variance / mean)
+    if (mean_absolute > 0.0000001):
+        relative_variance = (variance / mean_absolute)
     else:
         relative_variance = float("nan")
     # Return information.
@@ -2398,6 +2402,116 @@ def report_contingency_table_stratification_by_missingness(
         print("chi2: " + str(chi2))
         print("probability: " + str(probability))
     pass
+
+
+def filter_table_columns_by_nonmissing_relative_variance(
+    threshold_valid_proportion_per_column=None,
+    threshold_column_relative_variance=None,
+    table=None,
+    report=None,
+):
+    """
+    Filters columns in a table by their proportions of non-missing values and by
+    their relative varances across rows.
+
+    Table format: Pandas data frame with variables (features) across columns and
+    their samples (cases, observations) across rows with an explicit index
+
+    arguments:
+        threshold_valid_proportion_per_column (float): minimal proportion of
+            a column's rows that must have a valid value
+        threshold_column_relative_variance (float): minimal relative variance in
+            each column's values
+        table (object): Pandas data frame with variables (features) across
+            columns and samples (cases, observations) across rows with an
+            explicit index
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict): collection of information for the singular value decomposition
+
+    """
+
+    def match_column_variance(
+        name=None,
+        threshold_column_relative_variance=None,
+        variances=None,
+    ):
+        if (str(name) in variances.keys()):
+            variance = variances[name]
+            if (
+                (not math.isnan(variance)) and
+                (threshold_column_relative_variance <= variance)
+            ):
+                match = True
+            else:
+                match = False
+        else:
+            match = False
+        return match
+
+    # Copy information.
+    table_source = table.copy(deep=True)
+    table_product = table.copy(deep=True)
+    # Drop any columns with inadequate valid (non-missing) values across rows.
+    if (0.01 <= threshold_valid_proportion_per_column):
+        rows = table_product.shape[0]
+        threshold = round(rows*threshold_valid_proportion_per_column)
+        table_product.dropna(
+            axis="columns", # drop columns
+            thresh=threshold,
+            subset=None,
+            inplace=True,
+        )
+    # Drop any columns with minimal relative variance.
+    if (0.01 <= threshold_column_relative_variance):
+        series_relative_variance = table_product.aggregate(
+            lambda column: utility.calculate_relative_variance(
+                array=column.to_numpy()
+            ),
+            axis="index", # apply function to each column
+        )
+        variances = series_relative_variance.to_dict()
+        columns = copy.deepcopy(table.columns.to_list())
+        columns_variance = list(filter(
+            lambda column_trial: match_column_variance(
+                name=column_trial,
+                threshold_column_relative_variance=(
+                    threshold_column_relative_variance
+                ),
+                variances=variances,
+            ),
+            columns
+        ))
+        table_product = table_product.loc[
+            :, table_product.columns.isin(columns_variance)
+        ]
+    # Determine any columns removed.
+    columns_exclusion = list(filter(
+        lambda column: (str(column) not in table_product.columns.tolist()),
+        table_source.columns.tolist()
+    ))
+
+    # Report.
+    if report:
+        utility.print_terminal_partition(level=2)
+        print(
+            "Report from: " +
+            "filter_table_columns_by_nonmissing_relative_variance()"
+        )
+        utility.print_terminal_partition(level=3)
+        print("count rows in source table: " + str(table_source.shape[0]))
+        print("count columns in source table: " + str(table_source.shape[1]))
+        print("count rows in product table: " + str(table_product.shape[0]))
+        print("count columns in product table: " + str(table_product.shape[1]))
+        print("any columns removed from table: ")
+        print(columns_exclusion)
+    # Return.
+    return table_product
+
+
 
 
 # Stratifications by continuous variables

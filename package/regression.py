@@ -78,10 +78,12 @@ def organize_table_cohort_model_variables_for_regression(
     report=None,
 ):
     """
-    This function accepts the pre-determined dependent and independent variables.
+    Organizes a table and relevant information for regression analysis.
 
-    Table format must have samples (cases, observations) across rows and
-    dependent and independent variables (features) across columns.
+    Table format: Pandas data frame with variables (features) across columns and
+    their samples (cases, observations) across rows with an explicit index
+
+    This function accepts pre-determined dependent and independent variables.
 
     1. select relevant columns in table
     2. drop records with any missing variables
@@ -106,20 +108,26 @@ def organize_table_cohort_model_variables_for_regression(
 
     # Copy information.
     table = table.copy(deep=True)
-    # Remove observations with any missing values.
+    # Select table's columns for relevant variables.
     columns = copy.deepcopy(independence)
     columns.insert(0, dependence)
     table = table.loc[:, table.columns.isin(columns)]
     table = table[[*columns]]
+    # Remove columns with inadequate non-missing values or inadequate relative
+    # variances across rows.
+    table = utility.filter_table_columns_by_nonmissing_relative_variance(
+        threshold_valid_proportion_per_column=0.5,
+        threshold_column_relative_variance=0.1,
+        table=table,
+        report=report,
+    )
+    # Drop any rows with missing values in any columns.
     table.dropna(
-        axis="index",
+        axis="index", # drop rows
         how="any",
         subset=None,
         inplace=True,
     )
-    # Determine whether any variables need exclusion due to inadequate variance.
-
-
     # Determine whether to transform all dependent and independent variables to
     # z-score standard scale.
     # Standardization introduces missing values if standard deviation is zero.
