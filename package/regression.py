@@ -140,7 +140,7 @@ def organize_table_cohort_model_variables_for_regression(
     if (standard_scale):
         table = utility.standardize_table_values_by_column(
             table=table,
-            report=report,
+            report=False,
         )
         table.dropna(
             axis="index",
