@@ -110,24 +110,30 @@ def organize_table_cohort_model_variables_for_regression(
     columns = copy.deepcopy(independence)
     columns.insert(0, dependence)
     table = table.loc[:, table.columns.isin(columns)]
+    table = table[[*columns]]
     table.dropna(
         axis="index",
         how="any",
         subset=None,
         inplace=True,
     )
-    table = table[[*columns]]
-    # Determine count of valid samples (cases, observations).
-    count_samples = int(table.shape[0])
-
     # Determine whether to transform all dependent and independent variables to
     # z-score standard scale.
+    # Standardization introduces missing values if standard deviation is zero.
     if (standard_scale):
         table = utility.standardize_table_values_by_column(
             table=table,
             report=report,
         )
+        table.dropna(
+            axis="index",
+            how="any",
+            subset=None,
+            inplace=True,
+        )
         pass
+    # Determine count of valid samples (cases, observations).
+    count_samples = int(table.shape[0])
     # Collect information for regression.
     pail = dict()
     pail["table"] = table
@@ -519,6 +525,28 @@ def drive_organize_table_regress_linear_ordinary_least_squares(
             report=report,
         )
     else:
+        # Report.
+        if report:
+            utility.print_terminal_partition(level=2)
+            print("report: ")
+            function_name = str(
+                "drive_organize_table_regress_linear_" +
+                "ordinary_least_squares()"
+            )
+            print(function_name)
+            utility.print_terminal_partition(level=5)
+            print("Missing information for model...")
+            print(
+                "Either inadequate samples, or there is inadequate variance " +
+                "in a dependent or independent variable."
+            )
+            utility.print_terminal_partition(level=5)
+            table_report_deviation = pail_organization["table"].aggregate(
+                lambda series: series.std(),
+                axis="index", # Apply function to each column of table.
+            )
+            print("Standard deviation")
+            print(table_report_deviation.iloc[0:10])
         pail_regression = create_regression_missing_values(
             dependence=dependence,
             independence=independence,
