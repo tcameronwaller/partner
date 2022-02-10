@@ -70,6 +70,10 @@ import promiscuity.utility as utility # this import path for subpackage
 # Functionality
 
 
+# TODO: TCW, 10 February 2022
+# TODO: introduce list arument to "utility.filter_table_columns_by_nonmissing_relative_variance"
+# TODO: to exclude the dependent variable from consideration for removal...
+
 def organize_table_cohort_model_variables_for_regression(
     dependence=None,
     independence=None,
@@ -116,7 +120,7 @@ def organize_table_cohort_model_variables_for_regression(
     # Remove columns with inadequate non-missing values or inadequate relative
     # variances across rows.
     table = utility.filter_table_columns_by_nonmissing_relative_variance(
-        threshold_valid_proportion_per_column=0.5,
+        threshold_valid_proportion_per_column=0.1,
         threshold_column_relative_variance=0.1,
         table=table,
         report=report,
@@ -143,12 +147,21 @@ def organize_table_cohort_model_variables_for_regression(
             inplace=True,
         )
         pass
+    # Determine whether the variables have changed.
+    # Expect errors if there is removal of the column for the dependent
+    # variable.
+    independence_product = list(filter(
+        lambda column: (str(column) in table.columns.tolist()),
+        independence
+    ))
+
     # Determine count of valid samples (cases, observations).
     count_samples = int(table.shape[0])
     # Collect information for regression.
     pail = dict()
     pail["table"] = table
     pail["count_samples"] = count_samples
+    pail["independence"] = independence_product
     # Return information.
     return pail
 
@@ -524,14 +537,14 @@ def drive_organize_table_regress_linear_ordinary_least_squares(
         independence=independence,
         standard_scale=standard_scale,
         table=table,
-        report=False,
+        report=report,
     )
     # Determine whether dependent and independent variables (features) have
     # sufficient observations for regression.
     if (pail_organization["count_samples"] >= threshold_samples):
         pail_regression = regress_linear_ordinary_least_squares(
             dependence=dependence,
-            independence=independence,
+            independence=pail_organization["independence"],
             table=pail_organization["table"],
             report=report,
         )
