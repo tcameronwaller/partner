@@ -539,7 +539,7 @@ def drive_organize_table_regress_linear_ordinary_least_squares(
         independence=independence,
         standard_scale=standard_scale,
         table=table,
-        report=report,
+        report=False,
     )
     # Determine whether dependent and independent variables (features) have
     # sufficient observations for regression.
