@@ -117,6 +117,9 @@ def organize_table_cohort_model_variables_for_regression(
         subset=None,
         inplace=True,
     )
+    # Determine whether any variables need exclusion due to inadequate variance.
+
+
     # Determine whether to transform all dependent and independent variables to
     # z-score standard scale.
     # Standardization introduces missing values if standard deviation is zero.
@@ -542,7 +545,7 @@ def drive_organize_table_regress_linear_ordinary_least_squares(
             )
             utility.print_terminal_partition(level=5)
             table_report_deviation = pail_organization["table"].aggregate(
-                lambda series: series.std(),
+                lambda series: series.nanstd(),
                 axis="index", # Apply function to each column of table.
             )
             print("Standard deviation")
