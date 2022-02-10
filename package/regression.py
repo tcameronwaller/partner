@@ -119,6 +119,8 @@ def organize_table_cohort_model_variables_for_regression(
     table = table[[*columns]]
     # Remove columns with inadequate non-missing values or inadequate relative
     # variances across rows.
+    # Relative variance can be quite low for variables after logarithmic
+    # transformation.
     table = utility.filter_table_columns_by_nonmissing_relative_variance(
         threshold_valid_proportion_per_column=0.01,
         threshold_column_relative_variance=0.01,

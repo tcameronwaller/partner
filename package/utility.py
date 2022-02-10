@@ -2456,7 +2456,7 @@ def filter_table_columns_by_nonmissing_relative_variance(
     table_source = table.copy(deep=True)
     table_product = table.copy(deep=True)
     # Drop any columns with inadequate valid (non-missing) values across rows.
-    if (0.01 <= threshold_valid_proportion_per_column):
+    if (0.001 <= threshold_valid_proportion_per_column):
         rows = table_product.shape[0]
         threshold = round(rows*threshold_valid_proportion_per_column)
         table_product.dropna(
@@ -2466,7 +2466,7 @@ def filter_table_columns_by_nonmissing_relative_variance(
             inplace=True,
         )
     # Drop any columns with minimal relative variance.
-    if (0.01 <= threshold_column_relative_variance):
+    if (0.001 <= threshold_column_relative_variance):
         series_relative_variance = table_product.aggregate(
             lambda column: calculate_relative_variance(
                 array=column.to_numpy()
