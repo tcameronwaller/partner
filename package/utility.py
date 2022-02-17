@@ -2132,6 +2132,109 @@ def calculate_pseudo_logarithm_signals_negative(
     return data_log
 
 
+def standardize_table_values_by_column_with_exclusions(
+    table=None,
+    index=None,
+    columns_exclusion=None,
+    report=None,
+):
+    """
+    Transforms floating-point values in a table to standard or z-score space by
+    column.
+
+    The mean of each column will be zero (mean = 0).
+    The standard deviation of each column will be one (standard deviation = 1).
+
+    arguments:
+        table (object): Pandas data frame of variables (features) across columns
+            and samples (cases) across rows
+        index (str): name of table's index
+        columns_exclusion (list<str>): names of table's columns for exclusion
+            from scale standardization
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data frame of variables (features) across columns and
+            samples (cases) across rows
+
+    """
+
+    # Determine whether to exclude columns from scale standardization.
+    if (len(columns_exclusion) > 0):
+        # Copy information.
+        table = table.copy(deep=True)
+        table_exclusion = table.copy(deep=True)
+        # Organize information in table to preserve columns for exclusion.
+        table_exclusion.reset_index(
+            level=None,
+            inplace=True,
+            drop=False, # preserve index as a column
+        )
+        columns_exclusion_index = copy.deepcopy(columns_exclusion)
+        columns_exclusion_index.insert(0, index)
+        table_exclusion = table_exclusion.loc[
+            :, table.columns.isin(columns_exclusion_index)
+        ]
+        table_exclusion.set_index(
+            index,
+            append=False,
+            drop=True,
+            inplace=True
+        )
+        # Organize information in main table.
+        table.reset_index(
+            level=None,
+            inplace=True,
+            drop=False, # preserve index as a column
+        )
+        table.set_index(
+            index,
+            append=False,
+            drop=True,
+            inplace=True
+        )
+        table = table.loc[
+            :, ~table.columns.isin(columns_exclusion)
+        ]
+        # Standardize values columns of main table.
+        table_scale = utility.standardize_table_values_by_column(
+            table=table,
+            report=False,
+        )
+        # Merge exclusion columns to main table after scale standardization.
+        table_merge = pandas.merge(
+            table_scale, # left table
+            table_exclusion, # right table
+            left_on=index,
+            right_on=index,
+            left_index=False,
+            right_index=False,
+            how="outer", # keep keys from union of both tables
+            suffixes=("_scale", "_exclusion"),
+        )
+        table_merge.reset_index(
+            level=None,
+            inplace=True,
+            drop=False, # preserve index as a column
+        )
+        table_merge.set_index(
+            index,
+            append=False,
+            drop=True,
+            inplace=True
+        )
+    else:
+        # Standardize values columns of main table.
+        table_merge = utility.standardize_table_values_by_column(
+            table=table,
+            report=False,
+        )
+    # Return information
+    return table_merge
+
+
 def standardize_table_values_by_column(
     table=None,
     report=None,
