@@ -271,10 +271,6 @@ def regress_discrete_logit(
     # Extract values of dependent and independent variables.
     values_dependence = table[dependence].to_numpy()
 
-    print(values_dependence)
-
-
-
     # Keep independent variables in Pandas dataframe to preserve variables'
     # names.
     #values_independence = data.loc[ :, independence].to_numpy()
@@ -296,7 +292,8 @@ def regress_discrete_logit(
     # Define model.
     # statsmodels.discrete.discrete_model.Logit
     model = statsmodels.api.Logit(
-        values_dependence,
+        #values_dependence,
+        table[dependence],
         table_independence_intercept,
         missing="drop",
     )
@@ -313,13 +310,13 @@ def regress_discrete_logit(
         print("Information from regression:")
         print(pail_raw.summary())
         #utility.print_terminal_partition(level=3)
-        print(dir(pail_raw))
+        #print(dir(pail_raw))
         #print(pail_raw.params)
         #print(pail_raw.pvalues)
         pass
 
     # Organize residuals.
-    residuals = pail_raw.resid
+    residuals = pail_raw.resid_generalized
 
     ##########
     # Collect parameters, errors, probabilities, and statistics.
@@ -419,12 +416,10 @@ def regress_discrete_logit(
         "freedom": pail_raw.df_model,
         "observations": pail_raw.nobs,
         "samples": count_samples,
-        "r_square": pail_raw.rsquared,
-        "r_square_adjust": pail_raw.rsquared_adj,
+        "r_square_pseudo": pail_raw.prsquared,
         "log_likelihood": pail_raw.llf,
         "akaike": pail_raw.aic,
         "bayes": pail_raw.bic,
-        "condition": pail_raw.condition_number,
     }
     summary.update(parameters)
     summary.update(parameter_errors)
