@@ -74,9 +74,6 @@ import promiscuity.utility as utility # this import path for subpackage
 # TODO: introduce list arument to "utility.filter_table_columns_by_nonmissing_relative_variance"
 # TODO: to exclude the dependent variable from consideration for removal...
 
-# TODO: TCW, 16 February 2022
-# TODO: I need to exclude the dependent variable from the scale standardization...
-
 
 def organize_table_cohort_model_variables_for_regression(
     dependence=None,
@@ -199,12 +196,6 @@ def determine_confidence_interval_range_text(
         str(round((float(estimate) + float(interval_high)), 5))
     )
     return range
-
-
-# TODO: TCW, 30 January 2022
-# TODO: implement a filter on columns for INDEPENDENT variables
-# TODO: drop INDEPENDENT variables that lack adequate non-missing values or variance
-# TODO: for example if an INDEPENDENT variable has all the same value, then it is useless
 
 
 # TODO: TCW, 27 January 2022
@@ -436,8 +427,6 @@ def regress_discrete_logit(
     return pail
 
 
-
-
 def regress_linear_ordinary_least_squares(
     dependence=None,
     independence=None,
@@ -650,7 +639,6 @@ def regress_linear_ordinary_least_squares(
     return pail
 
 
-
 def create_missing_values_regression_linear(
     dependence=None,
     independence=None,
@@ -725,8 +713,78 @@ def create_missing_values_regression_linear(
     # Return information.
     return pail
 
-# TODO: TCW, 16 February 2022
-# TODO: I need a function to create missing values for logistic regression...
+
+def create_missing_values_regression_logistic(
+    dependence=None,
+    independence=None,
+):
+    """
+    Creates missing values for a regression.
+
+    arguments:
+        dependence (str): name of table's column for dependent variable
+        independence (list<str>): names of table's columns for independent
+            variables
+
+    raises:
+
+    returns:
+        (dict): collection of regression's residuals and statistics
+    """
+
+    # Create missing values for regression.
+    #probabilities = list(
+    #    itertools.repeat(float("nan"), len(values_independence_intercept))
+    #)
+    parameters = dict()
+    parameter_errors = dict()
+    parameter_intervals = dict()
+    parameter_ranges = dict()
+    probabilities = dict()
+    inflations = dict()
+    parameters["intercept_parameter"] = float("nan")
+    parameter_errors["intercept_error"] = float("nan")
+    parameter_intervals["intercept_interval_95"] = float("nan")
+    parameter_ranges["intercept_range_95"] = str("nan ... nan")
+    probabilities["intercept_probability"] = float("nan")
+    inflations["intercept_inflation"] = float("nan")
+    for variable in independence:
+        parameter = str(variable + ("_parameter"))
+        parameters[parameter] = float("nan")
+        parameter_error = str(variable + ("_error"))
+        parameter_errors[parameter_error] = float("nan")
+        parameter_interval = str(variable + ("_interval_95"))
+        parameter_intervals[parameter_interval] = float("nan")
+        parameter_range = str(variable + ("_range_95"))
+        parameter_ranges[parameter_range] = str("nan ... nan")
+        probability = str(variable + ("_probability"))
+        probabilities[probability] = float("nan")
+        inflation = str(variable + ("_inflation"))
+        inflations[inflation] = float("nan")
+        pass
+    summary = {
+        "independence": "",
+        "freedom": float("nan"),
+        "observations": float("nan"),
+        "samples": float("nan"),
+        "r_square_pseudo": float("nan"),
+        "log_likelihood": float("nan"),
+        "akaike": float("nan"),
+        "bayes": float("nan"),
+    }
+    summary.update(parameters)
+    summary.update(parameter_errors)
+    summary.update(parameter_intervals)
+    summary.update(parameter_ranges)
+    summary.update(probabilities)
+    summary.update(inflations)
+    residuals = numpy.empty(0)
+    # Compile information.
+    pail = dict()
+    pail["summary"] = summary
+    pail["residuals"] = residuals
+    # Return information.
+    return pail
 
 
 def create_regression_missing_values(
@@ -765,8 +823,6 @@ def create_regression_missing_values(
         pass
     # Return information.
     return pail
-
-
 
 
 def drive_organize_table_regress_linear_logistic(
@@ -1046,12 +1102,10 @@ def drive_cohort_model_linear_logistic_regression(
     return pail_regression
 
 
-
-
-
 def organize_table_regression_summaries(
     independence=None,
     table=None,
+    type=type,
     report=None,
 ):
     """
@@ -1064,6 +1118,7 @@ def organize_table_regression_summaries(
         independence (list<str>): name of independent variables of interest
         table (object): Pandas data frame of summary information from multiple
             regressions
+        type (str): type of regression analysis, either 'linear' or 'logistic'
         report (bool): whether to print reports
 
     raises:
@@ -1076,35 +1131,69 @@ def organize_table_regression_summaries(
 
     # Copy information.
     table = table.copy(deep=True)
-    # Define columns of interest.
-    columns = list()
-    columns.append("name")
-    columns.append("cohort")
-    columns.append("dependence")
-    columns.append("model")
-    columns.append("independence")
-    columns.append("freedom")
-    columns.append("observations")
-    columns.append("samples")
-    columns.append("r_square")
-    columns.append("r_square_adjust")
-    columns.append("log_likelihood")
-    columns.append("akaike")
-    columns.append("bayes")
-    columns.append("condition")
-    for variable in independence:
-        parameter = str(variable + ("_parameter"))
-        parameter_error = str(variable + ("_error"))
-        parameter_interval = str(variable + ("_interval_95"))
-        parameter_range = str(variable + ("_range_95"))
-        probability = str(variable + ("_probability"))
-        inflation = str(variable + ("_inflation"))
-        columns.append(parameter)
-        columns.append(parameter_error)
-        columns.append(parameter_interval)
-        columns.append(parameter_range)
-        columns.append(probability)
-        columns.append(inflation)
+    # Determine type of regression.
+    if (type == "linear"):
+        # Define columns of interest.
+        columns = list()
+        columns.append("name")
+        columns.append("cohort")
+        columns.append("dependence")
+        columns.append("model")
+        columns.append("independence")
+        columns.append("freedom")
+        columns.append("observations")
+        columns.append("samples")
+        columns.append("r_square")
+        columns.append("r_square_adjust")
+        columns.append("log_likelihood")
+        columns.append("akaike")
+        columns.append("bayes")
+        columns.append("condition")
+        for variable in independence:
+            parameter = str(variable + ("_parameter"))
+            parameter_error = str(variable + ("_error"))
+            parameter_interval = str(variable + ("_interval_95"))
+            parameter_range = str(variable + ("_range_95"))
+            probability = str(variable + ("_probability"))
+            inflation = str(variable + ("_inflation"))
+            columns.append(parameter)
+            columns.append(parameter_error)
+            columns.append(parameter_interval)
+            columns.append(parameter_range)
+            columns.append(probability)
+            columns.append(inflation)
+            pass
+    elif (type == "logistic"):
+        # Define columns of interest.
+        columns = list()
+        columns.append("name")
+        columns.append("cohort")
+        columns.append("dependence")
+        columns.append("model")
+        columns.append("independence")
+        columns.append("freedom")
+        columns.append("observations")
+        columns.append("samples")
+        columns.append("r_square_pseudo")
+        columns.append("log_likelihood")
+        columns.append("akaike")
+        columns.append("bayes")
+        for variable in independence:
+            parameter = str(variable + ("_parameter"))
+            parameter_error = str(variable + ("_error"))
+            parameter_interval = str(variable + ("_interval_95"))
+            parameter_range = str(variable + ("_range_95"))
+            probability = str(variable + ("_probability"))
+            inflation = str(variable + ("_inflation"))
+            columns.append(parameter)
+            columns.append(parameter_error)
+            columns.append(parameter_interval)
+            columns.append(parameter_range)
+            columns.append(probability)
+            columns.append(inflation)
+            pass
+    else:
+        columns = list()
         pass
     # Select columns.
     # columns.insert(0, dependence)
