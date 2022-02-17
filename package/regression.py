@@ -142,7 +142,7 @@ def organize_table_cohort_model_variables_for_regression(
         table = utility.standardize_scale_values_specific_table_columns(
             table=table,
             columns=independence,
-            report=True,
+            report=False,
         )
         table.dropna(
             axis="index",
@@ -198,19 +198,6 @@ def determine_confidence_interval_range_text(
     return range
 
 
-# TODO: TCW, 27 January 2022
-# TODO: implement logistic regression...
-
-# statsmodels.discrete.discrete_model.Logit
-
-#    model = statsmodels.api.Logit(
-#        values_dependence,
-#        table_independence_intercept,
-#        missing="drop",
-#    )
-#    pail_raw = model.fit()
-
-
 def regress_discrete_logit(
     dependence=None,
     independence=None,
@@ -254,12 +241,12 @@ def regress_discrete_logit(
         (dict): collection of regression's residuals and statistics
     """
 
-    print("temporary report from the regression function!!!")
-    print(table)
-
     # Determine count of valid samples (cases, observations).
     count_samples = int(table.shape[0])
     # Extract values of dependent and independent variables.
+    # Can pass values of dependent and independent variables as NumPy arrays or
+    # as Pandas Series and Dataframe respectively.
+    # Passing variables as Pandas Series and Dataframe preserves variable names.
     values_dependence = table[dependence].to_numpy()
 
     # Keep independent variables in Pandas dataframe to preserve variables'
@@ -283,7 +270,6 @@ def regress_discrete_logit(
     # Define model.
     # statsmodels.discrete.discrete_model.Logit
     model = statsmodels.api.Logit(
-        #values_dependence,
         table[dependence],
         table_independence_intercept,
         missing="drop",
@@ -473,7 +459,11 @@ def regress_linear_ordinary_least_squares(
     # Determine count of valid samples (cases, observations).
     count_samples = int(table.shape[0])
     # Extract values of dependent and independent variables.
+    # Can pass values of dependent and independent variables as NumPy arrays or
+    # as Pandas Series and Dataframe respectively.
+    # Passing variables as Pandas Series and Dataframe preserves variable names.
     values_dependence = table[dependence].to_numpy()
+
     # Keep independent variables in Pandas dataframe to preserve variables'
     # names.
     #values_independence = data.loc[ :, independence].to_numpy()
@@ -494,7 +484,7 @@ def regress_linear_ordinary_least_squares(
     #matrix_independence = table.to_numpy()
     # Define model.
     model = statsmodels.api.OLS(
-        values_dependence,
+        table[dependence],
         table_independence_intercept,
         missing="drop",
     )
