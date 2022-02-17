@@ -156,11 +156,10 @@ def organize_table_cohort_model_variables_for_regression(
     # z-score standard scale.
     # Standardization introduces missing values if standard deviation is zero.
     if (standard_scale):
-        table = utility.standardize_table_values_by_column_with_exclusions(
+        table = utility.standardize_scale_values_specific_table_columns(
             table=table,
-            index=index,
-            columns_exclusion=[dependence],
-            report=False,
+            columns=independence,
+            report=True,
         )
         table.dropna(
             axis="index",
@@ -173,7 +172,7 @@ def organize_table_cohort_model_variables_for_regression(
     # Expect errors if there is removal of the column for the dependent
     # variable.
     independence_product = list(filter(
-        lambda column: (str(column) in table.columns.tolist()),
+        lambda column: (str(column) in table.columns.to_list()),
         independence
     ))
 

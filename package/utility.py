@@ -2093,6 +2093,7 @@ def calculate_pseudo_logarithm_signals(
     )
     return data_log
 
+
 # This is inefficiently implemented... consider obsolete
 def calculate_pseudo_logarithm_signals_negative(
     pseudo_count=None,
@@ -2132,10 +2133,9 @@ def calculate_pseudo_logarithm_signals_negative(
     return data_log
 
 
-def standardize_table_values_by_column_with_exclusions(
+def standardize_scale_values_specific_table_columns(
     table=None,
-    index=None,
-    columns_exclusion=None,
+    columns=None,
     report=None,
 ):
     """
@@ -2148,9 +2148,8 @@ def standardize_table_values_by_column_with_exclusions(
     arguments:
         table (object): Pandas data frame of variables (features) across columns
             and samples (cases) across rows
-        index (str): name of table's index
-        columns_exclusion (list<str>): names of table's columns for exclusion
-            from scale standardization
+        columns (list<str>): names of table's columns for which to standardize
+            the scale of values
         report (bool): whether to print reports
 
     raises:
@@ -2161,78 +2160,64 @@ def standardize_table_values_by_column_with_exclusions(
 
     """
 
-    # Determine whether to exclude columns from scale standardization.
-    if (len(columns_exclusion) > 0):
-        # Copy information.
-        table = table.copy(deep=True)
-        table_exclusion = table.copy(deep=True)
-        # Organize information in table to preserve columns for exclusion.
-        table_exclusion.reset_index(
-            level=None,
-            inplace=True,
-            drop=False, # preserve index as a column
+    # Also consider sklearn.preprocessing.StandardScaler.
+
+    # Copy information.
+    table = table.copy(deep=True)
+    table_scale = table.copy(deep=True)
+    # Filter columns by whether they are in the table.
+    columns_relevant = list(filter(
+        lambda column: (str(column) in table.columns.to_list()),
+        columns
+    ))
+    # Calculate standard scores by column.
+    for column in columns_relevant:
+        # This method inserts missing values if the standard deviation is zero.
+        table_scale[column] = scipy.stats.zscore(
+            table_scale[column].to_numpy(),
+            axis=0,
+            ddof=1, # sample standard deviation
+            nan_policy="omit", # Ignore missing values.
         )
-        columns_exclusion_index = copy.deepcopy(columns_exclusion)
-        columns_exclusion_index.insert(0, index)
-        table_exclusion = table_exclusion.loc[
-            :, table.columns.isin(columns_exclusion_index)
-        ]
-        table_exclusion.set_index(
-            index,
-            append=False,
-            drop=True,
-            inplace=True
+        pass
+    # Report.
+    if report:
+        # Compare summary statistics before and after transformation.
+        print_terminal_partition(level=2)
+        print("Report from: standardize_scale_values_specific_table_columns()")
+        print_terminal_partition(level=3)
+        print("Summary statistics before standardization.")
+        table_mean = table.aggregate(
+            lambda series: series.mean(),
+            axis="index", # Apply function to each column of table.
         )
-        # Organize information in main table.
-        table.reset_index(
-            level=None,
-            inplace=True,
-            drop=False, # preserve index as a column
+        print("Mean")
+        print(table_mean.iloc[0:10])
+        print_terminal_partition(level=4)
+        table_deviation = table.aggregate(
+            lambda series: series.std(),
+            axis="index", # Apply function to each column of table.
         )
-        table.set_index(
-            index,
-            append=False,
-            drop=True,
-            inplace=True
+        print("Standard deviation")
+        print(table_deviation.iloc[0:10])
+
+        print_terminal_partition(level=2)
+        print("Summary statistics after standardization.")
+        table_mean = table_scale.aggregate(
+            lambda series: series.mean(),
+            axis="index", # Apply function to each column of table.
         )
-        table = table.loc[
-            :, ~table.columns.isin(columns_exclusion)
-        ]
-        # Standardize values columns of main table.
-        table_scale = utility.standardize_table_values_by_column(
-            table=table,
-            report=False,
+        print("Mean")
+        print(table_mean.iloc[0:10])
+        print_terminal_partition(level=4)
+        table_deviation = table_scale.aggregate(
+            lambda series: series.std(),
+            axis="index", # Apply function to each column of table.
         )
-        # Merge exclusion columns to main table after scale standardization.
-        table_merge = pandas.merge(
-            table_scale, # left table
-            table_exclusion, # right table
-            left_on=index,
-            right_on=index,
-            left_index=False,
-            right_index=False,
-            how="outer", # keep keys from union of both tables
-            suffixes=("_scale", "_exclusion"),
-        )
-        table_merge.reset_index(
-            level=None,
-            inplace=True,
-            drop=False, # preserve index as a column
-        )
-        table_merge.set_index(
-            index,
-            append=False,
-            drop=True,
-            inplace=True
-        )
-    else:
-        # Standardize values columns of main table.
-        table_merge = utility.standardize_table_values_by_column(
-            table=table,
-            report=False,
-        )
-    # Return information
-    return table_merge
+        print("Standard deviation")
+        print(table_deviation.iloc[0:10])
+    # Return information.
+    return table_scale
 
 
 def standardize_table_values_by_column(
