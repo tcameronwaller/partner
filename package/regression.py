@@ -258,10 +258,18 @@ def regress_discrete_logit(
         (dict): collection of regression's residuals and statistics
     """
 
+    print("temporary report from the regression function!!!")
+    print(table)
+
     # Determine count of valid samples (cases, observations).
     count_samples = int(table.shape[0])
     # Extract values of dependent and independent variables.
     values_dependence = table[dependence].to_numpy()
+
+    print(values_dependence)
+
+
+
     # Keep independent variables in Pandas dataframe to preserve variables'
     # names.
     #values_independence = data.loc[ :, independence].to_numpy()
