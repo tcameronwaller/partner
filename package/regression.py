@@ -987,7 +987,6 @@ def drive_cohort_model_linear_logistic_regression(
     model=None,
     dependence=None,
     type=None,
-    index=None,
     report=None,
 ):
     """
