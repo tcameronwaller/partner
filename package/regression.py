@@ -81,7 +81,6 @@ import promiscuity.utility as utility # this import path for subpackage
 def organize_table_cohort_model_variables_for_regression(
     dependence=None,
     independence=None,
-    index=None,
     standard_scale=None,
     table=None,
     report=None,
@@ -102,7 +101,6 @@ def organize_table_cohort_model_variables_for_regression(
         dependence (str): name of table's column for dependent variable
         independence (list<str>): names of table's columns for independent
             variables
-        index (str): name of table's index
         standard_scale (bool): whether to transform all dependent and
             independent variables to z-score standard scale
         table (object): Pandas data frame of dependent and independent variables
@@ -118,18 +116,6 @@ def organize_table_cohort_model_variables_for_regression(
 
     # Copy information.
     table = table.copy(deep=True)
-    # Organize table's index.
-    table.reset_index(
-        level=None,
-        inplace=True,
-        drop=False, # preserve index as a column
-    )
-    table.set_index(
-        index,
-        append=False,
-        drop=True,
-        inplace=True
-    )
     # Select table's columns for relevant variables.
     columns = copy.deepcopy(independence)
     columns.insert(0, dependence)
@@ -791,7 +777,6 @@ def create_regression_missing_values(
 def drive_organize_table_regress_linear_logistic(
     dependence=None,
     independence=None,
-    index=None,
     standard_scale=None,
     threshold_samples=None,
     table=None,
@@ -808,7 +793,6 @@ def drive_organize_table_regress_linear_logistic(
         dependence (str): name of table's column for dependent variable
         independence (list<str>): names of table's columns for independent
             variables
-        index (str): name of table's index
         standard_scale (bool): whether to transform all dependent and
             independent variables to z-score standard scale
         threshold_samples (float): minimal count of samples with non-missing
@@ -828,7 +812,6 @@ def drive_organize_table_regress_linear_logistic(
     pail_organization = organize_table_cohort_model_variables_for_regression(
         dependence=dependence,
         independence=independence,
-        index=index,
         standard_scale=standard_scale,
         table=table,
         report=False,
@@ -980,7 +963,6 @@ def determine_cohort_model_variables_from_reference_table(
 
 def drive_cohort_model_linear_logistic_regression(
     table=None,
-    index=None,
     table_cohorts_models=None,
     cohort=None,
     model=None,
@@ -998,7 +980,6 @@ def drive_cohort_model_linear_logistic_regression(
         table (object): Pandas data frame of dependent and independent variables
             (features) across columns and samples (cases, observations) within
             a specific cohort across rows
-        index (str): name of table's index
         table_cohorts_models (object): Pandas data frame of cohorts, models,
             dependent variables, and independent variables for regression
         cohort (str): name of a stratification cohort for regression analysis
@@ -1041,7 +1022,6 @@ def drive_cohort_model_linear_logistic_regression(
         pail_regression = drive_organize_table_regress_linear_logistic(
             dependence=dependence,
             independence=pail_model["independence"],
-            index=index,
             standard_scale=True,
             threshold_samples=50,
             table=table,
