@@ -428,7 +428,8 @@ def regress_linear_ordinary_least_squares(
     return pail
 
 
-def create_regression_missing_values(
+
+def create_missing_values_regression_linear(
     dependence=None,
     independence=None,
 ):
@@ -502,13 +503,57 @@ def create_regression_missing_values(
     # Return information.
     return pail
 
+# TODO: TCW, 16 February 2022
+# TODO: I need a function to create missing values for logistic regression...
 
-def drive_organize_table_regress_linear_ordinary_least_squares(
+
+def create_regression_missing_values(
+    dependence=None,
+    independence=None,
+    type=None,
+):
+    """
+    Creates missing values for a regression.
+
+    arguments:
+        dependence (str): name of table's column for dependent variable
+        independence (list<str>): names of table's columns for independent
+            variables
+        type (str): type of regression analysis, either 'linear' or 'logistic'
+
+    raises:
+
+    returns:
+        (dict): collection of missing values for regression
+    """
+
+    # Determine type of regression.
+    if (type == "linear"):
+        pail = create_missing_values_regression_linear(
+            dependence=dependence,
+            independence=independence,
+        )
+    elif (type == "logistic"):
+        pail = create_missing_values_regression_logistic(
+            dependence=dependence,
+            independence=independence,
+        )
+    else:
+        pail = dict()
+        pass
+    # Return information.
+    return pail
+
+
+
+
+def drive_organize_table_regress_linear_logistic(
     dependence=None,
     independence=None,
     standard_scale=None,
     threshold_samples=None,
     table=None,
+    type=None,
     report=None,
 ):
     """
@@ -525,6 +570,7 @@ def drive_organize_table_regress_linear_ordinary_least_squares(
             values of dependent and independent variables to perform regression
         table (object): Pandas data frame of dependent and independent variables
             for regression
+        type (str): type of regression analysis, either 'linear' or 'logistic'
         report (bool): whether to print reports
 
     raises:
@@ -543,14 +589,16 @@ def drive_organize_table_regress_linear_ordinary_least_squares(
     )
     # Determine whether dependent and independent variables (features) have
     # sufficient observations for regression.
-    if (pail_organization["count_samples"] >= threshold_samples):
-        pail_regression = regress_linear_ordinary_least_squares(
+    if (
+        not (pail_organization["count_samples"] >= threshold_samples) or
+        (dependence not in pail_organization["table"].columns.to_list())
+    ):
+        # Inadequate samples for analysis.
+        pail_regression = create_regression_missing_values(
             dependence=dependence,
-            independence=pail_organization["independence"],
-            table=pail_organization["table"],
-            report=report,
+            independence=independence,
+            type=type,
         )
-    else:
         # Report.
         if report:
             utility.print_terminal_partition(level=2)
@@ -566,10 +614,20 @@ def drive_organize_table_regress_linear_ordinary_least_squares(
                 "There may be inadequate samples with non-missing values " +
                 "or adequate variance in relevant variables."
             )
-        pail_regression = create_regression_missing_values(
+            pass
+        pass
+    else:
+        # Adequate samples for analysis.
+
+        # TODO: determine type of regression analysis and call appropriate function...
+
+        pail_regression = regress_linear_ordinary_least_squares(
             dependence=dependence,
-            independence=independence,
+            independence=pail_organization["independence"],
+            table=pail_organization["table"],
+            report=report,
         )
+
     # Return information.
     return pail_regression
 
@@ -666,12 +724,13 @@ def determine_cohort_model_variables_from_reference_table(
     return pail
 
 
-def drive_cohort_model_linear_regression(
+def drive_cohort_model_linear_logistic_regression(
     table=None,
     table_cohorts_models=None,
     cohort=None,
     model=None,
     dependence=None,
+    type=None,
     report=None,
 ):
     """
@@ -690,6 +749,7 @@ def drive_cohort_model_linear_regression(
         model (str): name of a model for regression analysis, normally
             "complex", "simple", or "unadjust"
         dependence (str): name of table's column for dependent variable
+        type (str): type of regression analysis, either 'linear' or 'logistic'
         report (bool): whether to print reports
 
     raises:
@@ -699,6 +759,7 @@ def drive_cohort_model_linear_regression(
 
     """
 
+    # Extract details for the regression analysis.
     pail_model = determine_cohort_model_variables_from_reference_table(
         cohort=cohort,
         model=model,
@@ -719,15 +780,17 @@ def drive_cohort_model_linear_regression(
             print("independent variables: ")
             print(pail_model["independence"])
             utility.print_terminal_partition(level=5)
-        pail_regression = (
-            drive_organize_table_regress_linear_ordinary_least_squares(
-                dependence=dependence,
-                independence=pail_model["independence"],
-                standard_scale=True,
-                threshold_samples=50,
-                table=table,
-                report=report,
-        ))
+            pass
+        # Determine type of regression analysis.
+        pail_regression = drive_organize_table_regress_linear_logistic(
+            dependence=dependence,
+            independence=pail_model["independence"],
+            standard_scale=True,
+            threshold_samples=50,
+            table=table,
+            type=type,
+            report=report,
+        )
     else:
         # Report.
         if report:
@@ -746,8 +809,12 @@ def drive_cohort_model_linear_regression(
         pail_regression = create_regression_missing_values(
             dependence=dependence,
             independence=pail_model["independence"],
+            type=type,
         )
     return pail_regression
+
+
+
 
 
 def organize_table_regression_summaries(
