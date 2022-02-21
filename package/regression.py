@@ -123,9 +123,10 @@ def organize_table_cohort_model_variables_for_regression(
     # variances across rows.
     # Relative variance can be quite low for variables after logarithmic
     # transformation.
-    table = utility.filter_table_columns_by_nonmissing_relative_variance(
-        threshold_valid_proportion_per_column=0.01,
-        threshold_column_relative_variance=0.01,
+    table = utility.filter_table_columns_by_nonmissing_variance(
+        threshold_valid_proportion_per_column=0.05,
+        threshold_column_variance=0.001,
+        type_variance="standard_deviation",
         table=table,
         report=report,
     )

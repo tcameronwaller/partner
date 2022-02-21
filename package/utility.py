@@ -2492,9 +2492,10 @@ def report_contingency_table_stratification_by_missingness(
     pass
 
 
-def filter_table_columns_by_nonmissing_relative_variance(
+def filter_table_columns_by_nonmissing_variance(
     threshold_valid_proportion_per_column=None,
-    threshold_column_relative_variance=None,
+    threshold_column_variance=None,
+    type_variance=None,
     table=None,
     report=None,
 ):
@@ -2508,8 +2509,10 @@ def filter_table_columns_by_nonmissing_relative_variance(
     arguments:
         threshold_valid_proportion_per_column (float): minimal proportion of
             a column's rows that must have a valid value
-        threshold_column_relative_variance (float): minimal relative variance in
+        threshold_column_variance (float): minimal value of variance measure in
             each column's values
+        type_variance (str): type of measurement of variance, either
+            "standard_deviation" or "relative_variance"
         table (object): Pandas data frame with variables (features) across
             columns and samples (cases, observations) across rows with an
             explicit index
@@ -2524,14 +2527,14 @@ def filter_table_columns_by_nonmissing_relative_variance(
 
     def match_column_variance(
         name=None,
-        threshold_column_relative_variance=None,
+        threshold_column_variance=None,
         variances=None,
     ):
         if (str(name) in variances.keys()):
             variance = variances[name]
             if (
                 (not math.isnan(variance)) and
-                (threshold_column_relative_variance <= variance)
+                (threshold_column_variance <= variance)
             ):
                 match = True
             else:
@@ -2554,20 +2557,27 @@ def filter_table_columns_by_nonmissing_relative_variance(
             inplace=True,
         )
     # Drop any columns with minimal relative variance.
-    if (0.001 <= threshold_column_relative_variance):
-        series_relative_variance = table_product.aggregate(
-            lambda column: calculate_relative_variance(
-                array=column.to_numpy()
-            ),
-            axis="index", # apply function to each column
-        )
-        variances = series_relative_variance.to_dict()
+    if (0.00001 <= threshold_column_variance):
+        if (type_variance == "standard_deviation"):
+            series_variance = table_product.aggregate(
+                lambda column: numpy.nanstd(column.to_numpy()),
+                axis="index", # apply function to each column
+            )
+        elif (type_variance == "relative_variance"):
+            series_variance = table_product.aggregate(
+                lambda column: calculate_relative_variance(
+                    array=column.to_numpy()
+                ),
+                axis="index", # apply function to each column
+            )
+            pass
+        variances = series_variance.to_dict()
         columns = copy.deepcopy(table.columns.to_list())
         columns_variance = list(filter(
             lambda column_trial: match_column_variance(
                 name=column_trial,
-                threshold_column_relative_variance=(
-                    threshold_column_relative_variance
+                threshold_column_variance=(
+                    threshold_column_variance
                 ),
                 variances=variances,
             ),
@@ -2592,8 +2602,8 @@ def filter_table_columns_by_nonmissing_relative_variance(
         print_terminal_partition(level=3)
         print("count rows in source table: " + str(table_source.shape[0]))
         print("count columns in source table: " + str(table_source.shape[1]))
-        print("series relative variance: ")
-        print(series_relative_variance.iloc[0:25])
+        print("series variance: " + str(type_variance))
+        print(series_variance.iloc[0:25])
         print("count rows in product table: " + str(table_product.shape[0]))
         print("count columns in product table: " + str(table_product.shape[1]))
         print("any columns removed from table: ")
