@@ -2592,6 +2592,8 @@ def filter_table_columns_by_nonmissing_relative_variance(
         print_terminal_partition(level=3)
         print("count rows in source table: " + str(table_source.shape[0]))
         print("count columns in source table: " + str(table_source.shape[1]))
+        print("series relative variance: ")
+        print(series_relative_variance.iloc[0:25])
         print("count rows in product table: " + str(table_product.shape[0]))
         print("count columns in product table: " + str(table_product.shape[1]))
         print("any columns removed from table: ")
