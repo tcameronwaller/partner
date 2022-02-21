@@ -113,41 +113,10 @@ def organize_table_cohort_model_variables_for_regression(
         lambda column: (str(column) in table.columns.to_list()),
         independence
     ))
-    # Report.
-    if (
-        report and
-        (dependence not in table.columns.to_list())
-    ):
-        utility.print_terminal_partition(level=2)
-        print("report: ")
-        function_name = str(
-            "organize_table_cohort_model_variables_for_regression()"
-        )
-        print(function_name)
-        utility.print_terminal_partition(level=5)
-        print("Dependent variable does not exist in original table.")
-        pass
-    if (
-        report and
-        (len(independence) > len(independence_source))
-    ):
-        utility.print_terminal_partition(level=2)
-        print("report: ")
-        function_name = str(
-            "organize_table_cohort_model_variables_for_regression()"
-        )
-        print(function_name)
-        utility.print_terminal_partition(level=5)
-        print("Not all independent variables exist in original table.")
-        print("requested independent variables:")
-        print(independence)
-        print("available independent variables in table:")
-        print(independence_source)
-        pass
-
     # Select table's columns for relevant variables.
     columns = copy.deepcopy(independence_source)
-    columns.insert(0, dependence)
+    if (dependence in table.columns.to_list())
+        columns.insert(0, dependence)
     table = table.loc[:, table.columns.isin(columns)]
     table = table[[*columns]]
     # Remove columns with inadequate non-missing values or inadequate relative
@@ -881,45 +850,48 @@ def drive_organize_table_regress_linear_logistic(
         (dict): collection of regression's residuals and statistics
     """
 
+    # Report.
+    if report:
+        utility.print_terminal_partition(level=2)
+        print("report: ")
+        function_name = str(
+            "drive_organize_table_regress_linear_logistic()"
+        )
+        print(function_name)
+        pass
+
     # Organize table for regression.
     pail_organization = organize_table_cohort_model_variables_for_regression(
         dependence=dependence,
         independence=independence,
         standard_scale=standard_scale,
         table=table,
-        report=True,
+        report=report,
     )
-    # Determine whether dependent and independent variables (features) have
-    # sufficient observations for regression.
+    # Determine and report whether the table does not include information for
+    # all requested independent variables.
     if (
-        not (pail_organization["count_samples"] >= threshold_samples) or
-        (dependence not in pail_organization["table"].columns.to_list())
+        report and
+        (len(pail_organization["independence"]) < len(independence))
     ):
-        # Inadequate samples for analysis.
-        pail_regression = create_regression_missing_values(
-            dependence=dependence,
-            independence=independence,
-            type=type,
-        )
-        # Report.
-        if report:
-            utility.print_terminal_partition(level=2)
-            print("report: ")
-            function_name = str(
-                "drive_organize_table_regress_linear_" +
-                "ordinary_least_squares()"
-            )
-            print(function_name)
             utility.print_terminal_partition(level=5)
-            print("Missing information for model...")
             print(
-                "There may be inadequate samples with non-missing values " +
-                "or adequate variance in relevant variables."
+                "Warning: Some requested independent variables are " +
+                "uavailable in the table for regression."
             )
+            print("requested independent variables:")
+            print(independence)
+            print("available independent variables:")
+            print(pail_organization["independence"])
             pass
-        pass
-    else:
-        # Adequate samples for analysis.
+    # Determine whether the table has adequate information for regression.
+    if (
+        (dependence in pail_organization["table"].columns.to_list()) and
+        (len(pail_organization["independence"]) > 0) and
+        (pail_organization["count_samples"] >= threshold_samples)
+    ):
+        # Adequate information for regression.
+        # Execute regression analysis.
         if (type == "linear"):
             pail_regression = regress_linear_ordinary_least_squares(
                 dependence=dependence,
@@ -935,7 +907,51 @@ def drive_organize_table_regress_linear_logistic(
                 report=report,
             )
         else:
-            pail_regression = dict()
+            pail_regression = create_regression_missing_values(
+                dependence=dependence,
+                independence=independence,
+                type=type,
+            )
+            pass
+    else:
+        # Inadequate information for regression.
+        # Create missing values.
+        pail_regression = create_regression_missing_values(
+            dependence=dependence,
+            independence=independence,
+            type=type,
+        )
+        # Determine and report cause of error.
+        if (
+            report and
+            (dependence not in pail_organization["table"].columns.to_list())
+        ):
+            utility.print_terminal_partition(level=5)
+            print("Error: Inadequate information for regression.")
+            print(
+                "Dependent variable is unavailable in the table."
+            )
+            pass
+        if (
+            report and
+            (len(pail_organization["independence"]) == 0)
+        ):
+            utility.print_terminal_partition(level=5)
+            print("Error: Inadequate information for regression.")
+            print(
+                "There are not any independent variables available " +
+                "in the table."
+            )
+            pass
+        if (
+            report and
+            (not (pail_organization["count_samples"] >= threshold_samples))
+        ):
+            utility.print_terminal_partition(level=5)
+            print("Error: Inadequate information for regression.")
+            print(
+                "There are inadequate samples in the table."
+            )
             pass
         pass
     # Return information.
