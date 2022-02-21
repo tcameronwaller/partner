@@ -140,9 +140,9 @@ def organize_table_cohort_model_variables_for_regression(
         utility.print_terminal_partition(level=5)
         print("Not all independent variables exist in original table.")
         print("requested independent variables:")
-        print(idependence)
+        print(independence)
         print("available independent variables in table:")
-        print(idependence_source)
+        print(independence_source)
         pass
 
     # Select table's columns for relevant variables.
