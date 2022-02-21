@@ -143,7 +143,7 @@ def organize_table_cohort_model_variables_for_regression(
         table = utility.standardize_scale_values_specific_table_columns(
             table=table,
             columns=independence,
-            report=False,
+            report=True,
         )
         table.dropna(
             axis="index",
@@ -952,6 +952,7 @@ def drive_organize_table_regress_linear_logistic(
             print(
                 "There are inadequate samples in the table."
             )
+            print(pail_organization["count_samples"])
             pass
         pass
     # Return information.
