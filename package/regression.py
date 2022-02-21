@@ -855,7 +855,7 @@ def drive_organize_table_regress_linear_logistic(
         independence=independence,
         standard_scale=standard_scale,
         table=table,
-        report=False,
+        report=True,
     )
     # Determine whether dependent and independent variables (features) have
     # sufficient observations for regression.
