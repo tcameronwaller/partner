@@ -70,11 +70,6 @@ import promiscuity.utility as utility # this import path for subpackage
 # Functionality
 
 
-# TODO: TCW, 10 February 2022
-# TODO: introduce list arument to "utility.filter_table_columns_by_nonmissing_relative_variance"
-# TODO: to exclude the dependent variable from consideration for removal...
-
-
 def organize_table_cohort_model_variables_for_regression(
     dependence=None,
     independence=None,
@@ -113,8 +108,45 @@ def organize_table_cohort_model_variables_for_regression(
 
     # Copy information.
     table = table.copy(deep=True)
+    # Determine whether the variables exist.
+    independence_source = list(filter(
+        lambda column: (str(column) in table.columns.to_list()),
+        independence
+    ))
+    # Report.
+    if (
+        report and
+        (dependence not in table.columns.to_list())
+    ):
+        utility.print_terminal_partition(level=2)
+        print("report: ")
+        function_name = str(
+            "organize_table_cohort_model_variables_for_regression()"
+        )
+        print(function_name)
+        utility.print_terminal_partition(level=5)
+        print("Dependent variable does not exist in original table.")
+        pass
+    if (
+        report and
+        (len(independence) > len(independence_source))
+    ):
+        utility.print_terminal_partition(level=2)
+        print("report: ")
+        function_name = str(
+            "organize_table_cohort_model_variables_for_regression()"
+        )
+        print(function_name)
+        utility.print_terminal_partition(level=5)
+        print("Not all independent variables exist in original table.")
+        print("requested independent variables:")
+        print(idependence)
+        print("available independent variables in table:")
+        print(idependence_source)
+        pass
+
     # Select table's columns for relevant variables.
-    columns = copy.deepcopy(independence)
+    columns = copy.deepcopy(independence_source)
     columns.insert(0, dependence)
     table = table.loc[:, table.columns.isin(columns)]
     table = table[[*columns]]
