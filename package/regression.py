@@ -119,10 +119,8 @@ def organize_table_cohort_model_variables_for_regression(
         columns.insert(0, dependence)
     table = table.loc[:, table.columns.isin(columns)]
     table = table[[*columns]]
-    # Remove columns with inadequate non-missing values or inadequate relative
-    # variances across rows.
-    # Relative variance can be quite low for variables after logarithmic
-    # transformation.
+    # Remove columns with inadequate non-missing values or inadequate variance
+    # (standard deviation) across rows.
     table = utility.filter_table_columns_by_nonmissing_variance(
         threshold_valid_proportion_per_column=0.05,
         threshold_column_variance=0.001,
@@ -136,6 +134,15 @@ def organize_table_cohort_model_variables_for_regression(
         how="any",
         subset=None,
         inplace=True,
+    )
+    # Remove columns with inadequate non-missing values or inadequate variance
+    # (standard deviation) across rows.
+    table = utility.filter_table_columns_by_nonmissing_variance(
+        threshold_valid_proportion_per_column=0.05,
+        threshold_column_variance=0.001,
+        type_variance="standard_deviation",
+        table=table,
+        report=report,
     )
     # Determine whether to transform all dependent and independent variables to
     # z-score standard scale.

@@ -2559,14 +2559,14 @@ def filter_table_columns_by_nonmissing_variance(
     # Drop any columns with minimal relative variance.
     if (0.00001 <= threshold_column_variance):
         if (type_variance == "standard_deviation"):
-            #series_variance = table_product.aggregate(
-            #    lambda column: numpy.nanstd(column.to_numpy()),
-            #    axis="index", # apply function to each column
-            #)
             series_variance = table_product.aggregate(
-                lambda column: column.std(),
+                lambda column: numpy.nanstd(column.to_numpy()),
                 axis="index", # apply function to each column
             )
+            #series_variance = table_product.aggregate(
+            #    lambda column: column.std(),
+            #    axis="index", # apply function to each column
+            #)
         elif (type_variance == "relative_variance"):
             series_variance = table_product.aggregate(
                 lambda column: calculate_relative_variance(
