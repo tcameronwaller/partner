@@ -81,8 +81,6 @@ import promiscuity.utility as utility # this import path for subpackage
 
 
 def organize_table_matrix_for_decomposition(
-    threshold_valid_proportion_per_column=None,
-    threshold_column_variance=None,
     table=None,
     report=None,
 ):
@@ -98,10 +96,6 @@ def organize_table_matrix_for_decomposition(
     of the Singular Value Decomposition.
 
     arguments:
-        threshold_valid_proportion_per_column (float): minimal proportion of
-            a column's rows that must have a valid value
-        threshold_column_variance (float): minimal relative variance in
-            each column's values
         table (object): Pandas data frame with variables (features) across
             columns and samples (cases, observations) across rows with an
             explicit index
@@ -116,23 +110,35 @@ def organize_table_matrix_for_decomposition(
 
     # Copy information.
     table = table.copy(deep=True)
-    # Remove columns with inadequate non-missing values or inadequate relative
-    # variances across rows.
+
+    # Remove columns with inadequate non-missing values or inadequate variance
+    # (standard deviation) across rows.
+    # This preliminary filter on columns avoids losing table rows for missing
+    # values in an unnecessary column.
     table = utility.filter_table_columns_by_nonmissing_variance(
-        threshold_valid_proportion_per_column=(
-            threshold_valid_proportion_per_column
-        ),
-        threshold_column_variance=(threshold_column_variance),
+        threshold_valid_proportion_per_column=0.05,
+        threshold_column_variance=0.001,
         type_variance="standard_deviation",
         table=table,
         report=report,
     )
-    # Drop any rows with null values in any columns.
+    # Drop any rows with missing values in any columns.
     table.dropna(
         axis="index", # drop rows
         how="any",
         subset=None,
         inplace=True,
+    )
+    # Remove columns with inadequate non-missing values or inadequate variance
+    # (standard deviation) across rows.
+    # Filter columns again since the removal of missing values changes the
+    # variance of columns.
+    table = utility.filter_table_columns_by_nonmissing_variance(
+        threshold_valid_proportion_per_column=0.05,
+        threshold_column_variance=0.001,
+        type_variance="standard_deviation",
+        table=table,
+        report=report,
     )
 
     # Principal components analysis assumptions require at least centering the
@@ -144,6 +150,12 @@ def organize_table_matrix_for_decomposition(
     table_scale = utility.standardize_table_values_by_column(
         table=table,
         report=report,
+    )
+    table_scale.dropna(
+        axis="index",
+        how="any",
+        subset=None,
+        inplace=True,
     )
     # Copy information.
     index = copy.deepcopy(table_scale.index)
@@ -1003,13 +1015,10 @@ def organize_principal_components_by_singular_value_decomposition(
     """
 
     # Threshold and organize original matrix.
-    pail_organization = (
-        organize_table_matrix_for_decomposition(
-            threshold_valid_proportion_per_column=0.05,
-            threshold_column_variance=0.001,
-            table=table,
-            report=report,
-    ))
+    pail_organization = organize_table_matrix_for_decomposition(
+        table=table,
+        report=report,
+    )
 
     # Calculate and sort Singular Value Decomposition (SVD) factors.
     pail_decomposition = (
@@ -1206,13 +1215,10 @@ def organize_principal_components_by_sklearn(
     """
 
     # Threshold and organize original matrix.
-    pail_organization = (
-        organize_table_matrix_for_decomposition(
-            threshold_valid_proportion_per_column=0.05,
-            threshold_column_variance=0.001,
-            table=table,
-            report=report,
-    ))
+    pail_organization = organize_table_matrix_for_decomposition(
+        table=table,
+        report=report,
+    )
 
     # Calculate Principal Component Scores in SKLearn.
     pail_sklearn = calculate_principal_components_by_sklearn(
@@ -1294,13 +1300,10 @@ def compare_principal_components_methods(
     """
 
     # Threshold and organize original matrix.
-    pail_organization = (
-        organize_table_matrix_for_decomposition(
-            threshold_valid_proportion_per_column=0.05,
-            threshold_column_variance=0.001,
-            table=table,
-            report=False,
-    ))
+    pail_organization = organize_table_matrix_for_decomposition(
+        table=table,
+        report=False,
+    )
     # Calculate Principal Component Scores in SKLearn.
     pail_sklearn = organize_principal_components_by_sklearn(
         table=table,
