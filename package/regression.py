@@ -115,7 +115,7 @@ def organize_table_cohort_model_variables_for_regression(
     ))
     # Select table's columns for relevant variables.
     columns = copy.deepcopy(independence_source)
-    if (dependence in table.columns.to_list())
+    if (dependence in table.columns.to_list()):
         columns.insert(0, dependence)
     table = table.loc[:, table.columns.isin(columns)]
     table = table[[*columns]]
