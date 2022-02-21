@@ -2192,14 +2192,14 @@ def standardize_scale_values_specific_table_columns(
             axis="index", # Apply function to each column of table.
         )
         print("Mean")
-        print(table_mean.iloc[0:10])
+        print(table_mean.iloc[0:25])
         print_terminal_partition(level=4)
         table_deviation = table.aggregate(
             lambda series: series.std(),
             axis="index", # Apply function to each column of table.
         )
         print("Standard deviation")
-        print(table_deviation.iloc[0:10])
+        print(table_deviation.iloc[0:25])
 
         print_terminal_partition(level=2)
         print("Summary statistics after standardization.")
@@ -2208,14 +2208,14 @@ def standardize_scale_values_specific_table_columns(
             axis="index", # Apply function to each column of table.
         )
         print("Mean")
-        print(table_mean.iloc[0:10])
+        print(table_mean.iloc[0:25])
         print_terminal_partition(level=4)
         table_deviation = table_scale.aggregate(
             lambda series: series.std(),
             axis="index", # Apply function to each column of table.
         )
         print("Standard deviation")
-        print(table_deviation.iloc[0:10])
+        print(table_deviation.iloc[0:25])
     # Return information.
     return table_scale
 
