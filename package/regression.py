@@ -157,7 +157,7 @@ def organize_table_cohort_model_variables_for_regression(
         table = utility.standardize_scale_values_specific_table_columns(
             table=table,
             columns=independence,
-            report=True,
+            report=report,
         )
         table.dropna(
             axis="index",
@@ -880,7 +880,7 @@ def drive_organize_table_regress_linear_logistic(
         independence=independence,
         standard_scale=standard_scale,
         table=table,
-        report=report,
+        report=False,
     )
     # Determine and report whether the table does not include information for
     # all requested independent variables.
