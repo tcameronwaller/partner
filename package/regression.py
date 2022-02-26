@@ -973,6 +973,10 @@ def drive_organize_table_regress_linear_logistic(
     return pail_regression
 
 
+# TODO: TCW, 24 February 2022
+# TODO: This function is unnecessary.
+# TODO: instead pass the independent variables directly from the table row record on top-level iteration...
+
 def determine_cohort_model_variables_from_reference_table(
     cohort=None,
     model=None,
