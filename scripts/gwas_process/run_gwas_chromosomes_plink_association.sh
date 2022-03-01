@@ -96,7 +96,7 @@ for chromosome in "${chromosomes[@]}"; do
     --pheno-name $phenotypes \
     --covar $path_table_phenotypes_covariates \
     --covar-name $covariates \
-    --covar-variance-standardize $covariates \
+    --covar-variance-standardize \
     --maf $maf \
     --xchr-model 2 \
     --freq \
