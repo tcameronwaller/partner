@@ -55,23 +55,6 @@ for chromosome in "${chromosomes[@]}"; do
     path_sample="$path_ukb_genotype/Chromosome/ukb46237_imp_chr${chromosome}_v3_s487320.sample"
   fi
 
-  #$path_plink2 \
-  #--memory 90000 \
-  #--threads $threads \
-  #--bgen $path_genotype ref-first \
-  #--sample $path_sample \
-  #--keep $path_table_phenotypes_covariates \
-  #--pheno $path_table_phenotypes_covariates \
-  #--pheno-name $phenotypes \
-  #--covar $path_table_phenotypes_covariates \
-  #--covar-name $covariates \
-  #--covar-variance-standardize \
-  #--maf $maf \
-  #--xchr-model 2 \
-  #--freq \
-  #--glm omit-ref no-x-sex hide-covar cols=+a1freq,+a1freqcc \
-  #--out report
-
   if true; then
     # Call PLINK2.
     # PLINK2 command "--glm" drives genotypic association analyses, either
@@ -113,7 +96,7 @@ for chromosome in "${chromosomes[@]}"; do
     --pheno-name $phenotypes \
     --covar $path_table_phenotypes_covariates \
     --covar-name $covariates \
-    --covar-variance-standardize \
+    --covar-variance-standardize $covariates \
     --maf $maf \
     --xchr-model 2 \
     --freq \
