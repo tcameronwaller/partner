@@ -98,7 +98,7 @@ for chromosome in "${chromosomes[@]}"; do
     # to mean of zero and variance of one (z-score scale). Importantly, this
     # transformation also applies to any dependent variables and disrupts the
     # format code for binary (case-control) variables.
-    # Parameter "--covar-quantile-normalize" tells PLINK2 to apply a linear
+    # Parameter "--covar-variance_standardize" tells PLINK2 to apply a linear
     # transformation to standardize only quantitative covariates to mean of
     # zero and variance of one (z-score scale: mean 0, variance 1). Importantly,
     # this transformation does not apply to dependent variables (phenotypes).
@@ -113,6 +113,7 @@ for chromosome in "${chromosomes[@]}"; do
     --pheno-name $phenotypes \
     --covar $path_table_phenotypes_covariates \
     --covar-name $covariates \
+    --covar-variance-standardize \
     --maf $maf \
     --xchr-model 2 \
     --freq \
