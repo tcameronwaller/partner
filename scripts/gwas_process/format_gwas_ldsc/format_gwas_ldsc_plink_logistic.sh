@@ -7,6 +7,7 @@
 # "Organize GWAS summary statistics."
 
 # review:
+# TCW, 04 March 2022
 # TCW, 03 March 2022
 
 
@@ -108,7 +109,7 @@ zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
 if [[ "$response_standard_scale" == "true" ]]; then
   echo "SNP A1 A2 N Z P" > $path_gwas_format
 else
-  echo "SNP A1 A2 N BETA P" > $path_gwas_format
+  echo "SNP A1 A2 N OR P" > $path_gwas_format
 fi
 cat $path_gwas_constraint | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   if ($6 == $5 && $6 != $4)
