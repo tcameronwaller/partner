@@ -2207,6 +2207,24 @@ def plot_scatter(
     return figure
 
 
+# TODO: TCW, 29 March 2022
+# TODO: could I plot 2 different groups of points on the same forest plot?
+
+# 1. determine count of discrete ordinate (vertical) tick positions
+# range(len(values_ordinate))
+
+# 2. introduce uniform stagger to y position
+# series_top (+0.25) and series_bottom (-0.25)
+
+# 3. set ytick positions using matplotlib.axes.Axes.set_yticks
+# also set y tick labels
+# https://matplotlib.org/3.5.1/api/_as_gen/matplotlib.axes.Axes.set_yticks.html
+
+# 4. plot series 1 points and error bars using "axes.errorbar"
+
+# 5. plot series 2 points and error bars using "axes.errorbar"
+
+
 def plot_scatter_points_forest_category_ordinate(
     table=None,
     abscissa=None,
@@ -2350,6 +2368,7 @@ def plot_scatter_points_forest_category_ordinate(
         linewidth=7.5,
     )
     # Plot points for values from each group.
+    # https://matplotlib.org/3.5.1/api/_as_gen/matplotlib.axes.Axes.errorbar.html
     handle = axes.errorbar(
         values_abscissa,
         values_ordinate,
@@ -3171,10 +3190,15 @@ def split_mean_interval_table_plot_dot_category(
     return pail
 
 
+
+# TODO: TCW, 29 March 2022
+# TODO: change "column_correlation" to "column_coefficient"
+# TODO: note that this structure will not work for the phenotypic regressions...
+
 def split_correlation_table_plot_forest_category(
     column_group=None,
     column_category=None,
-    column_correlation=None,
+    column_coefficient=None,
     column_interval_low=None,
     column_interval_high=None,
     table=None,
@@ -3192,7 +3216,7 @@ def split_correlation_table_plot_forest_category(
             records for each plot
         column_category (str): name of table's column for labels for discrete
             categories
-        column_correlation (str): name of table's column for correlations
+        column_coefficient (str): name of table's column for coefficient
         column_interval_low (str): name of table's column for lesser interval
         column_interval_high (str): name of table's column for greater interval
         table (object): Pandas data frame of phenotype variables across UK
@@ -3226,7 +3250,7 @@ def split_correlation_table_plot_forest_category(
         drop=False,
     )
     columns = [
-        column_group, column_category, column_correlation,
+        column_group, column_category, column_coefficient,
         column_interval_low, column_interval_high,
     ]
     table = table.loc[
@@ -3252,7 +3276,7 @@ def split_correlation_table_plot_forest_category(
         # Create figure.
         pail[name] = plot_scatter_points_forest_category_ordinate(
             table=table_group,
-            abscissa=column_correlation,
+            abscissa=column_coefficient,
             ordinate=column_category,
             abscissa_interval_low=column_interval_low,
             abscissa_interval_high=column_interval_high,
