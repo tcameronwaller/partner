@@ -1404,6 +1404,7 @@ def organize_check_table_drive_regression(
 def organize_regressions_summary_table_long(
     records_regressions=None,
     independences_summary=None,
+    type=None,
     report=None,
 ):
     """
@@ -1417,6 +1418,7 @@ def organize_regressions_summary_table_long(
         independences_summary (list<str>): names of independent variables for
             which to include information in the summary table, or "None" to
             include information for all original independent variables
+        type (str): type of regression analysis, either 'linear' or 'logistic'
         report (bool): whether to print reports
 
     raises:
@@ -1457,6 +1459,8 @@ def organize_regressions_summary_table_long(
             for entry in entries_general:
                 record[entry] = record_regression[entry]
                 pass
+            # Collect name of variable.
+            record["variable"] = variable
             # Extract names of entries for statistics on the independent
             # variable.
             entries_variable = (
@@ -1474,27 +1478,30 @@ def organize_regressions_summary_table_long(
     pass
     # Organize table.
     table = pandas.DataFrame(data=records)
+    table = organize_table_regression_summary(
+        type=type,
+        table=table,
+        report=report,
+    )
     # Return information.
     return table
 
 
-def organize_table_regression_summaries(
-    independence=None,
+def organize_table_regression_summary(
+    type=None,
     table=None,
-    type=type,
     report=None,
 ):
     """
     This function organizes the summary table with information for multiple
     regressions.
 
-    A primary function is to filter the table.
+    A primary function is to filter and sort columns within the table.
 
     arguments:
-        independence (list<str>): name of independent variables of interest
+        type (str): type of regression analysis, either 'linear' or 'logistic'
         table (object): Pandas data frame of summary information from multiple
             regressions
-        type (str): type of regression analysis, either 'linear' or 'logistic'
         report (bool): whether to print reports
 
     raises:
@@ -1507,67 +1514,32 @@ def organize_table_regression_summaries(
 
     # Copy information.
     table = table.copy(deep=True)
-    # Determine type of regression.
+    # Define columns according to regression type.
     if (type == "linear"):
-        # Define columns of interest.
-        columns = list()
-        columns.append("name")
-        columns.append("cohort")
-        columns.append("dependence")
-        columns.append("model")
-        columns.append("independence")
-        columns.append("freedom")
-        columns.append("observations")
-        columns.append("samples")
-        columns.append("r_square")
-        columns.append("r_square_adjust")
-        columns.append("log_likelihood")
-        columns.append("akaike")
-        columns.append("bayes")
-        columns.append("condition")
-        for variable in independence:
-            parameter = str(variable + ("_parameter"))
-            parameter_error = str(variable + ("_error"))
-            parameter_interval = str(variable + ("_interval_95"))
-            parameter_range = str(variable + ("_range_95"))
-            probability = str(variable + ("_probability"))
-            inflation = str(variable + ("_inflation"))
-            columns.append(parameter)
-            columns.append(parameter_error)
-            columns.append(parameter_interval)
-            columns.append(parameter_range)
-            columns.append(probability)
-            columns.append(inflation)
-            pass
+        columns = [
+            "cohort",
+            "dependence", "dependence_type",
+            "model", "model_note",
+            "variable", "parameter", "error", "interval_95", "range_95",
+            "probability", "inflation",
+            "freedom", "observations", "samples",
+            "r_square", "r_square_adust", "log_likelihood", "akaike", "bayes",
+            "condition",
+            "independence",
+            "dependence_actual", "independence_actual",
+        ]
     elif (type == "logistic"):
-        # Define columns of interest.
-        columns = list()
-        columns.append("name")
-        columns.append("cohort")
-        columns.append("dependence")
-        columns.append("model")
-        columns.append("independence")
-        columns.append("freedom")
-        columns.append("observations")
-        columns.append("samples")
-        columns.append("r_square_pseudo")
-        columns.append("log_likelihood")
-        columns.append("akaike")
-        columns.append("bayes")
-        for variable in independence:
-            parameter = str(variable + ("_parameter"))
-            parameter_error = str(variable + ("_error"))
-            parameter_interval = str(variable + ("_interval_95"))
-            parameter_range = str(variable + ("_range_95"))
-            probability = str(variable + ("_probability"))
-            inflation = str(variable + ("_inflation"))
-            columns.append(parameter)
-            columns.append(parameter_error)
-            columns.append(parameter_interval)
-            columns.append(parameter_range)
-            columns.append(probability)
-            columns.append(inflation)
-            pass
+        columns = [
+            "cohort",
+            "dependence", "dependence_type",
+            "model", "model_note",
+            "variable", "parameter", "error", "interval_95", "range_95",
+            "probability", "inflation",
+            "freedom", "observations", "samples",
+            "r_square_pseudo", "log_likelihood", "akaike", "bayes", "condition",
+            "independence",
+            "dependence_actual", "independence_actual",
+        ]
     else:
         columns = list()
         pass
@@ -1578,11 +1550,6 @@ def organize_table_regression_summaries(
     table = table[[*columns]]
     # Return information.
     return table
-
-
-# TODO: TCW, 01 April 2022
-# TODO: I need to reorganize the summary report tables
-# TODO: 1. LONG format 2. WIDE format
 
 
 def drive_linear_logistic_regression_cohort_model(
@@ -1761,6 +1728,7 @@ def drive_linear_logistic_regressions_cohorts_models(
     table_regressions_long = organize_regressions_summary_table_long(
         records_regressions=records_regressions,
         independences_summary=independences_summary,
+        type=type,
         report=report,
     )
     # Compile information.
