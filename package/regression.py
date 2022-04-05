@@ -115,6 +115,8 @@ def organize_table_cohort_model_variables_for_regression(
     #)
     if (dependence not in table.columns.to_list()):
         dependence_product = ""
+    else:
+        dependence_product = dependence
     # Select table's columns for relevant variables.
     columns = copy.deepcopy(independence)
     if (dependence in table.columns.to_list()):
