@@ -293,6 +293,7 @@ def organize_linear_logistic_regression_independence_tree(
     for variable in independence:
         # Collect information for intercept.
         pail_tree[variable] = dict()
+        pail_tree[variable]["variable"] = str(variable)
         # Coefficient or parameter.
         #pail_tree[variable]["parameter"] = report.params[counter]
         pail_tree[variable]["parameter"] = model_parameters[variable]
@@ -1026,6 +1027,10 @@ def regress_tree_linear_ordinary_least_squares(
     pail = dict()
     pail["summary"] = summary
     pail["residuals"] = residuals
+
+    # TEMPORARY!!!
+
+    print(pail["summary"])
     # Return information.
     return pail
 
