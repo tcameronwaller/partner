@@ -1534,12 +1534,12 @@ def organize_table_regression_summary(
     if (type == "linear"):
         columns = [
             "cohort",
-            "dependence", #"dependence_type",
+            #"dependence", "dependence_type",
             #"model",
             "model_note",
-            "variable", "variable_key",
-            "parameter", "error", "interval_95", "range_95",
-            "probability", "inflation",
+            "variable", #"variable_key",
+            "parameter", #"error", "interval_95", "range_95",
+            #"probability", "inflation",
             #"freedom", "observations", "samples",
             #"r_square", "r_square_adjust", "log_likelihood", "akaike", "bayes",
             #"condition",
