@@ -1533,15 +1533,16 @@ def organize_table_regression_summary(
     if (type == "linear"):
         columns = [
             "cohort",
-            "dependence", "dependence_type",
-            "model", "model_note",
+            "dependence", #"dependence_type",
+            #"model",
+            "model_note",
             "variable", "parameter", "error", "interval_95", "range_95",
             "probability", "inflation",
-            "freedom", "observations", "samples",
-            "r_square", "r_square_adjust", "log_likelihood", "akaike", "bayes",
-            "condition",
-            "independence",
-            "dependence_actual", "independence_actual",
+            #"freedom", "observations", "samples",
+            #"r_square", "r_square_adjust", "log_likelihood", "akaike", "bayes",
+            #"condition",
+            #"independence",
+            #"dependence_actual", "independence_actual",
         ]
     elif (type == "logistic"):
         columns = [
