@@ -1441,6 +1441,9 @@ def organize_regressions_summary_table_long(
             record_regression.keys()
         ))
         # Extract names of independent variables to include in summary.
+        # If 'independences_summary' is not 'None', then only include
+        # information in summary table about independent variables that are in
+        # the list 'independences_summary'.
         if (
             (independences_summary is not None) and
             (len(independences_summary) > 0)
