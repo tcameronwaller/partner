@@ -1730,7 +1730,7 @@ def drive_linear_logistic_regressions_cohorts_models(
                 report=report,
         ))
         # Collect records.
-        records_regressions.append(record_regressions)
+        records_regressions.append(record_regression)
         pass
 
     # Organize table.
