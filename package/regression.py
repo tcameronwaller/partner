@@ -1446,8 +1446,6 @@ def organize_regressions_summary_table_long(
     records = list()
     # Iterate on regressions.
     for record_regression in records_regressions:
-        # Collection information.
-        record = dict()
         # Extract names of entries for statistics on the whole model.
         keys_general = copy.deepcopy(list(
             record_regression.keys()
@@ -1479,6 +1477,9 @@ def organize_regressions_summary_table_long(
             )
         # Iterate on independent variables.
         for variable in independences_inclusion:
+            # Collection information.
+            # There is one record for each independent variable in the model.
+            record = dict()
             # Collect entries for statistics on the whole model.
             for entry in entries_general:
                 record[entry] = copy.deepcopy(record_regression[entry])
