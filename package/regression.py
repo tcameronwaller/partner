@@ -1754,7 +1754,7 @@ def drive_linear_logistic_regressions_cohorts_models(
     )
     # Compile information.
     pail = dict()
-    pail["table_long"] = table_regressions_long
+    pail["table"] = table_regressions_long
     # Return information.
     return pail
 
