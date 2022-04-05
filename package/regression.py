@@ -266,8 +266,8 @@ def organize_linear_logistic_regression_independence_tree(
         pail_tree["intercept"] = dict()
         pail_tree["intercept"]["variable"] = "intercept"
         #pail_tree["intercept"]["parameter"] = report.params[0]
-        pail_tree["intercept"]["parameter"] = model_parameters["const"]
-        pail_tree["intercept"]["error"] = model_parameter_errors["const"]
+        pail_tree["intercept"]["parameter"] = float(model_parameters["const"])
+        pail_tree["intercept"]["error"] = float(model_parameter_errors["const"])
         pail_tree["intercept"]["interval_95"] = float(
             1.96 * pail_tree["intercept"]["error"]
         )
@@ -277,8 +277,25 @@ def organize_linear_logistic_regression_independence_tree(
                 interval_low=pail_tree["intercept"]["interval_95"],
                 interval_high=pail_tree["intercept"]["interval_95"],
         ))
+        pail_tree["intercept"]["range_95_below"] = float(
+            (
+                (pail_tree["intercept"]["parameter"]) -
+                (pail_tree["intercept"]["interval_95"])
+            )
+        )
+        pail_tree["intercept"]["range_95_above"] = float(
+            (
+                (pail_tree["intercept"]["parameter"]) +
+                (pail_tree["intercept"]["interval_95"])
+            )
+        )
+        # Probability.
+        pail_tree["intercept"]["probability"] = float(
+            model_probabilities["const"]
+        )
+        # Variance Inflation Factor (VIF).
+        # Missing or undefined for intercept?
         pail_tree["intercept"]["inflation"] = float("nan")
-        pail_tree["intercept"]["probability"] = model_probabilities["const"]
     else:
         # Report.
         if report:
@@ -297,9 +314,9 @@ def organize_linear_logistic_regression_independence_tree(
         pail_tree[variable]["variable"] = str(variable)
         # Coefficient or parameter.
         #pail_tree[variable]["parameter"] = report.params[counter]
-        pail_tree[variable]["parameter"] = model_parameters[variable]
+        pail_tree[variable]["parameter"] = float(model_parameters[variable])
         # Parameter standard error
-        pail_tree[variable]["error"] = model_parameter_errors[variable]
+        pail_tree[variable]["error"] = float(model_parameter_errors[variable])
         pail_tree[variable]["interval_95"] = float(
             1.96 * pail_tree[variable]["error"]
         )
@@ -309,16 +326,30 @@ def organize_linear_logistic_regression_independence_tree(
                 interval_low=pail_tree[variable]["interval_95"],
                 interval_high=pail_tree[variable]["interval_95"],
         ))
+        pail_tree[variable]["range_95_below"] = float(
+            (
+                (pail_tree[variable]["parameter"]) -
+                (pail_tree[variable]["interval_95"])
+            )
+        )
+        pail_tree[variable]["range_95_above"] = float(
+            (
+                (pail_tree[variable]["parameter"]) +
+                (pail_tree[variable]["interval_95"])
+            )
+        )
         # Probability.
-        pail_tree[variable]["probability"] = model_probabilities[variable]
+        pail_tree[variable]["probability"] = float(
+            model_probabilities[variable]
+        )
         # Variance Inflation Factor (VIF).
-        inflation_value = (
+        inflation_value = float(
             statsmodels.stats.outliers_influence.variance_inflation_factor(
                 table_independence_intercept.to_numpy(),
                 counter
             )
         )
-        pail_tree[variable]["inflation"] = round(inflation_value, 3)
+        pail_tree[variable]["inflation"] = round(inflation_value, 5)
         # Increment index.
         counter += 1
         pass
@@ -1059,6 +1090,8 @@ def create_missing_regression_independent_variable(
     pail["error"] = float("nan")
     pail["interval_95"] = float("nan")
     pail["range_95"] = str("nan ... nan")
+    pail["range_95_below"] = float("nan")
+    pail["range_95_above"] = float("nan")
     pail["probability"] = float("nan")
     pail["inflation"] = float("nan")
     # Return information.
@@ -1534,7 +1567,8 @@ def organize_table_regression_summary(
             "r_square", "r_square_adjust", "log_likelihood", "akaike", "bayes",
             "condition",
             "variable", "variable_key",
-            "parameter", "error", "interval_95", "range_95",
+            "parameter", "error", "interval_95",
+            "range_95", "range_95_below", "range_95_above",
             "probability", "inflation",
             "independence",
             "dependence_actual", "independence_actual",
@@ -1547,7 +1581,8 @@ def organize_table_regression_summary(
             "freedom", "observations", "samples",
             "r_square_pseudo", "log_likelihood", "akaike", "bayes",
             "variable", "variable_key",
-            "parameter", "error", "interval_95", "range_95",
+            "parameter", "error", "interval_95",
+            "range_95", "range_95_below", "range_95_above",
             "probability", "inflation",
             "independence",
             "dependence_actual", "independence_actual",
@@ -1759,6 +1794,13 @@ def drive_linear_logistic_regressions_cohorts_models(
     pail["table"] = table_regressions_long
     # Return information.
     return pail
+
+
+# TODO: TCW, 05 April 2022
+# TODO: Implement new function(s) to group records from regression summary table(s)
+# TODO: by 1. dependent variable, 2. cohort, 3. joint versus marginal context, 4. adjustment (adjust or unadjust).
+# TODO: Introduce new columns to the original regression cohort-model table for 1. "context", 2. "adjustment"
+# TODO: for use in this grouping of records.
 
 
 

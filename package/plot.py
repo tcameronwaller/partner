@@ -2211,9 +2211,9 @@ def plot_scatter(
 # TODO: could I plot 2 different groups of points on the same forest plot?
 
 # 1. determine count of discrete ordinate (vertical) tick positions
-# range(len(values_ordinate))
+# range(len(values_ordinate)) <-- really just gives integer positions (ex: 1, 2, 3, 4, 5)
 
-# 2. introduce uniform stagger to y position
+# 2. introduce uniform stagger to y position from step 1. above
 # series_top (+0.25) and series_bottom (-0.25)
 
 # 3. set ytick positions using matplotlib.axes.Axes.set_yticks
@@ -2259,14 +2259,14 @@ def plot_scatter_points_forest_category_ordinate(
             axis
         ordinate (str): name of table's column with variable for vertical (y)
             axis
-        abscissa_interval_low (str): name of table's column for the extent of the
-            left error bar below the dot
-        abscissa_interval_high (str): name of table's column for the extent of the
-            right error bar above the dot
+        abscissa_interval_low (str): name of table's column for the extent of
+            the error bar below the dot
+        abscissa_interval_high (str): name of table's column for the extent of
+            the error bar above the dot
         title_ordinate (str): title for ordinate on vertical axis
         title_abscissa (str): title for abscissa on horizontal axis
         minimum_abscissa (float): minimal value for abscissa axis' range
-        maximum_abscissa (float): minimal value for abscissa axis' range
+        maximum_abscissa (float): maximal value for abscissa axis' range
         label_size_ordinate_categories (str): label size for categories on
             vertical axis
         fonts (dict<object>): references to definitions of font properties
