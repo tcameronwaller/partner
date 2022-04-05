@@ -248,7 +248,7 @@ def organize_linear_logistic_regression_independence_tree(
     """
 
     # Copy information.
-    table = table.copy(deep=True)
+    table_independence_intercept = table_independence_intercept.copy(deep=True)
 
     # Collect information about independent variables.
     pail_tree = dict()
