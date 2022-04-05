@@ -264,6 +264,7 @@ def organize_linear_logistic_regression_independence_tree(
     ):
         # Collect information for intercept.
         pail_tree["intercept"] = dict()
+        pail_tree[variable]["variable"] = "intercept"
         #pail_tree["intercept"]["parameter"] = report.params[0]
         pail_tree["intercept"]["parameter"] = model_parameters["const"]
         pail_tree["intercept"]["error"] = model_parameter_errors["const"]
@@ -1475,7 +1476,7 @@ def organize_regressions_summary_table_long(
                 record[entry] = record_regression[entry]
                 pass
             # Collect name of variable.
-            record["variable"] = variable
+            record["variable_key"] = variable
             # Extract names of entries for statistics on the independent
             # variable.
             entries_variable = (
@@ -1536,7 +1537,8 @@ def organize_table_regression_summary(
             "dependence", #"dependence_type",
             #"model",
             "model_note",
-            "variable", "parameter", "error", "interval_95", "range_95",
+            "variable", "variable_key",
+            "parameter", "error", "interval_95", "range_95",
             "probability", "inflation",
             #"freedom", "observations", "samples",
             #"r_square", "r_square_adjust", "log_likelihood", "akaike", "bayes",
@@ -1549,7 +1551,8 @@ def organize_table_regression_summary(
             "cohort",
             "dependence", "dependence_type",
             "model", "model_note",
-            "variable", "parameter", "error", "interval_95", "range_95",
+            "variable", "variable_key",
+            "parameter", "error", "interval_95", "range_95",
             "probability", "inflation",
             "freedom", "observations", "samples",
             "r_square_pseudo", "log_likelihood", "akaike", "bayes", "condition",
