@@ -1533,7 +1533,7 @@ def organize_table_regression_summary(
             "variable", "parameter", "error", "interval_95", "range_95",
             "probability", "inflation",
             "freedom", "observations", "samples",
-            "r_square", "r_square_adust", "log_likelihood", "akaike", "bayes",
+            "r_square", "r_square_adjust", "log_likelihood", "akaike", "bayes",
             "condition",
             "independence",
             "dependence_actual", "independence_actual",
