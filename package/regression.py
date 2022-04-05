@@ -221,6 +221,7 @@ def determine_confidence_interval_range_text(
 
 
 def organize_linear_logistic_regression_independence_tree(
+    independence=None,
     model_parameters=None,
     model_parameter_errors=None,
     model_probabilities=None,
@@ -231,6 +232,8 @@ def organize_linear_logistic_regression_independence_tree(
     from a logistic or linear regression.
 
     arguments:
+        independence (list<str>): names of table's columns for independent
+            variables
         model_parameters (dict): parameter coefficients
         model_parameter_errors (dict): standard errors of estimates of parameter
             coefficients
@@ -875,6 +878,7 @@ def regress_tree_discrete_logit(
     model_parameter_errors = pandas.Series(data=pail_raw.bse)
     model_probabilities = pandas.Series(data=pail_raw.pvalues)
     pail_tree = organize_linear_logistic_regression_independence_tree(
+        independence=independence,
         model_parameters=model_parameters,
         model_parameter_errors=model_parameter_errors,
         model_probabilities=model_probabilities,
@@ -1011,6 +1015,7 @@ def regress_tree_linear_ordinary_least_squares(
     model_parameter_errors = pandas.Series(data=pail_raw.bse)
     model_probabilities = pandas.Series(data=pail_raw.pvalues)
     pail_tree = organize_linear_logistic_regression_independence_tree(
+        independence=independence,
         model_parameters=model_parameters,
         model_parameter_errors=model_parameter_errors,
         model_probabilities=model_probabilities,
