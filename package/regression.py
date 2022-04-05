@@ -1558,6 +1558,17 @@ def organize_table_regression_summary(
     table = table.loc[:, table.columns.isin(columns)]
     # Sort columns.
     table = table[[*columns]]
+    # Report.
+    if report:
+        utility.print_terminal_partition(level=5)
+        print("report: ")
+        function_name = str(
+            "organize_table_regression_summary()"
+        )
+        print(function_name)
+        utility.print_terminal_partition(level=5)
+        print(table)
+        pass
     # Return information.
     return table
 
