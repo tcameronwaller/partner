@@ -1350,15 +1350,15 @@ def organize_check_table_drive_regression(
         if (type == "linear"):
             pail_regression = regress_tree_linear_ordinary_least_squares(
                 dependence=dependence,
-                independence=pail_organization["independence"],
-                table=pail_organization["table"],
+                independence=pail_check["independence"],
+                table=pail_check["table"],
                 report=report,
             )
         elif (type == "logistic"):
             pail_regression = regress_tree_discrete_logit(
                 dependence=dependence,
-                independence=pail_organization["independence"],
-                table=pail_organization["table"],
+                independence=pail_check["independence"],
+                table=pail_check["table"],
                 report=report,
             )
             pass
