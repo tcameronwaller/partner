@@ -1469,6 +1469,8 @@ def organize_regressions_summary_table_long(
             independences_inclusion = (
                 record_regression["independence_tree"].keys()
             )
+        print("check: independence tree keys...")
+        print(record_regression["independence_tree"].keys())
         # Iterate on independent variables.
         for variable in independences_inclusion:
             # Collect entries for statistics on the whole model.
