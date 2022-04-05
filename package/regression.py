@@ -1449,44 +1449,50 @@ def organize_regressions_summary_table_long(
         # Collection information.
         record = dict()
         # Extract names of entries for statistics on the whole model.
+        keys_general = copy.deepcopy(list(
+            record_regression.keys()
+        ))
         entries_general = list(filter(
             lambda entry: ("independence_tree" not in str(entry)),
-            record_regression.keys()
+            keys_general
         ))
         # Extract names of independent variables to include in summary.
         # If 'independences_summary' is not 'None', then only include
         # information in summary table about independent variables that are in
         # the list 'independences_summary'.
+        keys_tree = copy.deepcopy(list(
+            record_regression["independence_tree"].keys()
+        ))
+        print("check: independence tree keys...")
+        print(keys_tree)
         if (
             (independences_summary is not None) and
             (len(independences_summary) > 0)
         ):
             independences_inclusion = list(filter(
                 lambda variable: (str(variable) in independences_summary),
-                record_regression["independence_tree"].keys()
+                keys_tree
             ))
         else:
             independences_inclusion = (
-                record_regression["independence_tree"].keys()
+                keys_tree
             )
-        print("check: independence tree keys...")
-        print(record_regression["independence_tree"].keys())
         # Iterate on independent variables.
         for variable in independences_inclusion:
             # Collect entries for statistics on the whole model.
             for entry in entries_general:
-                record[entry] = record_regression[entry]
+                record[entry] = copy.deepcopy(record_regression[entry])
                 pass
             # Collect name of variable.
             record["variable_key"] = variable
             # Extract names of entries for statistics on the independent
             # variable.
-            entries_variable = (
+            entries_variable = copy.deepcopy(list(
                 record_regression["independence_tree"][variable].keys()
-            )
+            ))
             # Collect entries for statistics on the independent variable.
             for entry in entries_variable:
-                record[entry] = (
+                record[entry] = copy.deepcopy(
                     record_regression["independence_tree"][variable][entry]
                 )
                 pass
