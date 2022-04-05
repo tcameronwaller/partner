@@ -758,7 +758,8 @@ def regress_linear_ordinary_least_squares(
     # Return information.
     return pail
 
-
+# TODO: TCW, 05 April 2022
+# TODO: This newer function ought to replace "regress_discrete_logit()".
 def regress_tree_discrete_logit(
     dependence=None,
     independence=None,
@@ -895,6 +896,8 @@ def regress_tree_discrete_logit(
     return pail
 
 
+# TODO: TCW, 05 April 2022
+# TODO: This newer function ought to replace "regress_linear_ordinary_least_squares()".
 def regress_tree_linear_ordinary_least_squares(
     dependence=None,
     independence=None,
@@ -1028,10 +1031,6 @@ def regress_tree_linear_ordinary_least_squares(
     pail = dict()
     pail["summary"] = summary
     pail["residuals"] = residuals
-
-    # TEMPORARY!!!
-
-    print(pail["summary"])
     # Return information.
     return pail
 
@@ -1402,18 +1401,6 @@ def organize_check_table_drive_regression(
     return pail_regression
 
 
-# TODO: TCW, 01 April 2022
-# give this function more information... for each individual regression, need to know...
-# name of cohort, dependent variable, model identifier, model note, list of all independent variables
-# iterate on the independent variables and make long-format table
-
-# TODO: TCW, 01 April 2022
-# TODO: I need to reorganize the summary report tables
-# TODO: 1. LONG format 2. WIDE format
-
-# Create both a "long" table and a "wide" table for versatility... same info... different formats
-
-
 def organize_regressions_summary_table_long(
     records_regressions=None,
     independences_summary=None,
@@ -1461,8 +1448,6 @@ def organize_regressions_summary_table_long(
         keys_tree = copy.deepcopy(list(
             record_regression["independence_tree"].keys()
         ))
-        print("check: independence tree keys...")
-        print(keys_tree)
         if (
             (independences_summary is not None) and
             (len(independences_summary) > 0)
@@ -1543,28 +1528,27 @@ def organize_table_regression_summary(
     if (type == "linear"):
         columns = [
             "cohort",
-            #"dependence", "dependence_type",
-            #"model",
-            "model_note",
-            "variable", #"variable_key",
-            "parameter", #"error", "interval_95", "range_95",
-            #"probability", "inflation",
-            #"freedom", "observations", "samples",
-            #"r_square", "r_square_adjust", "log_likelihood", "akaike", "bayes",
-            #"condition",
-            #"independence",
-            #"dependence_actual", "independence_actual",
+            "dependence", "dependence_type",
+            "model", "model_note",
+            "freedom", "observations", "samples",
+            "r_square", "r_square_adjust", "log_likelihood", "akaike", "bayes",
+            "condition",
+            "variable", "variable_key",
+            "parameter", "error", "interval_95", "range_95",
+            "probability", "inflation",
+            "independence",
+            "dependence_actual", "independence_actual",
         ]
     elif (type == "logistic"):
         columns = [
             "cohort",
             "dependence", "dependence_type",
             "model", "model_note",
+            "freedom", "observations", "samples",
+            "r_square_pseudo", "log_likelihood", "akaike", "bayes",
             "variable", "variable_key",
             "parameter", "error", "interval_95", "range_95",
             "probability", "inflation",
-            "freedom", "observations", "samples",
-            "r_square_pseudo", "log_likelihood", "akaike", "bayes", "condition",
             "independence",
             "dependence_actual", "independence_actual",
         ]
