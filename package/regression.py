@@ -264,7 +264,7 @@ def organize_linear_logistic_regression_independence_tree(
     ):
         # Collect information for intercept.
         pail_tree["intercept"] = dict()
-        pail_tree[variable]["variable"] = "intercept"
+        pail_tree["intercept"]["variable"] = "intercept"
         #pail_tree["intercept"]["parameter"] = report.params[0]
         pail_tree["intercept"]["parameter"] = model_parameters["const"]
         pail_tree["intercept"]["error"] = model_parameter_errors["const"]
