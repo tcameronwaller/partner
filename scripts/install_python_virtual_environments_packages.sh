@@ -136,14 +136,14 @@ which python3 # "${path_environment_main}/bin/python3" TCW, 28 July 2021
 python3 -m pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org pip setuptools
 python3 -m pip --version # "pip 21.1.3 from ${path_environment_main}/lib/python3.9/site-packages/pip (python 3.9)" TCW, 28 July 2021
 python3 -m pip install --upgrade pip
-python3 -m pip --version # "pip 21.2.1 from ${path_environment_main}/lib/python3.9/site-packages/pip (python 3.9)" TCW, 28 July 2021
+python3 -m pip --version # "pip 22.0.4 from ${path_environment_main}/lib/python3.9/site-packages/pip (python 3.9)" TCW, 06 April 2022
 python3 -m pip install --upgrade numpy # "numpy-1.21.1" TCW, 28 July 2021
 python3 -m pip install --upgrade scipy # "scipy-1.7.0" TCW, 28 July 2021
 python3 -m pip install --upgrade testresources # "pbr-5.6.0 testresources-2.0.1" TCW, 28 July 2021
 python3 -m pip install --upgrade pandas # "pandas-1.3.1 python-dateutil-2.8.2 pytz-2021.1 six-1.16.0" TCW, 28 July 2021
 python3 -m pip install --upgrade sklearn # "joblib-1.0.1 scikit-learn-0.24.2 sklearn-0.0 threadpoolctl-2.2.0" TCW, 28 July 2021
 python3 -m pip install --upgrade statsmodels # "patsy-0.5.1 statsmodels-0.12.2" TCW, 28 July 2021
-python3 -m pip install --upgrade matplotlib # "cycler-0.10.0 kiwisolver-1.3.1 matplotlib-3.4.2 pillow-8.3.1 pyparsing-2.4.7" TCW, 28 July 2021
+python3 -m pip install --upgrade matplotlib # "cycler-0.10.0 kiwisolver-1.3.1 matplotlib-3.5.1 pillow-8.3.1 pyparsing-2.4.7" TCW, 06 April 2022
 python3 -m pip install --upgrade networkx # "networkx-2.6.2" TCW, 28 July 2021
 deactivate
 which python3

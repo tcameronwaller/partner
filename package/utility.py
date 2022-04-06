@@ -818,6 +818,75 @@ def read_file_text_lines_elements(
     return elements
 
 
+def read_all_pandas_tables_files_within_parent_directory(
+    path_directory_parent=None,
+    types_pandas_table_read=None,
+    report=None,
+):
+    """
+    Reads all files within parent directory as Pandas data-frame tables and
+    organizes these within a dictionary collection with entry names from the
+    original file names.
+
+    Notice that Pandas does not accommodate missing values within series of
+    integer variable types.
+
+    arguments:
+        path_directory_parent (str): path to parent directory for files
+        types_pandas_table_read (dict<str>): variable types for read of table in
+            Pandas
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict<object>): collection of Pandas data-frame tables with entry names
+            (keys) derived from original names of files
+
+    """
+
+    # Read names of files from parent directory.
+    contents = os.listdir(path=path_directory_parent)
+    names_files = list(filter(
+        lambda content: (os.path.isfile(os.path.join(
+            path_directory_parent, content
+        ))),
+        contents
+    ))
+    # Report.
+    if report:
+        print("Names of files within parent directory:")
+        print(names_files)
+    # Iterate on names of files to read and organize tables.
+    # Collect tables.
+    pail = dict()
+    for name_file in names_files:
+        # Determine name of table.
+        name_table = name_file.replace(".tsv", "")
+        # Specify directories and files.
+        path_table = os.path.join(
+            path_directory_parent,
+            name_file,
+        )
+        # Read information from file.
+        table = pandas.read_csv(
+            path_table,
+            sep="\t",
+            header=0,
+            dtype=types_pandas_table_read,
+        )
+        table.reset_index(
+            level=None,
+            inplace=True,
+            drop=True,
+        )
+        # Collect table.
+        pail[name_table] = table.copy(deep=True)
+        pass
+    # Return information.
+    return pail
+
+
 def write_file_text_table(
     information=None,
     path_file=None,

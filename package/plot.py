@@ -2207,14 +2207,14 @@ def plot_scatter(
     return figure
 
 
-def plot_scatter_points_forest_category_ordinate_two_series(
+def plot_scatter_points_forest_category_ordinate_two_groups(
     table=None,
     column_group=None,
     column_ordinate_label=None,
     column_ordinate_sort=None,
     column_abscissa_value=None,
-    column_abscissa_range_below=None,
-    column_abscissa_range_above=None,
+    column_abscissa_interval_below=None,
+    column_abscissa_interval_above=None,
     group_one=None,
     group_two=None,
     abscissa_minimum=None,
@@ -2224,6 +2224,7 @@ def plot_scatter_points_forest_category_ordinate_two_series(
     label_chart=None,
     label_size_ordinate_categories=None,
     size_marker=None,
+    space_groups=None,
     fonts=None,
     colors=None,
 ):
@@ -2242,6 +2243,9 @@ def plot_scatter_points_forest_category_ordinate_two_series(
     This plot's abscissa (horizontal, x axis) fits best for a variable with
     continuous, ratio-scale values that center on zero.
 
+    MatPlotLib accepts intervals, not ranges for error bars. The function does
+    the arithmetic to calculate ranges below and above the central value.
+
     arguments:
         table (object): Pandas data frame of feature variables across columns
             and observation records across rows
@@ -2255,10 +2259,10 @@ def plot_scatter_points_forest_category_ordinate_two_series(
         column_abscissa_value (str): name of table's column with floating point
             continuous scale coefficient values for representation as points on
             the horizontal abscissa (x) axis
-        column_abscissa_range_below (str): name of table's column for the extent
-            of the error bar below the point value
-        column_abscissa_range_above (str): name of table's column for the extent
-            of the error bar above the point value
+        column_abscissa_interval_below (str): name of table's column for the
+            extent (interval) of the error bar below the point value
+        column_abscissa_interval_above (str): name of table's column for the
+            extent (interval) of the error bar above the point value
         group_one (str): textual categorical name of first group of values
             (series) within table's column with name 'column_group'
         group_two (str): textual categorical name of second group of values
@@ -2271,6 +2275,7 @@ def plot_scatter_points_forest_category_ordinate_two_series(
         label_size_ordinate_categories (str): label size for categories on
             vertical axis
         size_marker (int): size of marker
+        space_groups (float): vertical spacing between markers for groups
         fonts (dict<object>): references to definitions of font properties
         colors (dict<tuple>): references to definitions of color properties
 
@@ -2286,9 +2291,9 @@ def plot_scatter_points_forest_category_ordinate_two_series(
     # for series one and series two.
     table = table.copy(deep=True)
     columns = [
-        column_group, column_ordinate_label, column_ordinate_label_sort,
+        column_group, column_ordinate_label, column_ordinate_sort,
         column_abscissa_value,
-        column_abscissa_range_below, column_abscissa_range_above,
+        column_abscissa_interval_below, column_abscissa_interval_above,
     ]
     table_columns = table.loc[
         :, table.columns.isin(columns)
@@ -2296,7 +2301,7 @@ def plot_scatter_points_forest_category_ordinate_two_series(
     table_columns.sort_values(
         by=[column_group, column_ordinate_sort],
         axis="index",
-        ascending=True,
+        ascending=False, # Non-ascending sort order is more intuitive here
         inplace=True,
     )
     table_group_one = table_columns.loc[
@@ -2314,40 +2319,40 @@ def plot_scatter_points_forest_category_ordinate_two_series(
     # Assign positions for Group One to be above center point.
     # Assign positions for Group Two to be below center point.
     ordinate_labels = table_group_one[column_ordinate_label].to_list()
-    ordinate_positions_center = range(len(labels_ordinate))
+    ordinate_positions_center = range(len(ordinate_labels))
     ordinate_positions_one = list(map(
-        lambda position: (position - 0.25),
+        lambda position: (position + space_groups),
         ordinate_positions_center
     ))
     ordinate_positions_two = list(map(
-        lambda position: (position + 0.25),
+        lambda position: (position - space_groups),
         ordinate_positions_center
     ))
     # Extract information for labels, values, and error bars.
     abscissa_positions_one = table_group_one[column_abscissa_value].to_numpy()
-    abscissa_ranges_one_below = (
-        table_group_one[column_abscissa_range_below].to_numpy()
+    abscissa_intervals_one_below = (
+        table_group_one[column_abscissa_interval_below].to_numpy()
     )
-    abscissa_ranges_one_above = (
-        table_group_one[column_abscissa_range_above].to_numpy()
+    abscissa_intervals_one_above = (
+        table_group_one[column_abscissa_interval_above].to_numpy()
     )
     abscissa_positions_two = table_group_two[column_abscissa_value].to_numpy()
-    abscissa_ranges_two_below = (
-        table_group_two[column_abscissa_range_below].to_numpy()
+    abscissa_intervals_two_below = (
+        table_group_two[column_abscissa_interval_below].to_numpy()
     )
-    abscissa_ranges_two_above = (
-        table_group_two[column_abscissa_range_above].to_numpy()
+    abscissa_intervals_two_above = (
+        table_group_two[column_abscissa_interval_above].to_numpy()
     )
     # Shape (n, 2)
     #errors_ordinate = numpy.array(list(zip(
     #    errors_ordinate_low, errors_ordinate_high
     #)))
     # Shape (2, n)
-    abscissa_ranges_one = numpy.array(
-        [abscissa_ranges_one_below, abscissa_ranges_one_above]
+    abscissa_intervals_one = numpy.array(
+        [abscissa_intervals_one_below, abscissa_intervals_one_above]
     )
-    abscissa_ranges_two = numpy.array(
-        [abscissa_ranges_two_below, abscissa_ranges_two_above]
+    abscissa_intervals_two = numpy.array(
+        [abscissa_intervals_two_below, abscissa_intervals_two_above]
     )
 
     ##########
@@ -2359,13 +2364,13 @@ def plot_scatter_points_forest_category_ordinate_two_series(
     # Create axes.
     axes = matplotlib.pyplot.axes()
     axes.set_xlim(
-        xmin=minimum_abscissa,
-        xmax=maximum_abscissa,
+        xmin=abscissa_minimum,
+        xmax=abscissa_maximum,
     )
     # Set titles for axes.
     axes.set_xlabel(
         xlabel=abscissa_title,
-        labelpad=20,
+        labelpad=30,
         alpha=1.0,
         backgroundcolor=colors["white"],
         color=colors["black"],
@@ -2373,7 +2378,7 @@ def plot_scatter_points_forest_category_ordinate_two_series(
     )
     axes.set_ylabel(
         ylabel=ordinate_title,
-        labelpad=20,
+        labelpad=30,
         alpha=1.0,
         backgroundcolor=colors["white"],
         color=colors["black"],
@@ -2387,7 +2392,7 @@ def plot_scatter_points_forest_category_ordinate_two_series(
         length=5.0,
         width=3.0,
         color=colors["black"],
-        pad=5,
+        pad=10,
         labelsize=fonts["values"][label_size_ordinate_categories]["size"],
         labelcolor=colors["black"]
     )
@@ -2398,7 +2403,7 @@ def plot_scatter_points_forest_category_ordinate_two_series(
         length=5.0,
         width=3.0,
         color=colors["black"],
-        pad=5,
+        pad=10,
         labelsize=fonts["values"]["one"]["size"],
         labelcolor=colors["black"]
     )
@@ -2416,7 +2421,7 @@ def plot_scatter_points_forest_category_ordinate_two_series(
         ymin=0,
         ymax=1,
         alpha=1.0,
-        color=colors["orange"],
+        color=colors["black"],
         linestyle="--",
         linewidth=7.5,
     )
@@ -2427,11 +2432,12 @@ def plot_scatter_points_forest_category_ordinate_two_series(
         abscissa_positions_one,
         ordinate_positions_one,
         yerr=None,
-        xerr=abscissa_ranges_one,
+        xerr=abscissa_intervals_one,
+        ecolor=colors["gray"],
         elinewidth=7.5,
-        barsabove=True,
+        barsabove=True, # whether to print error bars in layer above points
         linestyle="",
-        marker="o",
+        marker="o", # marker shape: circle
         markersize=size_marker, # 5, 15
         markeredgecolor=colors["blue"],
         markerfacecolor=colors["blue"],
@@ -2440,14 +2446,15 @@ def plot_scatter_points_forest_category_ordinate_two_series(
         abscissa_positions_two,
         ordinate_positions_two,
         yerr=None,
-        xerr=abscissa_ranges_two,
+        xerr=abscissa_intervals_two,
+        ecolor=colors["gray"],
         elinewidth=7.5,
-        barsabove=True,
+        barsabove=True, # whether to print error bars in layer above points,
         linestyle="",
-        marker="o",
+        marker="^", # marker shape: up triangle
         markersize=size_marker, # 5, 15
-        markeredgecolor=colors["blue"],
-        markerfacecolor=colors["blue"],
+        markeredgecolor=colors["orange"],
+        markerfacecolor=colors["orange"],
     )
     # Include title label on plot.
     if len(label_chart) > 0:
@@ -2803,11 +2810,6 @@ def plot_scatter_points_dot_category_abscissa(
 
     # Return figure.
     return figure
-
-
-
-
-
 
 
 
@@ -3288,7 +3290,7 @@ def write_product_plot_figure(
 
 
 def write_product_plots_child_directories(
-    information=None,
+    pail_write=None,
     path_parent=None,
 ):
     """
@@ -3298,7 +3300,7 @@ def write_product_plots_child_directories(
     Second dictionary tier names the file.
 
     arguments:
-        information (dict<dict<object>>): information to write to file
+        pail_write (dict<dict<object>>): information to write to file
         path_parent (str): path to parent directory
 
     raises:
@@ -3311,7 +3313,7 @@ def write_product_plots_child_directories(
     # First level of plots dictionary tree gives names for child directories.
     # Second level of plots dictionary tree gives names of plots.
     # Iterate across child directories.
-    for name_directory in information.keys():
+    for name_directory in pail_write.keys():
         # Define paths to directories.
         path_child = os.path.join(
             path_parent, name_directory
@@ -3321,11 +3323,11 @@ def write_product_plots_child_directories(
             path=path_child
         )
         # Iterate across charts.
-        for name_file in information[name_directory].keys():
+        for name_file in pail_write[name_directory].keys():
             # Write chart object to file in child directory.
             write_product_plot_figure(
                 name=name_file,
-                figure=information[name_directory][name_file],
+                figure=pail_write[name_directory][name_file],
                 path_parent=path_child,
             )
             pass
@@ -3338,6 +3340,124 @@ def write_product_plots_child_directories(
 # Drivers
 
 
+
+def drive_iterate_plot_forest_two_groups(
+    pail_tables=None,
+    column_group=None,
+    column_ordinate_label=None,
+    column_ordinate_sort=None,
+    column_abscissa_value=None,
+    column_abscissa_interval_below=None,
+    column_abscissa_interval_above=None,
+    group_one=None,
+    group_two=None,
+    abscissa_minimum=None,
+    abscissa_maximum=None,
+    ordinate_title=None,
+    abscissa_title=None,
+    label_chart=None,
+    label_size_ordinate_categories=None,
+    size_marker=None,
+    space_groups=None,
+):
+    """
+    Creates a figure of a chart of type scatter with discrete, categorical,
+    textual labels on the vertical ordinate axis and continuous points with
+    error bars on the horizontal abscissa axis.
+
+    Common name of this chart design is "Forest Plot".
+
+    This function accommodates exactly two groups of values (series).
+
+    This plot's ordinate (vertical, y axis) fits best for a variable with
+    discrete categorical values that serve as names.
+
+    This plot's abscissa (horizontal, x axis) fits best for a variable with
+    continuous, ratio-scale values that center on zero.
+
+    MatPlotLib accepts intervals, not ranges for error bars. The function does
+    the arithmetic to calculate ranges below and above the central value.
+
+    arguments:
+        pail_tables (dict<object>): collection of Pandas data-frame tables with
+            feature variables across columns and observation records across rows
+        column_group (str): name of table's column with names of groups or
+            series of values
+        column_ordinate_label (str): name of table's column with textual
+            categorical values for representation as labels on the vertical
+            ordinate (y) axis
+        column_ordinate_sort (str): name of table's column with integer values
+            for sort order on categorical values for ordinate
+        column_abscissa_value (str): name of table's column with floating point
+            continuous scale coefficient values for representation as points on
+            the horizontal abscissa (x) axis
+        column_abscissa_interval_below (str): name of table's column for the
+            extent (interval) of the error bar below the point value
+        column_abscissa_interval_above (str): name of table's column for the
+            extent (interval) of the error bar above the point value
+        group_one (str): textual categorical name of first group of values
+            (series) within table's column with name 'column_group'
+        group_two (str): textual categorical name of second group of values
+            (series) within table's column with name 'group'
+        abscissa_minimum (float): minimal value for range of abscissa axis
+        abscissa_maximum (float): maximal value for range of abscissa axis
+        ordinate_title (str): title for ordinate or vertical axis
+        abscissa_title (str): title for abscissa or horizontal axis
+        label_chart (str): text label title of chart to include on figure
+        label_size_ordinate_categories (str): label size for categories on
+            vertical axis
+        size_marker (int): size of marker
+        space_groups (float): vertical spacing between markers for groups
+        fonts (dict<object>): references to definitions of font properties
+        colors (dict<tuple>): references to definitions of color properties
+
+    raises:
+
+    returns:
+        (object): figure object
+
+    """
+
+    # Define fonts.
+    fonts = define_font_properties()
+    # Define colors.
+    colors = define_color_properties()
+
+    # Collect figures.
+    pail_figures = dict()
+    # Iterate on tables for figures.
+    for name_table in pail_tables.keys():
+        # Organize table for figure.
+        table = pail_tables[name_table]
+        figure = plot_scatter_points_forest_category_ordinate_two_groups(
+            table=table,
+            column_group=column_group,
+            column_ordinate_label=column_ordinate_label,
+            column_ordinate_sort=column_ordinate_sort,
+            column_abscissa_value=column_abscissa_value,
+            column_abscissa_interval_below=column_abscissa_interval_below,
+            column_abscissa_interval_above=column_abscissa_interval_above,
+            group_one=group_one, # markers for group one are above center
+            group_two=group_two, # markers for group two are below center
+            abscissa_minimum=abscissa_minimum,
+            abscissa_maximum=abscissa_maximum,
+            ordinate_title=ordinate_title,
+            abscissa_title=abscissa_title,
+            label_chart=name_table,
+            label_size_ordinate_categories=label_size_ordinate_categories,
+            size_marker=size_marker,
+            space_groups=space_groups, # vertical space between groups' markers
+            fonts=fonts,
+            colors=colors,
+        )
+        # Collect figures.
+        pail_figures[name_table] = figure
+        pass
+    # Return information.
+    return pail_figures
+
+
+# TODO: TCW, 06 April 2022... OBSOLETE?
 def split_mean_interval_table_plot_dot_category(
     column_group=None,
     column_category=None,
@@ -3432,11 +3552,7 @@ def split_mean_interval_table_plot_dot_category(
     return pail
 
 
-
-# TODO: TCW, 29 March 2022
-# TODO: change "column_correlation" to "column_coefficient"
-# TODO: note that this structure will not work for the phenotypic regressions...
-
+# TODO: TCW, 06 April 2022... OBSOLETE?
 def split_correlation_table_plot_forest_category(
     column_group=None,
     column_category=None,
@@ -3536,11 +3652,6 @@ def split_correlation_table_plot_forest_category(
     # Return.
     return pail
 
-
-
-
-
-# TODO: consider introducing a template set of functions... read, organize data, call appropriate plot function...
 
 ###############################################################################
 # Procedure
