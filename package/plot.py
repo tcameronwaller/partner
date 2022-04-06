@@ -2207,22 +2207,249 @@ def plot_scatter(
     return figure
 
 
-# TODO: TCW, 29 March 2022
-# TODO: could I plot 2 different groups of points on the same forest plot?
+def plot_scatter_points_forest_category_ordinate_two_series(
+    table=None,
+    group_one=None,
+    group_two=None,
+    ordinate_label=None,
+    abscissa_value=None,
+    abscissa_range_below=None,
+    abscissa_range_above=None,
+    title_ordinate=None,
+    title_abscissa=None,
+    minimum_abscissa=None,
+    maximum_abscissa=None,
+    label_size_ordinate_categories=None,
+    fonts=None,
+    colors=None,
+    size=None,
+    label_title=None,
+):
+    """
+    Creates a figure of a chart of type scatter with discrete, categorical,
+    textual labels on the vertical ordinate axis and continuous points with
+    error bars on the horizontal abscissa axis.
 
-# 1. determine count of discrete ordinate (vertical) tick positions
-# range(len(values_ordinate)) <-- really just gives integer positions (ex: 1, 2, 3, 4, 5)
+    Common name of this chart design is "Forest Plot".
 
-# 2. introduce uniform stagger to y position from step 1. above
-# series_top (+0.25) and series_bottom (-0.25)
+    This function accommodates exactly two groups of values (series).
 
-# 3. set ytick positions using matplotlib.axes.Axes.set_yticks
-# also set y tick labels
-# https://matplotlib.org/3.5.1/api/_as_gen/matplotlib.axes.Axes.set_yticks.html
+    This plot's ordinate (vertical, y axis) fits best for a variable with
+    discrete categorical values that serve as names.
 
-# 4. plot series 1 points and error bars using "axes.errorbar"
+    This plot's abscissa (horizontal, x axis) fits best for a variable with
+    continuous, ratio-scale values that center on zero.
 
-# 5. plot series 2 points and error bars using "axes.errorbar"
+    arguments:
+        table (object): Pandas data frame of feature variables across columns
+            and observation records across rows
+        group_one (str): textual categorical name of first group of values
+            (series) within table's column with name 'group'
+        group_two (str): textual categorical name of second group of values
+            (series) within table's column with name 'group'
+        ordinate_label (str): name of table's column with textual categorical
+            values for representation as labels on the ordinate or vertical (y)
+            axis
+        abscissa_value (str): name of table's column with floating point
+            continuous scale coefficient values for representation as points on
+            the abscissa or horizontal (x) axis
+        abscissa_range_below (str): name of table's column for the extent of
+            the error bar below the dot
+        abscissa_range_above (str): name of table's column for the extent of
+            the error bar above the dot
+        title_ordinate (str): title for ordinate or vertical axis
+        title_abscissa (str): title for abscissa or horizontal axis
+        minimum_abscissa (float): minimal value for range of abscissa axis
+        maximum_abscissa (float): maximal value for range of abscissa axis
+        label_size_ordinate_categories (str): label size for categories on
+            vertical axis
+        fonts (dict<object>): references to definitions of font properties
+        colors (dict<tuple>): references to definitions of color properties
+        size (int): size of marker
+        label_title (str): text label title to include on figure
+
+    raises:
+
+    returns:
+        (object): figure object
+
+    """
+
+    # Organize information from table.
+    # It is important that the sorts orders of labels and values are identical
+    # for series one and series two.
+    table = table.copy(deep=True)
+    columns = [
+        group_one, group_two, ordinate_label,
+        abscissa_value, abscissa_range_below, abscissa_range_above,
+    ]
+    table_columns = table.loc[
+        :, table.columns.isin(columns)
+    ]
+    table_columns.sort_values(
+        by=["group", "label_sort"],
+        axis="index",
+        ascending=True,
+        inplace=True,
+    )
+    table_group_one = table_columns.loc[
+        (
+            (table_columns["group"] == group_one)
+        ), :
+    ]
+    table_group_two = table_columns.loc[
+        (
+            (table_columns["group"] == group_two)
+        ), :
+    ]
+
+    # Organize information for categorical labels on ordinate vertical axis.
+    # Assign positions for Group One to be above center point.
+    # Assign positions for Group Two to be below center point.
+    ordinate_labels = table_group_one[ordinate_label].to_list()
+    ordinate_positions_center = range(len(labels_ordinate))
+    ordinate_positions_one = list(map(
+        lambda position: (position - 0.25),
+        ordinate_positions_center
+    ))
+    ordinate_positions_two = list(map(
+        lambda position: (position + 0.25),
+        ordinate_positions_center
+    ))
+    # Extract information for labels, values, and error bars.
+    abscissa_positions_one = table_group_one[abscissa_value].to_numpy()
+    abscissa_ranges_one_below = table_group_one[abscissa_range_below].to_numpy()
+    abscissa_ranges_one_above = table_group_one[abscissa_range_above].to_numpy()
+    abscissa_positions_two = table_group_two[abscissa_value].to_numpy()
+    abscissa_ranges_two_below = table_group_two[abscissa_range_below].to_numpy()
+    abscissa_ranges_two_above = table_group_two[abscissa_range_above].to_numpy()
+    # Shape (n, 2)
+    #errors_ordinate = numpy.array(list(zip(
+    #    errors_ordinate_low, errors_ordinate_high
+    #)))
+    # Shape (2, n)
+    abscissa_ranges_one = numpy.array(
+        [abscissa_ranges_one_below, abscissa_ranges_one_above]
+    )
+    abscissa_ranges_two = numpy.array(
+        [abscissa_ranges_two_below, abscissa_ranges_two_above]
+    )
+
+    ##########
+    # Create figure.
+    figure = matplotlib.pyplot.figure(
+        figsize=(11.811, 15.748),
+        tight_layout=True
+    )
+    # Create axes.
+    axes = matplotlib.pyplot.axes()
+    axes.set_xlim(
+        xmin=minimum_abscissa,
+        xmax=maximum_abscissa,
+    )
+    # Set titles for axes.
+    axes.set_xlabel(
+        xlabel=title_abscissa,
+        labelpad=20,
+        alpha=1.0,
+        backgroundcolor=colors["white"],
+        color=colors["black"],
+        fontproperties=fonts["properties"]["one"]
+    )
+    axes.set_ylabel(
+        ylabel=title_ordinate,
+        labelpad=20,
+        alpha=1.0,
+        backgroundcolor=colors["white"],
+        color=colors["black"],
+        fontproperties=fonts["properties"]["one"]
+    )
+    # Set tick parameters for axes.
+    axes.tick_params(
+        axis="y",
+        which="both",
+        direction="out",
+        length=5.0,
+        width=3.0,
+        color=colors["black"],
+        pad=5,
+        labelsize=fonts["values"][label_size_ordinate_categories]["size"],
+        labelcolor=colors["black"]
+    )
+    axes.tick_params(
+        axis="x",
+        which="both",
+        direction="out",
+        length=5.0,
+        width=3.0,
+        color=colors["black"],
+        pad=5,
+        labelsize=fonts["values"]["one"]["size"],
+        labelcolor=colors["black"]
+    )
+    # Set explicit tick positions and labels on vertical ordinate axis.
+    # (https://matplotlib.org/3.5.1/api/_as_gen/
+    # matplotlib.axes.Axes.set_yticks.html)
+    axes.set_yticks(
+        ordinate_positions_center, # center positions with even spacing
+        labels=ordinate_labels, # place labels at center positions
+        minor=False,
+    )
+    # Plot dashed line at zero.
+    axes.axvline(
+        x=0,
+        ymin=0,
+        ymax=1,
+        alpha=1.0,
+        color=colors["orange"],
+        linestyle="--",
+        linewidth=7.5,
+    )
+    # Plot points and error bars for values and ranges from each group.
+    # (https://matplotlib.org/3.5.1/api/_as_gen/
+    # matplotlib.axes.Axes.errorbar.html)
+    handle_one = axes.errorbar(
+        abscissa_positions_one,
+        ordinate_positions_one,
+        yerr=None,
+        xerr=abscissa_ranges_one,
+        elinewidth=7.5,
+        barsabove=True,
+        linestyle="",
+        marker="o",
+        markersize=size, # 5, 15
+        markeredgecolor=colors["blue"],
+        markerfacecolor=colors["blue"],
+    )
+    handle_two = axes.errorbar(
+        abscissa_positions_two,
+        ordinate_positions_two,
+        yerr=None,
+        xerr=abscissa_ranges_two,
+        elinewidth=7.5,
+        barsabove=True,
+        linestyle="",
+        marker="o",
+        markersize=size, # 5, 15
+        markeredgecolor=colors["blue"],
+        markerfacecolor=colors["blue"],
+    )
+    # Include title label on plot.
+    if len(label_title) > 0:
+        matplotlib.pyplot.text(
+            0.99,
+            0.99,
+            label_title,
+            horizontalalignment="right",
+            verticalalignment="top",
+            transform=axes.transAxes,
+            backgroundcolor=colors["white_faint"],
+            color=colors["black"],
+            fontproperties=fonts["properties"]["four"]
+        )
+
+    # Return figure.
+    return figure
 
 
 def plot_scatter_points_forest_category_ordinate(
