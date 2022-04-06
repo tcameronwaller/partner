@@ -2209,12 +2209,14 @@ def plot_scatter(
 
 def plot_scatter_points_forest_category_ordinate_two_series(
     table=None,
+    column_group=None,
+    column_ordinate_label=None,
+    column_ordinate_sort=None,
+    column_abscissa_value=None,
+    column_abscissa_range_below=None,
+    column_abscissa_range_above=None,
     group_one=None,
     group_two=None,
-    ordinate_label=None,
-    abscissa_value=None,
-    abscissa_range_below=None,
-    abscissa_range_above=None,
     abscissa_minimum=None,
     abscissa_maximum=None,
     ordinate_title=None,
@@ -2243,20 +2245,24 @@ def plot_scatter_points_forest_category_ordinate_two_series(
     arguments:
         table (object): Pandas data frame of feature variables across columns
             and observation records across rows
+        column_group (str): name of table's column with names of groups or
+            series of values
+        column_ordinate_label (str): name of table's column with textual
+            categorical values for representation as labels on the vertical
+            ordinate (y) axis
+        column_ordinate_sort (str): name of table's column with integer values
+            for sort order on categorical values for ordinate
+        column_abscissa_value (str): name of table's column with floating point
+            continuous scale coefficient values for representation as points on
+            the horizontal abscissa (x) axis
+        column_abscissa_range_below (str): name of table's column for the extent
+            of the error bar below the point value
+        column_abscissa_range_above (str): name of table's column for the extent
+            of the error bar above the point value
         group_one (str): textual categorical name of first group of values
-            (series) within table's column with name 'group'
+            (series) within table's column with name 'column_group'
         group_two (str): textual categorical name of second group of values
             (series) within table's column with name 'group'
-        ordinate_label (str): name of table's column with textual categorical
-            values for representation as labels on the ordinate or vertical (y)
-            axis
-        abscissa_value (str): name of table's column with floating point
-            continuous scale coefficient values for representation as points on
-            the abscissa or horizontal (x) axis
-        abscissa_range_below (str): name of table's column for the extent of
-            the error bar below the dot
-        abscissa_range_above (str): name of table's column for the extent of
-            the error bar above the dot
         abscissa_minimum (float): minimal value for range of abscissa axis
         abscissa_maximum (float): maximal value for range of abscissa axis
         ordinate_title (str): title for ordinate or vertical axis
@@ -2280,33 +2286,34 @@ def plot_scatter_points_forest_category_ordinate_two_series(
     # for series one and series two.
     table = table.copy(deep=True)
     columns = [
-        group_one, group_two, ordinate_label,
-        abscissa_value, abscissa_range_below, abscissa_range_above,
+        column_group, column_ordinate_label, column_ordinate_label_sort,
+        column_abscissa_value,
+        column_abscissa_range_below, column_abscissa_range_above,
     ]
     table_columns = table.loc[
         :, table.columns.isin(columns)
     ]
     table_columns.sort_values(
-        by=["group", "label_sort"],
+        by=[column_group, column_ordinate_sort],
         axis="index",
         ascending=True,
         inplace=True,
     )
     table_group_one = table_columns.loc[
         (
-            (table_columns["group"] == group_one)
+            (table_columns[column_group] == group_one)
         ), :
     ]
     table_group_two = table_columns.loc[
         (
-            (table_columns["group"] == group_two)
+            (table_columns[column_group] == group_two)
         ), :
     ]
 
     # Organize information for categorical labels on ordinate vertical axis.
     # Assign positions for Group One to be above center point.
     # Assign positions for Group Two to be below center point.
-    ordinate_labels = table_group_one[ordinate_label].to_list()
+    ordinate_labels = table_group_one[column_ordinate_label].to_list()
     ordinate_positions_center = range(len(labels_ordinate))
     ordinate_positions_one = list(map(
         lambda position: (position - 0.25),
@@ -2317,12 +2324,20 @@ def plot_scatter_points_forest_category_ordinate_two_series(
         ordinate_positions_center
     ))
     # Extract information for labels, values, and error bars.
-    abscissa_positions_one = table_group_one[abscissa_value].to_numpy()
-    abscissa_ranges_one_below = table_group_one[abscissa_range_below].to_numpy()
-    abscissa_ranges_one_above = table_group_one[abscissa_range_above].to_numpy()
-    abscissa_positions_two = table_group_two[abscissa_value].to_numpy()
-    abscissa_ranges_two_below = table_group_two[abscissa_range_below].to_numpy()
-    abscissa_ranges_two_above = table_group_two[abscissa_range_above].to_numpy()
+    abscissa_positions_one = table_group_one[column_abscissa_value].to_numpy()
+    abscissa_ranges_one_below = (
+        table_group_one[column_abscissa_range_below].to_numpy()
+    )
+    abscissa_ranges_one_above = (
+        table_group_one[column_abscissa_range_above].to_numpy()
+    )
+    abscissa_positions_two = table_group_two[column_abscissa_value].to_numpy()
+    abscissa_ranges_two_below = (
+        table_group_two[column_abscissa_range_below].to_numpy()
+    )
+    abscissa_ranges_two_above = (
+        table_group_two[column_abscissa_range_above].to_numpy()
+    )
     # Shape (n, 2)
     #errors_ordinate = numpy.array(list(zip(
     #    errors_ordinate_low, errors_ordinate_high
