@@ -2215,15 +2215,15 @@ def plot_scatter_points_forest_category_ordinate_two_series(
     abscissa_value=None,
     abscissa_range_below=None,
     abscissa_range_above=None,
-    title_ordinate=None,
-    title_abscissa=None,
-    minimum_abscissa=None,
-    maximum_abscissa=None,
+    abscissa_minimum=None,
+    abscissa_maximum=None,
+    ordinate_title=None,
+    abscissa_title=None,
+    label_chart=None,
     label_size_ordinate_categories=None,
+    size_marker=None,
     fonts=None,
     colors=None,
-    size=None,
-    label_title=None,
 ):
     """
     Creates a figure of a chart of type scatter with discrete, categorical,
@@ -2257,16 +2257,16 @@ def plot_scatter_points_forest_category_ordinate_two_series(
             the error bar below the dot
         abscissa_range_above (str): name of table's column for the extent of
             the error bar above the dot
-        title_ordinate (str): title for ordinate or vertical axis
-        title_abscissa (str): title for abscissa or horizontal axis
-        minimum_abscissa (float): minimal value for range of abscissa axis
-        maximum_abscissa (float): maximal value for range of abscissa axis
+        abscissa_minimum (float): minimal value for range of abscissa axis
+        abscissa_maximum (float): maximal value for range of abscissa axis
+        ordinate_title (str): title for ordinate or vertical axis
+        abscissa_title (str): title for abscissa or horizontal axis
+        label_chart (str): text label title of chart to include on figure
         label_size_ordinate_categories (str): label size for categories on
             vertical axis
+        size_marker (int): size of marker
         fonts (dict<object>): references to definitions of font properties
         colors (dict<tuple>): references to definitions of color properties
-        size (int): size of marker
-        label_title (str): text label title to include on figure
 
     raises:
 
@@ -2349,7 +2349,7 @@ def plot_scatter_points_forest_category_ordinate_two_series(
     )
     # Set titles for axes.
     axes.set_xlabel(
-        xlabel=title_abscissa,
+        xlabel=abscissa_title,
         labelpad=20,
         alpha=1.0,
         backgroundcolor=colors["white"],
@@ -2357,7 +2357,7 @@ def plot_scatter_points_forest_category_ordinate_two_series(
         fontproperties=fonts["properties"]["one"]
     )
     axes.set_ylabel(
-        ylabel=title_ordinate,
+        ylabel=ordinate_title,
         labelpad=20,
         alpha=1.0,
         backgroundcolor=colors["white"],
@@ -2417,7 +2417,7 @@ def plot_scatter_points_forest_category_ordinate_two_series(
         barsabove=True,
         linestyle="",
         marker="o",
-        markersize=size, # 5, 15
+        markersize=size_marker, # 5, 15
         markeredgecolor=colors["blue"],
         markerfacecolor=colors["blue"],
     )
@@ -2430,16 +2430,16 @@ def plot_scatter_points_forest_category_ordinate_two_series(
         barsabove=True,
         linestyle="",
         marker="o",
-        markersize=size, # 5, 15
+        markersize=size_marker, # 5, 15
         markeredgecolor=colors["blue"],
         markerfacecolor=colors["blue"],
     )
     # Include title label on plot.
-    if len(label_title) > 0:
+    if len(label_chart) > 0:
         matplotlib.pyplot.text(
             0.99,
             0.99,
-            label_title,
+            label_chart,
             horizontalalignment="right",
             verticalalignment="top",
             transform=axes.transAxes,
