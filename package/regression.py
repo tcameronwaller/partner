@@ -1562,7 +1562,7 @@ def organize_table_regression_summary(
         columns = [
             "cohort",
             "dependence", "dependence_type",
-            "model", "model_note",
+            "model", "model_context", "model_adjustment", "model_note",
             "freedom", "observations", "samples",
             "r_square", "r_square_adjust", "log_likelihood", "akaike", "bayes",
             "condition",
@@ -1577,7 +1577,7 @@ def organize_table_regression_summary(
         columns = [
             "cohort",
             "dependence", "dependence_type",
-            "model", "model_note",
+            "model", "model_context", "model_adjustment", "model_note",
             "freedom", "observations", "samples",
             "r_square_pseudo", "log_likelihood", "akaike", "bayes",
             "variable", "variable_key",
@@ -1642,6 +1642,10 @@ def drive_linear_logistic_regression_cohort_model(
         record_cohort_model["dependence_type"]
     )
     record_regression["model"] = record_cohort_model["model"]
+    record_regression["model_context"] = record_cohort_model["model_context"]
+    record_regression["model_adjustment"] = (
+        record_cohort_model["model_adjustment"]
+    )
     record_regression["model_note"] = record_cohort_model["model_note"]
     record_regression["independence"] = record_cohort_model["independence"]
     # Report.
@@ -1717,8 +1721,8 @@ def drive_linear_logistic_regressions_cohorts_models(
 
     Format of "table_cohorts_models"...
     columns: "execution", "cohort", "cohort_sort", "dependence",
-    "dependence_sort", "dependence_type", "model", "model_sort", "independence",
-    "model_note"
+    "dependence_sort", "dependence_type", "independence",
+    "model", "model_sort", "model_context", "model_adjustment", "model_note"
     Rows in Column "dependence" have actual names of variable columns in the
     main source table.
     Rows in Column "independence" have list of independent variables with
