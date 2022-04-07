@@ -1247,6 +1247,127 @@ def create_regression_missing_values(
     return pail
 
 
+# Organize regression summary table for Forest Plot with two groups
+
+
+def organize_regression_table_for_forest_plots_context_joint(
+    type=None,
+    model_contexts=None,
+    model_adjustments=None,
+    variables=None,
+    columns_translations=None,
+    labels_categories=None,
+    sorts_categories=None,
+    column_stratification=None,
+    table=None,
+    report=None,
+):
+    """
+    This function organizes information from a regression summary table for
+    plots.
+
+    arguments:
+        type (str): type of regression analysis, either 'linear' or 'logistic'
+        model_contexts (list<str>): type of regression model context, 'joint' or
+            'marginal'
+        model_adjustments (list<str>): type of regression model adjustments,
+            'adjust' or 'unadjust'
+        variables (list<str>): names of variables for plots
+        columns_translations (dict<str>): translations of names of columns
+        labels_categories (dict<str>): labels for categories from independent
+            variables
+        sorts_categories (dict<str>): sort orders for categories from
+            independent variables
+        column_stratification (str): name of column for use in stratification of
+            records into separate tables
+        table (object): Pandas data frame of summary information from multiple
+            regressions
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict<object>): collection of Pandas data-frame tables for plots
+
+    """
+
+    # Copy information.
+    table = table.copy(deep=True)
+    # Filter records by type of regression, 'linear' or 'logistic'.
+    table = table.loc[(table["dependence_type"] == type), :]
+    # Filter records by context of regression model, 'joint' or 'marginal'.
+    table = table.loc[(table["model_context"].isin(model_contexts)), :]
+    # Filter records by context of regression model, 'joint' or 'marginal'.
+    table = table.loc[(table["model_adjustment"].isin(model_adjustments)), :]
+    # Filter records by values of the independent variable.
+    table = table.loc[(table["variable"].isin(variables)), :]
+    # Change names of columns.
+    table.rename(
+        columns=columns_translations,
+        inplace=True,
+    )
+    table["interval_above"] = table["interval_below"]
+    table["category_sort"] = table.apply(
+        lambda row: sorts_categories[row["category"]],
+        axis="columns", # apply function to each row
+    )
+    table["category_label"] = table.apply(
+        lambda row: labels_categories[row["category"]],
+        axis="columns", # apply function to each row
+    )
+    # Stratify records in the table.
+    table.reset_index(
+        level=None,
+        inplace=True,
+        drop=True,
+    )
+    table.set_index(
+        [column_stratification],
+        append=False,
+        drop=True,
+        inplace=True
+    )
+    tables_stratification = table.groupby(
+        level=column_stratification,
+        axis="index",
+    )
+    # Collect stratification tables for each group.
+    pail_tables = dict()
+    for name, table_stratification in tables_stratification:
+        # Select relevant columns.
+        columns = [
+            "group", "category", "category_sort", "category_label",
+            "value", "interval_below", "interval_above",
+        ]
+        table_stratification = table_stratification.loc[
+            :, table_stratification.columns.isin(columns)
+        ]
+        # Sort columns.
+        table_stratification = table_stratification[[*columns]]
+        table_stratification.reset_index(
+            level=None,
+            inplace=True,
+            drop=True,
+        )
+        # Collect table.
+        pail_tables[name] = table_stratification
+        pass
+        # Report.
+        if report:
+            utility.print_terminal_partition(level=5)
+            print("report: ")
+            function_name = str(
+                "organize_regression_table_for_forest_plots()"
+            )
+            print(function_name)
+            utility.print_terminal_partition(level=5)
+            print(name)
+            print(table_stratification)
+            pass
+    # Return information.
+    return pail_tables
+
+
 # Drivers
 
 
@@ -1798,13 +1919,6 @@ def drive_linear_logistic_regressions_cohorts_models(
     pail["table"] = table_regressions_long
     # Return information.
     return pail
-
-
-# TODO: TCW, 05 April 2022
-# TODO: Implement new function(s) to group records from regression summary table(s)
-# TODO: by 1. dependent variable, 2. cohort, 3. joint versus marginal context, 4. adjustment (adjust or unadjust).
-# TODO: Introduce new columns to the original regression cohort-model table for 1. "context", 2. "adjustment"
-# TODO: for use in this grouping of records.
 
 
 
