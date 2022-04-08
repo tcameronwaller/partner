@@ -1266,6 +1266,9 @@ def organize_regression_table_for_forest_plots_context_joint(
     This function organizes information from a regression summary table for
     plots.
 
+    The regression summary table ought to represent regressions for a single
+    dependent variable across multiple cohorts and regression models.
+
     arguments:
         type (str): type of regression analysis, either 'linear' or 'logistic'
         model_contexts (list<str>): type of regression model context, 'joint' or

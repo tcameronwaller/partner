@@ -3340,7 +3340,6 @@ def write_product_plots_child_directories(
 # Drivers
 
 
-
 def drive_iterate_plot_forest_two_groups(
     pail_tables=None,
     column_group=None,
@@ -3355,7 +3354,7 @@ def drive_iterate_plot_forest_two_groups(
     abscissa_maximum=None,
     ordinate_title=None,
     abscissa_title=None,
-    label_chart=None,
+    label_chart_prefix=None,
     label_size_ordinate_categories=None,
     size_marker=None,
     space_groups=None,
@@ -3403,7 +3402,7 @@ def drive_iterate_plot_forest_two_groups(
         abscissa_maximum (float): maximal value for range of abscissa axis
         ordinate_title (str): title for ordinate or vertical axis
         abscissa_title (str): title for abscissa or horizontal axis
-        label_chart (str): text label title of chart to include on figure
+        label_chart_prefix (str): text label title of chart to include on figure
         label_size_ordinate_categories (str): label size for categories on
             vertical axis
         size_marker (int): size of marker
@@ -3443,7 +3442,7 @@ def drive_iterate_plot_forest_two_groups(
             abscissa_maximum=abscissa_maximum,
             ordinate_title=ordinate_title,
             abscissa_title=abscissa_title,
-            label_chart=name_table,
+            label_chart=str(label_chart_prefix + "_" + name_table),
             label_size_ordinate_categories=label_size_ordinate_categories,
             size_marker=size_marker,
             space_groups=space_groups, # vertical space between groups' markers
