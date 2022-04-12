@@ -431,9 +431,16 @@ def regress_discrete_logit(
     model = statsmodels.api.Logit(
         table[dependence],
         table_independence_intercept,
-        missing="drop",
+        missing="drop", # remove any observations with missing values
     )
-    pail_raw = model.fit()
+    # Fit the model.
+    # Regularization of the fit method can help to avoid overfitting and promote
+    # convergence.
+    # Fit the model using regularized maximum likelihood.
+    #pail_raw = model.fit()
+    pail_raw = model.fit_regularized(
+        maxiter=100,
+    )
     # Report.
     if report:
         print("--------------------------------------------------")
