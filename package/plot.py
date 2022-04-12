@@ -3373,14 +3373,12 @@ def write_product_plots_child_child_directories(
             path=path_child
         )
         # Parse the second level and write files.
-        write_product_plots_child_child_directories(
-                pail_write=pail_write[name_directory],
-                path_parent=path_child,
+        write_product_plots_child_directories(
+            pail_write=pail_write[name_directory],
+            path_parent=path_child,
         )
         pass
     pass
-
-
 
 
 ###############################################################################
