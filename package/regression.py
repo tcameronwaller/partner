@@ -1267,7 +1267,7 @@ def organize_table_regression_summary(
         columns = [
             "cohort",
             "dependence", "dependence_type",
-            "model", "model_context", "model_adjustment", "model_note",
+            "model", "model_adjustment", "model_context", "model_note",
             "freedom", "observations", "samples",
             "r_square", "r_square_adjust", "log_likelihood", "akaike", "bayes",
             "condition",
@@ -1282,7 +1282,7 @@ def organize_table_regression_summary(
         columns = [
             "cohort",
             "dependence", "dependence_type",
-            "model", "model_context", "model_adjustment", "model_note",
+            "model", "model_adjustment", "model_context", "model_note",
             "freedom", "observations", "samples",
             "r_square_pseudo", "log_likelihood", "akaike", "bayes",
             "variable", "variable_key",
