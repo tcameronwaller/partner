@@ -3335,6 +3335,53 @@ def write_product_plots_child_directories(
     pass
 
 
+def write_product_plots_child_child_directories(
+    pail_write=None,
+    path_parent=None,
+):
+    """
+    Writes product information to file.
+
+    First dictionary tier names the first child directory.
+    Second dictionary tier names the second child directory.
+    Third dictionary tier names the file.
+
+    arguments:
+        pail_write (dict<dict<dict<object>>>): information to write to file
+        path_parent (str): path to parent directory
+
+    raises:
+
+    returns:
+
+    """
+
+    # Structure of "plots" collection is "dict<dict<dict<object>>>".
+    # First level of plots dictionary tree gives names for first child
+    # directories.
+    # Second level of plots dictionary tree gives names for second child
+    # directories.
+    # Third level of plots dictionary tree gives names of plots.
+    # Iterate across child directories.
+    for name_directory in pail_write.keys():
+        # Define paths to directories.
+        path_child = os.path.join(
+            path_parent, name_directory
+        )
+        # Initialize directories.
+        utility.create_directories(
+            path=path_child
+        )
+        # Parse the second level and write files.
+        write_product_plots_child_child_directories(
+                pail_write=pail_write[name_directory],
+                path_parent=path_child,
+        )
+        pass
+    pass
+
+
+
 
 ###############################################################################
 # Drivers
