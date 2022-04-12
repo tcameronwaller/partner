@@ -443,14 +443,16 @@ def regress_discrete_logit(
         missing="drop",
     )
     # Fit the model.
+    pail_raw = model.fit(
+        maxiter=100, # maximal count of iterations to convergence
+    )
     # Regularization of the fit method can help to avoid overfitting and promote
     # convergence.
     # Fit the model using regularized maximum likelihood.
-    #pail_raw = model.fit()
-    pail_raw = model.fit_regularized(
-        method="l1", # solver method
-        maxiter=100,
-    )
+    #pail_raw = model.fit_regularized(
+    #    method="l1", # solver method
+    #    maxiter=100,
+    #)
     # Report.
     if report:
         print("--------------------------------------------------")
