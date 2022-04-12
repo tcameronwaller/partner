@@ -386,6 +386,13 @@ def regress_discrete_logit(
         ...
     ]
 
+    Complete or Quasi-Complete Separation of discrete (or binary) values of any
+    independent variable between discrete values of the dependent variable can
+    prevent convergence of the logistic regression either by maximum likelihood
+    or regularized maximum likelihood methods. Evaluate the relationships
+    between dependent and independent variables to avoid any Complete or
+    Quasi-Complete Separation.
+
     arguments:
         dependence (str): name of table's column for dependent variable
         independence (list<str>): names of table's columns for independent
@@ -439,6 +446,7 @@ def regress_discrete_logit(
     # Fit the model using regularized maximum likelihood.
     #pail_raw = model.fit()
     pail_raw = model.fit_regularized(
+        method="l1", # solver method
         maxiter=100,
     )
     # Report.
