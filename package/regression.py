@@ -831,7 +831,7 @@ def create_regression_missing_values(
 # Organize regression summary table for Forest Plot with two groups
 
 
-def organize_regression_table_for_forest_plots_context_joint(
+def organize_regression_summary_table_for_forest_plots(
     type=None,
     model_contexts=None,
     model_adjustments=None,
