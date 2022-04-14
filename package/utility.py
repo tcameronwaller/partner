@@ -874,6 +874,7 @@ def read_all_pandas_tables_files_within_parent_directory(
             sep="\t",
             header=0,
             dtype=types_pandas_table_read,
+            na_values=["nan", "na", "NAN", "NA",],
         )
         table.reset_index(
             level=None,
