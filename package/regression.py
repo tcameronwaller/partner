@@ -835,6 +835,7 @@ def organize_regression_summary_table_for_forest_plots(
     type=None,
     model_contexts=None,
     model_adjustments=None,
+    column_variable=None,
     variables=None,
     columns_translations=None,
     labels_categories=None,
@@ -856,6 +857,8 @@ def organize_regression_summary_table_for_forest_plots(
             'marginal'
         model_adjustments (list<str>): type of regression model adjustments,
             'adjust' or 'unadjust'
+        column_variable (str): name of table's column for variables for
+            selection
         variables (list<str>): names of variables for plots
         columns_translations (dict<str>): translations of names of columns
         labels_categories (dict<str>): labels for categories from independent
@@ -884,7 +887,7 @@ def organize_regression_summary_table_for_forest_plots(
     # Filter records by context of regression model, 'joint' or 'marginal'.
     table = table.loc[(table["model_adjustment"].isin(model_adjustments)), :]
     # Filter records by values of the independent variable.
-    table = table.loc[(table["variable"].isin(variables)), :]
+    table = table.loc[(table[column_variable].isin(variables)), :]
     # Change names of columns.
     table.rename(
         columns=columns_translations,
