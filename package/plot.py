@@ -2290,8 +2290,6 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
     # It is important that the sorts orders of labels and values are identical
     # for series one and series two.
     table = table.copy(deep=True)
-    print("plotting function")
-    print(table)
     columns = [
         column_group, column_ordinate_label, column_ordinate_sort,
         column_abscissa_value,
@@ -2307,18 +2305,20 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
         inplace=True,
     )
     # Accommodate missing values.
-    table[column_abscissa_value].fillna(
+    table_columns[column_abscissa_value].fillna(
         value=-1,
         inplace=True,
     )
-    table[column_abscissa_interval_below].fillna(
+    table_columns[column_abscissa_interval_below].fillna(
         value=0,
         inplace=True,
     )
-    table[column_abscissa_interval_above].fillna(
+    table_columns[column_abscissa_interval_above].fillna(
         value=0,
         inplace=True,
     )
+    print("plotting function")
+    print(table_columns)
     # Stratify.
     table_group_one = table_columns.loc[
         (
