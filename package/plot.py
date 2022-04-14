@@ -2290,6 +2290,8 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
     # It is important that the sorts orders of labels and values are identical
     # for series one and series two.
     table = table.copy(deep=True)
+    print("plotting function")
+    print(table)
     columns = [
         column_group, column_ordinate_label, column_ordinate_sort,
         column_abscissa_value,
