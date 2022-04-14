@@ -3489,6 +3489,7 @@ def drive_iterate_plot_forest_two_groups(
     for name_table in pail_tables.keys():
         # Organize table for figure.
         table = pail_tables[name_table]
+        print(name_table)
         figure = plot_scatter_points_forest_category_ordinate_two_groups(
             table=table,
             column_group=column_group,
