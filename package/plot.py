@@ -2317,8 +2317,8 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
         value=0,
         inplace=True,
     )
-    print("plot function")
-    print(table_columns)
+    #print("plot function")
+    #print(table_columns)
     # Stratify.
     table_group_one = table_columns.loc[
         (
@@ -3489,8 +3489,8 @@ def drive_iterate_plot_forest_two_groups(
     for name_table in pail_tables.keys():
         # Organize table for figure.
         table = pail_tables[name_table]
-        print(label_chart_prefix)
-        print(name_table)
+        #print(label_chart_prefix)
+        #print(name_table)
         figure = plot_scatter_points_forest_category_ordinate_two_groups(
             table=table,
             column_group=column_group,
