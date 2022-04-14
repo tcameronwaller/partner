@@ -2306,7 +2306,7 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
     )
     # Accommodate missing values.
     table_columns[column_abscissa_value].fillna(
-        value=-1,
+        value=-3,
         inplace=True,
     )
     table_columns[column_abscissa_interval_below].fillna(
@@ -2317,8 +2317,6 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
         value=0,
         inplace=True,
     )
-    print("plotting function")
-    print(table_columns)
     # Stratify.
     table_group_one = table_columns.loc[
         (
