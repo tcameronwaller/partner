@@ -2317,6 +2317,8 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
         value=0,
         inplace=True,
     )
+    print("plot function")
+    print(table_columns)
     # Stratify.
     table_group_one = table_columns.loc[
         (
