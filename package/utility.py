@@ -2893,7 +2893,7 @@ def extract_overlap_search_strings_from_table_column_main_string(
         lambda row:
             extract_first_search_string_from_table_column_main_string(
                 string_source=row[column_source],
-                search_strings_1=row[search_strings_1],
+                search_strings_1=search_strings_1,
             ),
         axis="columns", # apply function to each row
     )
@@ -2903,7 +2903,7 @@ def extract_overlap_search_strings_from_table_column_main_string(
             extract_second_search_string_from_table_column_main_string(
                 string_source=row[column_source],
                 match_string_1=row[column_match_1],
-                search_strings_2=row[search_strings_2],
+                search_strings_2=search_strings_2,
             ),
         axis="columns", # apply function to each row
     )
@@ -2997,7 +2997,7 @@ def drive_extract_search_strings_from_table_columns_main_strings(
         print_terminal_partition(level=2)
         print(
             "Report from: " +
-            "drive_extract_overlap_search_strings_from_table_columns_" +
+            "drive_extract_search_strings_from_table_columns_" +
             "main_strings()"
         )
         print_terminal_partition(level=5)
