@@ -2770,10 +2770,10 @@ def extract_second_search_string_from_table_column_main_string(
     match_string_1 = copy.deepcopy(match_string_1)
     # Find the remainder of the longer character main string after extraction of
     # any matches from previous search on first tier search strings.
+    # Initialize remainder string.
+    remainder_string = copy.deepcopy(string_source)
     if (len(match_string_1) > 0):
-        remainder_string = string_source.replace(str(match_string_1), "")
-    else:
-        remainder_string = string_source
+        remainder_string = remainder_string.replace(str(match_string_1), "")
     # Initialize match string.
     match_string_2 = ""
     # Iterate on search strings.
@@ -2786,45 +2786,138 @@ def extract_second_search_string_from_table_column_main_string(
     return match_string_2
 
 
-def combine_first_second_search_string_matches(
+def extract_third_search_string_from_table_column_main_string(
+    string_source=None,
     match_string_1=None,
     match_string_2=None,
+    search_strings_3=None,
 ):
     """
-    Combines matches from first and second searches on a main character string.
+    Searches a longer main character string for any matches to shorter search
+    strings.
+
+    Example main string: 'female_premenopause_unadjust_oestradiol'
+    Example tier 1 search string: 'female_premenopause'
+    Example tier 2 search string: 'female'
+
+    Table format: Pandas data frame with variables (features) across columns and
+    their samples (cases, observations) across rows with an explicit index
+
+    arguments:
+        string_source (str): a longer character main string from which to extract
+            any of the shorter character search strings
+        match_string_1 (str): any match from previous search on first tier
+            search strings
+        match_string_2 (str): any match from previous search on first tier
+            search strings
+        search_strings_3 (list<str>): second tier of shorter, search character
+            strings for which to search after extraction of first tier strings
+
+    raises:
+
+    returns:
+        (str): match string from second search
+
+    """
+
+    # Copy information.
+    string_source = copy.deepcopy(string_source)
+    match_string_1 = copy.deepcopy(match_string_1)
+    match_string_2 = copy.deepcopy(match_string_2)
+    # Find the remainder of the longer character main string after extraction of
+    # any matches from previous search on first tier search strings.
+    # Initialize remainder string.
+    remainder_string = copy.deepcopy(string_source)
+    if (len(match_string_1) > 0):
+        remainder_string = remainder_string.replace(str(match_string_1), "")
+    if (len(match_string_2) > 0):
+        remainder_string = remainder_string.replace(str(match_string_2), "")
+    # Initialize match string.
+    match_string_2 = ""
+    # Iterate on search strings.
+    for search_string in search_strings_3:
+        if (search_string in str(remainder_string)):
+            match_string_3 = copy.deepcopy(search_string)
+            pass
+        pass
+    # Return information.
+    return match_string_3
+
+
+def combine_first_second_third_search_string_matches(
+    match_string_1=None,
+    match_string_2=None,
+    match_string_3=None,
+):
+    """
+    Combines matches from first, second, and third searches on a main character
+    string.
 
     arguments:
         match_string_1 (str): any match from previous search on first tier
             search strings
         match_string_2 (str): any match from previous search on second tier
             search strings
+        match_string_3 (str): any match from previous search on third tier
+            search strings
 
     raises:
 
     returns:
-        (str): combination of match strings from first and second searches
+        (str): combination of match strings from first, second, and third
+            searches
 
     """
 
     # Copy information.
     match_string_1 = copy.deepcopy(match_string_1)
     match_string_2 = copy.deepcopy(match_string_2)
+    match_string_3 = copy.deepcopy(match_string_3)
     # Determine how to combine matches from first and second searches.
     if (
         (len(match_string_1) > 0) and
-        (len(match_string_2) == 0)
+        (len(match_string_2) == 0) and
+        (len(match_string_3) == 0)
     ):
         combination_string = match_string_1
     elif (
         (len(match_string_1) == 0) and
-        (len(match_string_2) > 0)
+        (len(match_string_2) > 0) and
+        (len(match_string_3) == 0)
     ):
         combination_string = match_string_2
     elif (
+        (len(match_string_1) == 0) and
+        (len(match_string_2) == 0) and
+        (len(match_string_3) > 0)
+    ):
+        combination_string = match_string_3
+    elif (
         (len(match_string_1) > 0) and
-        (len(match_string_2) > 0)
+        (len(match_string_2) > 0) and
+        (len(match_string_3) == 0)
     ):
         combination_string = str(match_string_1 + "_" + match_string_2)
+    elif (
+        (len(match_string_1) > 0) and
+        (len(match_string_2) == 0) and
+        (len(match_string_3) > 0)
+    ):
+        combination_string = str(match_string_1 + "_" + match_string_3)
+    elif (
+        (len(match_string_1) == 0) and
+        (len(match_string_2) > 0) and
+        (len(match_string_3) > 0)
+    ):
+        combination_string = str(match_string_2 + "_" + match_string_3)
+    elif (
+        (len(match_string_1) > 0) and
+        (len(match_string_2) > 0) and
+        (len(match_string_3) > 0)
+    ):
+        combination_string = str(
+            match_string_1 + "_" + match_string_2 + "_" + match_string_3
+        )
     else:
         combination_string = ""
     # Return information.
@@ -2837,6 +2930,7 @@ def extract_overlap_search_strings_from_table_column_main_string(
     temporary_column_prefix=None,
     search_strings_1=None,
     search_strings_2=None,
+    search_strings_3=None,
     table=None,
     report=None,
 ):
@@ -2871,6 +2965,8 @@ def extract_overlap_search_strings_from_table_column_main_string(
             strings for which to search before extraction of second tier strings
         search_strings_2 (list<str>): second tier of shorter, search character
             strings for which to search after extraction of first tier strings
+        search_strings_3 (list<str>): third tier of shorter, search character
+            strings for which to search after extraction of first tier strings
         table (object): Pandas data-frame table with a column of longer
             character strings from which to extract multiple shorter character
             strings
@@ -2888,6 +2984,7 @@ def extract_overlap_search_strings_from_table_column_main_string(
     # Define names of temporary columns for use in first and second searches.
     column_match_1 = str(temporary_column_prefix + "_match_1")
     column_match_2 = str(temporary_column_prefix + "_match_2")
+    column_match_3 = str(temporary_column_prefix + "_match_3")
     # Search for and extract first tier strings.
     table[column_match_1] = table.apply(
         lambda row:
@@ -2907,6 +3004,17 @@ def extract_overlap_search_strings_from_table_column_main_string(
             ),
         axis="columns", # apply function to each row
     )
+    # Search for and extract third tier strings.
+    table[column_match_3] = table.apply(
+        lambda row:
+            extract_third_search_string_from_table_column_main_string(
+                string_source=row[column_source],
+                match_string_1=row[column_match_1],
+                match_string_2=row[column_match_2],
+                search_strings_3=search_strings_3,
+            ),
+        axis="columns", # apply function to each row
+    )
     # Collect information from first and second searches.
     # For the search and extraction to be effective, there should only be a
     # single match from either the first or second search.
@@ -2914,19 +3022,19 @@ def extract_overlap_search_strings_from_table_column_main_string(
     # necessary to combine them.
     table[column_target] = table.apply(
         lambda row:
-            combine_first_second_search_string_matches(
+            combine_first_second_third_search_string_matches(
                 match_string_1=row[column_match_1],
                 match_string_2=row[column_match_2],
+                match_string_3=row[column_match_3],
             ),
         axis="columns", # apply function to each row
     )
     # Remove temporary columns from first and second searches.
     table.drop(
-        labels=[column_match_1, column_match_2,],
+        labels=[column_match_1, column_match_2, column_match_3,],
         axis="columns",
         inplace=True
     )
-
     # Report.
     if report:
         print_terminal_partition(level=2)
@@ -2953,6 +3061,7 @@ def drive_extract_search_strings_from_table_columns_main_strings(
     Example main string: 'female_premenopause_unadjust_oestradiol_bioavailable'
     Example 'cohort' tier 1 search string: 'female_premenopause'
     Example 'cohort' tier 2 search string: 'female'
+    Example 'cohort' tier 3 search string: 'male'
     Example 'phenotype' tier 1 search string: 'oestradiol_bioavailable'
     Example 'phenotype' tier 2 search string: 'oestradiol'
 
@@ -2988,6 +3097,7 @@ def drive_extract_search_strings_from_table_columns_main_strings(
             temporary_column_prefix=temporary_column_prefix,
             search_strings_1=pail_extractions[variable]["search_1"],
             search_strings_2=pail_extractions[variable]["search_2"],
+            search_strings_3=pail_extractions[variable]["search_3"],
             table=table,
             report=report,
         )
