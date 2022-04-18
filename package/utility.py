@@ -2694,6 +2694,315 @@ def filter_table_columns_by_nonmissing_variance(
     return table_product
 
 
+def extract_first_search_string_from_table_column_main_string(
+    string_source=None,
+    search_strings_1=None,
+):
+    """
+    Searches a longer main character string for any matches to shorter search
+    strings.
+
+    Example main string: 'female_premenopause_unadjust_oestradiol'
+    Example tier 1 search string: 'female_premenopause'
+    Example tier 2 search string: 'female'
+
+    Table format: Pandas data frame with variables (features) across columns and
+    their samples (cases, observations) across rows with an explicit index
+
+    arguments:
+        string_source (str): a longer character main string from which to extract
+            any of the shorter character search strings
+        search_strings_1 (list<str>): first tier of shorter, search character
+            strings for which to search before extraction of second tier strings
+
+    raises:
+
+    returns:
+        (str): match string from first search
+
+    """
+
+    # Initialize match string.
+    match_string_1 = ""
+    # Iterate on search strings.
+    for search_string in search_strings_1:
+        if (search_string in str(string_source)):
+            match_string_1 = copy.deepcopy(search_string)
+            pass
+        pass
+    # Return information.
+    return match_string_1
+
+
+def extract_second_search_string_from_table_column_main_string(
+    string_source=None,
+    match_string_1=None,
+    search_strings_2=None,
+):
+    """
+    Searches a longer main character string for any matches to shorter search
+    strings.
+
+    Example main string: 'female_premenopause_unadjust_oestradiol'
+    Example tier 1 search string: 'female_premenopause'
+    Example tier 2 search string: 'female'
+
+    Table format: Pandas data frame with variables (features) across columns and
+    their samples (cases, observations) across rows with an explicit index
+
+    arguments:
+        string_source (str): a longer character main string from which to extract
+            any of the shorter character search strings
+        match_string_1 (str): any match from previous search on first tier
+            search strings
+        search_strings_2 (list<str>): second tier of shorter, search character
+            strings for which to search after extraction of first tier strings
+
+    raises:
+
+    returns:
+        (str): match string from second search
+
+    """
+
+    # Copy information.
+    string_source = copy.deepcopy(string_source)
+    match_string_1 = copy.deepcopy(match_string_1)
+    # Find the remainder of the longer character main string after extraction of
+    # any matches from previous search on first tier search strings.
+    if (len(match_string_1) > 0):
+        remainder_string = string_source.replace(str(match_string_1), "")
+    else:
+        remainder_string = string_source
+    # Initialize match string.
+    match_string_2 = ""
+    # Iterate on search strings.
+    for search_string in search_strings_2:
+        if (search_string in str(remainder_string)):
+            match_string_2 = copy.deepcopy(search_string)
+            pass
+        pass
+    # Return information.
+    return match_string_2
+
+
+def combine_first_second_search_string_matches(
+    match_string_1=None,
+    match_string_2=None,
+):
+    """
+    Combines matches from first and second searches on a main character string.
+
+    arguments:
+        match_string_1 (str): any match from previous search on first tier
+            search strings
+        match_string_2 (str): any match from previous search on second tier
+            search strings
+
+    raises:
+
+    returns:
+        (str): combination of match strings from first and second searches
+
+    """
+
+    # Copy information.
+    match_string_1 = copy.deepcopy(match_string_1)
+    match_string_2 = copy.deepcopy(match_string_2)
+    # Determine how to combine matches from first and second searches.
+    if (
+        (len(match_string_1) > 0) and
+        (len(match_string_2) == 0)
+    ):
+        combination_string = match_string_1
+    elif (
+        (len(match_string_1) == 0) and
+        (len(match_string_2) > 0)
+    ):
+        combination_string = match_string_2
+    elif (
+        (len(match_string_1) > 0) and
+        (len(match_string_2) > 0)
+    ):
+        combination_string = str(match_string_1 + "_" + match_string_2)
+    else:
+        combination_string = ""
+    # Return information.
+    return combination_string
+
+
+def extract_overlap_search_strings_from_table_column_main_string(
+    column_source=None,
+    column_target=None,
+    temporary_column_prefix=None,
+    search_strings_1=None,
+    search_strings_2=None,
+    table=None,
+    report=None,
+):
+    """
+    Searches longer main character strings for shorter search strings in two
+    separate steps to avoid problems with search strings that contain each
+    other.
+
+    Example main string: 'female_premenopause_unadjust_oestradiol_bioavailable'
+    Example 'cohort' tier 1 search string: 'female_premenopause'
+    Example 'cohort' tier 2 search string: 'female'
+
+    For the search and extraction to be effective, the longer, main character
+    string must contain only a single instance of a single shorter, search
+    character string in either the first or second search tiers.
+
+    Table format: Pandas data frame with variables (features) across columns and
+    their samples (cases, observations) across rows with an explicit index
+
+    arguments:
+        column_source (str): name of the original table column that contains the
+            longer, main character strings from which to extract the shorter
+            character search strings
+        column_target (str): name for novel table column in which to collect
+            shorter strings after extraction from the longer strings in the
+            original table column
+        temporary_column_prefix (str): character string prefix for names of
+            temporary table columns
+        type_variance (str): type of measurement of variance, either
+            "standard_deviation" or "relative_variance"
+        search_strings_1 (list<str>): first tier of shorter, search character
+            strings for which to search before extraction of second tier strings
+        search_strings_2 (list<str>): second tier of shorter, search character
+            strings for which to search after extraction of first tier strings
+        table (object): Pandas data-frame table with a column of longer
+            character strings from which to extract multiple shorter character
+            strings
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    # Copy information.
+    table = table.copy(deep=True)
+    # Define names of temporary columns for use in first and second searches.
+    column_match_1 = str(temporary_column_prefix + "_match_1")
+    column_match_2 = str(temporary_column_prefix + "_match_2")
+    # Search for and extract first tier strings.
+    table[column_match_1] = table.apply(
+        lambda row:
+            extract_first_search_string_from_table_column_main_string(
+                string_source=row[column_source],
+                search_strings_1=row[search_strings_1],
+            ),
+        axis="columns", # apply function to each row
+    )
+    # Search for and extract second tier strings.
+    table[column_match_2] = table.apply(
+        lambda row:
+            extract_second_search_string_from_table_column_main_string(
+                string_source=row[column_source],
+                match_string_1=row[column_match_1],
+                search_strings_2=row[search_strings_2],
+            ),
+        axis="columns", # apply function to each row
+    )
+    # Collect information from first and second searches.
+    # For the search and extraction to be effective, there should only be a
+    # single match from either the first or second search.
+    # If there are matches from both the first and second searches, then it is
+    # necessary to combine them.
+    table[column_target] = table.apply(
+        lambda row:
+            combine_first_second_search_string_matches(
+                match_string_1=row[column_match_1],
+                match_string_2=row[column_match_2],
+            ),
+        axis="columns", # apply function to each row
+    )
+    # Remove temporary columns from first and second searches.
+    table.drop(
+        labels=[column_match_1, column_match_2,],
+        axis="columns",
+        inplace=True
+    )
+
+    # Report.
+    if report:
+        print_terminal_partition(level=2)
+        print(
+            "Report from: " +
+            "extract_overlap_search_strings_from_table_column_main_string()"
+        )
+        print_terminal_partition(level=5)
+    # Return.
+    return table
+
+
+def drive_extract_search_strings_from_table_columns_main_strings(
+    pail_extractions=None,
+    temporary_column_prefix=None,
+    column_source=None,
+    table=None,
+    report=None,
+):
+    """
+    Drives two-tier searches and extractions on longer main character strings
+    within a single column of table.
+
+    Example main string: 'female_premenopause_unadjust_oestradiol_bioavailable'
+    Example 'cohort' tier 1 search string: 'female_premenopause'
+    Example 'cohort' tier 2 search string: 'female'
+    Example 'phenotype' tier 1 search string: 'oestradiol_bioavailable'
+    Example 'phenotype' tier 2 search string: 'oestradiol'
+
+    Table format: Pandas data frame with variables (features) across columns and
+    their samples (cases, observations) across rows with an explicit index
+
+    arguments:
+        pail_extractions (dict<dict<list<str>>>): collection of tier 1 and tier
+            2 shorter, search character strings across multiple variables of
+            interest
+        temporary_column_prefix (str): character string prefix for names of
+            temporary table columns
+        column_source (str): name of the original table column that contains the
+            longer, main character strings from which to extract the shorter
+            character search strings
+        table (object): Pandas data-frame table with a column of longer
+            character strings from which to extract multiple shorter character
+            strings
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    # Iterate on variables for extraction.
+    for variable in list(pail_extractions.keys()):
+        table = extract_overlap_search_strings_from_table_column_main_string(
+            column_source=column_source,
+            column_target=str(variable),
+            temporary_column_prefix=temporary_column_prefix,
+            search_strings_1=pail_extractions[variable]["search_1"],
+            search_strings_2=pail_extractions[variable]["search_2"],
+            table=table,
+            report=report,
+        )
+        pass
+    # Report.
+    if report:
+        print_terminal_partition(level=2)
+        print(
+            "Report from: " +
+            "drive_extract_overlap_search_strings_from_table_columns_" +
+            "main_strings()"
+        )
+        print_terminal_partition(level=5)
+    # Return.
+    return table
 
 
 # Stratifications by continuous variables

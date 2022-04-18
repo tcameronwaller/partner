@@ -299,11 +299,23 @@ def define_color_properties():
     clear = (1.0, 1.0, 1.0, 0.0)
     clear_faint = (1.0, 1.0, 1.0, 0.25)
     # Blue.
-    blue = (0.0, 0.2, 0.5, 1.0)
-    blue_faint = (0.0, 0.2, 0.5, 0.75)
+    blue = (0.0, 0.35, 0.75, 1.0)
+    # Blue, Ukraine.
+    blue_ukraine = (0.0, 0.36, 0.73, 1.0)
+    # Blue, Navy.
+    blue_navy = (0.0, 0.2, 0.5, 1.0)
+    blue_navy_faint = (0.0, 0.2, 0.5, 0.75)
+    # Purple.
+    purple = (0.5, 0.0, 0.5, 1.0)
+    # Green.
+    green = (0.15, 0.5, 0.15, 1.0)
     # Orange.
     orange = (1.0, 0.6, 0.2, 1.0)
     orange_faint = (1.0, 0.6, 0.2, 0.75)
+    # Yellow.
+    yellow = (1.0, 0.8, 0.0, 1.0)
+    # Yellow, Ukraine.
+    yellow_ukraine = (1.0, 0.84, 0.0, 1.0)
     # Compile and return references.
     return {
         "black": black,
@@ -313,9 +325,13 @@ def define_color_properties():
         "clear": clear,
         "clear_faint": clear_faint,
         "blue": blue,
-        "blue_faint": blue_faint,
+        "blue_ukraine": blue_ukraine,
+        "blue_navy": blue_navy,
+        "blue_navy_faint": blue_navy_faint,
         "orange": orange,
-        "orange_faint": orange_faint
+        "orange_faint": orange_faint,
+        "yellow": yellow,
+        "yellow_ukraine": yellow_ukraine,
     }
 
 
@@ -994,7 +1010,7 @@ def organize_heatmap_asymmetric_master_main_top(
     # Define color map and labels.
     if ((type == "category") or (type == "binary") or (type == "ordinal")):
         #color_map = matplotlib.colors.ListedColormap(
-        #    [colors["blue"], colors["orange"]], 2
+        #    [colors["blue_navy"], colors["orange"]], 2
         #)
         color_map = matplotlib.pyplot.get_cmap("GnBu", len(values_unique))
         ticks = values_unique
@@ -1445,7 +1461,7 @@ def plot_distribution_histogram(
         orientation="vertical",
         rwidth=0.35,
         log=False,
-        color=colors["blue"],
+        color=colors["blue_navy"],
         label=title,
         stacked=False
     )
@@ -1590,9 +1606,9 @@ def plot_bar_stack(
     series_names = list(data.columns)
 
     if color_count == 1:
-        colors_series = [colors["blue"]]
+        colors_series = [colors["blue_navy"]]
     elif color_count == 2:
-        colors_series = [colors["blue"], colors["orange"]]
+        colors_series = [colors["blue_navy"], colors["orange"]]
     elif color_count > 2:
         colors_series = list(
             seaborn.color_palette("hls", n_colors=color_count)
@@ -1722,11 +1738,11 @@ def plot_boxes(
     # Define colors.
     color_count = len(arrays)
     if color_count == 1:
-        colors_series = [colors["blue"]]
+        colors_series = [colors["blue_navy"]]
     elif color_count == 2:
-        colors_series = [colors["gray"], colors["blue"]]
+        colors_series = [colors["gray"], colors["blue_navy"]]
     elif color_count == 3:
-        colors_series = [colors["gray"], colors["blue"], colors["orange"]]
+        colors_series = [colors["gray"], colors["blue_navy"], colors["orange"]]
     elif color_count > 3:
         colors_series = list(
             seaborn.color_palette("hls", n_colors=color_count)
@@ -2093,8 +2109,8 @@ def plot_scatter_points_discrete_abscissa_ordinate_error_bars(
         linestyle="",
         marker="o",
         markersize=size, # 5, 15
-        markeredgecolor=colors["blue"],
-        markerfacecolor=colors["blue"],
+        markeredgecolor=colors["blue_navy"],
+        markerfacecolor=colors["blue_navy"],
     )
     # Include title label on plot.
     if len(label_title) > 0:
@@ -2199,8 +2215,8 @@ def plot_scatter(
         linestyle="",
         marker="o",
         markersize=size, # 5, 15
-        markeredgecolor=colors["blue"],
-        markerfacecolor=colors["blue"]
+        markeredgecolor=colors["blue_navy"],
+        markerfacecolor=colors["blue_navy"]
     )
 
     # Return figure.
@@ -2455,8 +2471,8 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
         linestyle="",
         marker="o", # marker shape: circle
         markersize=size_marker, # 5, 15
-        markeredgecolor=colors["blue"],
-        markerfacecolor=colors["blue"],
+        markeredgecolor=colors["blue_ukraine"], # colors["purple"],
+        markerfacecolor=colors["blue_ukraine"], # colors["purple"],
     )
     handle_two = axes.errorbar(
         abscissa_positions_two,
@@ -2469,8 +2485,8 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
         linestyle="",
         marker="^", # marker shape: up triangle
         markersize=size_marker, # 5, 15
-        markeredgecolor=colors["orange"],
-        markerfacecolor=colors["orange"],
+        markeredgecolor=colors["yellow_ukraine"], # colors["green"],
+        markerfacecolor=colors["yellow_ukraine"], # colors["green"],
     )
     # Include title label on plot.
     if len(label_chart) > 0:
@@ -2644,8 +2660,8 @@ def plot_scatter_points_forest_category_ordinate(
         linestyle="",
         marker="o",
         markersize=size, # 5, 15
-        markeredgecolor=colors["blue"],
-        markerfacecolor=colors["blue"],
+        markeredgecolor=colors["blue_navy"],
+        markerfacecolor=colors["blue_navy"],
     )
     # Include title label on plot.
     if len(label_title) > 0:
@@ -2807,8 +2823,8 @@ def plot_scatter_points_dot_category_abscissa(
         linestyle="",
         marker="o",
         markersize=size, # 5, 15
-        markeredgecolor=colors["blue"],
-        markerfacecolor=colors["blue"],
+        markeredgecolor=colors["blue_navy"],
+        markerfacecolor=colors["blue_navy"],
     )
     # Include title label on plot.
     if len(label_title) > 0:
@@ -2940,8 +2956,8 @@ def plot_scatter_threshold(
         linestyle="",
         marker="o",
         markersize=5,
-        markeredgecolor=colors["blue"],
-        markerfacecolor=colors["blue"]
+        markeredgecolor=colors["blue_navy"],
+        markerfacecolor=colors["blue_navy"]
     )
 
     # Plot lines for each threshold value...
@@ -3086,8 +3102,8 @@ def plot_scatter_label_emphasis_points(
         linestyle="",
         marker="o",
         markersize=7,
-        markeredgecolor=colors["blue"],
-        markerfacecolor=colors["blue"]
+        markeredgecolor=colors["blue_navy"],
+        markerfacecolor=colors["blue_navy"]
     )
     handle = axes.plot(
         data_label[abscissa].to_numpy(),
