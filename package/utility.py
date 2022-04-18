@@ -2833,7 +2833,7 @@ def extract_third_search_string_from_table_column_main_string(
     if (len(match_string_2) > 0):
         remainder_string = remainder_string.replace(str(match_string_2), "")
     # Initialize match string.
-    match_string_2 = ""
+    match_string_3 = ""
     # Iterate on search strings.
     for search_string in search_strings_3:
         if (search_string in str(remainder_string)):
