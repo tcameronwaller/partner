@@ -61,6 +61,10 @@ zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   if ( NF != 15)
     # Skip any rows with incorrect count of column fields.
     next
+  else if ( ( $12 == "NA" ) || ($15 == "NA") )
+    # Records for SNPs with missing values in response and probability do not contribute.
+    # Skip these.
+    next
   else if ( ( $15 != "NA" ) && ( ($15 + 0) < 1.0E-305 ) )
     # Constrain probability value.
     print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, ( 1.0E-305 )
