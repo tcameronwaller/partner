@@ -28,6 +28,13 @@
 # 2. Probability values greater than 1E300 or less than 1E-300 might be beyond
 # the floating point representation of Python.
 
+# On 19 April 2022, TCW ran LDSC Munge and Heritability on GWAS summary
+# statistics from logistic regression.
+# Heritability estimates with the original odds ratio response were the same
+# as heritability estimates with the logarithm of the odds ratio response.
+# LDSC Munge was successful for more studies using the logarithm of the odds
+# ratio response.
+
 ################################################################################
 # Organize variables.
 path_gwas_source=${1} # full path to source file with GWAS summary statistics, with gzip compression
