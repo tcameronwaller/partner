@@ -10,14 +10,22 @@
 # TCW, 04 March 2022
 # TCW, 03 March 2022
 
-
 ###########################################################################
 ###########################################################################
 ###########################################################################
+# Notes
 
 # TODO: simplify arguments
 # 1. directory in which to write (and remove) temporary files
 # 2. full path to the format_compress file
+
+# In June and July 2016, Raymond K. Walters held a conversation with a user of
+# LDSC about technical problems with the LDSC Munge procedure.
+# "Basic questions regarding LD Score computation and genotyping"
+# https://groups.google.com/g/ldsc_users/c/JcrWYLRJm_s?pli=1
+# 1. Text indicators of missing values (such as "NA") might be problems.
+# 2. Probability values greater than 1E300 or less than 1E-300 might be beyond
+# the floating point representation of Python.
 
 ################################################################################
 # Organize variables.
@@ -61,7 +69,7 @@ zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   if ( NF != 15)
     # Skip any rows with incorrect count of column fields.
     next
-  else if ( ( $12 == "NA" ) || ($15 == "NA") )
+  else if ( ( $12 == "NA" ) || ( $15 == "NA" ) )
     # Records for SNPs with missing values in response and probability do not contribute.
     # Skip these.
     next
@@ -105,7 +113,7 @@ zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
 # alternate allele (effect allele): .......  "A1" .................  "A1" .................. 6
 # reference allele (non-effect allele): ...  "A2" .................  "REF" or "ALT" ........ 4 or 5
 # sample size: ............................  "N" ..................  "OBS_CT" .............. 11
-# effect (coefficient or odds ratio): .....  "BETA" or "OR" .......  "OR" ................ 12
+# effect (coefficient or odds ratio): .....  "BETA" or "OR" .......  "OR" .................. 12
 # probability (p-value): ..................  "P" ..................  "P" ................... 15
 
 # Organize information from linear GWAS.
@@ -113,16 +121,39 @@ zcat $path_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
 if [[ "$response_standard_scale" == "true" ]]; then
   echo "SNP A1 A2 N Z P" > $path_gwas_format
 else
-  echo "SNP A1 A2 N OR P" > $path_gwas_format
+  # Keep original 'odds ratio' from logistic regression.
+  #echo "SNP A1 A2 N OR P" > $path_gwas_format
+  # Line for CAT AWK below: print $3, toupper($6), toupper($4), $11, $12, $15
+  # Line for CAT AWK below: print $3, toupper($6), toupper($5), $11, $12, $15
+  # Convert original 'odds ratio' to 'log odds' or 'coefficient'.
+  echo "SNP A1 A2 N BETA P" > $path_gwas_format
 fi
-cat $path_gwas_constraint | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
-  if ($6 == $5 && $6 != $4)
-    print $3, toupper($6), toupper($4), $11, $12, $15
-  else if ($6 == $4 && $6 != $5)
-    print $3, toupper($6), toupper($5), $11, $12, $15
-  else
-    next
-  }' >> $path_gwas_format
+
+# Keep original 'odds ratio' from logistic regression.
+if false; then
+  cat $path_gwas_constraint | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
+    if ($6 == $5 && $6 != $4)
+      print $3, toupper($6), toupper($4), $11, ($12), $15
+    else if ($6 == $4 && $6 != $5)
+      print $3, toupper($6), toupper($5), $11, ($12), $15
+    else
+      next
+    }' >> $path_gwas_format
+fi
+
+# Convert original 'odds ratio' to 'log odds' or 'coefficient'.
+if true; then
+  cat $path_gwas_constraint | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
+    if ($6 == $5 && $6 != $4)
+      print $3, toupper($6), toupper($4), $11, ( log($12) ), $15
+    else if ($6 == $4 && $6 != $5)
+      print $3, toupper($6), toupper($5), $11, ( log($12) ), $15
+    else
+      next
+    }' >> $path_gwas_format
+fi
+
+
 
 ##########
 
