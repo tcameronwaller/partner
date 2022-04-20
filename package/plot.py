@@ -384,6 +384,8 @@ def define_color_properties():
         "blue_ukraine": blue_ukraine,
         "blue_navy": blue_navy,
         "blue_navy_faint": blue_navy_faint,
+        "purple": purple,
+        "green": green,
         "orange": orange,
         "orange_faint": orange_faint,
         "yellow": yellow,
