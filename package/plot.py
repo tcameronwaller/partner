@@ -2485,10 +2485,10 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
         axis="y",
         which="both",
         direction="out",
-        length=11.0, # 5.0
+        length=15.0, # 5.0
         width=11.0, # 3.0
         color=colors["black"],
-        pad=15,
+        pad=25,
         labelsize=fonts["values"][label_size_ordinate_categories]["size"],
         labelcolor=colors["black"]
     )
@@ -2496,10 +2496,10 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
         axis="x",
         which="both",
         direction="out",
-        length=11.0, # 5.0
+        length=15.0, # 5.0
         width=11.0, # 3.0
         color=colors["black"],
-        pad=15,
+        pad=25,
         labelsize=fonts["values"][label_size_abscissa_values]["size"],
         labelcolor=colors["black"]
     )
