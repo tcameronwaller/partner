@@ -3493,6 +3493,7 @@ def drive_iterate_plot_forest_two_groups(
     abscissa_title=None,
     label_chart_prefix=None,
     label_size_ordinate_categories=None,
+    label_size_abscissa_values=None,
     size_marker=None,
     space_groups=None,
 ):
@@ -3542,6 +3543,8 @@ def drive_iterate_plot_forest_two_groups(
         label_chart_prefix (str): text label title of chart to include on figure
         label_size_ordinate_categories (str): label size for categories on
             vertical axis
+        label_size_abscissa_values (str): label size for values on
+            horizontal axis
         size_marker (int): size of marker
         space_groups (float): vertical spacing between markers for groups
         fonts (dict<object>): references to definitions of font properties
@@ -3583,6 +3586,7 @@ def drive_iterate_plot_forest_two_groups(
             abscissa_title=abscissa_title,
             label_chart=str(label_chart_prefix + "_" + name_table),
             label_size_ordinate_categories=label_size_ordinate_categories,
+            label_size_abscissa_values=label_size_abscissa_values,
             size_marker=size_marker,
             space_groups=space_groups, # vertical space between groups' markers
             fonts=fonts,
