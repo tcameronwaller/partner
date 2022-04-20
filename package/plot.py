@@ -91,7 +91,7 @@ def define_font_properties():
         "style": "normal",
         "variant": "normal",
         "stretch": 1100,
-        "weight": 1200,
+        "weight": 1000,
         "size": 70
     }
     values_2 = {
@@ -99,7 +99,7 @@ def define_font_properties():
         "style": "normal",
         "variant": "normal",
         "stretch": 1100,
-        "weight": 1200,
+        "weight": 1000,
         "size": 60
     }
     values_3 = {
@@ -107,7 +107,7 @@ def define_font_properties():
         "style": "normal",
         "variant": "normal",
         "stretch": 1100,
-        "weight": 1100,
+        "weight": 1000,
         "size": 50
     }
     values_4 = {
