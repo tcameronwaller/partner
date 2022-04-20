@@ -2531,7 +2531,7 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
         xerr=abscissa_intervals_one,
         ecolor=colors["gray"],
         elinewidth=11.0, # 7.5
-        barsabove=True, # whether to print error bars in layer above points
+        barsabove=False, # whether to print error bars in layer above points
         linestyle="",
         marker="o", # marker shape: circle
         markersize=size_marker, # 5, 15
@@ -2545,7 +2545,7 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
         xerr=abscissa_intervals_two,
         ecolor=colors["gray"],
         elinewidth=11.0, # 7.5
-        barsabove=True, # whether to print error bars in layer above points,
+        barsabove=False, # whether to print error bars in layer above points,
         linestyle="",
         marker="^", # marker shape: up triangle
         markersize=size_marker, # 5, 15
