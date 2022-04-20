@@ -362,7 +362,7 @@ def define_color_properties():
     blue_navy = (0.0, 0.2, 0.5, 1.0)
     blue_navy_faint = (0.0, 0.2, 0.5, 0.75)
     # Purple.
-    purple = (0.5, 0.0, 0.5, 1.0)
+    purple = (0.75, 0.25, 0.75, 1.0)
     # Green.
     green = (0.25, 0.75, 0.25, 1.0)
     # Orange.
