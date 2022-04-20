@@ -2506,6 +2506,11 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
     # Set explicit tick positions and labels on vertical ordinate axis.
     # (https://matplotlib.org/3.5.1/api/_as_gen/
     # matplotlib.axes.Axes.set_yticks.html)
+    axes.set_xticks(
+        [round(abscissa_minimum, 1), 0.0, round(abscissa_maximum, 1)],
+        labels=None,
+        minor=False,
+    )
     axes.set_yticks(
         ordinate_positions_center, # center positions with even spacing
         labels=ordinate_labels, # place labels at center positions
