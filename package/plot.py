@@ -2296,6 +2296,8 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
     label_size_ordinate_categories=None,
     label_size_abscissa_values=None,
     size_marker=None,
+    color_marker_one=None,
+    color_marker_two=None,
     space_groups=None,
     fonts=None,
     colors=None,
@@ -2349,6 +2351,8 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
         label_size_abscissa_values (str): label size for values on
             horizontal axis
         size_marker (int): size of marker
+        color_marker_one (str): name of color for markers of group one
+        color_marker_two (str): name of color for markers of group two
         space_groups (float): vertical spacing between markers for groups
         fonts (dict<object>): references to definitions of font properties
         colors (dict<tuple>): references to definitions of color properties
@@ -2481,10 +2485,10 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
         axis="y",
         which="both",
         direction="out",
-        length=7.5, # 5.0
-        width=5.0, # 3.0
+        length=11.0, # 5.0
+        width=11.0, # 3.0
         color=colors["black"],
-        pad=10,
+        pad=15,
         labelsize=fonts["values"][label_size_ordinate_categories]["size"],
         labelcolor=colors["black"]
     )
@@ -2492,10 +2496,10 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
         axis="x",
         which="both",
         direction="out",
-        length=7.5, # 5.0
-        width=5.0, # 3.0
+        length=11.0, # 5.0
+        width=11.0, # 3.0
         color=colors["black"],
-        pad=10,
+        pad=15,
         labelsize=fonts["values"][label_size_abscissa_values]["size"],
         labelcolor=colors["black"]
     )
@@ -2515,7 +2519,7 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
         alpha=1.0,
         color=colors["black"],
         linestyle="--",
-        linewidth=9.0, # 7.5
+        linewidth=11.0, # 7.5
     )
     # Plot points and error bars for values and ranges from each group.
     # (https://matplotlib.org/3.5.1/api/_as_gen/
@@ -2526,13 +2530,13 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
         yerr=None,
         xerr=abscissa_intervals_one,
         ecolor=colors["gray"],
-        elinewidth=9.0, # 7.5
+        elinewidth=11.0, # 7.5
         barsabove=True, # whether to print error bars in layer above points
         linestyle="",
         marker="o", # marker shape: circle
         markersize=size_marker, # 5, 15
-        markeredgecolor=colors["blue_ukraine"], # colors["purple"],
-        markerfacecolor=colors["blue_ukraine"], # colors["purple"],
+        markeredgecolor=colors[color_marker_one], # colors["purple"],
+        markerfacecolor=colors[color_marker_one], # colors["purple"],
     )
     handle_two = axes.errorbar(
         abscissa_positions_two,
@@ -2540,13 +2544,13 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
         yerr=None,
         xerr=abscissa_intervals_two,
         ecolor=colors["gray"],
-        elinewidth=9.0, # 7.5
+        elinewidth=11.0, # 7.5
         barsabove=True, # whether to print error bars in layer above points,
         linestyle="",
         marker="^", # marker shape: up triangle
         markersize=size_marker, # 5, 15
-        markeredgecolor=colors["yellow_ukraine"], # colors["green"],
-        markerfacecolor=colors["yellow_ukraine"], # colors["green"],
+        markeredgecolor=colors[color_marker_two], # colors["green"],
+        markerfacecolor=colors[color_marker_two], # colors["green"],
     )
     # Include title label on plot.
     if len(label_chart) > 0:
@@ -3491,10 +3495,13 @@ def drive_iterate_plot_forest_two_groups(
     abscissa_maximum=None,
     ordinate_title=None,
     abscissa_title=None,
+    print_label_on_chart=None,
     label_chart_prefix=None,
     label_size_ordinate_categories=None,
     label_size_abscissa_values=None,
     size_marker=None,
+    color_marker_one=None,
+    color_marker_two=None,
     space_groups=None,
 ):
     """
@@ -3540,12 +3547,15 @@ def drive_iterate_plot_forest_two_groups(
         abscissa_maximum (float): maximal value for range of abscissa axis
         ordinate_title (str): title for ordinate or vertical axis
         abscissa_title (str): title for abscissa or horizontal axis
+        print_label_on_chart (bool): whether to print label on chart
         label_chart_prefix (str): text label title of chart to include on figure
         label_size_ordinate_categories (str): label size for categories on
             vertical axis
         label_size_abscissa_values (str): label size for values on
             horizontal axis
         size_marker (int): size of marker
+        color_marker_one (str): name of color for markers of group one
+        color_marker_two (str): name of color for markers of group two
         space_groups (float): vertical spacing between markers for groups
         fonts (dict<object>): references to definitions of font properties
         colors (dict<tuple>): references to definitions of color properties
@@ -3570,6 +3580,11 @@ def drive_iterate_plot_forest_two_groups(
         table = pail_tables[name_table]
         print(label_chart_prefix)
         print(name_table)
+        # Chart label.
+        if (print_label_on_chart):
+            label_chart = str(label_chart_prefix + "_" + name_table)
+        else:
+            label_chart = ""
         figure = plot_scatter_points_forest_category_ordinate_two_groups(
             table=table,
             column_group=column_group,
@@ -3584,10 +3599,12 @@ def drive_iterate_plot_forest_two_groups(
             abscissa_maximum=abscissa_maximum,
             ordinate_title=ordinate_title,
             abscissa_title=abscissa_title,
-            label_chart=str(label_chart_prefix + "_" + name_table),
+            label_chart=label_chart,
             label_size_ordinate_categories=label_size_ordinate_categories,
             label_size_abscissa_values=label_size_abscissa_values,
             size_marker=size_marker,
+            color_marker_one=color_marker_one,
+            color_marker_two=color_marker_two,
             space_groups=space_groups, # vertical space between groups' markers
             fonts=fonts,
             colors=colors,
