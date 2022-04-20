@@ -90,32 +90,32 @@ def define_font_properties():
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
-        "stretch": 1100,
-        "weight": 1000,
+        "stretch": 1000, # '1000' is the maximal permissable font stretch
+        "weight": 1000, # '1000' is the maximal permissable font weight
         "size": 70
     }
     values_2 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
-        "stretch": 1100,
-        "weight": 1000,
+        "stretch": 1000, # '1000' is the maximal permissable font stretch
+        "weight": 1000, # '1000' is the maximal permissable font weight
         "size": 60
     }
     values_3 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
-        "stretch": 1100,
-        "weight": 1000,
+        "stretch": 1000, # '1000' is the maximal permissable font stretch
+        "weight": 1000, # '1000' is the maximal permissable font weight
         "size": 50
     }
     values_4 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
-        "stretch": 1000,
-        "weight": 1000,
+        "stretch": 1000, # '1000' is the maximal permissable font stretch
+        "weight": 1000, # '1000' is the maximal permissable font weight
         "size": 40
     }
     values_5 = {
@@ -123,7 +123,7 @@ def define_font_properties():
         "style": "normal",
         "variant": "normal",
         "stretch": 900,
-        "weight": 1000,
+        "weight": 900,
         "size": 30
     }
     values_6 = {
@@ -131,7 +131,7 @@ def define_font_properties():
         "style": "normal",
         "variant": "normal",
         "stretch": 750,
-        "weight": 1000,
+        "weight": 750,
         "size": 20
     }
     values_7 = {
