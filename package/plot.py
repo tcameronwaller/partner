@@ -364,7 +364,7 @@ def define_color_properties():
     # Purple.
     purple = (0.5, 0.0, 0.5, 1.0)
     # Green.
-    green = (0.15, 0.5, 0.15, 1.0)
+    green = (0.25, 0.75, 0.25, 1.0)
     # Orange.
     orange = (1.0, 0.6, 0.2, 1.0)
     orange_faint = (1.0, 0.6, 0.2, 0.75)
