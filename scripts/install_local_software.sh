@@ -80,6 +80,7 @@ sudo apt install gnome-tweak-tool
 sudo add-apt-repository ppa:inkscape.dev/stable
 sudo apt update
 sudo apt install inkscape
+sudo apt remove inkscape
 
 # Audacity
 # https://www.audacityteam.org/
