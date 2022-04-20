@@ -86,23 +86,47 @@ def define_font_properties():
     """
 
     # Define font values.
-    values_one = {
+    values_1 = {
+        "family": "sans-serif",
+        "style": "normal",
+        "variant": "normal",
+        "stretch": 1300,
+        "weight": 1300,
+        "size": 70
+    }
+    values_2 = {
+        "family": "sans-serif",
+        "style": "normal",
+        "variant": "normal",
+        "stretch": 1200,
+        "weight": 1200,
+        "size": 60
+    }
+    values_3 = {
+        "family": "sans-serif",
+        "style": "normal",
+        "variant": "normal",
+        "stretch": 1100,
+        "weight": 1100,
+        "size": 50
+    }
+    values_4 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
         "stretch": 1000,
         "weight": 1000,
-        "size": 30
+        "size": 40
     }
-    values_two = {
+    values_5 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
         "stretch": 900,
         "weight": 1000,
-        "size": 25
+        "size": 30
     }
-    values_three = {
+    values_6 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
@@ -110,7 +134,7 @@ def define_font_properties():
         "weight": 1000,
         "size": 20
     }
-    values_four = {
+    values_7 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
@@ -118,7 +142,7 @@ def define_font_properties():
         "weight": 500,
         "size": 17
     }
-    values_five = {
+    values_8 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
@@ -126,7 +150,7 @@ def define_font_properties():
         "weight": 400,
         "size": 15
     }
-    values_six = {
+    values_9 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
@@ -134,7 +158,7 @@ def define_font_properties():
         "weight": 300,
         "size": 13
     }
-    values_seven = {
+    values_10 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
@@ -142,7 +166,7 @@ def define_font_properties():
         "weight": 300,
         "size": 10
     }
-    values_eight = {
+    values_11 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
@@ -150,7 +174,7 @@ def define_font_properties():
         "weight": 200,
         "size": 7
     }
-    values_nine = {
+    values_12 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
@@ -158,7 +182,7 @@ def define_font_properties():
         "weight": 150,
         "size": 5
     }
-    values_ten = {
+    values_13 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
@@ -167,111 +191,141 @@ def define_font_properties():
         "size": 3
     }
     # Define font properties.
-    properties_one = matplotlib.font_manager.FontProperties(
-        family=values_one["family"],
-        style=values_one["style"],
-        variant=values_one["variant"],
-        stretch=values_one["stretch"],
-        weight=values_one["weight"],
-        size=values_one["size"]
+    properties_1 = matplotlib.font_manager.FontProperties(
+        family=values_1["family"],
+        style=values_1["style"],
+        variant=values_1["variant"],
+        stretch=values_1["stretch"],
+        weight=values_1["weight"],
+        size=values_1["size"]
     )
-    properties_two = matplotlib.font_manager.FontProperties(
-        family=values_two["family"],
-        style=values_two["style"],
-        variant=values_two["variant"],
-        stretch=values_two["stretch"],
-        weight=values_two["weight"],
-        size=values_two["size"]
+    properties_2 = matplotlib.font_manager.FontProperties(
+        family=values_2["family"],
+        style=values_2["style"],
+        variant=values_2["variant"],
+        stretch=values_2["stretch"],
+        weight=values_2["weight"],
+        size=values_2["size"]
     )
-    properties_three = matplotlib.font_manager.FontProperties(
-        family=values_three["family"],
-        style=values_three["style"],
-        variant=values_three["variant"],
-        stretch=values_three["stretch"],
-        weight=values_three["weight"],
-        size=values_three["size"]
+    properties_3 = matplotlib.font_manager.FontProperties(
+        family=values_3["family"],
+        style=values_3["style"],
+        variant=values_3["variant"],
+        stretch=values_3["stretch"],
+        weight=values_3["weight"],
+        size=values_3["size"]
     )
-    properties_four = matplotlib.font_manager.FontProperties(
-        family=values_four["family"],
-        style=values_four["style"],
-        variant=values_four["variant"],
-        stretch=values_four["stretch"],
-        weight=values_four["weight"],
-        size=values_four["size"]
+    properties_4 = matplotlib.font_manager.FontProperties(
+        family=values_4["family"],
+        style=values_4["style"],
+        variant=values_4["variant"],
+        stretch=values_4["stretch"],
+        weight=values_4["weight"],
+        size=values_4["size"]
     )
-    properties_five = matplotlib.font_manager.FontProperties(
-        family=values_five["family"],
-        style=values_five["style"],
-        variant=values_five["variant"],
-        stretch=values_five["stretch"],
-        weight=values_five["weight"],
-        size=values_five["size"]
+    properties_5 = matplotlib.font_manager.FontProperties(
+        family=values_5["family"],
+        style=values_5["style"],
+        variant=values_5["variant"],
+        stretch=values_5["stretch"],
+        weight=values_5["weight"],
+        size=values_5["size"]
     )
-    properties_six = matplotlib.font_manager.FontProperties(
-        family=values_six["family"],
-        style=values_six["style"],
-        variant=values_six["variant"],
-        stretch=values_six["stretch"],
-        weight=values_six["weight"],
-        size=values_six["size"]
+    properties_6 = matplotlib.font_manager.FontProperties(
+        family=values_6["family"],
+        style=values_6["style"],
+        variant=values_6["variant"],
+        stretch=values_6["stretch"],
+        weight=values_6["weight"],
+        size=values_6["size"]
     )
-    properties_seven = matplotlib.font_manager.FontProperties(
-        family=values_seven["family"],
-        style=values_seven["style"],
-        variant=values_seven["variant"],
-        stretch=values_seven["stretch"],
-        weight=values_seven["weight"],
-        size=values_seven["size"]
+    properties_7 = matplotlib.font_manager.FontProperties(
+        family=values_7["family"],
+        style=values_7["style"],
+        variant=values_7["variant"],
+        stretch=values_7["stretch"],
+        weight=values_7["weight"],
+        size=values_7["size"]
     )
-    properties_eight = matplotlib.font_manager.FontProperties(
-        family=values_eight["family"],
-        style=values_eight["style"],
-        variant=values_eight["variant"],
-        stretch=values_eight["stretch"],
-        weight=values_eight["weight"],
-        size=values_eight["size"]
+    properties_8 = matplotlib.font_manager.FontProperties(
+        family=values_8["family"],
+        style=values_8["style"],
+        variant=values_8["variant"],
+        stretch=values_8["stretch"],
+        weight=values_8["weight"],
+        size=values_8["size"]
     )
-    properties_nine = matplotlib.font_manager.FontProperties(
-        family=values_nine["family"],
-        style=values_nine["style"],
-        variant=values_nine["variant"],
-        stretch=values_nine["stretch"],
-        weight=values_nine["weight"],
-        size=values_nine["size"]
+    properties_9 = matplotlib.font_manager.FontProperties(
+        family=values_9["family"],
+        style=values_9["style"],
+        variant=values_9["variant"],
+        stretch=values_9["stretch"],
+        weight=values_9["weight"],
+        size=values_9["size"]
     )
-    properties_ten = matplotlib.font_manager.FontProperties(
-        family=values_ten["family"],
-        style=values_ten["style"],
-        variant=values_ten["variant"],
-        stretch=values_ten["stretch"],
-        weight=values_ten["weight"],
-        size=values_ten["size"]
+    properties_10 = matplotlib.font_manager.FontProperties(
+        family=values_10["family"],
+        style=values_10["style"],
+        variant=values_10["variant"],
+        stretch=values_10["stretch"],
+        weight=values_10["weight"],
+        size=values_10["size"]
+    )
+    properties_11 = matplotlib.font_manager.FontProperties(
+        family=values_11["family"],
+        style=values_11["style"],
+        variant=values_11["variant"],
+        stretch=values_11["stretch"],
+        weight=values_11["weight"],
+        size=values_11["size"]
+    )
+    properties_12 = matplotlib.font_manager.FontProperties(
+        family=values_12["family"],
+        style=values_12["style"],
+        variant=values_12["variant"],
+        stretch=values_12["stretch"],
+        weight=values_12["weight"],
+        size=values_12["size"]
+    )
+    properties_13 = matplotlib.font_manager.FontProperties(
+        family=values_13["family"],
+        style=values_13["style"],
+        variant=values_13["variant"],
+        stretch=values_13["stretch"],
+        weight=values_13["weight"],
+        size=values_13["size"]
     )
     # Compile and return references.
     return {
         "values": {
-            "one": values_one,
-            "two": values_two,
-            "three": values_three,
-            "four": values_four,
-            "five": values_five,
-            "six": values_six,
-            "seven": values_seven,
-            "eight": values_eight,
-            "nine": values_nine,
-            "ten": values_ten,
+            "one": values_1,
+            "two": values_2,
+            "three": values_3,
+            "four": values_4,
+            "five": values_5,
+            "six": values_6,
+            "seven": values_7,
+            "eight": values_8,
+            "nine": values_9,
+            "ten": values_10,
+            "eleven": values_11,
+            "twelve": values_12,
+            "thirteen": values_13,
         },
         "properties": {
-            "one": properties_one,
-            "two": properties_two,
-            "three": properties_three,
-            "four": properties_four,
-            "five": properties_five,
-            "six": properties_six,
-            "seven": properties_seven,
-            "eight": properties_eight,
-            "nine": properties_nine,
-            "ten": properties_ten,
+            "one": properties_1,
+            "two": properties_2,
+            "three": properties_3,
+            "four": properties_4,
+            "five": properties_5,
+            "six": properties_6,
+            "seven": properties_7,
+            "eight": properties_8,
+            "nine": properties_9,
+            "ten": properties_10,
+            "eleven": properties_11,
+            "twelve": properties_12,
+            "thirteen": properties_13,
         }
     }
 
@@ -2240,6 +2294,7 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
     abscissa_title=None,
     label_chart=None,
     label_size_ordinate_categories=None,
+    label_size_abscissa_values=None,
     size_marker=None,
     space_groups=None,
     fonts=None,
@@ -2291,6 +2346,8 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
         label_chart (str): text label title of chart to include on figure
         label_size_ordinate_categories (str): label size for categories on
             vertical axis
+        label_size_abscissa_values (str): label size for values on
+            horizontal axis
         size_marker (int): size of marker
         space_groups (float): vertical spacing between markers for groups
         fonts (dict<object>): references to definitions of font properties
@@ -2401,22 +2458,24 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
         xmax=abscissa_maximum,
     )
     # Set titles for axes.
-    axes.set_xlabel(
-        xlabel=abscissa_title,
-        labelpad=30,
-        alpha=1.0,
-        backgroundcolor=colors["white"],
-        color=colors["black"],
-        fontproperties=fonts["properties"]["one"]
-    )
-    axes.set_ylabel(
-        ylabel=ordinate_title,
-        labelpad=30,
-        alpha=1.0,
-        backgroundcolor=colors["white"],
-        color=colors["black"],
-        fontproperties=fonts["properties"]["one"]
-    )
+    if (len(abscissa_title) > 0):
+        axes.set_xlabel(
+            xlabel=abscissa_title,
+            labelpad=30,
+            alpha=1.0,
+            backgroundcolor=colors["white"],
+            color=colors["black"],
+            fontproperties=fonts["properties"]["one"]
+        )
+    if (len(ordinate_title) > 0):
+        axes.set_ylabel(
+            ylabel=ordinate_title,
+            labelpad=30,
+            alpha=1.0,
+            backgroundcolor=colors["white"],
+            color=colors["black"],
+            fontproperties=fonts["properties"]["one"]
+        )
     # Set tick parameters for axes.
     axes.tick_params(
         axis="y",
@@ -2437,7 +2496,7 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
         width=3.0,
         color=colors["black"],
         pad=10,
-        labelsize=fonts["values"]["one"]["size"],
+        labelsize=fonts["values"][label_size_abscissa_values]["size"],
         labelcolor=colors["black"]
     )
     # Set explicit tick positions and labels on vertical ordinate axis.
@@ -2456,7 +2515,7 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
         alpha=1.0,
         color=colors["black"],
         linestyle="--",
-        linewidth=7.5,
+        linewidth=9.0, # 7.5
     )
     # Plot points and error bars for values and ranges from each group.
     # (https://matplotlib.org/3.5.1/api/_as_gen/
@@ -2467,7 +2526,7 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
         yerr=None,
         xerr=abscissa_intervals_one,
         ecolor=colors["gray"],
-        elinewidth=7.5,
+        elinewidth=9.0, # 7.5
         barsabove=True, # whether to print error bars in layer above points
         linestyle="",
         marker="o", # marker shape: circle
@@ -2481,7 +2540,7 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
         yerr=None,
         xerr=abscissa_intervals_two,
         ecolor=colors["gray"],
-        elinewidth=7.5,
+        elinewidth=9.0, # 7.5
         barsabove=True, # whether to print error bars in layer above points,
         linestyle="",
         marker="^", # marker shape: up triangle
@@ -2500,7 +2559,7 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
             transform=axes.transAxes,
             backgroundcolor=colors["white_faint"],
             color=colors["black"],
-            fontproperties=fonts["properties"]["four"]
+            fontproperties=fonts["properties"]["seven"]
         )
 
     # Return figure.
