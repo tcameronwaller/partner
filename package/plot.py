@@ -90,15 +90,15 @@ def define_font_properties():
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
-        "stretch": 1300,
-        "weight": 1300,
+        "stretch": 1100,
+        "weight": 1200,
         "size": 70
     }
     values_2 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
-        "stretch": 1200,
+        "stretch": 1100,
         "weight": 1200,
         "size": 60
     }
@@ -2481,8 +2481,8 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
         axis="y",
         which="both",
         direction="out",
-        length=5.0,
-        width=3.0,
+        length=7.5, # 5.0
+        width=5.0, # 3.0
         color=colors["black"],
         pad=10,
         labelsize=fonts["values"][label_size_ordinate_categories]["size"],
@@ -2492,8 +2492,8 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
         axis="x",
         which="both",
         direction="out",
-        length=5.0,
-        width=3.0,
+        length=7.5, # 5.0
+        width=5.0, # 3.0
         color=colors["black"],
         pad=10,
         labelsize=fonts["values"][label_size_abscissa_values]["size"],
@@ -2559,7 +2559,7 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
             transform=axes.transAxes,
             backgroundcolor=colors["white_faint"],
             color=colors["black"],
-            fontproperties=fonts["properties"]["seven"]
+            fontproperties=fonts["properties"]["eight"]
         )
 
     # Return figure.
