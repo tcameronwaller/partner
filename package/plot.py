@@ -360,15 +360,15 @@ def define_color_properties():
     blue = (0.0, 0.35, 0.75, 1.0)
     # Blue, Ukraine (red: 0; green: 91; blue: 187).
     blue_ukraine = (0.0, 0.36, 0.73, 1.0)
-    # Blue, Navy.
-    blue_navy = (0.0, 0.2, 0.5, 1.0)
+    # Blue, Navy (red: 26; green: 64; blue: 176).
+    blue_navy = (0.1, 0.25, 0.7, 1.0)
     blue_navy_faint = (0.0, 0.2, 0.5, 0.75)
-    # Purple (red: 191; green: 64; blue: 191).
-    purple = (0.75, 0.25, 0.75, 1.0)
+    # Purple (red: 204; green: 64; blue: 204).
+    purple = (0.8, 0.25, 0.8, 1.0)
     # Green (red: 64; green: 191; blue: 64).
     green = (0.25, 0.75, 0.25, 1.0) # a brighter green, similar to "Malachite"
-    # Orange.
-    orange = (1.0, 0.6, 0.2, 1.0)
+    # Orange (red: 255; green: 165; blue: 50).
+    orange = (1.0, 0.65, 0.2, 1.0)
     orange_faint = (1.0, 0.6, 0.2, 0.75)
     # Yellow.
     yellow = (1.0, 0.8, 0.0, 1.0)
