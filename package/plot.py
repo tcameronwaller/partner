@@ -348,8 +348,8 @@ def define_color_properties():
     black = (0.0, 0.0, 0.0, 1.0)
     # Gray.
     gray = (0.5, 0.5, 0.5, 1.0)
-    gray_dark = (0.3, 0.3, 0.3, 1.0)
-    gray_light = (0.7, 0.7, 0.7, 1.0)
+    gray_dark = (0.3, 0.3, 0.3, 1.0) # (red: 77; green: 77; blue: 77)
+    gray_light = (0.7, 0.7, 0.7, 1.0) # (red: 179; green: 179; blue: 179)
     # White.
     white = (1.0, 1.0, 1.0, 1.0)
     white_faint = (1.0, 1.0, 1.0, 0.75)
@@ -2526,6 +2526,7 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
         minor=False,
     )
     # Plot dashed line at zero.
+    # Consider the "dashes" argument for fine control of line dash pattern.
     axes.axvline(
         x=0,
         ymin=0,
