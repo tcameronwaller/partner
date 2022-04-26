@@ -347,7 +347,9 @@ def define_color_properties():
     # Black.
     black = (0.0, 0.0, 0.0, 1.0)
     # Gray.
+    gray_dark = (0.3, 0.3, 0.3, 1.0)
     gray = (0.5, 0.5, 0.5, 1.0)
+    gray_light = (0.7, 0.7, 0.7, 1.0)
     # White.
     white = (1.0, 1.0, 1.0, 1.0)
     white_faint = (1.0, 1.0, 1.0, 0.75)
@@ -2298,7 +2300,8 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
     label_chart=None,
     label_size_ordinate_categories=None,
     label_size_abscissa_values=None,
-    size_marker=None,
+    size_marker_one=None,
+    size_marker_two=None,
     color_marker_one=None,
     color_marker_two=None,
     space_groups=None,
@@ -2353,7 +2356,8 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
             vertical axis
         label_size_abscissa_values (str): label size for values on
             horizontal axis
-        size_marker (int): size of marker
+        size_marker_one (int): size of markers for group one
+        size_marker_two (int): size of markers for group two
         color_marker_one (str): name of color for markers of group one
         color_marker_two (str): name of color for markers of group two
         space_groups (float): vertical spacing between markers for groups
@@ -2530,35 +2534,37 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
         linewidth=11.0, # 7.5
     )
     # Plot points and error bars for values and ranges from each group.
+    # First plot markers for group two so that these are below.
+    # Second plot markers for group one so that these are above.
     # (https://matplotlib.org/3.5.1/api/_as_gen/
     # matplotlib.axes.Axes.errorbar.html)
-    handle_one = axes.errorbar(
-        abscissa_positions_one,
-        ordinate_positions_one,
-        yerr=None,
-        xerr=abscissa_intervals_one,
-        ecolor=colors["gray"],
-        elinewidth=11.0, # 7.5
-        barsabove=False, # whether to print error bars in layer above points
-        linestyle="",
-        marker="o", # marker shape: circle
-        markersize=size_marker, # 5, 15
-        markeredgecolor=colors[color_marker_one], # colors["purple"],
-        markerfacecolor=colors[color_marker_one], # colors["purple"],
-    )
     handle_two = axes.errorbar(
         abscissa_positions_two,
         ordinate_positions_two,
         yerr=None,
         xerr=abscissa_intervals_two,
-        ecolor=colors["gray"],
+        ecolor=colors["gray_light"],
         elinewidth=11.0, # 7.5
         barsabove=False, # whether to print error bars in layer above points,
         linestyle="",
         marker="^", # marker shape: up triangle
-        markersize=size_marker, # 5, 15
+        markersize=size_marker_two, # 5, 15
         markeredgecolor=colors[color_marker_two], # colors["green"],
         markerfacecolor=colors[color_marker_two], # colors["green"],
+    )
+    handle_one = axes.errorbar(
+        abscissa_positions_one,
+        ordinate_positions_one,
+        yerr=None,
+        xerr=abscissa_intervals_one,
+        ecolor=colors["gray_dark"],
+        elinewidth=11.0, # 7.5
+        barsabove=False, # whether to print error bars in layer above points
+        linestyle="",
+        marker="o", # marker shape: circle
+        markersize=size_marker_one, # 5, 15, 50, 70
+        markeredgecolor=colors[color_marker_one], # colors["purple"],
+        markerfacecolor=colors[color_marker_one], # colors["purple"],
     )
     # Include title label on plot.
     if len(label_chart) > 0:
@@ -3488,6 +3494,8 @@ def write_product_plots_child_child_directories(
 ###############################################################################
 # Drivers
 
+# size_marker_one
+# size_marker_two
 
 def drive_iterate_plot_forest_two_groups(
     pail_tables=None,
@@ -3507,7 +3515,8 @@ def drive_iterate_plot_forest_two_groups(
     label_chart_prefix=None,
     label_size_ordinate_categories=None,
     label_size_abscissa_values=None,
-    size_marker=None,
+    size_marker_one=None,
+    size_marker_two=None,
     color_marker_one=None,
     color_marker_two=None,
     space_groups=None,
@@ -3561,7 +3570,8 @@ def drive_iterate_plot_forest_two_groups(
             vertical axis
         label_size_abscissa_values (str): label size for values on
             horizontal axis
-        size_marker (int): size of marker
+        size_marker_one (int): size of markers for group one
+        size_marker_two (int): size of markers for group two
         color_marker_one (str): name of color for markers of group one
         color_marker_two (str): name of color for markers of group two
         space_groups (float): vertical spacing between markers for groups
@@ -3610,7 +3620,8 @@ def drive_iterate_plot_forest_two_groups(
             label_chart=label_chart,
             label_size_ordinate_categories=label_size_ordinate_categories,
             label_size_abscissa_values=label_size_abscissa_values,
-            size_marker=size_marker,
+            size_marker_one=size_marker_one,
+            size_marker_two=size_marker_two,
             color_marker_one=color_marker_one,
             color_marker_two=color_marker_two,
             space_groups=space_groups, # vertical space between groups' markers
