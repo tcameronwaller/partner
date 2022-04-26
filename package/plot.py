@@ -347,8 +347,8 @@ def define_color_properties():
     # Black.
     black = (0.0, 0.0, 0.0, 1.0)
     # Gray.
-    gray_dark = (0.3, 0.3, 0.3, 1.0)
     gray = (0.5, 0.5, 0.5, 1.0)
+    gray_dark = (0.3, 0.3, 0.3, 1.0)
     gray_light = (0.7, 0.7, 0.7, 1.0)
     # White.
     white = (1.0, 1.0, 1.0, 1.0)
@@ -378,6 +378,8 @@ def define_color_properties():
     return {
         "black": black,
         "gray": gray,
+        "gray_dark": gray_dark,
+        "gray_light": gray_light,
         "white": white,
         "white_faint": white_faint,
         "clear": clear,
@@ -2558,7 +2560,7 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
         yerr=None,
         xerr=abscissa_intervals_one,
         ecolor=colors["gray_dark"],
-        elinewidth=11.0, # 7.5
+        elinewidth=13.0, # 7.5
         barsabove=False, # whether to print error bars in layer above points
         linestyle="",
         marker="o", # marker shape: circle
