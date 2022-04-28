@@ -160,24 +160,28 @@ which python3
 # source [virtual environment name]/bin/activate
 # deactivate
 
-"${path_python_396}/bin/python3" -m venv --help # TCW, __ December 2021
+# ./python/python_3.9.6/bin/python3 -m venv --help
+"${path_python_396}/bin/python3" -m venv --help # TCW; 28 April 2022
 
-"${path_python_396}/bin/python3" -m venv $path_environment_prs_cs # TCW, __ December 2021
+# ./python/python_3.9.6/bin/python3 -m venv ./python/environments/prs_cs # TCW; 28 April 2022
+"${path_python_396}/bin/python3" -m venv $path_environment_prs_cs # TCW; 28 April 2022
 
 # Activate virtual environment.
 # Unable to install with "--user" flag within virtual environment.
 # ERROR: Can not perform a '--user' install. User site-packages are not visible in this virtualenv.
+
+# source ./python/environments/prs_cs/bin/activate # TCW; 28 April 2022
 source "${path_environment_prs_cs}/bin/activate"
 which python3 # "${path_environment_main}/bin/python3" TCW, 28 July 2021
 # Pip installation within virtual environment should not require "sudo" permissions.
 python3 -m pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org pip setuptools
-python3 -m pip --version # "pip 21.1.3 from ${path_environment_main}/lib/python3.9/site-packages/pip (python 3.9)" TCW, __ December 2021
-python3 -m pip install --upgrade pip
-python3 -m pip --version # "pip 21.2.1 from ${path_environment_main}/lib/python3.9/site-packages/pip (python 3.9)" TCW, __ December 2021
-python3 -m pip install --upgrade numpy # "numpy-1.21.1" TCW, __ December 2021
-python3 -m pip install --upgrade scipy # "scipy-1.7.0" TCW, __ December 2021
-python3 -m pip install --upgrade h5py # "___" TCW, __ December 2021
-python3 -m pip install --upgrade testresources # "pbr-5.6.0 testresources-2.0.1" TCW, __ December 2021
+python3 -m pip --version # "pip 21.1.3 from ${path_environment_main}/lib/python3.9/site-packages/pip (python 3.9)" TCW; 28 April 2022
+python3 -m pip install --upgrade pip # TCW; 28 April 2022
+python3 -m pip --version # "pip 22.0.4 from ${path_environment_main}/lib/python3.9/site-packages/pip (python 3.9)" TCW; 28 April 2022
+python3 -m pip install --upgrade numpy # "numpy-1.22.3" TCW; 28 April 2022
+python3 -m pip install --upgrade scipy # "scipy-1.8.0" TCW; 28 April 2022
+python3 -m pip install --upgrade h5py # "h5py-3.6.0" TCW; 28 April 2022
+python3 -m pip install --upgrade testresources # "pbr-5.8.1 testresources-2.0.1" TCW; 28 April 2022
 deactivate
 which python3
 
