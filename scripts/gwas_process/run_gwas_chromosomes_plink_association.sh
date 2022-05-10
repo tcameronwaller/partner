@@ -26,8 +26,8 @@ path_ukb_genotype=$(<"./ukbiobank_genotype.txt")
 
 # Iterate on chromosomes.
 #chromosomes=("x")
-chromosomes=("11" "12" "13" "14" "15" "16" "17" "18" "19" "20" "21" "22" "x" "xy")
-#chromosomes=("1" "2" "3" "4" "5" "6" "7" "8" "9" "10" "11" "12" "13" "14" "15" "16" "17" "18" "19" "20" "21" "22" "x" "xy")
+#chromosomes=("11" "12" "13" "14" "15" "16" "17" "18" "19" "20" "21" "22" "x" "xy")
+chromosomes=("1" "2" "3" "4" "5" "6" "7" "8" "9" "10" "11" "12" "13" "14" "15" "16" "17" "18" "19" "20" "21" "22" "x" "xy")
 for chromosome in "${chromosomes[@]}"; do
   #echo "chromosome: ${chromosome}"
 

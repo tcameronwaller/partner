@@ -4,21 +4,32 @@
 ################################################################################
 ################################################################################
 # Notes...
-# ...
+# 1. I still need to use "git clone" to pull down latest release versions
+# of PRS-CS and PRS-CSX to the server
+# 2. I then need to specify paths to those local source copies of PRS-CS and PRS-CSX
+# 3. I also need some sort of "validation .bim" file for a list of relevant SNPs
+# - - these SNPs must come from the 'target' genotypes for the Polygenic Scores
+# 4. I also need to format the PLINK2 linear and logistic GWAS reports for PRS-CS format.
 ################################################################################
 ################################################################################
 ################################################################################
 
-# TODO: Need to include liability scale in heritability estimates for case-control studies
 
 ################################################################################
 # Organize arguments.
-path_gwas_source_parent=${1} # full path to parent directory for source GWAS summary statistics
-path_gwas_target_parent=${2} # full path to parent directory for target GWAS summary statistics
-path_heritability_parent=${3} # full path to directory for heritability report
-path_genetic_reference=${4} # full path to directory for genetic reference information
-response=${5} # whether GWAS response is beta coefficient ("coefficient"), odds ratio ("odds_ratio"), or z-scores ("z_score")
-report=${6} # whether to print reports
+path_genetic_reference=${1} # full path to directory for genetic references
+path_source_gwas_summary=${2} # full path to source GWAS summary statistics in format for PRS-CS
+count_gwas_samples=${3} # integer count of samples for the GWAS study
+population_ancestry=${4} # character code of ancestral population of GWAS study
+path_target_directory=${5} # full path to directory for product reports
+file_name_prefix=${6} # prefix for names of product report files
+report=${7} # whether to print reports
+
+###########################################################################
+# Organize paths.
+
+path_1000_genomes="$path_genetic_reference/1000_genomes"
+path_uk_biobank="$path_genetic_reference/uk_biobank"
 
 ################################################################################
 # Paths.
@@ -46,64 +57,41 @@ rm $path_heritability_report_suffix
 #echo "read private file path variables and organize paths..."
 cd ~/paths
 path_tools=$(<"./waller_tools.txt")
-path_ldsc=$(<"./tools_ldsc.txt")
-path_environment_ldsc="${path_tools}/python/environments/ldsc"
-source "${path_environment_ldsc}/bin/activate"
+path_prs_cs=$(<"./tools_prs_cs.txt")
+path_prs_csx=$(<"./tools_prs_csx.txt")
+path_environment_prs_cs="${path_tools}/python/environments/prs_cs"
+source "${path_environment_prs_cs}/bin/activate"
 echo "confirm Python Virtual Environment path..."
-which python2
+which python3
 sleep 5s
 
 ################################################################################
-# Munge GWAS summary statistics for use in LDSC.
-# Argument "--a1-inc" tells LDSC that GWAS sumstats do not have signed statistics but are coded so that A1 allele always increases effect.
-# Argument ""--signed-sumstats" designates the column name for signed statistics.
-# Examples:
-# - "--signed-sumstats BETA,0"
-# - "--signed-sumstats OR,1"
-# - "--signed-sumstats Z,0"
+# Test PRS-CSX.
+# https://github.com/getian107/PRScsx
 
-if [[ "$response" == "coefficient" ]]; then
-  $path_ldsc/munge_sumstats.py \
-  --sumstats $path_gwas_format_compress \
-  --signed-sumstats BETA,0 \
-  --merge-alleles $path_alleles/w_hm3.snplist \
-  --out $path_gwas_munge
-elif [[ "$response" == "z_score" ]]; then
-  $path_ldsc/munge_sumstats.py \
-  --sumstats $path_gwas_format_compress \
-  --signed-sumstats Z,0 \
-  --merge-alleles $path_alleles/w_hm3.snplist \
-  --out $path_gwas_munge
-elif [[ "$response" == "odds_ratio" ]]; then
-  $path_ldsc/munge_sumstats.py \
-  --sumstats $path_gwas_format_compress \
-  --signed-sumstats OR,1 \
-  --merge-alleles $path_alleles/w_hm3.snplist \
-  --out $path_gwas_munge
-else
-  echo "invalid specification of GWAS effect"
-fi
-
-################################################################################
-# Estimate phenotype heritability in LDSC.
-$path_ldsc/ldsc.py \
---h2 $path_gwas_munge_suffix \
---ref-ld-chr $path_disequilibrium/eur_w_ld_chr/ \
+python3 $path_prs_csx/PRScsx.py \
+--ref_dir=$path_1000_genomes \
+--bim_prefix=$path_bim_snp_relevance \
+--sst_file=$path_source_gwas_summary \
+--n_gwas=$count_gwas_samples \
+--pop=$population_ancestry \
+--out_dir=$path_target_directory \
+--out_name=$file_name_prefix \
 --w-ld-chr $path_disequilibrium/eur_w_ld_chr/ \
 --out $path_heritability_report
 
 ################################################################################
 # Deactivate Virtual Environment.
 deactivate
-which python2
+which python3
 
 ################################################################################
 # Report.
 if [[ "$report" == "true" ]]; then
   echo "----------"
-  echo "drive_ldsc_gwas_munge_heritability.sh"
+  echo "drive_prscs_test.sh"
   echo "----------"
-  echo "LDSC heritability report:"
-  cat $path_heritability_report_suffix
+  echo "PRS-CS report:"
+  #cat $path_heritability_report_suffix
   echo "----------"
 fi

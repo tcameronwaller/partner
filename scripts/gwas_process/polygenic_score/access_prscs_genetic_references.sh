@@ -76,21 +76,24 @@ tar -zxvf ldblk_1kg_sas.tar.gz
 # Single Nucleotide Polymorphism (SNP) information.
 wget https://www.dropbox.com/s/rhi806sstvppzzz/snpinfo_mult_1kg_hm3
 
-
 ##########
 # UK Biobank
 cd $path_uk_biobank
 
 # Linkage disequilibrium (LD) reference panels.
-wget https://www.dropbox.com/s/dtccsidwlb6pbtv/ldblk_1kg_afr.tar.gz
-wget https://www.dropbox.com/s/y7ruj364buprkl6/ldblk_1kg_amr.tar.gz
-wget https://www.dropbox.com/s/fz0y3tb9kayw8oq/ldblk_1kg_eas.tar.gz
-wget https://www.dropbox.com/s/t9opx2ty6ucrpib/ldblk_1kg_eur.tar.gz
-wget https://www.dropbox.com/s/nto6gdajq8qfhh0/ldblk_1kg_sas.tar.gz
-tar -zxvf ldblk_1kg_afr.tar.gz
-tar -zxvf ldblk_1kg_amr.tar.gz
-tar -zxvf ldblk_1kg_eas.tar.gz
-tar -zxvf ldblk_1kg_eur.tar.gz
-tar -zxvf ldblk_1kg_sas.tar.gz
+wget https://www.dropbox.com/s/dtccsidwlb6pbtv/ldblk_ukbb_afr.tar.gz
+wget https://www.dropbox.com/s/y7ruj364buprkl6/ldblk_ukbb_amr.tar.gz
+wget https://www.dropbox.com/s/fz0y3tb9kayw8oq/ldblk_ukbb_eas.tar.gz
+wget https://www.dropbox.com/s/t9opx2ty6ucrpib/ldblk_ukbb_eur.tar.gz
+wget https://www.dropbox.com/s/nto6gdajq8qfhh0/ldblk_ukbb_sas.tar.gz
+tar -zxvf ldblk_ukbb_afr.tar.gz
+tar -zxvf ldblk_ukbb_amr.tar.gz
+tar -zxvf ldblk_ukbb_eas.tar.gz
+tar -zxvf ldblk_ukbb_eur.tar.gz
+tar -zxvf ldblk_ukbb_sas.tar.gz
 # Single Nucleotide Polymorphism (SNP) information.
 wget https://www.dropbox.com/s/oyn5trwtuei27qj/snpinfo_mult_ukbb_hm3
+
+
+
+#
