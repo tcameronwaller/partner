@@ -160,6 +160,12 @@ which python3
 # source [virtual environment name]/bin/activate
 # deactivate
 
+# Install PRS-CS and PRS-CSX.
+path_prs_cs="${path_tools}/prs_cs"
+cd ${path_prs_cs}
+git clone https://github.com/getian107/PRScs.git
+git clone https://github.com/getian107/PRScsx.git
+
 # ./python/python_3.9.6/bin/python3 -m venv --help
 "${path_python_396}/bin/python3" -m venv --help # TCW; 28 April 2022
 
