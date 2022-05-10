@@ -47,7 +47,7 @@ sleep 5s
 ################################################################################
 # Force SciPy not to use all available cores on a cluster computation node.
 
-count_threads=1
+count_threads=4
 export MKL_NUM_THREADS=$count_threads
 export NUMEXPR_NUM_THREADS=$count_threads
 export OMP_NUM_THREADS=$count_threads
