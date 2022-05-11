@@ -35,7 +35,7 @@ cd $path_genotype_product_bim_container
 
 $path_plink2 \
 --memory 90000 \
---threads $threads \
+--threads 4 \
 --vcf $path_genotype_source_vcf \
 --make-just-bim \
 --out "${name_file_product_bim}"
