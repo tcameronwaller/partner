@@ -39,7 +39,7 @@ for path_file in `find . -maxdepth 1 -mindepth 1 -type f -name "$pattern_genotyp
     name_file="$(basename -- $path_file)"
     echo $name_file
     path_genotype_source_vcf="${path_genotype_source_vcf_container}/${name_file}"
-    name_file_product_bim="${name_prefix_file_product_bim}${name_file}.bim.gz"
+    name_file_product_bim="${name_prefix_file_product_bim}${name_file}"
     # Convert information from genotype files in VCF format to BIM format.
     /usr/bin/bash "${path_script_convert_vcf_to_bim}" \
     $path_genotype_source_vcf \
