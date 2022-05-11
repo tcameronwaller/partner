@@ -5,23 +5,16 @@
 ################################################################################
 # Notes...
 
-# BEFORE calling this script, concatenate PRS-CS reports across all chromosomes
-# The PRS-CS reports do NOT include header lines.
-
-# This script WILL CALL PLINK2 to apply a linear combination across allelic
-# effects to create a polygenic score to represent an entire genotype.
-
 ################################################################################
 ################################################################################
 ################################################################################
-
-# 1. I need a "$path_genotype" file
-
 
 ################################################################################
 # Organize arguments.
-path_source_prscs_allelic_effects=${1} # full path to PRS-CS allelic effects with concatenation across chromosomes
-report=${2} # whether to print reports
+path_genotype_source_vcf=${1} # full path to source genotype file in VCF format
+path_genotype_product_bim_container=${2} # full path to directory for product genotype files in BIM format
+name_prefix_file_product_bim=${3} # name prefix for product file in BIM format
+report=${4} # whether to print reports
 
 ###########################################################################
 # Organize paths.
@@ -34,29 +27,24 @@ cd ~/paths
 path_plink2=$(<"./tools_plink2.txt")
 
 ################################################################################
-# Combine allelic effects in PLINK2.
-# https://www.cog-genomics.org/plink/1.9/score
-# https://www.cog-genomics.org/plink/2.0/score
+# Read information from VCF format file to PLINK2 and write file in BIM format.
+# https://www.cog-genomics.org/plink/2.0/data#make_pgen
+# Include the 'zs' modifier for '--make-just-bim' to apply Z-standard compression.
 
-# Format from PRS-CS.
-#   chromosome   rsID   base position   A1   A2   effect size
-
+cd $path_genotype_product_bim_container
 
 $path_plink2 \
 --memory 90000 \
 --threads $threads \
---bgen $path_genotype ref-first \
---sample $path_sample \
---xchr-model 2 \
---score $path_source_prscs_allelic_effects 2 4 header-read no-mean-imputation ignore-dup-ids \
---score-col-nums 6 \
---out report
+--vcf $path_genotype_source_vcf \
+--make-just-bim \
+--out "${name_prefix_file_product_bim}"
 
 ################################################################################
 # Report.
 if [[ "$report" == "true" ]]; then
   echo "----------"
-  echo "drive_prscs_plink_polygenic_linear_combination_score.sh"
+  echo "convert_vcf_to_plink_bim.sh"
   echo "----------"
   echo "___ report:"
   #cat $path_heritability_report_suffix
