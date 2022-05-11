@@ -18,9 +18,8 @@
 path_genotype_source_vcf_container=${1} # full path to directory with source genotype files in VCF format
 pattern_genotype_source_vcf_file=${2} # string glob pattern by which to recognize source genotype files in VCF format
 path_genotype_product_bim_container=${3} # full path to directory for product genotype files in BIM format
-name_prefix_file_product_bim=${4} # name prefix for product file in BIM format
-path_promiscuity_scripts=${5} # full path to directory of general scripts
-report=${6} # whether to print reports
+path_promiscuity_scripts=${4} # full path to directory of general scripts
+report=${5} # whether to print reports
 
 ###########################################################################
 # Organize paths.
@@ -39,7 +38,7 @@ for path_file in `find . -maxdepth 1 -mindepth 1 -type f -name "$pattern_genotyp
     name_file="$(basename -- $path_file)"
     echo $name_file
     path_genotype_source_vcf="${path_genotype_source_vcf_container}/${name_file}"
-    name_file_product_bim="${name_prefix_file_product_bim}${name_file}"
+    name_file_product_bim="${name_file}" # optional to add prefix or suffix here
     # Convert information from genotype files in VCF format to BIM format.
     /usr/bin/bash "${path_script_convert_vcf_to_bim}" \
     $path_genotype_source_vcf \
