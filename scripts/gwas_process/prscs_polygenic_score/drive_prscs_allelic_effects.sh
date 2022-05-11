@@ -5,6 +5,8 @@
 ################################################################################
 # Notes...
 
+# This script calls PRS-CS to generate posterior effects across SNP alleles.
+
 ################################################################################
 ################################################################################
 ################################################################################
@@ -83,7 +85,7 @@ which python3
 # Report.
 if [[ "$report" == "true" ]]; then
   echo "----------"
-  echo "drive_prscs_test.sh"
+  echo "drive_prscs_allelic_effects.sh"
   echo "----------"
   echo "PRS-CS report:"
   #cat $path_heritability_report_suffix
