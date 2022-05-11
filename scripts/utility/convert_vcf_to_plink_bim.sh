@@ -13,7 +13,7 @@
 # Organize arguments.
 path_genotype_source_vcf=${1} # full path to source genotype file in VCF format
 path_genotype_product_bim_container=${2} # full path to directory for product genotype files in BIM format
-name_prefix_file_product_bim=${3} # name prefix for product file in BIM format
+name_file_product_bim=${3} # name for product file in BIM format
 report=${4} # whether to print reports
 
 ###########################################################################
@@ -38,7 +38,7 @@ $path_plink2 \
 --threads $threads \
 --vcf $path_genotype_source_vcf \
 --make-just-bim \
---out "${name_prefix_file_product_bim}"
+--out "${name_file_product_bim}"
 
 ################################################################################
 # Report.
