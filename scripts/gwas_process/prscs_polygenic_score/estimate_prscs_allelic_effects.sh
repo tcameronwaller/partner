@@ -85,7 +85,8 @@ if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "estimate_prscs_allelic_effects.sh"
   echo "----------"
-  echo "PRS-CS report:"
+  echo "GWAS: ${path_source_gwas_summary}"
+  echo "chromosome: ${chromosome}"
   #cat $path_heritability_report_suffix
   echo "----------"
 fi

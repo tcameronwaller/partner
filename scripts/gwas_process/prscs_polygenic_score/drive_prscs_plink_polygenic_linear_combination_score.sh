@@ -45,8 +45,7 @@ path_plink2=$(<"./tools_plink2.txt")
 $path_plink2 \
 --memory 90000 \
 --threads $threads \
---bgen $path_genotype ref-first \
---sample $path_sample \
+--vcf $path_genotype_source_vcf \
 --xchr-model 2 \
 --score $path_source_prscs_allelic_effects 2 4 header-read no-mean-imputation ignore-dup-ids \
 --score-col-nums 6 \
