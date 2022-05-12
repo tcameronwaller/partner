@@ -17,21 +17,19 @@
 
 ################################################################################
 # Organize arguments.
-path_genetic_reference_prscs=${1} # full path to directory for genetic references
-path_source_gwas_summary=${2} # full path to source GWAS summary statistics in format for PRS-CS
-count_gwas_samples=${3} # integer count of samples for the GWAS study
-population_ancestry=${4} # character code of ancestral population of GWAS study: 'AFR', 'AMR', 'EAS', 'EUR', or 'SAS'
-path_snp_relevance_bim_prefix=${5} # full path to file name prefix for '.bim' format list of relevant target SNPs
-path_target_directory_score=${6} # full path to directory for product reports on posterior effect size estimates
-file_name_prefix=${7} # prefix for names of product report files
+
+path_source_gwas_summary=${1} # full path to source GWAS summary statistics in format for PRS-CS
+count_gwas_samples=${2} # integer count of samples for the GWAS study
+path_snp_relevance_bim_prefix=${3} # full path to file name prefix for '.bim' format list of relevant target SNPs
+path_target_directory_score=${4} # full path to directory for product reports on posterior effect size estimates
+name_file_product=${5} # name of product report file
+path_genetic_reference_prscs=${6} # full path to directory for genetic references
+population_ancestry=${7} # character code of ancestral population of GWAS study: 'AFR', 'AMR', 'EAS', 'EUR', or 'SAS'
 chromosome=${8} # chromosome
 report=${9} # whether to print reports
 
 ###########################################################################
 # Organize paths.
-
-path_1000_genomes="$path_genetic_reference_prscs/1000_genomes"
-path_uk_biobank="$path_genetic_reference_prscs/uk_biobank"
 
 ################################################################################
 # Activate Virtual Environment.
@@ -59,13 +57,13 @@ export OMP_NUM_THREADS=$count_threads
 # https://github.com/getian107/PRScsx
 
 python3 "${path_prs_cs}/PRScsx/PRScsx.py" \
---ref_dir=$path_1000_genomes \
+--ref_dir=$path_genetic_reference_prscs \
 --bim_prefix=$path_snp_relevance_bim_prefix \
 --sst_file=$path_source_gwas_summary \
 --n_gwas=$count_gwas_samples \
 --pop=$population_ancestry \
 --out_dir=$path_target_directory_score \
---out_name=$file_name_prefix \
+--out_name=$name_file_product \
 --a=1.0 \
 --b=0.5 \
 --phi=1e-3 \
@@ -85,7 +83,7 @@ which python3
 # Report.
 if [[ "$report" == "true" ]]; then
   echo "----------"
-  echo "drive_prscs_allelic_effects.sh"
+  echo "estimate_prscs_allelic_effects.sh"
   echo "----------"
   echo "PRS-CS report:"
   #cat $path_heritability_report_suffix
