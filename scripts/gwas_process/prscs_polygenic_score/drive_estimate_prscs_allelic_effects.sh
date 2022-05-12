@@ -14,15 +14,16 @@
 ################################################################################
 # Organize arguments.
 path_source_gwas_summary=${1} # full path to source GWAS summary statistics in format for PRS-CS
-count_gwas_samples=${2} # integer count of samples for the GWAS study
-path_snp_relevance_bim_container=${3} # full path to directory for files with relevant SNPs in '.bim' format
-path_target_directory_score=${4} # full path to directory for product reports on posterior effect size estimates
-file_name_prefix=${5} # prefix for names of product report files
-path_genetic_reference_prscs=${6} # full path to directory for genetic references
-population_ancestry=${7} # character code of ancestral population of GWAS study: 'AFR', 'AMR', 'EAS', 'EUR', or 'SAS'
-chromosome_x=${8} # whether to collect GWAS summary statistics report for Chromosome X
-path_promiscuity_scripts=${9} # full path to directory of general scripts
-report=${10} # whether to print reports
+path_source_gwas_summary_compress=${2} # full path to source GWAS summary statistics in format for PRS-CS
+count_gwas_samples=${3} # integer count of samples for the GWAS study
+path_snp_relevance_bim_container=${4} # full path to directory for files with relevant SNPs in '.bim' format
+path_target_directory_score=${5} # full path to directory for product reports on posterior effect size estimates
+file_name_prefix=${6} # prefix for names of product report files
+path_genetic_reference_prscs=${7} # full path to directory for genetic references
+population_ancestry=${8} # character code of ancestral population of GWAS study: 'AFR', 'AMR', 'EAS', 'EUR', or 'SAS'
+chromosome_x=${9} # whether to collect GWAS summary statistics report for Chromosome X
+path_promiscuity_scripts=${10} # full path to directory of general scripts
+report=${11} # whether to print reports
 
 ###########################################################################
 # Organize paths.
@@ -34,9 +35,13 @@ path_uk_biobank="${path_genetic_reference_prscs}/uk_biobank"
 path_scripts_gwas_process="${path_promiscuity_scripts}/gwas_process"
 path_script_estimate_prscs="${path_scripts_gwas_process}/prscs_polygenic_score/estimate_prscs_allelic_effects.sh"
 
+# Decompress source GWAS summary statistics.
+gzip -d $path_source_gwas_summary_compress
+
 # Determine relevant chromosomes.
 if [[ "$chromosome_x" == "true" ]]; then
-  chromosomes=("1" "2" "3" "4" "5" "6" "7" "8" "9" "10" "11" "12" "13" "14" "15" "16" "17" "18" "19" "20" "21" "22" "X")
+  chromosomes=("1" "3" "5" "7")
+  #chromosomes=("1" "2" "3" "4" "5" "6" "7" "8" "9" "10" "11" "12" "13" "14" "15" "16" "17" "18" "19" "20" "21" "22" "X")
 else
   chromosomes=("1" "2" "3" "4" "5" "6" "7" "8" "9" "10" "11" "12" "13" "14" "15" "16" "17" "18" "19" "20" "21" "22")
 fi
@@ -58,3 +63,6 @@ for chromosome in "${chromosomes[@]}"; do
   $chromosome \
   $report
 done
+
+# Remove decompressed source GWAS summary statistics.
+rm $path_source_gwas_summary
