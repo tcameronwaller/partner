@@ -57,16 +57,14 @@ report=${5} # whether to print reports
 ################################################################################
 # Remove "chr" prefix from chromosome identifiers in VCF genotype file.
 # Introduce dbSNP rsID annotations VCF genotype file.
-
-# VCF file format with compression
-# --output-type z9 \
+# Write to file in VCF format with BGZIP compression.
 
 # Only remove "chr" prefix from chromosome identifiers. Tested successfully.
 $path_bcftools \
 annotate \
 --rename-chrs $path_chromosome_translations \
 --output $path_vcf_product \
---output-type v \
+--output-type z9 \
 --threads 4 \
 $path_vcf_source
 
