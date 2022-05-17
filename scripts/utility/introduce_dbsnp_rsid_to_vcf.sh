@@ -67,7 +67,7 @@ annotate \
 --annotations $path_dbsnp_reference \
 --columns ID \
 --output $path_vcf_product \
---output-type z9 \
+--output-type v \
 --threads 4 \
 $path_vcf_source
 
