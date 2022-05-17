@@ -68,6 +68,15 @@ annotate \
 --threads 4 \
 $path_vcf_source
 
+# Create Tabix index for product file in VCF format.
+# BCFTools sometimes requires this Tabix index to read a file.
+$path_bcftools \
+index \
+--force \
+--tbi \
+--threads 4 \
+$path_vcf_product
+
 # Both remove "chr" prefix from chromosome identifiers and introduce dbSNP rsID
 # annotations. Only the removal of "chr" prefix works (TCW; 17 May 2022).
 #$path_bcftools \

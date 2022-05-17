@@ -59,6 +59,11 @@ report=${5} # whether to print reports
 # Introduce dbSNP rsID annotations VCF genotype file.
 # Write to file in VCF format with BGZIP compression.
 
+# TCW; 17 May 2022
+# To avoid problems with writing format and access to the Tabix index for BGZIP
+# compression, copy both the VCF file and the tabix index to the new directory
+# and then edit that file directly.
+
 # Only introduce dbSNP rsID annotations.
 $path_bcftools \
 annotate \
@@ -68,6 +73,15 @@ annotate \
 --output-type z9 \
 --threads 4 \
 $path_vcf_source
+
+# Create Tabix index for product file in VCF format.
+# BCFTools sometimes requires this Tabix index to read a file.
+$path_bcftools \
+index \
+--force \
+--tbi \
+--threads 4 \
+$path_vcf_product
 
 # Both remove "chr" prefix from chromosome identifiers and introduce dbSNP rsID
 # annotations. Only the removal of "chr" prefix works (TCW; 17 May 2022).
