@@ -27,7 +27,7 @@ report=${5} # whether to print reports
 
 $path_bcftools \
 annotate \
---rename_chrs $path_chromosome_translations \
+--rename-chrs $path_chromosome_translations \
 --output $path_vcf_product \
 --output-type b9 \
 --threads 4 \
