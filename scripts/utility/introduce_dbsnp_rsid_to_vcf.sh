@@ -58,6 +58,9 @@ report=${5} # whether to print reports
 # Remove "chr" prefix from chromosome identifiers in VCF genotype file.
 # Introduce dbSNP rsID annotations VCF genotype file.
 
+# VCF file format with compression
+# --output-type z9 \
+
 # Only introduce dbSNP rsID annotations.
 $path_bcftools \
 annotate \
