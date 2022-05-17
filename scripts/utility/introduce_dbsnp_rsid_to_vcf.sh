@@ -46,11 +46,12 @@
 
 ################################################################################
 # Organize arguments.
-path_dbsnp_reference=${1} # full path to directory for dbSNP reference
-path_vcf_source=${2} # full path to source file in VCF format
-path_vcf_product=${3} # full path to product file in VCF format
-path_bcftools=${4} # full path to installation of BCFTools
-report=${5} # whether to print reports
+path_chromosome_translations=${1} # full path to file for chromosome name translations
+path_dbsnp_reference=${2} # full path to directory for dbSNP reference
+path_vcf_source=${3} # full path to source file in VCF format
+path_vcf_product=${4} # full path to product file in VCF format
+path_bcftools=${5} # full path to installation of BCFTools
+report=${6} # whether to print reports
 
 ################################################################################
 # Introduce annotation information from dbSNP reference to file in VCF format.
@@ -58,8 +59,20 @@ report=${5} # whether to print reports
 # TODO: TCW, 17 May 2022
 # TODO: maybe the specification of "--output" interferes with recognizing the source VCF file???
 
+# Trial 1:
+# This call to BCFTools does not seem to change the "ID" column in the product
+# VCF file.
+#$path_bcftools \
+#annotate \
+#--annotations $path_dbsnp_reference \
+#--columns ID $path_vcf_source \
+#--output $path_vcf_product \
+#--output-type b9 \
+#--threads 4
+
 $path_bcftools \
 annotate \
+--rename_chrs $path_chromosome_translations \
 --annotations $path_dbsnp_reference \
 --columns ID $path_vcf_source \
 --output $path_vcf_product \
