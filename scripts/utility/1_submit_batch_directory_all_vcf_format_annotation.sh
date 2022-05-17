@@ -32,7 +32,9 @@ path_batch_instances="${path_genotype_product_vcf_container}/batch_instances.txt
 
 # Scripts.
 path_script_run_vcf_format_annotation="${path_promiscuity_scripts}/utility/run_batch_vcf_format_annotation.sh"
-path_script_format_annotation="${path_promiscuity_scripts}/utility/remove_chromosome_prefix_introduce_dbsnp_rsid_to_vcf.sh"
+#path_script_format_annotation="${path_promiscuity_scripts}/utility/remove_chromosome_prefix_introduce_dbsnp_rsid_to_vcf.sh"
+path_script_chr_prefix_in_vcf="${path_promiscuity_scripts}/utility/remove_chromosome_prefix_in_vcf.sh"
+path_script_dbsnp_rsid_to_vcf="${path_promiscuity_scripts}/utility/introduce_dbsnp_rsid_to_vcf.sh"
 
 ###########################################################################
 # Find source genotype files in VCF format within container directory.
@@ -47,16 +49,8 @@ for path_file in `find . -maxdepth 1 -mindepth 1 -type f -name "$pattern_genotyp
     path_vcf_source="${path_genotype_source_vcf_container}/${name_file}"
     path_vcf_product="${path_genotype_product_vcf_container}/${name_file}"
     # Define and append a new batch instance.
-    # TODO: append a new batch instance...
     instance="${path_vcf_source};${path_vcf_product}"
     echo $instance >> $path_batch_instances
-
-    # Convert information from genotype files in VCF format to BIM format.
-    /usr/bin/bash "${path_script_dbsnp_rsid_to_vcf}" \
-    $path_genotype_source_vcf \
-    $path_genotype_product_bim_container \
-    $name_file_product_bim \
-    $report
   fi
 done
 
@@ -88,5 +82,10 @@ if true; then
   "${path_script_run_vcf_format_annotation}" \
   $path_batch_instances \
   $batch_instances_count \
-  $path_script_format_annotation
+  $path_script_chr_prefix_in_vcf \
+  $path_script_dbsnp_rsid_to_vcf
 fi
+
+
+
+#

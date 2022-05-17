@@ -63,7 +63,7 @@ $path_bcftools \
 annotate \
 --rename-chrs $path_chromosome_translations \
 --output $path_vcf_product \
---output-type b9 \
+--output-type z9 \
 --threads 4 \
 $path_vcf_source
 
