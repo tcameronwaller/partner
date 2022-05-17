@@ -1,12 +1,15 @@
 #!/bin/bash
 
 ################################################################################
+# Author: T. Cameron Waller
+# Date: 17 May 2022
 ################################################################################
-################################################################################
-# Notes...
-
-################################################################################
-################################################################################
+# Notes:
+# This script extracts information about single nucleotide polymorphisms (SNPs)
+# from a genotype file in Variant Call Format (VCF) and represents this
+# information within a new file in PLINK2 BIM format.
+# The BIM format does not represent all information from the original genotype
+# file in VCF format.
 ################################################################################
 
 ################################################################################
@@ -14,15 +17,11 @@
 path_genotype_source_vcf=${1} # full path to source genotype file in VCF format
 path_genotype_product_bim_container=${2} # full path to directory for product genotype files in BIM format
 name_file_product_bim=${3} # name for product file in BIM format
-report=${4} # whether to print reports
+path_plink2=${4} # full path to installation of BCFTools
+report=${5} # whether to print reports
 
 ###########################################################################
 # Organize paths.
-
-# Read private, local file paths.
-#echo "read private file path variables and organize paths..."
-cd ~/paths
-path_plink2=$(<"./tools_plink2.txt")
 
 ################################################################################
 # Read information from VCF format file to PLINK2 and write file in BIM format.
@@ -42,7 +41,7 @@ $path_plink2 \
 # Report.
 if [[ "$report" == "true" ]]; then
   echo "----------"
-  echo "convert_vcf_to_plink_bim.sh"
+  echo "extract_vcf_snps_to_plink_bim.sh"
   echo "----------"
   echo "___ report:"
   #cat $path_heritability_report_suffix
