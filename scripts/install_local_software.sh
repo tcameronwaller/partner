@@ -141,3 +141,17 @@ cd ~/Downloads
 wget https://github.com/LMMS/lmms/releases/download/v1.2.2/lmms-1.2.2-linux-x86_64.AppImage
 chmod +x ./lmms-1.2.2-linux-x86_64.AppImage
 ./lmms-1.2.2-linux-x86_64.AppImage
+
+##########
+# BCFTools
+# A bioinformatic tool for tasks on genotype files in Variant Call Format (VCF).
+# https://samtools.github.io/bcftools/
+# http://www.htslib.org/download/
+wget https://github.com/samtools/bcftools/releases/download/1.15.1/bcftools-1.15.1.tar.bz2
+tar -xjvf ./bcftools-1.15.1.tar.bz2 -C ./
+cd ./bcftools-1.15.1
+./configure --prefix=../bcftools/1.15.1
+make
+make install
+cd ../bcftools/1.15.1/bin/
+./bcftools --help
