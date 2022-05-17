@@ -21,13 +21,26 @@ path_vcf_source=${2} # full path to source file in VCF format
 path_vcf_product=${3} # full path to product file in VCF format
 path_bcftools=${4} # full path to installation of BCFTools
 report=${5} # whether to print reports
+path_dbsnp_reference=${6} # full path to directory for dbSNP reference
 
 ################################################################################
 # Introduce annotation information from dbSNP reference to file in VCF format.
 
+# This works...
+#$path_bcftools \
+#annotate \
+#--rename-chrs $path_chromosome_translations \
+#--output $path_vcf_product \
+#--output-type b9 \
+#--threads 4 \
+#$path_vcf_source
+
+# Test...
 $path_bcftools \
 annotate \
 --rename-chrs $path_chromosome_translations \
+--annotations $path_dbsnp_reference \
+--columns ID \
 --output $path_vcf_product \
 --output-type b9 \
 --threads 4 \
