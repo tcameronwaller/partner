@@ -17,7 +17,9 @@
 # VCF files at least by chromosome (column: "CHROM") and position
 # (column: "POS"). If the appropriate columns are present, then the function
 # also matches SNPs by reference allele (column: "REF") and alternate allele
-# (column: "ALT").
+# (column: "ALT"). BCFTools requires the format of chromosome identifiers to
+# match directly between both VCF files. Either both or neither VCF files must
+# use the "chr" prefix in chromosome identifiers.
 
 # It is important that both the reference and target genotype files in VCF
 # format use chromosome base pair positions that correspond to the same
@@ -46,35 +48,44 @@
 
 ################################################################################
 # Organize arguments.
-path_chromosome_translations=${1} # full path to file for chromosome name translations
-path_dbsnp_reference=${2} # full path to directory for dbSNP reference
+path_chromosome_translations=${1} # full path to file for chromosome name translations in format for BCFTools "annotate --rename-chrs"
+path_dbsnp_reference=${2} # full path to file for dbSNP reference in VCF format
 path_vcf_source=${3} # full path to source file in VCF format
 path_vcf_product=${4} # full path to product file in VCF format
 path_bcftools=${5} # full path to installation of BCFTools
 report=${6} # whether to print reports
 
 ################################################################################
-# Introduce annotation information from dbSNP reference to file in VCF format.
+# Remove "chr" prefix from chromosome identifiers in VCF genotype file.
+# Introduce dbSNP rsID annotations VCF genotype file.
 
-# TODO: TCW, 17 May 2022
-# TODO: maybe the specification of "--output" interferes with recognizing the source VCF file???
-
-# Trial 1:
-# This call to BCFTools does not seem to change the "ID" column in the product
-# VCF file.
+# Only remove "chr" prefix from chromosome identifiers. Tested successfully.
 #$path_bcftools \
 #annotate \
-#--annotations $path_dbsnp_reference \
-#--columns ID $path_vcf_source \
+#--rename-chrs $path_chromosome_translations \
 #--output $path_vcf_product \
 #--output-type b9 \
-#--threads 4
+#--threads 4 \
+#$path_vcf_source
 
+# Only introduce dbSNP rsID annotations.
 $path_bcftools \
 annotate \
---rename_chrs $path_chromosome_translations \
 --annotations $path_dbsnp_reference \
---columns ID $path_vcf_source \
+--columns ID \
 --output $path_vcf_product \
 --output-type b9 \
---threads 4
+--threads 4 \
+$path_vcf_source
+
+# Both remove "chr" prefix from chromosome identifiers and introduce dbSNP rsID
+# annotations. Only the removal of "chr" prefix works (TCW; 17 May 2022).
+#$path_bcftools \
+#annotate \
+#--rename-chrs $path_chromosome_translations \
+#--annotations $path_dbsnp_reference \
+#--columns ID \
+#--output $path_vcf_product \
+#--output-type b9 \
+#--threads 4 \
+#$path_vcf_source

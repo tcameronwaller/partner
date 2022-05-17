@@ -8,8 +8,7 @@
 # This script finds within a parent directory all child genotype files in
 # Variant Call Format (VCF).
 # For each of these child genotype files in VCF format, the script calls
-# another script to extract information about Single Nucleotide polymorphisms
-# (SNPs) to a new file in PLINK2 BIM format.
+# another script that adjusts format and introduces annotations in BCFTools.
 
 ################################################################################
 ################################################################################
@@ -20,8 +19,11 @@
 path_genotype_source_vcf_container=${1} # full path to parent directory with source genotype files in VCF format
 pattern_genotype_source_vcf_file=${2} # string glob pattern by which to recognize source genotype files in VCF format
 path_genotype_product_vcf_container=${3} # full path to parent directory for product genotype files in BIM format
-path_promiscuity_scripts=${4} # full path to directory of general scripts
-report=${5} # whether to print reports
+path_chromosome_translations=${4} # full path to file for chromosome name translations in format for BCFTools "annotate --rename-chrs"
+path_dbsnp_reference=${5} # full path to file for dbSNP reference in VCF format
+path_promiscuity_scripts=${6} # full path to directory of general scripts
+path_bcftools=${7} # full path to installation of BCFTools
+report=${8} # whether to print reports
 
 ###########################################################################
 # Organize paths.
@@ -29,8 +31,8 @@ report=${5} # whether to print reports
 path_batch_instances="${path_genotype_product_vcf_container}/batch_instances.txt"
 
 # Scripts.
-path_script_run_dbsnp_rsid_to_vcf="${path_promiscuity_scripts}/utility/run_batch_introduce_dbsnp_rsid_to_vcf.sh"
-path_script_dbsnp_rsid_to_vcf="${path_promiscuity_scripts}/utility/introduce_dbsnp_rsid_to_vcf.sh"
+path_script_run_vcf_format_annotation="${path_promiscuity_scripts}/utility/run_batch_vcf_format_annotation.sh"
+path_script_format_annotation="${path_promiscuity_scripts}/utility/remove_chromosome_prefix_introduce_dbsnp_rsid_to_vcf.sh"
 
 ###########################################################################
 # Find source genotype files in VCF format within container directory.
@@ -83,8 +85,8 @@ if true; then
   # Array batch indices must start at one (not zero).
   qsub -t 1-${batch_instances_count}:1 -o \
   "${path_genotype_product_vcf_container}/batch_out.txt" -e "${path_genotype_product_vcf_container}/batch_error.txt" \
-  "${path_script_run_dbsnp_rsid_to_vcf}" \
+  "${path_script_run_vcf_format_annotation}" \
   $path_batch_instances \
   $batch_instances_count \
-  $path_script_dbsnp_rsid_to_vcf
+  $path_script_format_annotation
 fi
