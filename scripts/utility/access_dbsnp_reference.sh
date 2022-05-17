@@ -28,7 +28,7 @@
 
 ################################################################################
 # Organize arguments.
-path_dbsnp_reference=${1} # full path to directory for genetic references
+path_dbsnp_reference=${1} # full path to directory for dbSNP reference
 
 ###########################################################################
 # Execute procedure.
@@ -62,9 +62,9 @@ cd $path_dbsnp_reference
 # Genome Reference Consortium (GRC) human assembly: 38 (GRCh38)
 
 wget https://ftp.ncbi.nlm.nih.gov/snp/latest_release/VCF/GCF_000001405.39.gz           # 24 Gigabytes
-wget https://ftp.ncbi.nlm.nih.gov/snp/latest_release/VCF/GCF_000001405.39.gz.md5       # 54 bytes
+wget https://ftp.ncbi.nlm.nih.gov/snp/latest_release/VCF/GCF_000001405.39.gz.md5       # 512 bytes
 wget https://ftp.ncbi.nlm.nih.gov/snp/latest_release/VCF/GCF_000001405.39.gz.tbi       # 3.0 Megabytes
-wget https://ftp.ncbi.nlm.nih.gov/snp/latest_release/VCF/GCF_000001405.39.gz.tbi.md5   # 58 bytes
+wget https://ftp.ncbi.nlm.nih.gov/snp/latest_release/VCF/GCF_000001405.39.gz.tbi.md5   # 512 bytes
 
 
 

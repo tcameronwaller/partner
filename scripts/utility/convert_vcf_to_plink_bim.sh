@@ -19,8 +19,6 @@ report=${4} # whether to print reports
 ###########################################################################
 # Organize paths.
 
-################################################################################
-# Activate Virtual Environment.
 # Read private, local file paths.
 #echo "read private file path variables and organize paths..."
 cd ~/paths
