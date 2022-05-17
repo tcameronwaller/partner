@@ -49,30 +49,19 @@
 ################################################################################
 # Organize arguments.
 path_chromosome_translations=${1} # full path to file for chromosome name translations in format for BCFTools "annotate --rename-chrs"
-path_dbsnp_reference=${2} # full path to file for dbSNP reference in VCF format
-path_vcf_source=${3} # full path to source file in VCF format
-path_vcf_product=${4} # full path to product file in VCF format
-path_bcftools=${5} # full path to installation of BCFTools
-report=${6} # whether to print reports
+path_vcf_source=${2} # full path to source file in VCF format
+path_vcf_product=${3} # full path to product file in VCF format
+path_bcftools=${4} # full path to installation of BCFTools
+report=${5} # whether to print reports
 
 ################################################################################
 # Remove "chr" prefix from chromosome identifiers in VCF genotype file.
 # Introduce dbSNP rsID annotations VCF genotype file.
 
 # Only remove "chr" prefix from chromosome identifiers. Tested successfully.
-#$path_bcftools \
-#annotate \
-#--rename-chrs $path_chromosome_translations \
-#--output $path_vcf_product \
-#--output-type b9 \
-#--threads 4 \
-#$path_vcf_source
-
-# Only introduce dbSNP rsID annotations.
 $path_bcftools \
 annotate \
---annotations $path_dbsnp_reference \
---columns ID \
+--rename-chrs $path_chromosome_translations \
 --output $path_vcf_product \
 --output-type b9 \
 --threads 4 \
