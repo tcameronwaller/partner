@@ -27,7 +27,7 @@ report=${5} # whether to print reports
 # Organize paths.
 
 # Scripts.
-path_script_extract_vcf_to_bim="${path_promiscuity_scripts}/utility/extract_vcf_to_plink_bim.sh"
+path_script_extract_vcf_to_bim="${path_promiscuity_scripts}/utility/extract_vcf_snps_to_plink_bim.sh"
 
 ###########################################################################
 # Find source genotype files in VCF format within container directory.

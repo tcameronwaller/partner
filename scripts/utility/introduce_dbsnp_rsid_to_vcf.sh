@@ -55,6 +55,9 @@ report=${5} # whether to print reports
 ################################################################################
 # Introduce annotation information from dbSNP reference to file in VCF format.
 
+# TODO: TCW, 17 May 2022
+# TODO: maybe the specification of "--output" interferes with recognizing the source VCF file???
+
 $path_bcftools \
 annotate \
 --annotations $path_dbsnp_reference \
