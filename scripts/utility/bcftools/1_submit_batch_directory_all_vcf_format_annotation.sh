@@ -32,7 +32,7 @@ report=${9} # whether to print reports
 path_batch_instances="${path_genotype_product_vcf_container}/batch_instances.txt"
 
 # Scripts.
-path_script_run_vcf_format_annotation="${path_promiscuity_scripts}/utility/run_batch_vcf_format_annotation.sh"
+path_script_run_vcf_format_annotation="${path_promiscuity_scripts}/utility/bcftools/2_run_batch_vcf_format_annotation.sh"
 
 ###########################################################################
 # Find source genotype files in VCF format within container directory.
@@ -72,7 +72,7 @@ echo "first batch instance: " ${batch_instances[0]} # notice base-zero indexing
 echo "last batch instance: " ${batch_instances[$batch_instances_count - 1]}
 
 # Execute batch with grid scheduler.
-if false; then
+if true; then
   # Submit array batch to Sun Grid Engine.
   # Array batch indices must start at one (not zero).
   qsub -t 1-${batch_instances_count}:1 -o \
