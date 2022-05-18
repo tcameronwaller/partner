@@ -9,24 +9,6 @@
 # BCFTools specializes in tasks on genotype files in the Variant Call Format
 # (VCF) that describe Single Nucleotide Polymorphisms (SNPs) across samples.
 
-# BCFTools is able to introduce annotation information to a target VCF file from
-# a reference file also in VCF format, such as the dbSNP reference from the
-# National Center for Biotechnology Information (NCBI).
-
-# The "annotate" function of BCFTools matches records for SNPs between the two
-# VCF files at least by chromosome (column: "CHROM") and position
-# (column: "POS"). If the appropriate columns are present, then the function
-# also matches SNPs by reference allele (column: "REF") and alternate allele
-# (column: "ALT"). BCFTools requires the format of chromosome identifiers to
-# match directly between both VCF files. Either both or neither VCF files must
-# use the "chr" prefix in chromosome identifiers.
-
-# It is important that both the reference and target genotype files in VCF
-# format use chromosome base pair positions that correspond to the same
-# Genome Reference Consortium (GRC) human assembly, such as GRCh38.
-
-# BCFTools can read a dbSNP reference VCF file in BGZF (bgzip) compression
-# format with a Tabix index (.tbi) for more efficient performance.
 
 # BCFTools documentation
 # https://samtools.github.io/bcftools/bcftools.html
@@ -48,7 +30,7 @@
 
 ################################################################################
 # Organize arguments.
-path_dbsnp_reference=${1} # full path to file for dbSNP reference in VCF format
+path_chromosome_translations=${1} # full path to file for chromosome name translations in format for BCFTools "annotate --rename-chrs"
 path_vcf_source=${2} # full path to source file in VCF format
 path_vcf_product=${3} # full path to product file in VCF format
 path_bcftools=${4} # full path to installation of BCFTools
@@ -59,16 +41,10 @@ report=${5} # whether to print reports
 # Introduce dbSNP rsID annotations VCF genotype file.
 # Write to file in VCF format with BGZIP compression.
 
-# TCW; 17 May 2022
-# To avoid problems with writing format and access to the Tabix index for BGZIP
-# compression, copy both the VCF file and the tabix index to the new directory
-# and then edit that file directly.
-
-# Only introduce dbSNP rsID annotations.
+# Only remove "chr" prefix from chromosome identifiers. Tested successfully.
 $path_bcftools \
 annotate \
---annotations $path_dbsnp_reference \
---columns ID \
+--rename-chrs $path_chromosome_translations \
 --output $path_vcf_product \
 --output-type z9 \
 --threads 4 \

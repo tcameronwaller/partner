@@ -25,8 +25,18 @@
 # format use chromosome base pair positions that correspond to the same
 # Genome Reference Consortium (GRC) human assembly, such as GRCh38.
 
-# BCFTools can read a dbSNP reference VCF file in BGZF (bgzip) compression
-# format with a Tabix index (.tbi) for more efficient performance.
+# BCFTools can read a dbSNP reference VCF file in BGzip compression format
+# (BGZF) with a matching Tabix index (.tbi) for more efficient performance.
+# Actually some commands in BCFTools require the matching Tabix index.
+# It is possible to read a Tabix index with a non-standard name convention:
+# "bcftools view -r X:2928329 file.vcf.gz##idx##non-standard-index-name"
+
+# It is necessary to call BCFTools separately for each command.
+# For example, separate calls to BCFTools are necessary for the
+# "annotate --rename-chrs" command and then the "annotate --annotations"
+# command. It is more efficient to pipe the standard output result from a
+# first command to a second command using a symbol that BCFTools recognizes
+# as standard input ("-").
 
 # BCFTools documentation
 # https://samtools.github.io/bcftools/bcftools.html
@@ -48,7 +58,7 @@
 
 ################################################################################
 # Organize arguments.
-path_chromosome_translations=${1} # full path to file for chromosome name translations in format for BCFTools "annotate --rename-chrs"
+path_dbsnp_reference=${1} # full path to file for dbSNP reference in VCF format
 path_vcf_source=${2} # full path to source file in VCF format
 path_vcf_product=${3} # full path to product file in VCF format
 path_bcftools=${4} # full path to installation of BCFTools
@@ -59,14 +69,41 @@ report=${5} # whether to print reports
 # Introduce dbSNP rsID annotations VCF genotype file.
 # Write to file in VCF format with BGZIP compression.
 
-# Only remove "chr" prefix from chromosome identifiers. Tested successfully.
+# TCW; 17 May 2022
+# To avoid problems with writing format and access to the Tabix index for BGZIP
+# compression, copy both the VCF file and the tabix index to the new directory
+# and then edit that file directly.
+
+# Only introduce dbSNP rsID annotations.
 $path_bcftools \
 annotate \
---rename-chrs $path_chromosome_translations \
+--annotations $path_dbsnp_reference \
+--columns ID \
 --output $path_vcf_product \
 --output-type z9 \
 --threads 4 \
 $path_vcf_source
+
+if false; then
+  # Both remove "chr" prefix from chromosome identifiers and introduce dbSNP rsID
+  # annotations. Only the removal of "chr" prefix works (TCW; 17 May 2022).
+  $path_bcftools \
+  annotate \
+  --rename-chrs $path_chromosome_translations \
+  --columns ID \
+  --output-type u \
+  --threads 4 \
+  $path_vcf_source \
+  |
+  $path_bcftools \
+  annotate \
+  --annotations $path_dbsnp_reference \
+  --columns ID \
+  --output $path_vcf_product \
+  --output-type z9 \
+  --threads 4 \
+  -
+fi
 
 # Create Tabix index for product file in VCF format.
 # BCFTools sometimes requires this Tabix index to read a file.
@@ -76,15 +113,3 @@ index \
 --tbi \
 --threads 4 \
 $path_vcf_product
-
-# Both remove "chr" prefix from chromosome identifiers and introduce dbSNP rsID
-# annotations. Only the removal of "chr" prefix works (TCW; 17 May 2022).
-#$path_bcftools \
-#annotate \
-#--rename-chrs $path_chromosome_translations \
-#--annotations $path_dbsnp_reference \
-#--columns ID \
-#--output $path_vcf_product \
-#--output-type b9 \
-#--threads 4 \
-#$path_vcf_source

@@ -4,6 +4,15 @@
 ################################################################################
 # Note
 
+# The dbSNP reference from the National Center for Biotechnology Information
+# (NCBI) gives information about Single Nucleotide Polymorphisms (SNPs) that
+# includes unique reference SNP identifiers (rsIDs). This information is
+# available in the Variant Call Format (VCF).
+
+# Importantly, the dbSNP VCF file uses "RefSeq" identifiers for each chromosome
+# in the "CHROM" column. These "RefSeq" identifiers correspond to a specific
+# assembly of the human genome.
+
 # National Center for Biotechnology Information (NCBI)
 # Project dbSNP for Short Genetic Variations
 # https://www.ncbi.nlm.nih.gov/projects/SNP/snp_summary.cgi
@@ -20,6 +29,11 @@
 # "RefSNP VCF files for GRC (Genome Reference Consortium) human assembly 37
 # (GCF_000001405.25) and 38 (GCF_000001405.39). Files are compressed by bgzip
 # and with the tabix index."
+
+# A copy of the dbSNP reference is also available from Human Genome Resources
+# at NCBI.
+# https://www.ncbi.nlm.nih.gov/genome/guide/human/#download
+# https://ftp.ncbi.nlm.nih.gov/refseq/H_sapiens/annotation/GRCh38_latest/refseq_identifiers/
 
 # Do not decompress the dbSNP file (BGZip format; BGZF).
 

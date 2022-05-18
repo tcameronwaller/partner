@@ -20,4 +20,4 @@ chr19 19
 chr20 20
 chr21 21
 chr22 22
-chrX X
+chrX x

@@ -71,11 +71,17 @@ instance=${batch_instances[$batch_index]}
 
 # Separate fields from instance.
 IFS=";" read -r -a array <<< "${instance}"
-study="${array[0]}"
-path_gwas_concatenation_compress="${array[1]}"
+path_vcf_source="${array[0]}"
+path_vcf_product="${array[1]}"
 
 ###########################################################################
 # Execute procedure.
+
+# TODO: TCW; 17 May 2022
+# TODO: attempt to pipe output from bcftools annotate --rename-chrs to bcftools annotate --annotations
+# TODO: then write to output file path
+# TODO: then create a Tabix index for the VCF format file with BGzip compression
+
 
 # Concatenate GWAS across chromosomes.
 /usr/bin/bash "${path_scripts_record}/4_drive_gwas_format_munge_heritability.sh" \
