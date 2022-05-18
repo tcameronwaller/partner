@@ -70,10 +70,10 @@ path_vcf_product="${array[1]}"
 if true; then
   # Both remove "chr" prefix from chromosome identifiers and introduce dbSNP
   # rsID annotations.
+  #   --output-type u \
   $path_bcftools \
   annotate \
   --rename-chrs $path_chromosome_translations \
-  --output-type u \
   --threads $threads \
   $path_vcf_source \
   |

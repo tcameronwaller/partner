@@ -37,6 +37,13 @@ path_script_run_vcf_format_annotation="${path_promiscuity_scripts}/utility/bcfto
 ###########################################################################
 # Find source genotype files in VCF format within container directory.
 
+# TODO: TCW; 18 May 2022
+# TODO: It seems like the pipe between BCFTools commands isn't working... fails to read from standard input...
+# TODO: use prefixes to file names to define separate file names within the same directory
+# TODO: for the chromosome identifier and SNP identifier product files.
+
+# TODO: DO NOT try the above until AFTER trying to pipe with BGzip compression...
+
 cd $path_genotype_source_vcf_container
 for path_file in `find . -maxdepth 1 -mindepth 1 -type f -name "$pattern_genotype_source_vcf_file"`; do
   if [[ -f "$path_file" ]]; then

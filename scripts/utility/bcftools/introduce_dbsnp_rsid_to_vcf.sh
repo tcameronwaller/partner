@@ -34,9 +34,11 @@
 # It is necessary to call BCFTools separately for each command.
 # For example, separate calls to BCFTools are necessary for the
 # "annotate --rename-chrs" command and then the "annotate --annotations"
-# command. It is more efficient to pipe the standard output result from a
-# first command to a second command using a symbol that BCFTools recognizes
-# as standard input ("-").
+# command. The documentation claims that it is more efficient to pipe the
+# standard output result from a first command to a second command using a symbol
+# that BCFTools recognizes as standard input ("-"). In practice BCFTools seems
+# to give an error reading information from the standard input because it is
+# "not compressed with bgzip".
 
 # BCFTools documentation
 # https://samtools.github.io/bcftools/bcftools.html
