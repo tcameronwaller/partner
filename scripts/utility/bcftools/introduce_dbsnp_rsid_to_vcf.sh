@@ -61,18 +61,14 @@
 path_dbsnp_reference=${1} # full path to file for dbSNP reference in VCF format
 path_vcf_source=${2} # full path to source file in VCF format
 path_vcf_product=${3} # full path to product file in VCF format
-path_bcftools=${4} # full path to installation of BCFTools
-report=${5} # whether to print reports
+threads=${4} # count of processing threads to use
+path_bcftools=${5} # full path to installation of BCFTools
+report=${6} # whether to print reports
 
 ################################################################################
 # Remove "chr" prefix from chromosome identifiers in VCF genotype file.
 # Introduce dbSNP rsID annotations VCF genotype file.
 # Write to file in VCF format with BGZIP compression.
-
-# TCW; 17 May 2022
-# To avoid problems with writing format and access to the Tabix index for BGZIP
-# compression, copy both the VCF file and the tabix index to the new directory
-# and then edit that file directly.
 
 # Only introduce dbSNP rsID annotations.
 $path_bcftools \
@@ -81,7 +77,7 @@ annotate \
 --columns ID \
 --output $path_vcf_product \
 --output-type z9 \
---threads 8 \
+--threads $threads \
 $path_vcf_source
 
 if false; then
@@ -92,7 +88,7 @@ if false; then
   --rename-chrs $path_chromosome_translations \
   --columns ID \
   --output-type u \
-  --threads 4 \
+  --threads $threads \
   $path_vcf_source \
   |
   $path_bcftools \
@@ -101,7 +97,7 @@ if false; then
   --columns ID \
   --output $path_vcf_product \
   --output-type z9 \
-  --threads 8 \
+  --threads $threads \
   -
 fi
 
@@ -111,5 +107,5 @@ $path_bcftools \
 index \
 --force \
 --tbi \
---threads 8 \
+--threads $threads \
 $path_vcf_product

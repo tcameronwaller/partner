@@ -2,7 +2,7 @@
 
 ################################################################################
 # Author: T. Cameron Waller
-# Date: 17 May 2022
+# Date: 18 May 2022
 ################################################################################
 # Notes:
 # This script finds within a parent directory all child genotype files in
@@ -22,8 +22,9 @@ path_genotype_product_vcf_container=${3} # full path to parent directory for pro
 path_chromosome_translations=${4} # full path to file for chromosome name translations in format for BCFTools "annotate --rename-chrs"
 path_dbsnp_reference=${5} # full path to file for dbSNP reference in VCF format
 path_promiscuity_scripts=${6} # full path to directory of general scripts
-path_bcftools=${7} # full path to installation of BCFTools
-report=${8} # whether to print reports
+threads=${7} # count of processing threads to use
+path_bcftools=${8} # full path to installation of BCFTools
+report=${9} # whether to print reports
 
 ###########################################################################
 # Organize paths.
@@ -32,9 +33,6 @@ path_batch_instances="${path_genotype_product_vcf_container}/batch_instances.txt
 
 # Scripts.
 path_script_run_vcf_format_annotation="${path_promiscuity_scripts}/utility/run_batch_vcf_format_annotation.sh"
-#path_script_format_annotation="${path_promiscuity_scripts}/utility/remove_chromosome_prefix_introduce_dbsnp_rsid_to_vcf.sh"
-path_script_chr_prefix_in_vcf="${path_promiscuity_scripts}/utility/remove_chromosome_prefix_in_vcf.sh"
-path_script_dbsnp_rsid_to_vcf="${path_promiscuity_scripts}/utility/introduce_dbsnp_rsid_to_vcf.sh"
 
 ###########################################################################
 # Find source genotype files in VCF format within container directory.
@@ -74,7 +72,7 @@ echo "first batch instance: " ${batch_instances[0]} # notice base-zero indexing
 echo "last batch instance: " ${batch_instances[$batch_instances_count - 1]}
 
 # Execute batch with grid scheduler.
-if true; then
+if false; then
   # Submit array batch to Sun Grid Engine.
   # Array batch indices must start at one (not zero).
   qsub -t 1-${batch_instances_count}:1 -o \
@@ -82,8 +80,11 @@ if true; then
   "${path_script_run_vcf_format_annotation}" \
   $path_batch_instances \
   $batch_instances_count \
-  $path_script_chr_prefix_in_vcf \
-  $path_script_dbsnp_rsid_to_vcf
+  $path_chromosome_translations \
+  $path_dbsnp_reference \
+  $threads \
+  $path_bcftools \
+  $report
 fi
 
 

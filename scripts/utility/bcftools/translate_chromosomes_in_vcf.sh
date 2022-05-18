@@ -33,8 +33,9 @@
 path_chromosome_translations=${1} # full path to file for chromosome name translations in format for BCFTools "annotate --rename-chrs"
 path_vcf_source=${2} # full path to source file in VCF format
 path_vcf_product=${3} # full path to product file in VCF format
-path_bcftools=${4} # full path to installation of BCFTools
-report=${5} # whether to print reports
+threads=${4} # count of processing threads to use
+path_bcftools=${5} # full path to installation of BCFTools
+report=${6} # whether to print reports
 
 ################################################################################
 # Remove "chr" prefix from chromosome identifiers in VCF genotype file.
@@ -47,7 +48,7 @@ annotate \
 --rename-chrs $path_chromosome_translations \
 --output $path_vcf_product \
 --output-type z9 \
---threads 12 \
+--threads $threads \
 $path_vcf_source
 
 # Create Tabix index for product file in VCF format.
@@ -56,17 +57,9 @@ $path_bcftools \
 index \
 --force \
 --tbi \
---threads 12 \
+--threads $threads \
 $path_vcf_product
 
-# Both remove "chr" prefix from chromosome identifiers and introduce dbSNP rsID
-# annotations. Only the removal of "chr" prefix works (TCW; 17 May 2022).
-#$path_bcftools \
-#annotate \
-#--rename-chrs $path_chromosome_translations \
-#--annotations $path_dbsnp_reference \
-#--columns ID \
-#--output $path_vcf_product \
-#--output-type b9 \
-#--threads 4 \
-#$path_vcf_source
+
+
+#

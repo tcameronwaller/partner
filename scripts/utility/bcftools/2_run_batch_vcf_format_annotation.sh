@@ -23,7 +23,7 @@
 ### -p -10
 # Memory per iteration.
 # Segmentation errors commonly indicate a memory error.
-#$ -l h_vmem=1G
+#$ -l h_vmem=3G
 # Concurrent threads; assigns value to variable NSLOTS.
 # Important to specify 32 threads to avoid inconsistency with interactive
 # calculations.
@@ -78,7 +78,7 @@ path_vcf_product="${array[1]}"
 # Execute procedure.
 
 # TODO: TCW; 17 May 2022
-# TODO: attempt to pipe output from bcftools annotate --rename-chrs to bcftools annotate --annotations
+# TODO: attempt to pipe output from bcftools "annotate --rename-chrs" to bcftools "annotate --annotations"
 # TODO: then write to output file path
 # TODO: then create a Tabix index for the VCF format file with BGzip compression
 

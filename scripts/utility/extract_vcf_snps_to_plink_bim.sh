@@ -17,8 +17,9 @@
 path_genotype_source_vcf=${1} # full path to source genotype file in VCF format
 path_genotype_product_bim_container=${2} # full path to directory for product genotype files in BIM format
 name_file_product_bim=${3} # name for product file in BIM format
-path_plink2=${4} # full path to installation of BCFTools
-report=${5} # whether to print reports
+threads=${4} # count of processing threads to use
+path_plink2=${5} # full path to installation of BCFTools
+report=${6} # whether to print reports
 
 ###########################################################################
 # Organize paths.
@@ -32,7 +33,7 @@ cd $path_genotype_product_bim_container
 
 $path_plink2 \
 --memory 90000 \
---threads 4 \
+--threads $threads \
 --vcf $path_genotype_source_vcf \
 --make-just-bim \
 --out "${name_file_product_bim}"

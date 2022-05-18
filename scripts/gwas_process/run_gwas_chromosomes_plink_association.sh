@@ -61,7 +61,8 @@ for chromosome in "${chromosomes[@]}"; do
     # PLINK2 command "--glm" drives genotypic association analyses, either
     # linear or logistic regressions across Simple Nucleotide Polymorphisms
     # (SNPs).
-    # 90,000 Mebibytes (MiB) is 94.372 Gigabytes (GB)
+    # PLINK2 "--memory" sets a limit on use of random access memory in units of
+    # Mebibytes (MiB). 90,000 Mebibytes (MiB) is 94.372 Gigabytes (GB)
     # Parameter ""--pfilter 1" tells PLINK2 to drop SNPs with null p-values or
     # any beyond threshold (such as 1).
     # Parameter "--bgen ref-first" tells PLINK2 always to consider the first
