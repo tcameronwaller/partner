@@ -80,27 +80,6 @@ annotate \
 --threads $threads \
 $path_vcf_source
 
-if false; then
-  # Both remove "chr" prefix from chromosome identifiers and introduce dbSNP rsID
-  # annotations. Only the removal of "chr" prefix works (TCW; 17 May 2022).
-  $path_bcftools \
-  annotate \
-  --rename-chrs $path_chromosome_translations \
-  --columns ID \
-  --output-type u \
-  --threads $threads \
-  $path_vcf_source \
-  |
-  $path_bcftools \
-  annotate \
-  --annotations $path_dbsnp_reference \
-  --columns ID \
-  --output $path_vcf_product \
-  --output-type z9 \
-  --threads $threads \
-  -
-fi
-
 # Create Tabix index for product file in VCF format.
 # BCFTools sometimes requires this Tabix index to read a file.
 $path_bcftools \
