@@ -39,6 +39,8 @@
 # that BCFTools recognizes as standard input ("-"). In practice BCFTools seems
 # to give an error reading information from the standard input because it is
 # "not compressed with bgzip".
+# Example:
+# bcftools first-command --options source_file | bcftools second-command --options -
 
 # BCFTools documentation
 # https://samtools.github.io/bcftools/bcftools.html

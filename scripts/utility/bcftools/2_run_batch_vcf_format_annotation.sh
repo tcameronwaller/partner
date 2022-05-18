@@ -7,7 +7,7 @@
 # Shell.
 #$ -S /bin/bash
 # Name of job.
-#$ -N waller_bcftools
+#$ -N tcw_bcftools
 # Contact.
 # "b": beginning, "e": end, "a": abortion, "s": suspension, "n": never
 #$ -M waller.tcameron@mayo.edu
@@ -88,39 +88,6 @@ if true; then
   $threads \
   $path_bcftools \
   $report
-fi
-
-
-
-
-# The pipe does not work. TCW; 18 May 2022
-if false; then
-  # Both remove "chr" prefix from chromosome identifiers and introduce dbSNP
-  # rsID annotations.
-  #   --output-type u \
-  $path_bcftools \
-  annotate \
-  --rename-chrs $path_chromosome_translations \
-  --threads $threads \
-  $path_vcf_source \
-  |
-  $path_bcftools \
-  annotate \
-  --annotations $path_dbsnp_reference \
-  --columns ID \
-  --output $path_vcf_product \
-  --output-type z9 \
-  --threads $threads \
-  -
-
-  # Create Tabix index for product file in VCF format.
-  # BCFTools sometimes requires this Tabix index to read a file.
-  $path_bcftools \
-  index \
-  --force \
-  --tbi \
-  --threads $threads \
-  $path_vcf_product
 fi
 
 
