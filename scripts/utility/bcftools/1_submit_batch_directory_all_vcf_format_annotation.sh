@@ -33,16 +33,11 @@ path_batch_instances="${path_genotype_product_vcf_container}/batch_instances.txt
 
 # Scripts.
 path_script_run_vcf_format_annotation="${path_promiscuity_scripts}/utility/bcftools/2_run_batch_vcf_format_annotation.sh"
+path_script_chromosome_in_vcf="${path_promiscuity_scripts}/utility/bcftools/translate_chromosomes_in_vcf.sh"
+path_script_dbsnp_rsid_to_vcf="${path_promiscuity_scripts}/utility/bcftools/introduce_dbsnp_rsid_to_vcf.sh"
 
 ###########################################################################
 # Find source genotype files in VCF format within container directory.
-
-# TODO: TCW; 18 May 2022
-# TODO: It seems like the pipe between BCFTools commands isn't working... fails to read from standard input...
-# TODO: use prefixes to file names to define separate file names within the same directory
-# TODO: for the chromosome identifier and SNP identifier product files.
-
-# TODO: DO NOT try the above until AFTER trying to pipe with BGzip compression...
 
 cd $path_genotype_source_vcf_container
 for path_file in `find . -maxdepth 1 -mindepth 1 -type f -name "$pattern_genotype_source_vcf_file"`; do
@@ -51,10 +46,12 @@ for path_file in `find . -maxdepth 1 -mindepth 1 -type f -name "$pattern_genotyp
     # Extract directory's base name.
     name_file="$(basename -- $path_file)"
     echo $name_file
-    path_vcf_source="${path_genotype_source_vcf_container}/${name_file}"
-    path_vcf_product="${path_genotype_product_vcf_container}/${name_file}"
+    path_vcf_source_chromosome="${path_genotype_source_vcf_container}/${name_file}"
+    path_vcf_product_chromosome="${path_genotype_product_vcf_container}/chromosome_${name_file}"
+    path_vcf_source_snp="${path_genotype_product_vcf_container}/chromosome_${name_file}"
+    path_vcf_product_snp="${path_genotype_product_vcf_container}/snp_${name_file}"
     # Define and append a new batch instance.
-    instance="${path_vcf_source};${path_vcf_product}"
+    instance="${path_vcf_source_chromosome};${path_vcf_product_chromosome};${path_vcf_source_snp};${path_vcf_product_snp}"
     echo $instance >> $path_batch_instances
   fi
 done
@@ -89,6 +86,8 @@ if true; then
   $batch_instances_count \
   $path_chromosome_translations \
   $path_dbsnp_reference \
+  $path_script_chromosome_in_vcf \
+  $path_script_dbsnp_rsid_to_vcf \
   $threads \
   $path_bcftools \
   $report
