@@ -81,7 +81,7 @@ annotate \
 --columns ID \
 --output $path_vcf_product \
 --output-type z9 \
---threads 4 \
+--threads 8 \
 $path_vcf_source
 
 if false; then
@@ -101,7 +101,7 @@ if false; then
   --columns ID \
   --output $path_vcf_product \
   --output-type z9 \
-  --threads 4 \
+  --threads 8 \
   -
 fi
 
@@ -111,5 +111,5 @@ $path_bcftools \
 index \
 --force \
 --tbi \
---threads 4 \
+--threads 8 \
 $path_vcf_product

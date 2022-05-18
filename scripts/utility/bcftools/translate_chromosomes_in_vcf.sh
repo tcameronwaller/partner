@@ -47,7 +47,7 @@ annotate \
 --rename-chrs $path_chromosome_translations \
 --output $path_vcf_product \
 --output-type z9 \
---threads 4 \
+--threads 12 \
 $path_vcf_source
 
 # Create Tabix index for product file in VCF format.
@@ -56,7 +56,7 @@ $path_bcftools \
 index \
 --force \
 --tbi \
---threads 4 \
+--threads 12 \
 $path_vcf_product
 
 # Both remove "chr" prefix from chromosome identifiers and introduce dbSNP rsID
