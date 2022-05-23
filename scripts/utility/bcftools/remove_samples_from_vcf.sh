@@ -2,7 +2,7 @@
 
 ################################################################################
 # Author: T. Cameron Waller
-# Date: 17 May 2022
+# Date: 19 May 2022
 ################################################################################
 # Note
 
@@ -30,7 +30,7 @@
 
 ################################################################################
 # Organize arguments.
-path_chromosome_translations=${1} # full path to file for chromosome name translations in format for BCFTools "annotate --rename-chrs"
+sample_exclusion_list=${1} # text list with comma delimiters of samples to remove with '^' prefix, such as '^sample_1,sample2,sample3'
 path_vcf_source=${2} # full path to source file in VCF format
 path_vcf_product=${3} # full path to product file in VCF format
 threads=${4} # count of processing threads to use
@@ -38,12 +38,12 @@ path_bcftools=${5} # full path to installation of BCFTools
 report=${6} # whether to print reports
 
 ################################################################################
-# Remove "chr" prefix from chromosome identifiers in VCF genotype file.
+# Remove specific samples from VCF genotype file.
 # Write to file in VCF format with BGZIP compression.
 
 $path_bcftools \
 annotate \
---rename-chrs $path_chromosome_translations \
+--samples $sample_exclusion_list \
 --output $path_vcf_product \
 --output-type z9 \
 --threads $threads \

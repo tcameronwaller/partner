@@ -88,6 +88,8 @@ if true; then
   $threads \
   $path_bcftools \
   $report
+  # Remove files for intermediate versions.
+  rm $path_vcf_product_chromosome
 fi
 
 

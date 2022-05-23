@@ -23,7 +23,7 @@ path_chromosome_translations=${4} # full path to file for chromosome name transl
 path_dbsnp_reference=${5} # full path to file for dbSNP reference in VCF format
 path_promiscuity_scripts=${6} # full path to directory of general scripts
 threads=${7} # count of processing threads to use
-path_bcftools=${8} # full path to installation of BCFTools
+path_bcftools=${9} # full path to installation of BCFTools
 report=${9} # whether to print reports
 
 ###########################################################################
@@ -32,7 +32,8 @@ report=${9} # whether to print reports
 path_batch_instances="${path_genotype_product_vcf_container}/batch_instances.txt"
 
 # Scripts.
-path_script_run_vcf_format_annotation="${path_promiscuity_scripts}/utility/bcftools/2_run_batch_vcf_format_annotation.sh"
+path_script_run_vcf_sample_format_annotation="${path_promiscuity_scripts}/utility/bcftools/2_run_batch_vcf_sample_format_annotation.sh"
+#path_script_remove_samples_from_vcf="${path_promiscuity_scripts}/utility/bcftools/remove_samples_from_vcf.sh"
 path_script_chromosome_in_vcf="${path_promiscuity_scripts}/utility/bcftools/translate_chromosomes_in_vcf.sh"
 path_script_dbsnp_rsid_to_vcf="${path_promiscuity_scripts}/utility/bcftools/introduce_dbsnp_rsid_to_vcf.sh"
 
