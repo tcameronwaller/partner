@@ -12,10 +12,13 @@ path_python="${path_tools}/python"
 path_python_396="${path_python}/python_3.9.6"
 path_python_2718="${path_python}/python_2.7.18"
 
+# Python 3 environments.
 path_environment_main="${path_tools}/python/environments/main"
-path_environment_ldsc="${path_tools}/python/environments/ldsc"
-
 path_environment_prs_cs="${path_tools}/python/environments/prs_cs"
+path_environment_crossmap="${path_tools}/python/environments/crossmap"
+
+# Python 2 environments.
+path_environment_ldsc="${path_tools}/python/environments/ldsc"
 
 # Initialize directories.
 mkdir -p $path_python
@@ -195,6 +198,48 @@ which python3
 # rm -rf [virtual environment path and name] # remove virtual environment
 
 
+
+################################################################################
+# Python3 virtual environment
+# Python standard module "venv" is the preferred Virtual Environment manager for
+# Python version 3.3 or higher.
+# https://docs.python.org/3/tutorial/venv.html
+# [path to specific python3 installation] -m venv [path to new virtual environment and its name to create]
+# source [virtual environment name]/bin/activate
+# deactivate
+
+# Documentation for Python 2 CrossMap: "https://pythonhosted.org/CrossMap/"
+# Documentation for Python 3 CrossMap: "https://sourceforge.net/projects/crossmap/"
+
+# Initialize Python 3 virtual environment for CrossMap installation.
+#path_python_396="${path_python}/python_3.9.6"
+#path_environment_crossmap="${path_tools}/python/environments/crossmap"
+"${path_python_396}/bin/python3" -m venv $path_environment_crossmap # TCW; 23 May 2022
+
+# Activate virtual environment.
+# Unable to install with "--user" flag within virtual environment.
+# ERROR: Can not perform a '--user' install. User site-packages are not visible in this virtualenv.
+
+# source ./python/environments/prs_cs/bin/activate # TCW; 28 April 2022
+source "${path_environment_prs_cs}/bin/activate"
+which python3 # "${path_environment_crossmap}/bin/python3"; TCW; 23 May 2022
+# Pip installation within virtual environment should not require "sudo" permissions.
+python3 -m pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org pip setuptools
+python3 -m pip install --upgrade pip # TCW; 23 May 2022
+# Successfully installed pip-22.1.1
+python3 -m pip --version # "pip 22.1.1 from ${path_environment_crossmap}/lib/python3.9/site-packages/pip (python 3.9)"; TCW; 23 May 2022
+python3 -m pip install --upgrade CrossMap # TCW; 23 May 2022
+# "Successfully installed CrossMap-0.6.3 bx-python-0.8.13 cython-0.29.30 numpy-1.22.4 pyBigWig-0.3.18 pysam-0.19.0"
+CrossMap.py --help # call "CrossMap.py" directly as an executable
+CrossMap.py vcf --help
+deactivate
+which python3
+
+# Delete virtual environment.
+# rm -rf [virtual environment path and name] # remove virtual environment
+
+
+
 ################################################################################
 # Python2 virtual environment
 
@@ -215,6 +260,9 @@ which python3
 # Delete virtual environment.
 # rm -rf [virtual environment path and name] # remove virtual environment
 
+"${path_python_2718}/bin/python2" -m pip install --user --upgrade pip
+"${path_python_2718}/bin/python2" -m pip --version # pip 20.3.4, TCW, 6 July 2021
+
 "${path_python_2718}/bin/python2" -m pip install --user --upgrade virtualenv
 "${path_python_2718}/bin/python2" -m virtualenv --version # virtualenv 20.4.7, TCW, 7 July 2021
 
@@ -234,6 +282,8 @@ python2 -m pip install pandas==0.20.3
 python2 -m pip list # TCW, 7 July 2021
 deactivate
 which python2 # "/usr/bin/python2" TCW, 7 July 2021
+
+
 
 ################################################################################
 ################################################################################
