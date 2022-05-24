@@ -46,23 +46,6 @@ set +x
 # Access chain files to map between assemblies of the human genome.
 
 ##########
-# Assembly chain files from Ensembl.
-path_assembly_chain_container="${path_assembly_chain_parent_container}/ensembl"
-rm -r $path_assembly_chain_container
-mkdir -p "${path_assembly_chain_container}"
-cd $path_assembly_chain_container
-# Source human genome assembly: GRCh37
-# Target human genome assembly: GRCh38
-# File date: 25 July 2014
-# Host: Ensembl
-wget http://ftp.ensembl.org/pub/assembly_mapping/homo_sapiens/GRCh37_to_GRCh38.chain.gz # 279 Kilobytes
-# Source human genome assembly: GRCh38
-# Target human genome assembly: GRCh37
-# File date: 25 July 2014
-# Host: Ensembl
-wget http://ftp.ensembl.org/pub/assembly_mapping/homo_sapiens/GRCh38_to_GRCh37.chain.gz # 713 Kilobytes
-
-##########
 # Assembly chain files from UCSC.
 path_assembly_chain_container="${path_assembly_chain_parent_container}/ucsc"
 rm -r $path_assembly_chain_container
@@ -79,6 +62,22 @@ wget http://hgdownload.soe.ucsc.edu/goldenPath/hg19/liftOver/hg19ToHg38.over.cha
 # Host: UCSC
 wget http://hgdownload.soe.ucsc.edu/goldenPath/hg38/liftOver/hg38ToHg19.over.chain.gz # 1.2 Megabytes
 
+##########
+# Assembly chain files from Ensembl.
+path_assembly_chain_container="${path_assembly_chain_parent_container}/ensembl"
+rm -r $path_assembly_chain_container
+mkdir -p "${path_assembly_chain_container}"
+cd $path_assembly_chain_container
+# Source human genome assembly: GRCh37
+# Target human genome assembly: GRCh38
+# File date: 25 July 2014
+# Host: Ensembl
+wget http://ftp.ensembl.org/pub/assembly_mapping/homo_sapiens/GRCh37_to_GRCh38.chain.gz # 279 Kilobytes
+# Source human genome assembly: GRCh38
+# Target human genome assembly: GRCh37
+# File date: 25 July 2014
+# Host: Ensembl
+wget http://ftp.ensembl.org/pub/assembly_mapping/homo_sapiens/GRCh38_to_GRCh37.chain.gz # 713 Kilobytes
 
 
 
