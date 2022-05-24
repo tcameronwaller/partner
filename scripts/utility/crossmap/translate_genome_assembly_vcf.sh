@@ -10,9 +10,11 @@
 # Documentation for Python 3 CrossMap: "https://sourceforge.net/projects/crossmap/"
 # Documentation for Python 3 CrossMap: "http://crossmap.sourceforge.net/"
 
-# The CrossMap tool translates coordinates for chromosomes and base pair
-# positions of Single Nucleotide Polymorphisms (SNPs) from a source human genome
-# assembly to a target human genome assembly.
+# The CrossMap tool translates coordinates for chromosomes, base-pair positions,
+# and alleles of Single Nucleotide Polymorphisms (SNPs) from a source human
+# genome assembly to a target human genome assembly.
+# The Crossmap tool does not change annotations for SNPs (such as identifiers
+# from dbSNP).
 
 # For translations of genotype files in Variant Call Format (VCF), CrossMap
 # requires a single reference file in FASTA format for the entire target human
@@ -21,20 +23,15 @@
 # Information on how to access a single FASTA file for assembly GRCh37 of the
 # Human Genome: "https://www.biostars.org/p/338914/#339258"
 
-
 ################################################################################
-
-# TODO: TCW; 24 May 2022
-# TODO: access 'chain' file for mapping from GRCh38 to GRCh37
-
 
 ################################################################################
 # Organize arguments.
-path_dbsnp_reference=${1} # full path to file for dbSNP reference in VCF format
-path_vcf_source=${2} # full path to source file in VCF format
-path_vcf_product=${3} # full path to product file in VCF format
-threads=${4} # count of processing threads to use
-path_environment_crossmap=${5} # full path to installation of BCFTools
+path_vcf_source=${1} # full path to source file in VCF format
+path_vcf_product=${2} # full path to product file in VCF format
+path_assembly_translation_chain_file=${3} # full path to chain file for assembly translation
+path_product_genome_assembly_sequence=${4} # full path to product genome assembly sequence file in FASTA format with optional
+path_environment_crossmap=${5} # full path to Python 3 environment with installation of CrossMap
 report=${6} # whether to print reports
 
 ################################################################################
@@ -54,12 +51,12 @@ sleep 5s
 
 CrossMap.py \
 vcf \
-$path_translation_chain_file \
-$path_vcf_source \
-$path_genome_reference_fasta \
-$path_vcf_product \
 --chromid a \
---compress
+--compress \
+$path_assembly_translation_chain_file \
+$path_vcf_source \
+$path_product_genome_assembly_sequence \
+$path_vcf_product
 
 ################################################################################
 # Deactivate Virtual Environment.
