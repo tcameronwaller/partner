@@ -8,6 +8,8 @@
 # pair positions of Single Nucleotide Polymorphisms (SNPs) from a source human
 # genome assembly to a target human genome assembly.
 
+# University of California Santa Cruz (UCSC): https://genome.ucsc.edu/
+
 # The CrossMap tool for translations between human genome assemblies can use
 # chain files from the UCSC Genome Browser or Ensembl (among others).
 # Documentation for Python 2 CrossMap: "https://pythonhosted.org/CrossMap/"
@@ -28,7 +30,7 @@
 
 ################################################################################
 # Organize arguments.
-path_assembly_chain_container=${1} # full path to directory for chain files
+path_assembly_chain_parent_container=${1} # full path to parent directory for chain files
 
 ###########################################################################
 # Execute procedure.
@@ -43,21 +45,39 @@ set +x
 # Organize directories.
 # Access chain files to map between assemblies of the human genome.
 
+##########
+# Assembly chain files from Ensembl.
+path_assembly_chain_container="${path_assembly_chain_parent_container}/ensembl"
 rm -r $path_assembly_chain_container
 mkdir -p "${path_assembly_chain_container}"
 cd $path_assembly_chain_container
-
 # Source human genome assembly: GRCh37
 # Target human genome assembly: GRCh38
 # File date: 25 July 2014
 # Host: Ensembl
 wget http://ftp.ensembl.org/pub/assembly_mapping/homo_sapiens/GRCh37_to_GRCh38.chain.gz # 279 Kilobytes
-
 # Source human genome assembly: GRCh38
 # Target human genome assembly: GRCh37
 # File date: 25 July 2014
 # Host: Ensembl
 wget http://ftp.ensembl.org/pub/assembly_mapping/homo_sapiens/GRCh38_to_GRCh37.chain.gz # 713 Kilobytes
+
+##########
+# Assembly chain files from UCSC.
+path_assembly_chain_container="${path_assembly_chain_parent_container}/ucsc"
+rm -r $path_assembly_chain_container
+mkdir -p "${path_assembly_chain_container}"
+cd $path_assembly_chain_container
+# Source human genome assembly: GRCh37 (hg19)
+# Target human genome assembly: GRCh38 (hg38)
+# File date: 31 December 2013
+# Host: UCSC
+wget http://hgdownload.soe.ucsc.edu/goldenPath/hg19/liftOver/hg19ToHg38.over.chain.gz # 222 Kilobytes
+# Source human genome assembly: GRCh38 (hg38)
+# Target human genome assembly: GRCh37 (hg19)
+# File date: 31 December 2013
+# Host: UCSC
+wget http://hgdownload.soe.ucsc.edu/goldenPath/hg38/liftOver/hg38ToHg19.over.chain.gz # 1.2 Megabytes
 
 
 
