@@ -8,6 +8,7 @@
 
 # Documentation for Python 2 CrossMap: "https://pythonhosted.org/CrossMap/"
 # Documentation for Python 3 CrossMap: "https://sourceforge.net/projects/crossmap/"
+# Documentation for Python 3 CrossMap: "http://crossmap.sourceforge.net/"
 
 # The CrossMap tool translates coordinates for chromosomes and base pair
 # positions of Single Nucleotide Polymorphisms (SNPs) from a source human genome
@@ -22,6 +23,10 @@
 
 
 ################################################################################
+
+# TODO: TCW; 24 May 2022
+# TODO: access 'chain' file for mapping from GRCh38 to GRCh37
+
 
 ################################################################################
 # Organize arguments.
