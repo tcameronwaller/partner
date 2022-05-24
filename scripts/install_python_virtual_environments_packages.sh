@@ -221,7 +221,7 @@ which python3
 # ERROR: Can not perform a '--user' install. User site-packages are not visible in this virtualenv.
 
 # source ./python/environments/prs_cs/bin/activate # TCW; 28 April 2022
-source "${path_environment_prs_cs}/bin/activate"
+source "${path_environment_crossmap}/bin/activate"
 which python3 # "${path_environment_crossmap}/bin/python3"; TCW; 23 May 2022
 # Pip installation within virtual environment should not require "sudo" permissions.
 python3 -m pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org pip setuptools
