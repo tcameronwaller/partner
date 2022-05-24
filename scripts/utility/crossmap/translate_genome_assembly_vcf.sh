@@ -30,7 +30,7 @@
 path_vcf_source=${1} # full path to source file in VCF format
 path_vcf_product=${2} # full path to product file in VCF format
 path_assembly_translation_chain=${3} # full path to chain file for assembly translation
-path_product_genome_assembly_sequence=${4} # full path to product genome assembly sequence file in FASTA format with optional
+path_product_genome_assembly_sequence=${4} # full path to product genome assembly sequence file in FASTA format without compression
 path_environment_crossmap=${5} # full path to Python 3 environment with installation of CrossMap
 report=${6} # whether to print reports
 
