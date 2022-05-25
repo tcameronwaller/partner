@@ -31,8 +31,19 @@ path_vcf_source=${1} # full path to source file in VCF format
 path_vcf_product=${2} # full path to product file in VCF format
 path_assembly_translation_chain=${3} # full path to chain file for assembly translation
 path_product_genome_assembly_sequence=${4} # full path to product genome assembly sequence file in FASTA format without compression
-path_environment_crossmap=${5} # full path to Python 3 environment with installation of CrossMap
-report=${6} # whether to print reports
+threads=${5} # count of processing threads to use
+path_environment_crossmap=${6} # full path to Python 3 environment with installation of CrossMap
+path_bcftools=${7} # full path to installation executable of BCFTools
+report=${8} # whether to print reports
+
+###########################################################################
+# Organize paths.
+
+name_base_source_file="$(basename $path_vcf_source .vcf.gz)"
+path_product_container="$(dirname $path_vcf_product)"
+name_base_product_file="$(basename $path_vcf_product .vcf.gz)"
+path_vcf_source_no_compression="${path_product_container}/${name_base_source_file}_no_compression.vcf"
+path_vcf_product_no_compression="${path_product_container}/${name_base_product_file}_assembly.vcf"
 
 ################################################################################
 # Activate Virtual Environment.
@@ -49,14 +60,52 @@ sleep 5s
 # Translate coordinates for chromosomes and base pair positions from human
 # genome assembly GRCh38 to GRCh37.
 
+# CrossMap uses GZip compression.
+# Do not use GZip compression in order to simplify reading into BCFTools.
+
+# Read VCF file with BGZip compression in BCFTools.
+# Write VCF file without compression.
+$path_bcftools \
+view \
+--output $path_vcf_source_no_compression \
+--output-type v \
+--threads $threads \
+$path_vcf_source
+
+# Read VCF file without compression in CrossMap.
+# Translate coordinates between genome assemblies.
+# Include "--compress" command to apply simple GZip compression.
 CrossMap.py \
 vcf \
 --chromid a \
---compress \
 $path_assembly_translation_chain \
-$path_vcf_source \
+$path_vcf_source_no_compression \
 $path_product_genome_assembly_sequence \
+$path_vcf_product_no_compression
+
+# Read VCF file without compression in BCFTools.
+# Write VCF file with BGZip compression.
+$path_bcftools \
+view \
+--output $path_vcf_product \
+--output-type z9 \
+--threads $threads \
+$path_vcf_product_no_compression
+
+# Read VCF file with BGZip compression in BCFTools.
+# Create Tabix index for product file in VCF format.
+# BCFTools sometimes requires this Tabix index to read a file.
+$path_bcftools \
+index \
+--force \
+--tbi \
+--threads $threads \
 $path_vcf_product
+
+# Remove temporary, intermediate files.
+#rm $path_vcf_source_no_compression
+#rm "$path_vcf_product_no_compression"
+
 
 ################################################################################
 # Deactivate Virtual Environment.

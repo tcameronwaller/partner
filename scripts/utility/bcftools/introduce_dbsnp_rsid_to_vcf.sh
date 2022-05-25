@@ -25,11 +25,12 @@
 # format use chromosome base pair positions that correspond to the same
 # Genome Reference Consortium (GRC) human assembly, such as GRCh38.
 
-# BCFTools can read a dbSNP reference VCF file in BGzip compression format
+# BCFTools can read a dbSNP reference VCF file in BGZip compression format
 # (BGZF) with a matching Tabix index (.tbi) for more efficient performance.
-# Actually some commands in BCFTools require the matching Tabix index.
-# It is possible to read a Tabix index with a non-standard name convention:
-# "bcftools view -r X:2928329 file.vcf.gz##idx##non-standard-index-name"
+# Actually some commands in BCFTools (such as "annotate") require the matching
+# Tabix index. It is possible to read a Tabix index with a non-standard name
+# convention.
+# Example: "bcftools view -r X:2928329 file.vcf.gz##idx##non-standard-index-name"
 
 # It is necessary to call BCFTools separately for each command.
 # For example, separate calls to BCFTools are necessary for the

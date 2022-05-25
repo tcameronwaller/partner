@@ -76,16 +76,12 @@ if true; then
   $path_vcf_product \
   $path_assembly_translation_chain \
   $path_product_genome_assembly_sequence \
+  $threads \
   $path_environment_crossmap \
-  $report
-  # Create Tabix index for product file in VCF format.
-  # BCFTools sometimes requires this Tabix index to read a file.
   $path_bcftools \
-  index \
-  --force \
-  --tbi \
-  --threads $threads \
-  $path_vcf_product
+  $report
 fi
+
+
 
 #

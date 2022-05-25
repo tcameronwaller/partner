@@ -88,7 +88,7 @@ if true; then
   $threads \
   $path_bcftools \
   $report
-  # Remove files for intermediate versions.
+  # Remove temporary, intermediate files.
   rm $path_vcf_product_chromosome
   rm "${path_vcf_product_chromosome}.tbi"
 fi
