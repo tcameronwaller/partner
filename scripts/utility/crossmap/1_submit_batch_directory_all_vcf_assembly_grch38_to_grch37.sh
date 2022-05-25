@@ -21,9 +21,11 @@ pattern_genotype_source_vcf_file=${2} # string glob pattern by which to recogniz
 path_genotype_product_vcf_container=${3} # full path to parent directory for product genotype files in BIM format
 path_assembly_translation_chain=${4} # full path to chain file for assembly translation
 path_product_genome_assembly_sequence=${5} # full path to product genome assembly sequence file in FASTA format without compression
-path_promiscuity_scripts=${6} # full path to directory of general scripts
-path_environment_crossmap=${7} # full path to Python 3 environment with installation of CrossMap
-report=${8} # whether to print reports
+threads=${6} # count of processing threads to use
+path_promiscuity_scripts=${7} # full path to directory of general scripts
+path_environment_crossmap=${8} # full path to Python 3 environment with installation of CrossMap
+path_bcftools=${9} # full path to installation executable of BCFTools
+report=${10} # whether to print reports
 
 ###########################################################################
 # Organize paths.
@@ -82,8 +84,10 @@ if true; then
   $batch_instances_count \
   $path_assembly_translation_chain \
   $path_product_genome_assembly_sequence \
+  $threads \
   $path_script_translate_genome_assembly_vcf \
   $path_environment_crossmap \
+  $path_bcftools \
   $report
 fi
 
