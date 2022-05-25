@@ -43,14 +43,8 @@ name_base_source_file="$(basename $path_vcf_source .vcf.gz)"
 path_product_container="$(dirname $path_vcf_product)"
 name_base_product_file="$(basename $path_vcf_product .vcf.gz)"
 path_vcf_source_no_compression="${path_product_container}/${name_base_source_file}_no_compression.vcf"
-path_vcf_product_no_compression="${path_product_container}/${name_base_product_file}_assembly.vcf"
-
-################################################################################
-# Activate Virtual Environment.
-source "${path_environment_crossmap}/bin/activate"
-echo "confirm Python Virtual Environment path..."
-which python3
-sleep 5s
+path_vcf_product_assembly_no_compression="${path_product_container}/${name_base_product_file}_assembly_no_compression.vcf"
+path_vcf_product_sort_no_compression="${path_product_container}/${name_base_product_file}_sort_no_compression.vcf"
 
 ################################################################################
 # Remove "chr" prefix from chromosome identifiers in VCF genotype file.
@@ -72,8 +66,15 @@ view \
 --threads $threads \
 $path_vcf_source
 
+# Activate Virtual Environment.
+source "${path_environment_crossmap}/bin/activate"
+echo "confirm Python Virtual Environment path..."
+which python3
+sleep 5s
+
 # Read VCF file without compression in CrossMap.
 # Translate coordinates between genome assemblies.
+# Write VCF file without compression.
 # Include "--compress" command to apply simple GZip compression.
 CrossMap.py \
 vcf \
@@ -81,7 +82,21 @@ vcf \
 $path_assembly_translation_chain \
 $path_vcf_source_no_compression \
 $path_product_genome_assembly_sequence \
-$path_vcf_product_no_compression
+$path_vcf_product_assembly_no_compression
+
+# Deactivate Virtual Environment.
+deactivate
+which python3
+
+# Read VCF file without compression in BCFTools.
+# Sort coordinates in VCF file.
+# Write VCF file without compression.
+$path_bcftools \
+sort \
+--output $path_vcf_product_sort_no_compression \
+--output-type v \
+--temp-dir $path_product_container \
+$path_vcf_product_assembly_no_compression
 
 # Read VCF file without compression in BCFTools.
 # Write VCF file with BGZip compression.
@@ -90,7 +105,7 @@ view \
 --output $path_vcf_product \
 --output-type z9 \
 --threads $threads \
-$path_vcf_product_no_compression
+$path_vcf_product_sort_no_compression
 
 # Read VCF file with BGZip compression in BCFTools.
 # Create Tabix index for product file in VCF format.
@@ -104,14 +119,8 @@ $path_vcf_product
 
 # Remove temporary, intermediate files.
 #rm $path_vcf_source_no_compression
-#rm "$path_vcf_product_no_compression"
-
-
-################################################################################
-# Deactivate Virtual Environment.
-deactivate
-which python3
-
+#rm "$path_vcf_product_assembly_no_compression"
+#rm $path_vcf_product_sort_no_compression
 
 
 #
