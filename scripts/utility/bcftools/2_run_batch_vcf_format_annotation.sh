@@ -90,6 +90,7 @@ if true; then
   $report
   # Remove files for intermediate versions.
   rm $path_vcf_product_chromosome
+  rm "${path_vcf_product_chromosome}.tbi"
 fi
 
 
