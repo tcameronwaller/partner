@@ -50,7 +50,7 @@ path_dbsnp_reference=${4} # full path to file for dbSNP reference in VCF format
 path_script_chromosome_in_vcf=${5} # full path to script for chromosome identifier
 path_script_dbsnp_rsid_to_vcf=${6} # full path to script for SNP identifier
 threads=${7} # count of processing threads to use
-path_bcftools=${8} # full path to installation of BCFTools
+path_bcftools=${8} # full path to installation executable of BCFTools
 report=${9} # whether to print reports
 
 ###########################################################################

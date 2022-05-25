@@ -18,7 +18,7 @@ path_genotype_source_vcf=${1} # full path to source genotype file in VCF format
 path_genotype_product_bim_container=${2} # full path to directory for product genotype files in BIM format
 name_file_product_bim=${3} # name for product file in BIM format
 threads=${4} # count of processing threads to use
-path_plink2=${5} # full path to installation of BCFTools
+path_plink2=${5} # full path to installation executable of PLINK2
 report=${6} # whether to print reports
 
 ###########################################################################
@@ -30,7 +30,6 @@ report=${6} # whether to print reports
 # Include the 'zs' modifier for '--make-just-bim' to apply Z-standard compression.
 
 cd $path_genotype_product_bim_container
-
 $path_plink2 \
 --memory 90000 \
 --threads $threads \
