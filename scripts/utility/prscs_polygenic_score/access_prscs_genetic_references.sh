@@ -12,7 +12,9 @@
 # 2. Single Nucleotide Polymorphism (SNP) information
 # For use in PRS-CS and PRS-CSX, the creators derived these genetic references
 # from the UK Biobank and from the 1000 Genomes Project. It is convenient to
-# use either set of references.
+# use either set of references. I think that the references from both the 1000
+# Genomes and the UK Biobank use coordinates from the GRCh37 human genome
+# assembly.
 
 # Within the parent directory container, create two child directories.
 # Within first child directory, access and organize files for genetic references

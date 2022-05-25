@@ -40,9 +40,9 @@ gzip -dc $path_source_gwas_summary_compress > $path_source_gwas_summary
 
 # Determine relevant chromosomes.
 if [[ "$chromosome_x" == "true" ]]; then
-  chromosomes=("7")
+  #chromosomes=("7")
   #chromosomes=("2" "4" "6" "8" "9" "10" "11" "12" "13" "14" "15" "16" "17" "18" "19" "20" "21" "22" "X")
-  #chromosomes=("1" "2" "3" "4" "5" "6" "7" "8" "9" "10" "11" "12" "13" "14" "15" "16" "17" "18" "19" "20" "21" "22" "X")
+  chromosomes=("1" "2" "3" "4" "5" "6" "7" "8" "9" "10" "11" "12" "13" "14" "15" "16" "17" "18" "19" "20" "21" "22" "X")
 else
   chromosomes=("1" "2" "3" "4" "5" "6" "7" "8" "9" "10" "11" "12" "13" "14" "15" "16" "17" "18" "19" "20" "21" "22")
 fi
