@@ -23,6 +23,11 @@
 # Information on how to access a single FASTA file for assembly GRCh37 of the
 # Human Genome: "https://www.biostars.org/p/338914/#339258"
 
+# In the process of translating coordinates between genome assemblies, some SNPs
+# might change chromosomes. For this reason it might be appropriate to combine
+# VCF files for all chromosomes (using BCFTools "concat" command) before the
+# translation and then split by chromosome after the translation.
+
 ################################################################################
 
 ################################################################################
@@ -88,6 +93,11 @@ $path_vcf_product_assembly_no_compression
 deactivate
 which python3
 
+# The translation of coordinates between genome assemblies introduces records
+# for SNPs in the VCF file that are not in order.
+# Records for SNPs out of order in the VCF file cause a problem when trying to
+# create a Tabix index.
+
 # Read VCF file without compression in BCFTools.
 # Sort coordinates in VCF file.
 # Write VCF file without compression.
@@ -118,9 +128,10 @@ index \
 $path_vcf_product
 
 # Remove temporary, intermediate files.
-#rm $path_vcf_source_no_compression
-#rm "$path_vcf_product_assembly_no_compression"
-#rm $path_vcf_product_sort_no_compression
+rm $path_vcf_source_no_compression
+rm $path_vcf_product_assembly_no_compression
+rm $path_vcf_product_sort_no_compression
+
 
 
 #
