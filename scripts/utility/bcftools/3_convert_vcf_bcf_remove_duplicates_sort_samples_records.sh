@@ -19,16 +19,17 @@
 
 ################################################################################
 # Organize arguments.
-path_file_source_vcf_chromosome=${1}
-path_directory_product_genotype_vcf_temporary=${2} # full path to directory for temporary intermediate files
+path_file_source_vcf_chromosome=${1} # full path to source genotype file in VCF format
+path_directory_product_temporary_chromosome=${2} # full path to directory for temporary intermediate files
 path_file_intermediate_bcf_chromosome=${3} # full path to intermediate file
 path_file_intermediate_remove_duplicates_chromosome=${4} # full path to intermediate file
 path_file_intermediate_list_samples_chromosome=${5} # full path to intermediate file
 path_file_intermediate_sort_samples_chromosome=${6} # full path to intermediate file
 path_file_intermediate_sort_records_chromosome=${7} # full path to intermediate file
-threads=${8} # count of processing threads to use
-path_bcftools=${9} # full path to installation executable file of BCFTools
-report=${10} # whether to print reports
+path_file_product_bcf_chromosome=${8} # full path to product genotype file in BCF format
+threads=${9} # count of processing threads to use
+path_bcftools=${10} # full path to installation executable file of BCFTools
+report=${11} # whether to print reports
 
 ################################################################################
 # Prepare genotype files for combination.
@@ -45,13 +46,17 @@ view \
 $path_file_source_vcf_chromosome
 
 # Remove duplicate records for SNPs or other genetic features.
-$path_bcftools \
-norm \
---rm-dup exact \
---output $path_file_intermediate_remove_duplicates_chromosome \
---output-type u \
---threads $threads \
-$path_file_intermediate_bcf_chromosome
+# I think that option "--rm-dup exact" evokes similar logic to option
+# "--collapse none".
+# I think both of these options require exact match of chromosome, position, and
+# all alleles in order to consider records redundant.
+#$path_bcftools \
+#norm \
+#--rm-dup exact \
+#--output $path_file_intermediate_remove_duplicates_chromosome \
+#--output-type u \
+#--threads $threads \
+#$path_file_intermediate_bcf_chromosome
 
 # Sort samples.
 # bcftools query --list-samples input.vcf | sort > samples.txt
@@ -60,8 +65,7 @@ $path_file_intermediate_bcf_chromosome
 $path_bcftools \
 query \
 --list-samples \
---threads $threads \
-$path_file_intermediate_remove_duplicates_chromosome | sort > $path_file_intermediate_list_samples_chromosome
+$path_file_intermediate_bcf_chromosome | sort > $path_file_intermediate_list_samples_chromosome
 # Sort samples within genotype file.
 $path_bcftools \
 view \
@@ -69,7 +73,7 @@ view \
 --output $path_file_intermediate_sort_samples_chromosome \
 --output-type u \
 --threads $threads \
-$path_file_intermediate_remove_duplicates_chromosome
+$path_file_intermediate_bcf_chromosome
 
 # Sort records for SNPs or other genetic features.
 $path_bcftools \
@@ -78,5 +82,13 @@ sort \
 --output-type u \
 --temp-dir $path_directory_product_genotype_vcf_temporary \
 $path_file_intermediate_sort_samples_chromosome
+
+# Copy to more permanent product file.
+cp $path_file_intermediate_sort_records_chromosome $path_file_product_bcf_chromosome
+
+# Remove temporary, intermediate files.
+rm -r $path_directory_product_temporary_chromosome
+
+
 
 #

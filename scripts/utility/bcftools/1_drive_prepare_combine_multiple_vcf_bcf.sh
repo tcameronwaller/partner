@@ -17,13 +17,18 @@
 
 ################################################################################
 
+# TODO: TCW; 26 May 2022
+# TODO: the preparation of genotype files for combination could be split into an array batch job
+#
+
+
 ################################################################################
 # Organize arguments.
 
-path_directory_source_genotype_vcf=${1}
-prefix_file_source_genotype_vcf=${2}
-suffix_file_source_genotype_vcf=${3}
-chromosome_x=${4}
+path_directory_source_genotype_vcf=${1} # full path to directory with source genotype files in VCF format
+prefix_file_source_genotype_vcf=${2} # file name prefix for source genotype file in VCF format
+suffix_file_source_genotype_vcf=${3} # file name suffix for source genotype file in VCF format
+chromosome_x=${4} # whether to include Chromosome X
 path_directory_product_genotype_vcf=${5}
 threads=${6} # count of processing threads to use
 path_promiscuity_scripts=${7} # full path to directory of general scripts
@@ -41,7 +46,7 @@ path_script_preparation="${path_promiscuity_scripts}/utility/bcftools/2_convert_
 path_script_combination="${path_promiscuity_scripts}/utility/bcftools/3_combine_sort_multiple_bcf_convert_vcf.sh"
 
 ###########################################################################
-# Iterate on source genotype files in VCF format within container directory.
+# Iterate on source genotype files in VCF format for chromosomes.
 
 # Initialize directory.
 rm -r $path_directory_product_genotype_vcf
@@ -61,7 +66,7 @@ for chromosome in "${chromosomes[@]}"; do
   name_file_source_vcf_chromosome="${prefix_file_source_genotype_vcf}${chromosome}${suffix_file_source_genotype_vcf}"
   name_file_intermediate_bcf_chromosome="genotype_chromosome${chromosome}_bcf"
   name_file_intermediate_remove_duplicates_chromosome="genotype_chromosome${chromosome}_bcf_remove_duplicates"
-  name_file_intermediate_list_samples_chromosome="list_samples_chromosome.txt"
+  name_file_intermediate_list_samples_chromosome="list_samples_chromosome${chromosome}.txt"
   name_file_intermediate_sort_samples_chromosome="genotype_chromosome${chromosome}_bcf_remove_duplicates_sort_samples"
   name_file_intermediate_sort_records_chromosome="genotype_chromosome${chromosome}_bcf_remove_duplicates_sort_samples_records"
   # Define full file paths for chromosome.
