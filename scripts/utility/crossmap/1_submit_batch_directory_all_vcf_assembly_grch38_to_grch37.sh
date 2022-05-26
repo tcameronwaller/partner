@@ -24,7 +24,7 @@ path_product_genome_assembly_sequence=${5} # full path to product genome assembl
 threads=${6} # count of processing threads to use
 path_promiscuity_scripts=${7} # full path to directory of general scripts
 path_environment_crossmap=${8} # full path to Python 3 environment with installation of CrossMap
-path_bcftools=${9} # full path to installation executable of BCFTools
+path_bcftools=${9} # full path to installation executable file of BCFTools
 report=${10} # whether to print reports
 
 ###########################################################################

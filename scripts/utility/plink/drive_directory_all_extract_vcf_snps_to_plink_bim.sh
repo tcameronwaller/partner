@@ -21,7 +21,7 @@ path_genotype_source_vcf_container=${1} # full path to parent directory with sou
 pattern_genotype_source_vcf_file=${2} # string glob pattern by which to recognize source genotype files in VCF format
 path_genotype_product_bim_container=${3} # full path to parent directory for product genotype files in BIM format
 threads=${4} # count of processing threads to use
-path_plink2=${5} # full path to installation executable of BCFTools
+path_plink2=${5} # full path to installation executable file of PLINK2
 path_promiscuity_scripts=${6} # full path to directory of general scripts
 report=${7} # whether to print reports
 

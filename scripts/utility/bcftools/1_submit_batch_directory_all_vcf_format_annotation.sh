@@ -23,7 +23,7 @@ path_chromosome_translations=${4} # full path to file for chromosome name transl
 path_dbsnp_reference=${5} # full path to file for dbSNP reference in VCF format
 path_promiscuity_scripts=${6} # full path to directory of general scripts
 threads=${7} # count of processing threads to use
-path_bcftools=${8} # full path to installation executable of BCFTools
+path_bcftools=${8} # full path to installation executable file of BCFTools
 report=${9} # whether to print reports
 
 ###########################################################################

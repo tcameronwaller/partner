@@ -50,7 +50,7 @@ path_product_genome_assembly_sequence=${4} # full path to product genome assembl
 threads=${5} # count of processing threads to use
 path_script_translate_genome_assembly_vcf=${6} # full path to script for translation of genome assembly in VCF format
 path_environment_crossmap=${7} # full path to Python 3 environment with installation of CrossMap
-path_bcftools=${8} # full path to installation executable of BCFTools
+path_bcftools=${8} # full path to installation executable file of BCFTools
 report=${9} # whether to print reports
 
 ###########################################################################

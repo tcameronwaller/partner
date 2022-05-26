@@ -23,7 +23,8 @@ path_genetic_reference_prscs=${7} # full path to directory for genetic reference
 population_ancestry=${8} # character code of ancestral population of GWAS study: 'AFR', 'AMR', 'EAS', 'EUR', or 'SAS'
 chromosome_x=${9} # whether to collect GWAS summary statistics report for Chromosome X
 path_promiscuity_scripts=${10} # full path to directory of general scripts
-report=${11} # whether to print reports
+path_prscsx=${11} # full path to installation executable file of PRS-CSX
+report=${12} # whether to print reports
 
 ###########################################################################
 # Organize paths.

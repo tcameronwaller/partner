@@ -34,7 +34,7 @@ sample_exclusion_list=${1} # text list with comma delimiters of samples to remov
 path_vcf_source=${2} # full path to source file in VCF format
 path_vcf_product=${3} # full path to product file in VCF format
 threads=${4} # count of processing threads to use
-path_bcftools=${5} # full path to installation executable of BCFTools
+path_bcftools=${5} # full path to installation executable file of BCFTools
 report=${6} # whether to print reports
 
 ################################################################################

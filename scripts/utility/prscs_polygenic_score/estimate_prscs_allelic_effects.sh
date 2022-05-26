@@ -26,7 +26,8 @@ name_file_product=${5} # name of product report file
 path_genetic_reference_prscs=${6} # full path to directory for genetic references
 population_ancestry=${7} # character code of ancestral population of GWAS study: 'AFR', 'AMR', 'EAS', 'EUR', or 'SAS'
 chromosome=${8} # chromosome
-report=${9} # whether to print reports
+path_prscsx=${9} # full path to installation executable file of PRS-CSX
+report=${10} # whether to print reports
 
 ###########################################################################
 # Organize paths.
@@ -56,7 +57,7 @@ export OMP_NUM_THREADS=$count_threads
 # Test PRS-CSX.
 # https://github.com/getian107/PRScsx
 
-python3 "${path_prs_cs}/PRScsx/PRScsx.py" \
+python3 $path_prscsx \
 --ref_dir=$path_genetic_reference_prscs \
 --bim_prefix=$path_snp_relevance_bim_prefix \
 --sst_file=$path_source_gwas_summary \
