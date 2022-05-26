@@ -2,7 +2,7 @@
 
 ################################################################################
 # Author: T. Cameron Waller
-# Date: 24 May 2022
+# Date: 26 May 2022
 ################################################################################
 # Notes:
 # This script finds within a parent directory all child genotype files in
@@ -17,23 +17,30 @@
 ################################################################################
 # Organize arguments.
 
-
-# TODO: define "name_file_product" with chromosome number
+path_source_gwas_summary=${3} # full path to source GWAS summary statistics in format for PRS-CS
+count_gwas_samples=${4} # integer count of samples for the GWAS study
+path_genotype_snp_bim_directory=${0} # full path to
 prefix_genotype_snp_bim_file=${5} # full path to file name prefix for list of relevant target SNPs in BIM format without '.bim' suffix
 suffix_genotype_snp_bim_file=${6} # full path to file name prefix for list of relevant target SNPs in BIM format without '.bim' suffix
+path_genetic_reference_prscs=${5} # full path to directory for genetic references
+population_ancestry=${6} # character code of ancestral population of GWAS study: 'AFR', 'AMR', 'EAS', 'EUR', or 'SAS'
+path_product_allele_effect_directory=${7} # full path to directory for product reports on posterior allele effect size estimates
 name_file_product_prefix=${10} # prefix for name of product report file
 chromosome_x=${9} # whether to collect GWAS summary statistics report for Chromosome X
-path_genotype_snp_bim_directory=${0} # full path to
-path_promiscuity_scripts=${7} # full path to directory of general scripts
+threads=${8} # count of processing threads to use
+path_promiscuity_scripts=${9} # full path to script for estimation of allelic posterior effects in PRS-CSX
+path_environment_prscs=${10} # full path to Python 3 environment with installation of CrossMap
+path_prscsx=${11} # full path to installation executable file of PRS-CSX
+report=${12} # whether to print reports
 
 ###########################################################################
 # Organize paths.
 
-path_batch_instances="${path_genotype_product_vcf_container}/batch_instances.txt"
+path_batch_instances="${path_product_allele_effect_directory}/batch_instances.txt"
 
 # Scripts.
 path_script_run_prscs_estimate="${path_promiscuity_scripts}/utility/prscs_polygenic_score/2_run_batch_prscs_estimate_allelic_effects.sh"
-path_script_prscs_estimate_allelic_effects="${path_promiscuity_scripts}/utility/prscs_polygenic_score/estimate_prscs_allelic_effects.sh"
+path_script_prscs_estimate_allelic_effects="${path_promiscuity_scripts}/utility/prscs_polygenic_score/3_estimate_prscs_allelic_effects.sh"
 
 ###########################################################################
 # Find source genotype files in VCF format within container directory.
