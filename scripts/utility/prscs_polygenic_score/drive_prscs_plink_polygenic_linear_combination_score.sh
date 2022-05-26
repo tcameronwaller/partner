@@ -11,6 +11,11 @@
 # This script WILL CALL PLINK2 to apply a linear combination across allelic
 # effects to create a polygenic score to represent an entire genotype.
 
+
+# The output file of PLINK2 "score" command is in ".sscore" format.
+# https://www.cog-genomics.org/plink/2.0/formats#sscore
+
+
 ################################################################################
 ################################################################################
 ################################################################################
@@ -50,6 +55,8 @@ $path_plink2 \
 --score $path_source_prscs_allelic_effects 2 4 header-read no-mean-imputation ignore-dup-ids \
 --score-col-nums 6 \
 --out report
+
+
 
 ################################################################################
 # Report.
