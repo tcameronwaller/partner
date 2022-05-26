@@ -31,6 +31,11 @@ threads=${9} # count of processing threads to use
 path_bcftools=${10} # full path to installation executable file of BCFTools
 report=${11} # whether to print reports
 
+
+# Initialize directory.
+rm -r $path_directory_product_temporary_chromosome
+mkdir -p $path_directory_product_temporary_chromosome
+
 ################################################################################
 # Prepare genotype files for combination.
 
