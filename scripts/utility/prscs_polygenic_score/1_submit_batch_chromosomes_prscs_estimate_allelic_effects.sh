@@ -86,7 +86,7 @@ if true; then
   # Submit array batch to Sun Grid Engine.
   # Array batch indices must start at one (not zero).
   qsub -t 1-${batch_instances_count}:1 -o \
-  "${path_genotype_product_vcf_container}/batch_out.txt" -e "${path_genotype_product_vcf_container}/batch_error.txt" \
+  "${path_product_allele_effect_directory}/batch_out.txt" -e "${path_product_allele_effect_directory}/batch_error.txt" \
   "${path_script_run_prscs_estimate}" \
   $path_batch_instances \
   $batch_instances_count \
