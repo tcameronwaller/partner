@@ -17,21 +17,21 @@
 ################################################################################
 # Organize arguments.
 
-path_source_gwas_summary=${3} # full path to source GWAS summary statistics in format for PRS-CS
-count_gwas_samples=${4} # integer count of samples for the GWAS study
-path_genotype_snp_bim_directory=${0} # full path to
-prefix_genotype_snp_bim_file=${5} # full path to file name prefix for list of relevant target SNPs in BIM format without '.bim' suffix
-suffix_genotype_snp_bim_file=${6} # full path to file name prefix for list of relevant target SNPs in BIM format without '.bim' suffix
-path_genetic_reference_prscs=${5} # full path to directory for genetic references
-population_ancestry=${6} # character code of ancestral population of GWAS study: 'AFR', 'AMR', 'EAS', 'EUR', or 'SAS'
-path_product_allele_effect_directory=${7} # full path to directory for product reports on posterior allele effect size estimates
-name_file_product_prefix=${10} # prefix for name of product report file
-chromosome_x=${9} # whether to collect GWAS summary statistics report for Chromosome X
-threads=${8} # count of processing threads to use
-path_promiscuity_scripts=${9} # full path to script for estimation of allelic posterior effects in PRS-CSX
-path_environment_prscs=${10} # full path to Python 3 environment with installation of CrossMap
-path_prscsx=${11} # full path to installation executable file of PRS-CSX
-report=${12} # whether to print reports
+path_source_gwas_summary=${1} # full path to source GWAS summary statistics in format for PRS-CS
+count_gwas_samples=${2} # integer count of samples for the GWAS study
+path_genotype_snp_bim_directory=${3} # full path to
+prefix_genotype_snp_bim_file=${4} # full path to file name prefix for list of relevant target SNPs in BIM format without '.bim' suffix
+suffix_genotype_snp_bim_file=${5} # full path to file name prefix for list of relevant target SNPs in BIM format without '.bim' suffix
+path_genetic_reference_prscs=${6} # full path to directory for genetic references
+population_ancestry=${7} # character code of ancestral population of GWAS study: 'AFR', 'AMR', 'EAS', 'EUR', or 'SAS'
+path_product_allele_effect_directory=${8} # full path to directory for product reports on posterior allele effect size estimates
+name_file_product_prefix=${9} # prefix for name of product report file
+chromosome_x=${10} # whether to collect GWAS summary statistics report for Chromosome X
+threads=${11} # count of processing threads to use
+path_promiscuity_scripts=${12} # full path to script for estimation of allelic posterior effects in PRS-CSX
+path_environment_prscs=${13} # full path to Python 3 environment with installation of CrossMap
+path_prscsx=${14} # full path to installation executable file of PRS-CSX
+report=${15} # whether to print reports
 
 ###########################################################################
 # Organize paths.
