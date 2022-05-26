@@ -14,6 +14,15 @@
 ################################################################################
 ################################################################################
 
+# TODO: TCW; 26 May 2022
+# TODO: 1. find genotype VCF files for all chromosomes
+# TODO: 2. combine these together into a single VCF file
+# TODO: 3. sort that single VCF file
+# TODO: 4. perform assembly translation in CrossMap
+# TODO: 5. sort the VCF file after translation
+# TODO: 6. split by chromosome
+
+
 ################################################################################
 # Organize arguments.
 path_genotype_source_vcf_container=${1} # full path to parent directory with source genotype files in VCF format
