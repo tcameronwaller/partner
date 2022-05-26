@@ -41,10 +41,8 @@ path_script_preparation="${path_promiscuity_scripts}/utility/bcftools/3_convert_
 # Iterate on source genotype files in VCF format for chromosomes.
 
 # Initialize directory.
-rm -r $path_directory_product_genotype_vcf
-mkdir -p $path_directory_product_genotype_vcf
-rm -r $path_directory_product_genotype_vcf_temporary
-mkdir -p $path_directory_product_genotype_vcf_temporary
+rm -r $path_directory_product_genotype_bcf
+mkdir -p $path_directory_product_genotype_bcf
 
 # Determine relevant chromosomes.
 if [[ "$chromosome_x" == "true" ]]; then
