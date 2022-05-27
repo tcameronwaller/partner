@@ -97,7 +97,7 @@ echo "----------"
 # Sort records for SNPs or other genetic features.
 $path_bcftools \
 sort \
---max-mem 90000 \
+--max-mem 5G \
 --output $path_file_intermediate_sort_records_chromosome \
 --output-type v \
 --temp-dir $path_directory_product_genotype_vcf_temporary \
