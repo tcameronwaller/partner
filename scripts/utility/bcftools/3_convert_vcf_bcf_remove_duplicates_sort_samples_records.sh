@@ -100,7 +100,7 @@ sort \
 --max-mem 5G \
 --output $path_file_intermediate_sort_records_chromosome \
 --output-type v \
---temp-dir $path_directory_product_genotype_vcf_temporary \
+--temp-dir $path_directory_product_temporary_chromosome \
 $path_file_intermediate_sort_samples_chromosome
 echo "----------"
 echo "$path_file_intermediate_sort_records_chromosome"
