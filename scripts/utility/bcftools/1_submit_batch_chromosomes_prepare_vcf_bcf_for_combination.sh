@@ -56,11 +56,11 @@ for chromosome in "${chromosomes[@]}"; do
   path_directory_product_temporary_chromosome="${path_directory_product_genotype_bcf}/temporary_chromosome${chromosome}"
   # Define file names for chromosome.
   name_file_source_vcf_chromosome="${prefix_file_source_genotype_vcf}${chromosome}${suffix_file_source_genotype_vcf}"
-  name_file_intermediate_bcf_chromosome="genotype_chromosome${chromosome}_bcf"
-  name_file_intermediate_remove_duplicates_chromosome="genotype_chromosome${chromosome}_bcf_remove_duplicates"
-  name_file_intermediate_list_samples_chromosome="list_samples_chromosome${chromosome}.txt"
-  name_file_intermediate_sort_samples_chromosome="genotype_chromosome${chromosome}_bcf_remove_duplicates_sort_samples"
-  name_file_intermediate_sort_records_chromosome="genotype_chromosome${chromosome}_bcf_remove_duplicates_sort_samples_records"
+  name_file_intermediate_bcf_chromosome="geno_chr${chromosome}_bcf"
+  name_file_intermediate_remove_duplicates_chromosome="geno_chr${chromosome}_bcf_rem_dup"
+  name_file_intermediate_list_samples_chromosome="list_samples_chr${chromosome}.txt"
+  name_file_intermediate_sort_samples_chromosome="geno_chr${chromosome}_bcf_rem_dup_sort_samples"
+  name_file_intermediate_sort_records_chromosome="geno_chr${chromosome}_bcf_rem_dup_sort_samples_records"
   name_file_product_bcf_chromosome="genotype_chromosome${chromosome}_bcf.bcf"
   # Define full file paths for chromosome.
   path_file_source_vcf_chromosome="${path_directory_source_genotype_vcf}/${name_file_source_vcf_chromosome}"
@@ -77,6 +77,10 @@ for chromosome in "${chromosomes[@]}"; do
   instance="${path_file_product_bcf_chromosome}"
   echo $instance >> $path_file_list_files_combination
 done
+
+# TODO: TCW; 26 May 2022
+# TODO: try shortening the file names... I think I'm exceeding the limits on file path length...
+
 
 ################################################################################
 # Report.
