@@ -63,7 +63,7 @@ IFS=";" read -r -a array <<< "${instance}"
 chromosome="${array[0]}"
 path_file_source_vcf_chromosome="${array[1]}"
 path_directory_product_temporary_chromosome="${array[2]}"
-path_file_intermediate_bcf_chromosome="${array[3]}"
+path_file_intermediate_format_chromosome="${array[3]}"
 path_file_intermediate_remove_duplicates_chromosome="${array[4]}"
 path_file_intermediate_list_samples_chromosome="${array[5]}"
 path_file_intermediate_sort_samples_chromosome="${array[6]}"
@@ -78,7 +78,7 @@ if true; then
   /usr/bin/bash "${path_script_preparation}" \
   $path_file_source_vcf_chromosome \
   $path_directory_product_temporary_chromosome \
-  $path_file_intermediate_bcf_chromosome \
+  $path_file_intermediate_format_chromosome \
   $path_file_intermediate_remove_duplicates_chromosome \
   $path_file_intermediate_list_samples_chromosome \
   $path_file_intermediate_sort_samples_chromosome \

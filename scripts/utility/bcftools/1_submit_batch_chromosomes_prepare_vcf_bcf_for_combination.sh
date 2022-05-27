@@ -56,7 +56,7 @@ for chromosome in "${chromosomes[@]}"; do
   path_directory_product_temporary_chromosome="${path_directory_product_genotype_bcf}/temporary_chromosome${chromosome}"
   # Define file names for chromosome.
   name_file_source_vcf_chromosome="${prefix_file_source_genotype_vcf}${chromosome}${suffix_file_source_genotype_vcf}"
-  name_file_intermediate_bcf_chromosome="geno_chr${chromosome}_bcf.bcf"
+  name_file_intermediate_format_chromosome="geno_chr${chromosome}_bcf.bcf"
   name_file_intermediate_remove_duplicates_chromosome="geno_chr${chromosome}_bcf_rem_dup.bcf"
   name_file_intermediate_list_samples_chromosome="list_samples_chr${chromosome}.txt"
   name_file_intermediate_sort_samples_chromosome="geno_chr${chromosome}_bcf_rem_dup_sort_samples.bcf"
@@ -64,14 +64,14 @@ for chromosome in "${chromosomes[@]}"; do
   name_file_product_bcf_chromosome="genotype_chromosome${chromosome}_bcf.bcf"
   # Define full file paths for chromosome.
   path_file_source_vcf_chromosome="${path_directory_source_genotype_vcf}/${name_file_source_vcf_chromosome}"
-  path_file_intermediate_bcf_chromosome="${path_directory_product_temporary_chromosome}/${name_file_intermediate_bcf_chromosome}"
+  path_file_intermediate_format_chromosome="${path_directory_product_temporary_chromosome}/${name_file_intermediate_format_chromosome}"
   path_file_intermediate_remove_duplicates_chromosome="${path_directory_product_temporary_chromosome}/${name_file_intermediate_remove_duplicates_chromosome}"
   path_file_intermediate_list_samples_chromosome="${path_directory_product_temporary_chromosome}/${name_file_intermediate_list_samples_chromosome}"
   path_file_intermediate_sort_samples_chromosome="${path_directory_product_temporary_chromosome}/${name_file_intermediate_sort_samples_chromosome}"
   path_file_intermediate_sort_records_chromosome="${path_directory_product_temporary_chromosome}/${name_file_intermediate_sort_records_chromosome}"
   path_file_product_bcf_chromosome="${path_directory_product_genotype_bcf}/${name_file_product_bcf_chromosome}"
   # Define and append a new batch instance.
-  instance="${chromosome};${path_file_source_vcf_chromosome};${path_directory_product_temporary_chromosome};${path_file_intermediate_bcf_chromosome};${path_file_intermediate_remove_duplicates_chromosome};${path_file_intermediate_list_samples_chromosome};${path_file_intermediate_sort_samples_chromosome};${path_file_intermediate_sort_records_chromosome};${path_file_product_bcf_chromosome}"
+  instance="${chromosome};${path_file_source_vcf_chromosome};${path_directory_product_temporary_chromosome};${path_file_intermediate_format_chromosome};${path_file_intermediate_remove_duplicates_chromosome};${path_file_intermediate_list_samples_chromosome};${path_file_intermediate_sort_samples_chromosome};${path_file_intermediate_sort_records_chromosome};${path_file_product_bcf_chromosome}"
   echo $instance >> $path_batch_instances
   # Collect list of genotype files in BCF format for subsequent combination.
   instance="${path_file_product_bcf_chromosome}"

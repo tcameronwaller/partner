@@ -21,7 +21,7 @@
 # Organize arguments.
 path_file_source_vcf_chromosome=${1} # full path to source genotype file in VCF format
 path_directory_product_temporary_chromosome=${2} # full path to directory for temporary intermediate files
-path_file_intermediate_bcf_chromosome=${3} # full path to intermediate file
+path_file_intermediate_format_chromosome=${3} # full path to intermediate file
 path_file_intermediate_remove_duplicates_chromosome=${4} # full path to intermediate file
 path_file_intermediate_list_samples_chromosome=${5} # full path to intermediate file
 path_file_intermediate_sort_samples_chromosome=${6} # full path to intermediate file
@@ -39,18 +39,19 @@ mkdir -p $path_directory_product_temporary_chromosome
 ################################################################################
 # Prepare genotype files for combination.
 
-# Convert genotype files from VCF format to BCF format.
+# Convert genotype files from VCF format with BGZip compression to working
+# format.
 # The BCF format allows for greater performance in BCFTools.
 # Read file in VCF format with BGZip compression in BCFTools.
-# Write file in BCF format without compression.
+# Write file in BCF format without compression or other format.
 $path_bcftools \
 view \
---output $path_file_intermediate_bcf_chromosome \
+--output $path_file_intermediate_format_chromosome \
 --output-type v \
 --threads $threads \
 $path_file_source_vcf_chromosome
 echo "----------"
-echo "$path_file_intermediate_bcf_chromosome"
+echo "$path_file_intermediate_format_chromosome"
 echo "----------"
 
 
@@ -74,7 +75,7 @@ echo "----------"
 $path_bcftools \
 query \
 --list-samples \
-$path_file_intermediate_bcf_chromosome | sort > $path_file_intermediate_list_samples_chromosome
+$path_file_intermediate_format_chromosome | sort > $path_file_intermediate_list_samples_chromosome
 # Sort samples within genotype file.
 $path_bcftools \
 view \
@@ -82,7 +83,7 @@ view \
 --output $path_file_intermediate_sort_samples_chromosome \
 --output-type v \
 --threads $threads \
-$path_file_intermediate_bcf_chromosome
+$path_file_intermediate_format_chromosome
 echo "----------"
 echo "$path_file_intermediate_sort_samples_chromosome"
 echo "----------"
@@ -101,7 +102,7 @@ echo "----------"
 cp $path_file_intermediate_sort_records_chromosome $path_file_product_bcf_chromosome
 
 # Remove temporary, intermediate files.
-rm -r $path_directory_product_temporary_chromosome
+#rm -r $path_directory_product_temporary_chromosome
 
 
 
