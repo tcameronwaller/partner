@@ -31,6 +31,8 @@ threads=${9} # count of processing threads to use
 path_bcftools=${10} # full path to installation executable file of BCFTools
 report=${11} # whether to print reports
 
+################################################################################
+# Organize paths.
 
 # Initialize directory.
 rm -r $path_directory_product_temporary_chromosome
@@ -95,6 +97,7 @@ echo "----------"
 # Sort records for SNPs or other genetic features.
 $path_bcftools \
 sort \
+--max-mem 90000 \
 --output $path_file_intermediate_sort_records_chromosome \
 --output-type v \
 --temp-dir $path_directory_product_genotype_vcf_temporary \
