@@ -49,6 +49,10 @@ view \
 --output-type u \
 --threads $threads \
 $path_file_source_vcf_chromosome
+echo "----------"
+echo "$path_file_intermediate_bcf_chromosome"
+echo "----------"
+
 
 # Remove duplicate records for SNPs or other genetic features.
 # I think that option "--rm-dup exact" evokes similar logic to option
@@ -79,7 +83,9 @@ view \
 --output-type u \
 --threads $threads \
 $path_file_intermediate_bcf_chromosome
-
+echo "----------"
+echo "$path_file_intermediate_sort_samples_chromosome"
+echo "----------"
 # Sort records for SNPs or other genetic features.
 $path_bcftools \
 sort \
@@ -87,6 +93,9 @@ sort \
 --output-type u \
 --temp-dir $path_directory_product_genotype_vcf_temporary \
 $path_file_intermediate_sort_samples_chromosome
+echo "----------"
+echo "$path_file_intermediate_sort_records_chromosome"
+echo "----------"
 
 # Copy to more permanent product file.
 cp $path_file_intermediate_sort_records_chromosome $path_file_product_bcf_chromosome
