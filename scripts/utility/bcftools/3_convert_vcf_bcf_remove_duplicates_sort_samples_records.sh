@@ -19,24 +19,27 @@
 
 ################################################################################
 # Organize arguments.
-path_file_source_vcf_chromosome=${1} # full path to source genotype file in VCF format
-path_directory_product_temporary_chromosome=${2} # full path to directory for temporary intermediate files
-path_file_intermediate_format_chromosome=${3} # full path to intermediate file
-path_file_intermediate_remove_duplicates_chromosome=${4} # full path to intermediate file
-path_file_intermediate_list_samples_chromosome=${5} # full path to intermediate file
-path_file_intermediate_sort_samples_chromosome=${6} # full path to intermediate file
-path_file_intermediate_sort_records_chromosome=${7} # full path to intermediate file
-path_file_product_bcf_chromosome=${8} # full path to product genotype file in BCF format
-threads=${9} # count of processing threads to use
-path_bcftools=${10} # full path to installation executable file of BCFTools
-report=${11} # whether to print reports
+path_file_source_vcf=${1} # full path to source genotype file in VCF format
+path_directory_product_temporary=${2} # full path to directory for temporary intermediate files, keeps chromosomes separate for parallel computing
+path_file_product_bcf=${3} # full path to product genotype file in BCF format
+threads=${4} # count of processing threads to use
+path_bcftools=${5} # full path to installation executable file of BCFTools
+report=${6} # whether to print reports
 
 ################################################################################
 # Organize paths.
 
+name_base_file_product="$(basename $path_file_product_bcf .bcf.gz)"
+path_directory_product="$(dirname $path_file_product_bcf)"
+path_file_temporary_bcf="${path_directory_product_temporary}/${name_base_file_product}.bcf"
+path_file_temporary_remove_replicates="${path_directory_product_temporary}/${name_base_file_product}_replicates.bcf"
+path_file_temporary_list_samples="${path_directory_product_temporary}/${name_base_file_product}_list_samples.txt"
+path_file_temporary_sort_samples="${path_directory_product_temporary}/${name_base_file_product}_sort_samples.bcf"
+path_file_temporary_sort_records="${path_directory_product_temporary}/${name_base_file_product}_sort_records.bcf"
+
 # Initialize directory.
-rm -r $path_directory_product_temporary_chromosome
-mkdir -p $path_directory_product_temporary_chromosome
+rm -r $path_directory_product_temporary
+mkdir -p $path_directory_product_temporary
 
 ################################################################################
 # Prepare genotype files for combination.
@@ -47,16 +50,16 @@ mkdir -p $path_directory_product_temporary_chromosome
 # Read file in VCF format with BGZip compression in BCFTools.
 # Write file in BCF format without compression or other format.
 echo "----------"
-echo "$path_file_source_vcf_chromosome"
+echo "$path_file_source_vcf"
 echo "----------"
 $path_bcftools \
 view \
---output $path_file_intermediate_format_chromosome \
+--output $path_file_temporary_bcf \
 --output-type u \
 --threads $threads \
-$path_file_source_vcf_chromosome
+$path_file_source_vcf
 echo "----------"
-echo "$path_file_intermediate_format_chromosome"
+echo "$path_file_temporary_bcf"
 echo "----------"
 
 # Remove duplicate records for SNPs or other genetic features.
@@ -67,12 +70,12 @@ echo "----------"
 $path_bcftools \
 norm \
 --rm-dup exact \
---output $path_file_intermediate_remove_duplicates_chromosome \
+--output $path_file_temporary_remove_replicates \
 --output-type u \
 --threads $threads \
-$path_file_intermediate_format_chromosome
+$path_file_temporary_bcf
 echo "----------"
-echo "$path_file_intermediate_remove_duplicates_chromosome"
+echo "$path_file_temporary_remove_replicates"
 echo "----------"
 
 # Sort samples.
@@ -82,35 +85,52 @@ echo "----------"
 $path_bcftools \
 query \
 --list-samples \
-$path_file_intermediate_remove_duplicates_chromosome | sort > $path_file_intermediate_list_samples_chromosome
+$path_file_temporary_remove_replicates | sort > $path_file_temporary_list_samples
 # Sort samples within genotype file.
 $path_bcftools \
 view \
---samples-file $path_file_intermediate_list_samples_chromosome \
---output $path_file_intermediate_sort_samples_chromosome \
+--samples-file $path_file_temporary_list_samples \
+--output $path_file_temporary_sort_samples \
 --output-type u \
 --threads $threads \
-$path_file_intermediate_remove_duplicates_chromosome
+$path_file_temporary_remove_replicates
 echo "----------"
-echo "$path_file_intermediate_sort_samples_chromosome"
+echo "$path_file_temporary_sort_samples"
 echo "----------"
+
 # Sort records for SNPs or other genetic features.
 $path_bcftools \
 sort \
 --max-mem 4G \
---output $path_file_intermediate_sort_records_chromosome \
+--output $path_file_temporary_sort_records \
 --output-type u \
---temp-dir $path_directory_product_temporary_chromosome \
-$path_file_intermediate_sort_samples_chromosome
+--temp-dir $path_directory_product_temporary \
+$path_file_temporary_sort_samples
 echo "----------"
-echo "$path_file_intermediate_sort_records_chromosome"
+echo "$path_file_temporary_sort_records"
 echo "----------"
 
-# Copy to more permanent product file.
-cp $path_file_intermediate_sort_records_chromosome $path_file_product_bcf_chromosome
+# Convert genotype files from BCF format without compression to BCF format with
+# BGZip compression.
+# The BCF format allows for greater performance in BCFTools.
+$path_bcftools \
+view \
+--output $path_file_product_bcf \
+--output-type b9 \
+--threads $threads \
+$path_file_temporary_sort_records
+
+# Create Tabix index for product file in VCF format with BGZip compression.
+# BCFTools sometimes requires this Tabix index to read a file.
+$path_bcftools \
+index \
+--force \
+--tbi \
+--threads $threads \
+$path_file_product_bcf
 
 # Remove temporary, intermediate files.
-rm -r $path_directory_product_temporary_chromosome
+rm -r $path_directory_product_temporary
 
 
 
