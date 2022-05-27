@@ -19,26 +19,26 @@
 
 ################################################################################
 # Organize arguments.
-path_list_line_source_vcf_bcf_files=${1} # full path to file list with new line delimiter of paths to genotype files in VCF or BCF formats for combination
-path_bcf_product=${2} # full path to product file in BCF format
+path_file_list_source_vcf_bcf_files=${1} # full path to file with line-delimiter list of full paths to genotype files in VCF or BCF formats for combination
+path_file_product_vcf=${2} # full path to product file in VCF format with BGZip compression
 threads=${3} # count of processing threads to use
 path_bcftools=${4} # full path to installation executable file of BCFTools
 report=${5} # whether to print reports
 
 ################################################################################
-# Remove "chr" prefix from chromosome identifiers in VCF genotype file.
-# Write to file in VCF format with BGZIP compression.
+# Organize paths.
 
-# 1. convert all genotype files from VCF to BCF format
-# 2. sort samples in all BCF files
-# 3.
+name_file_base_product="$(basename $path_file_product_vcf .vcf.gz)"
+path_product_container="$(dirname $path_vcf_product)"
+name_base_product_file="$(basename $path_vcf_product .vcf.gz)"
+path_vcf_source_no_compression="${path_product_container}/${name_base_source_file}_no_compression.vcf"
+path_vcf_product_assembly_no_compression="${path_product_container}/${name_base_product_file}_assembly_no_compression.vcf"
+path_vcf_product_sort_no_compression="${path_product_container}/${name_base_product_file}_sort_no_compression.vcf"
 
-# Convert genotype files from VCF format to BCF format.
-# The BCF format allows for greater performance in BCFTools.
 
-# Sort samples in VCF files.
-# bcftools query --list-samples input.vcf | sort > samples.txt
-# bcftools view --samples-file samples.txt input.vcf > output.vcf
+
+
+################################################################################
 
 # Combine genetic records across identical samples from multiple files.
 # Samples must be identical and have same sequence.
@@ -46,10 +46,24 @@ $path_bcftools \
 concat \
 --allow-overlaps \
 --rm-dups exact \
---file-list $path_list_line_source_vcf_files \
---output $path_bcf_product \
---output-type b9 \
+--file-list $path_file_list_source_vcf_bcf_files \
+--output $path_file_product_vcf \
+--output-type u \
 --threads $threads
+
+# Sort records for SNPs or other genetic features.
+$path_bcftools \
+sort \
+--max-mem 4G \
+--output $path_file_intermediate_sort_records_chromosome \
+--output-type u \
+--temp-dir $path_directory_product_temporary_chromosome \
+$path_file_intermediate_sort_samples_chromosome
+echo "----------"
+echo "$path_file_intermediate_sort_records_chromosome"
+echo "----------"
+
+
 
 # Create Tabix index for product file in VCF format.
 # BCFTools sometimes requires this Tabix index to read a file.
