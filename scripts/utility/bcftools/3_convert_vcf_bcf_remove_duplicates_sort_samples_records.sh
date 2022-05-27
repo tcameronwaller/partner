@@ -39,11 +39,16 @@ mkdir -p $path_directory_product_temporary_chromosome
 ################################################################################
 # Prepare genotype files for combination.
 
+
+
 # Convert genotype files from VCF format with BGZip compression to working
 # format.
 # The BCF format allows for greater performance in BCFTools.
 # Read file in VCF format with BGZip compression in BCFTools.
 # Write file in BCF format without compression or other format.
+echo "----------"
+echo "$path_file_source_vcf_chromosome"
+echo "----------"
 $path_bcftools \
 view \
 --output $path_file_intermediate_format_chromosome \
