@@ -54,7 +54,7 @@ echo "----------"
 $path_bcftools \
 view \
 --output $path_file_intermediate_format_chromosome \
---output-type v \
+--output-type u \
 --threads $threads \
 $path_file_source_vcf_chromosome
 echo "----------"
@@ -67,13 +67,16 @@ echo "----------"
 # "--collapse none".
 # I think both of these options require exact match of chromosome, position, and
 # all alleles in order to consider records redundant.
-#$path_bcftools \
-#norm \
-#--rm-dup exact \
-#--output $path_file_intermediate_remove_duplicates_chromosome \
-#--output-type u \
-#--threads $threads \
-#$path_file_intermediate_bcf_chromosome
+$path_bcftools \
+norm \
+--rm-dup exact \
+--output $path_file_intermediate_remove_duplicates_chromosome \
+--output-type u \
+--threads $threads \
+$path_file_intermediate_format_chromosome
+echo "----------"
+echo "$path_file_intermediate_remove_duplicates_chromosome"
+echo "----------"
 
 # Sort samples.
 # bcftools query --list-samples input.vcf | sort > samples.txt
@@ -82,15 +85,15 @@ echo "----------"
 $path_bcftools \
 query \
 --list-samples \
-$path_file_intermediate_format_chromosome | sort > $path_file_intermediate_list_samples_chromosome
+$path_file_intermediate_remove_duplicates_chromosome | sort > $path_file_intermediate_list_samples_chromosome
 # Sort samples within genotype file.
 $path_bcftools \
 view \
 --samples-file $path_file_intermediate_list_samples_chromosome \
 --output $path_file_intermediate_sort_samples_chromosome \
---output-type v \
+--output-type u \
 --threads $threads \
-$path_file_intermediate_format_chromosome
+$path_file_intermediate_remove_duplicates_chromosome
 echo "----------"
 echo "$path_file_intermediate_sort_samples_chromosome"
 echo "----------"
@@ -99,7 +102,7 @@ $path_bcftools \
 sort \
 --max-mem 5G \
 --output $path_file_intermediate_sort_records_chromosome \
---output-type v \
+--output-type u \
 --temp-dir $path_directory_product_temporary_chromosome \
 $path_file_intermediate_sort_samples_chromosome
 echo "----------"

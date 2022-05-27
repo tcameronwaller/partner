@@ -22,16 +22,16 @@ prefix_file_source_genotype_vcf=${2} # file name prefix for source genotype file
 suffix_file_source_genotype_vcf=${3} # file name suffix for source genotype file in VCF format
 chromosome_x=${4} # whether to include Chromosome X
 path_directory_product_genotype_bcf=${5} # full path to directory for product genotype files in BCF format
-threads=${6} # count of processing threads to use
-path_promiscuity_scripts=${7} # full path to directory of general scripts
-path_bcftools=${8} # full path to installation executable file of BCFTools
-report=${9} # whether to print reports
+path_file_list_files_combination=${6} # full path to file with line delimiter list of genotype files in BCF format for combination
+threads=${7} # count of processing threads to use
+path_promiscuity_scripts=${8} # full path to directory of general scripts
+path_bcftools=${9} # full path to installation executable file of BCFTools
+report=${10} # whether to print reports
 
 ###########################################################################
 # Organize paths.
 
 path_batch_instances="${path_directory_product_genotype_bcf}/batch_instances.txt"
-path_file_list_files_combination="${path_directory_product_genotype_bcf}/list_files_chromosomes_combination.txt"
 
 # Scripts.
 path_script_run_preparation="${path_promiscuity_scripts}/utility/bcftools/2_run_batch_chromosome_prepare_vcf_bcf_for_combination.sh"
