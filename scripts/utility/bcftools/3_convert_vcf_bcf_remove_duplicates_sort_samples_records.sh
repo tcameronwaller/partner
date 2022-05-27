@@ -41,8 +41,6 @@ mkdir -p $path_directory_product_temporary_chromosome
 ################################################################################
 # Prepare genotype files for combination.
 
-
-
 # Convert genotype files from VCF format with BGZip compression to working
 # format.
 # The BCF format allows for greater performance in BCFTools.
@@ -60,7 +58,6 @@ $path_file_source_vcf_chromosome
 echo "----------"
 echo "$path_file_intermediate_format_chromosome"
 echo "----------"
-
 
 # Remove duplicate records for SNPs or other genetic features.
 # I think that option "--rm-dup exact" evokes similar logic to option
@@ -113,7 +110,7 @@ echo "----------"
 cp $path_file_intermediate_sort_records_chromosome $path_file_product_bcf_chromosome
 
 # Remove temporary, intermediate files.
-#rm -r $path_directory_product_temporary_chromosome
+rm -r $path_directory_product_temporary_chromosome
 
 
 
