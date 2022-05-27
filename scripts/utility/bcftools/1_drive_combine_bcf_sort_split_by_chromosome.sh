@@ -34,8 +34,7 @@ path_batch_instances="${path_directory_product_genotype_bcf}/batch_instances.txt
 path_file_list_files_combination="${path_directory_product_genotype_bcf}/list_files_chromosomes_combination.txt"
 
 # Scripts.
-path_script_run_preparation="${path_promiscuity_scripts}/utility/bcftools/2_run_batch_chromosome_prepare_vcf_bcf_for_combination.sh"
-path_script_preparation="${path_promiscuity_scripts}/utility/bcftools/3_convert_vcf_bcf_remove_duplicates_sort_samples_records.sh"
+path_script_combine_sort_split="${path_promiscuity_scripts}/utility/bcftools/2_combine_bcf_sort_split_convert_vcf.sh"
 
 ###########################################################################
 # Iterate on source genotype files in VCF format for chromosomes.
@@ -56,11 +55,11 @@ for chromosome in "${chromosomes[@]}"; do
   path_directory_product_temporary_chromosome="${path_directory_product_genotype_bcf}/temporary_chromosome${chromosome}"
   # Define file names for chromosome.
   name_file_source_vcf_chromosome="${prefix_file_source_genotype_vcf}${chromosome}${suffix_file_source_genotype_vcf}"
-  name_file_intermediate_bcf_chromosome="geno_chr${chromosome}_bcf.bcf"
-  name_file_intermediate_remove_duplicates_chromosome="geno_chr${chromosome}_bcf_rem_dup.bcf"
+  name_file_intermediate_bcf_chromosome="geno_chr${chromosome}_bcf"
+  name_file_intermediate_remove_duplicates_chromosome="geno_chr${chromosome}_bcf_rem_dup"
   name_file_intermediate_list_samples_chromosome="list_samples_chr${chromosome}.txt"
-  name_file_intermediate_sort_samples_chromosome="geno_chr${chromosome}_bcf_rem_dup_sort_samples.bcf"
-  name_file_intermediate_sort_records_chromosome="geno_chr${chromosome}_bcf_rem_dup_sort_samples_records.bcf"
+  name_file_intermediate_sort_samples_chromosome="geno_chr${chromosome}_bcf_rem_dup_sort_samples"
+  name_file_intermediate_sort_records_chromosome="geno_chr${chromosome}_bcf_rem_dup_sort_samples_records"
   name_file_product_bcf_chromosome="genotype_chromosome${chromosome}_bcf.bcf"
   # Define full file paths for chromosome.
   path_file_source_vcf_chromosome="${path_directory_source_genotype_vcf}/${name_file_source_vcf_chromosome}"
