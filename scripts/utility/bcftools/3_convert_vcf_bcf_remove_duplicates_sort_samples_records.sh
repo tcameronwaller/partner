@@ -46,7 +46,7 @@ mkdir -p $path_directory_product_temporary_chromosome
 $path_bcftools \
 view \
 --output $path_file_intermediate_bcf_chromosome \
---output-type u \
+--output-type v \
 --threads $threads \
 $path_file_source_vcf_chromosome
 echo "----------"
@@ -80,7 +80,7 @@ $path_bcftools \
 view \
 --samples-file $path_file_intermediate_list_samples_chromosome \
 --output $path_file_intermediate_sort_samples_chromosome \
---output-type u \
+--output-type v \
 --threads $threads \
 $path_file_intermediate_bcf_chromosome
 echo "----------"
@@ -90,7 +90,7 @@ echo "----------"
 $path_bcftools \
 sort \
 --output $path_file_intermediate_sort_records_chromosome \
---output-type u \
+--output-type v \
 --temp-dir $path_directory_product_genotype_vcf_temporary \
 $path_file_intermediate_sort_samples_chromosome
 echo "----------"
