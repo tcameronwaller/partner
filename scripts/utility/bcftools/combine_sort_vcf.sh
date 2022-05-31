@@ -44,6 +44,7 @@ mkdir -p $path_directory_product_temporary
 # Combine genetic records across identical samples from multiple files.
 # Samples must be identical and have same sequence.
 # The BCFTools "concat" command requires source files to have Tabix indices.
+# This command requires more than 5 hours for genotypes on 2,000 samples.
 $path_bcftools \
 concat \
 --allow-overlaps \
