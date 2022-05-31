@@ -23,11 +23,11 @@
 # Information on how to access a single FASTA file for assembly GRCh37 of the
 # Human Genome: "https://www.biostars.org/p/338914/#339258"
 
-# In the process of translating coordinates between genome assemblies, some SNPs
-# might change chromosomes. For this reason it might be appropriate to combine
-# VCF files for all chromosomes (using BCFTools "concat" command) before the
-# translation and then split by chromosome after the translation (using BCFTools
-# "view" command with "--regions" option).
+# In the process of translating coordinates between genome assemblies, some
+# genetic features (SNPs etc) change chromosomes. For this reason it might be
+# appropriate to combine VCF files for all chromosomes (using BCFTools "concat"
+# command) before the translation and then split by chromosome after the
+# translation (using BCFTools "view" command with "--regions" option).
 
 ################################################################################
 
