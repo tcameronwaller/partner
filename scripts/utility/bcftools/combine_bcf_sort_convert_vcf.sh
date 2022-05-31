@@ -32,8 +32,8 @@ name_base_file_product="$(basename $path_file_product_vcf .vcf.gz)"
 path_directory_product="$(dirname $path_file_product_vcf)"
 path_directory_product_temporary="${path_directory_product}/temporary"
 
-path_file_temporary_combination="${path_directory_product}/${name_base_file_product}_combination.bcf"
-path_file_temporary_sort="${path_directory_product}/${name_base_file_product}_sort.bcf"
+path_file_temporary_combination="${path_directory_product_temporary}/${name_base_file_product}_combination.bcf"
+path_file_temporary_sort="${path_directory_product_temporary}/${name_base_file_product}_sort.bcf"
 
 # Initialize directory.
 rm -r $path_directory_product_temporary
@@ -85,7 +85,5 @@ $path_file_product_vcf
 
 # Remove temporary, intermediate files.
 rm -r $path_directory_product_temporary
-rm $path_file_temporary_combination
-rm $path_file_temporary_sort
 
 #
