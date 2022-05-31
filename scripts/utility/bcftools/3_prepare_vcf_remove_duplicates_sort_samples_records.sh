@@ -21,7 +21,7 @@
 # Organize arguments.
 path_file_source_vcf=${1} # full path to source genotype file in VCF format
 path_directory_product_temporary=${2} # full path to directory for temporary intermediate files, keeps chromosomes separate for parallel computing
-path_file_product_bcf=${3} # full path to product genotype file in BCF format
+path_file_product_vcf=${3} # full path to product genotype file in BCF format
 threads=${4} # count of processing threads to use
 path_bcftools=${5} # full path to installation executable file of BCFTools
 report=${6} # whether to print reports
@@ -29,8 +29,8 @@ report=${6} # whether to print reports
 ################################################################################
 # Organize paths.
 
-name_base_file_product="$(basename $path_file_product_bcf .bcf.gz)"
-path_directory_product="$(dirname $path_file_product_bcf)"
+name_base_file_product="$(basename $path_file_product_vcf .vcf.gz)"
+path_directory_product="$(dirname $path_file_product_vcf)"
 path_file_temporary_bcf="${path_directory_product_temporary}/${name_base_file_product}.bcf"
 path_file_temporary_remove_replicates="${path_directory_product_temporary}/${name_base_file_product}_replicates.bcf"
 path_file_temporary_list_samples="${path_directory_product_temporary}/${name_base_file_product}_list_samples.txt"
@@ -110,24 +110,24 @@ echo "----------"
 echo "$path_file_temporary_sort_records"
 echo "----------"
 
-# Convert genotype files from BCF format without compression to BCF format with
+# Convert genotype files from BCF format without compression to VCF format with
 # BGZip compression.
-# The BCF format allows for greater performance in BCFTools.
 $path_bcftools \
 view \
---output $path_file_product_bcf \
---output-type b9 \
+--output $path_file_product_vcf \
+--output-type z9 \
 --threads $threads \
 $path_file_temporary_sort_records
 
 # Create Tabix index for product file in VCF format with BGZip compression.
 # BCFTools sometimes requires this Tabix index to read a file.
+# BCFTools is unable to create a Tabix index for files in BCF format.
 $path_bcftools \
 index \
 --force \
 --tbi \
 --threads $threads \
-$path_file_product_bcf
+$path_file_product_vcf
 
 # Remove temporary, intermediate files.
 rm -r $path_directory_product_temporary

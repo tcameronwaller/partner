@@ -21,8 +21,8 @@ path_directory_source_genotype_vcf=${1} # full path to directory with source gen
 prefix_file_source_genotype_vcf=${2} # file name prefix for source genotype file in VCF format
 suffix_file_source_genotype_vcf=${3} # file name suffix for source genotype file in VCF format
 chromosome_x=${4} # whether to include Chromosome X
-path_directory_product_genotype_bcf=${5} # full path to directory for product genotype files in BCF format
-path_file_list_vcf_bcf_files_combination=${6} # full path to file with line-delimiter list of full paths to genotype files in VCF or BCF formats for combination
+path_directory_product_genotype_vcf=${5} # full path to directory for product genotype files in BCF format
+path_file_list_vcf_files_combination=${6} # full path to file with line-delimiter list of full paths to genotype files in VCF format for combination
 threads=${7} # count of processing threads to use
 path_promiscuity_scripts=${8} # full path to directory of general scripts
 path_bcftools=${9} # full path to installation executable file of BCFTools
@@ -31,18 +31,18 @@ report=${10} # whether to print reports
 ###########################################################################
 # Organize paths.
 
-path_batch_instances="${path_directory_product_genotype_bcf}/batch_instances.txt"
+path_batch_instances="${path_directory_product_genotype_vcf}/batch_instances.txt"
 
 # Scripts.
-path_script_run_preparation="${path_promiscuity_scripts}/utility/bcftools/2_run_batch_chromosome_prepare_vcf_bcf_for_combination.sh"
-path_script_preparation="${path_promiscuity_scripts}/utility/bcftools/3_convert_vcf_bcf_remove_duplicates_sort_samples_records.sh"
+path_script_run_preparation="${path_promiscuity_scripts}/utility/bcftools/2_run_batch_chromosome_prepare_vcf_for_combination.sh"
+path_script_preparation="${path_promiscuity_scripts}/utility/bcftools/3_prepare_vcf_remove_duplicates_sort_samples_records.sh"
 
 ###########################################################################
 # Iterate on source genotype files in VCF format for chromosomes.
 
 # Initialize directory.
-rm -r $path_directory_product_genotype_bcf
-mkdir -p $path_directory_product_genotype_bcf
+rm -r $path_directory_product_genotype_vcf
+mkdir -p $path_directory_product_genotype_vcf
 
 # Determine relevant chromosomes.
 if [[ "$chromosome_x" == "true" ]]; then
@@ -53,24 +53,20 @@ fi
 # Iterate on chromosomes.
 for chromosome in "${chromosomes[@]}"; do
   # Define full path to temporary directory for the chromosome.
-  path_directory_product_temporary_chromosome="${path_directory_product_genotype_bcf}/temporary_chromosome${chromosome}"
+  path_directory_product_temporary_chromosome="${path_directory_product_genotype_vcf}/temporary_chromosome${chromosome}"
   # Define file names for chromosome.
   name_file_source_vcf_chromosome="${prefix_file_source_genotype_vcf}${chromosome}${suffix_file_source_genotype_vcf}"
-  name_file_product_bcf_chromosome="genotype_chromosome${chromosome}_bcf.bcf.gz"
+  name_file_product_vcf_chromosome="genotype_chromosome${chromosome}_vcf.vcf.gz"
   # Define full file paths for chromosome.
   path_file_source_vcf_chromosome="${path_directory_source_genotype_vcf}/${name_file_source_vcf_chromosome}"
-  path_file_product_bcf_chromosome="${path_directory_product_genotype_bcf}/${name_file_product_bcf_chromosome}"
+  path_file_product_vcf_chromosome="${path_directory_product_genotype_vcf}/${name_file_product_vcf_chromosome}"
   # Define and append a new batch instance.
-  instance="${chromosome};${path_file_source_vcf_chromosome};${path_directory_product_temporary_chromosome};${path_file_product_bcf_chromosome}"
+  instance="${chromosome};${path_file_source_vcf_chromosome};${path_directory_product_temporary_chromosome};${path_file_product_vcf_chromosome}"
   echo $instance >> $path_batch_instances
   # Collect list of genotype files in BCF format for subsequent combination.
-  instance="${path_file_product_bcf_chromosome}"
-  echo $instance >> $path_file_list_vcf_bcf_files_combination
+  instance="${path_file_product_vcf_chromosome}"
+  echo $instance >> $path_file_list_vcf_files_combination
 done
-
-# TODO: TCW; 26 May 2022
-# TODO: try shortening the file names... I think I'm exceeding the limits on file path length...
-
 
 ################################################################################
 # Report.
@@ -96,7 +92,7 @@ if true; then
   # Submit array batch to Sun Grid Engine.
   # Array batch indices must start at one (not zero).
   qsub -t 1-${batch_instances_count}:1 -o \
-  "${path_directory_product_genotype_bcf}/batch_out.txt" -e "${path_directory_product_genotype_bcf}/batch_error.txt" \
+  "${path_directory_product_genotype_vcf}/batch_out.txt" -e "${path_directory_product_genotype_vcf}/batch_error.txt" \
   "${path_script_run_preparation}" \
   $path_batch_instances \
   $batch_instances_count \

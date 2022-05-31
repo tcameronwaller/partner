@@ -63,7 +63,7 @@ IFS=";" read -r -a array <<< "${instance}"
 chromosome="${array[0]}"
 path_file_source_vcf_chromosome="${array[1]}"
 path_directory_product_temporary_chromosome="${array[2]}"
-path_file_product_bcf_chromosome="${array[3]}"
+path_file_product_vcf_chromosome="${array[3]}"
 
 ###########################################################################
 # Execute procedure.
@@ -73,7 +73,7 @@ if true; then
   /usr/bin/bash "${path_script_preparation}" \
   $path_file_source_vcf_chromosome \
   $path_directory_product_temporary_chromosome \
-  $path_file_product_bcf_chromosome \
+  $path_file_product_vcf_chromosome \
   $threads \
   $path_bcftools \
   $report
