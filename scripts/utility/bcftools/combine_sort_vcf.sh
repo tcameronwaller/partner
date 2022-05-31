@@ -56,7 +56,7 @@ concat \
 # Sort records for SNPs or other genetic features.
 $path_bcftools \
 sort \
---max-mem 4G \
+--max-mem 16G \
 --output $path_file_temporary_sort \
 --output-type u \
 --temp-dir $path_directory_product_temporary \
