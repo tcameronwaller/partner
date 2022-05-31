@@ -19,7 +19,7 @@
 
 ################################################################################
 # Organize arguments.
-path_file_list_source_vcf_bcf_files=${1} # full path to file with line-delimiter list of full paths to genotype files in VCF or BCF formats for combination
+path_file_list_source_vcf_files=${1} # full path to file with line-delimiter list of full paths to genotype files in VCF formats with BGZip compression and Tabix indices
 path_file_product_vcf=${2} # full path to product file in VCF format with BGZip compression
 threads=${3} # count of processing threads to use
 path_bcftools=${4} # full path to installation executable file of BCFTools
@@ -48,7 +48,7 @@ $path_bcftools \
 concat \
 --allow-overlaps \
 --rm-dups exact \
---file-list $path_file_list_source_vcf_bcf_files \
+--file-list $path_file_list_source_vcf_files \
 --output $path_file_temporary_combination \
 --output-type u \
 --threads $threads
@@ -74,8 +74,9 @@ view \
 --threads $threads \
 $path_file_temporary_sort
 
-# Create Tabix index for product file in VCF format with BGZip compression.
-# BCFTools sometimes requires this Tabix index to read a file.
+# Create Tabix index for file in VCF format with BGZip compression.
+# BCFTools is unable to create a Tabix index for files in BCF format.
+# Some commands in BCFTools require this Tabix index to read a file.
 $path_bcftools \
 index \
 --force \

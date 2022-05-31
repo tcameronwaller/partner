@@ -119,9 +119,9 @@ view \
 --threads $threads \
 $path_file_temporary_sort_records
 
-# Create Tabix index for product file in VCF format with BGZip compression.
-# BCFTools sometimes requires this Tabix index to read a file.
+# Create Tabix index for file in VCF format with BGZip compression.
 # BCFTools is unable to create a Tabix index for files in BCF format.
+# Some commands in BCFTools require this Tabix index to read a file.
 $path_bcftools \
 index \
 --force \

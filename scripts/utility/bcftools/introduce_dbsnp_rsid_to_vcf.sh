@@ -85,8 +85,9 @@ annotate \
 --threads $threads \
 $path_vcf_source
 
-# Create Tabix index for product file in VCF format.
-# BCFTools sometimes requires this Tabix index to read a file.
+# Create Tabix index for file in VCF format with BGZip compression.
+# BCFTools is unable to create a Tabix index for files in BCF format.
+# Some commands in BCFTools require this Tabix index to read a file.
 $path_bcftools \
 index \
 --force \
