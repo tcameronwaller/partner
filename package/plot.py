@@ -2133,13 +2133,19 @@ def plot_scatter_points_discrete_abscissa_ordinate_error_bars(
     # Create axes.
     axes = matplotlib.pyplot.axes()
     #axes.set_ylim(ymin=0)
+    #axes.set_xlim(
+    #    xmin=abscissa_minimum,
+    #    xmax=abscissa_maximum,
+    #)
+
+
     axes.set_xlabel(
         xlabel=title_abscissa,
         labelpad=20,
         alpha=1.0,
         backgroundcolor=colors["white"],
         color=colors["black"],
-        fontproperties=fonts["properties"]["one"]
+        fontproperties=fonts["properties"]["two"]
     )
     axes.set_ylabel(
         ylabel=title_ordinate,
@@ -2147,7 +2153,7 @@ def plot_scatter_points_discrete_abscissa_ordinate_error_bars(
         alpha=1.0,
         backgroundcolor=colors["white"],
         color=colors["black"],
-        fontproperties=fonts["properties"]["one"]
+        fontproperties=fonts["properties"]["two"]
     )
     axes.tick_params(
         axis="both",
@@ -2157,7 +2163,7 @@ def plot_scatter_points_discrete_abscissa_ordinate_error_bars(
         width=3.0,
         color=colors["black"],
         pad=5,
-        labelsize=fonts["values"]["one"]["size"],
+        labelsize=fonts["values"]["two"]["size"],
         labelcolor=colors["black"]
     )
     # Plot points for values from each group.
@@ -2186,7 +2192,7 @@ def plot_scatter_points_discrete_abscissa_ordinate_error_bars(
             transform=axes.transAxes,
             backgroundcolor=colors["white_faint"],
             color=colors["black"],
-            fontproperties=fonts["properties"]["two"]
+            fontproperties=fonts["properties"]["nine"]
         )
 
     # Return figure.
