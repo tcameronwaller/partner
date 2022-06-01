@@ -2137,15 +2137,13 @@ def plot_scatter_points_discrete_abscissa_ordinate_error_bars(
     #    xmin=abscissa_minimum,
     #    xmax=abscissa_maximum,
     #)
-
-
     axes.set_xlabel(
         xlabel=title_abscissa,
         labelpad=20,
         alpha=1.0,
         backgroundcolor=colors["white"],
         color=colors["black"],
-        fontproperties=fonts["properties"]["two"]
+        fontproperties=fonts["properties"]["three"]
     )
     axes.set_ylabel(
         ylabel=title_ordinate,
@@ -2153,7 +2151,7 @@ def plot_scatter_points_discrete_abscissa_ordinate_error_bars(
         alpha=1.0,
         backgroundcolor=colors["white"],
         color=colors["black"],
-        fontproperties=fonts["properties"]["two"]
+        fontproperties=fonts["properties"]["three"]
     )
     axes.tick_params(
         axis="both",
@@ -2163,7 +2161,7 @@ def plot_scatter_points_discrete_abscissa_ordinate_error_bars(
         width=3.0,
         color=colors["black"],
         pad=5,
-        labelsize=fonts["values"]["two"]["size"],
+        labelsize=fonts["values"]["three"]["size"],
         labelcolor=colors["black"]
     )
     # Plot points for values from each group.
