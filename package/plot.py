@@ -2143,7 +2143,7 @@ def plot_scatter_points_discrete_abscissa_ordinate_error_bars(
         alpha=1.0,
         backgroundcolor=colors["white"],
         color=colors["black"],
-        fontproperties=fonts["properties"]["three"]
+        fontproperties=fonts["properties"]["four"]
     )
     axes.set_ylabel(
         ylabel=title_ordinate,
@@ -2151,7 +2151,7 @@ def plot_scatter_points_discrete_abscissa_ordinate_error_bars(
         alpha=1.0,
         backgroundcolor=colors["white"],
         color=colors["black"],
-        fontproperties=fonts["properties"]["three"]
+        fontproperties=fonts["properties"]["four"]
     )
     axes.tick_params(
         axis="both",
@@ -2161,7 +2161,7 @@ def plot_scatter_points_discrete_abscissa_ordinate_error_bars(
         width=3.0,
         color=colors["black"],
         pad=5,
-        labelsize=fonts["values"]["three"]["size"],
+        labelsize=fonts["values"]["four"]["size"],
         labelcolor=colors["black"]
     )
     # Plot points for values from each group.
@@ -2171,11 +2171,11 @@ def plot_scatter_points_discrete_abscissa_ordinate_error_bars(
         yerr=errors_ordinate,
         xerr=None,
         ecolor=colors["gray_dark"],
-        elinewidth=10.0,
+        elinewidth=7.0, # 10.0 is a little too thick with 30 points
         barsabove=False, # whether to print error bars in layer above points
         linestyle="",
         marker="o",
-        markersize=size_marker, # 5, 15
+        markersize=size_marker, # 15, 25
         markeredgecolor=colors["blue_navy"],
         markerfacecolor=colors["blue_navy"],
     )
@@ -2190,7 +2190,7 @@ def plot_scatter_points_discrete_abscissa_ordinate_error_bars(
             transform=axes.transAxes,
             backgroundcolor=colors["white_faint"],
             color=colors["black"],
-            fontproperties=fonts["properties"]["nine"]
+            fontproperties=fonts["properties"]["eight"]
         )
 
     # Return figure.
