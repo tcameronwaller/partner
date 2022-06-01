@@ -152,7 +152,7 @@ $path_file_temporary_remove_replicates
 # Sort records for SNPs or other genetic features.
 $path_bcftools \
 sort \
---max-mem 4G \
+--max-mem 10G \
 --output $path_file_temporary_sort_records \
 --output-type u \
 --temp-dir $path_directory_product_temporary \
