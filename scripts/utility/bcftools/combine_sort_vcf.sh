@@ -36,7 +36,7 @@ path_file_temporary_combination="${path_directory_product_temporary}/${name_base
 path_file_temporary_sort="${path_directory_product_temporary}/${name_base_file_product}_sort.bcf"
 
 # Initialize directory.
-rm -r $path_directory_product_temporary
+#rm -r $path_directory_product_temporary
 mkdir -p $path_directory_product_temporary
 
 ################################################################################
@@ -45,19 +45,20 @@ mkdir -p $path_directory_product_temporary
 # Samples must be identical and have same sequence.
 # The BCFTools "concat" command requires source files to have Tabix indices.
 # This command requires approximately 5-7 hours for genotypes on 2,000 samples.
-$path_bcftools \
-concat \
---allow-overlaps \
---rm-dups exact \
---file-list $path_file_list_source_vcf_files \
---output $path_file_temporary_combination \
---output-type u \
---threads $threads
+#$path_bcftools \
+#concat \
+#--allow-overlaps \
+#--rm-dups exact \
+#--file-list $path_file_list_source_vcf_files \
+#--output $path_file_temporary_combination \
+#--output-type u \
+#--threads $threads
 
 # Sort records for SNPs or other genetic features.
+# This command requires approximately 2 hours for genotypes on 2,000 samples.
 $path_bcftools \
 sort \
---max-mem 16G \
+--max-mem 24G \
 --output $path_file_temporary_sort \
 --output-type u \
 --temp-dir $path_directory_product_temporary \
@@ -86,6 +87,6 @@ index \
 $path_file_product_vcf
 
 # Remove temporary, intermediate files.
-rm -r $path_directory_product_temporary
+#rm -r $path_directory_product_temporary
 
 #
