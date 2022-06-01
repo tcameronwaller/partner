@@ -55,7 +55,11 @@ mkdir -p $path_directory_product_temporary
 #--threads $threads
 
 # Sort records for SNPs or other genetic features.
-# This command requires approximately 2 hours for genotypes on 2,000 samples.
+# This command requires approximately 9 hours for genotypes on 2,000 samples.
+# This sort might seem unnecessary when this procedure precedes a translation
+# to a different genomic assembly with subsequent sort; however, I think that
+# BCFTools throws an error when trying to create a Tabix index if records are
+# not in sort order.
 $path_bcftools \
 sort \
 --max-mem 10G \

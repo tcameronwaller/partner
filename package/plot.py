@@ -2137,31 +2137,46 @@ def plot_scatter_points_discrete_abscissa_ordinate_error_bars(
     #    xmin=abscissa_minimum,
     #    xmax=abscissa_maximum,
     #)
-    axes.set_xlabel(
-        xlabel=title_abscissa,
-        labelpad=20,
-        alpha=1.0,
-        backgroundcolor=colors["white"],
-        color=colors["black"],
-        fontproperties=fonts["properties"]["four"]
-    )
-    axes.set_ylabel(
-        ylabel=title_ordinate,
-        labelpad=20,
-        alpha=1.0,
-        backgroundcolor=colors["white"],
-        color=colors["black"],
-        fontproperties=fonts["properties"]["four"]
-    )
+    # Set titles for axes.
+    if (len(title_abscissa) > 0):
+        axes.set_xlabel(
+            xlabel=title_abscissa,
+            labelpad=20,
+            alpha=1.0,
+            backgroundcolor=colors["white"],
+            color=colors["black"],
+            fontproperties=fonts["properties"]["four"]
+        )
+    if (len(title_ordinate) > 0):
+        axes.set_ylabel(
+            ylabel=title_ordinate,
+            labelpad=20,
+            alpha=1.0,
+            backgroundcolor=colors["white"],
+            color=colors["black"],
+            fontproperties=fonts["properties"]["four"]
+        )
+    # Set tick parameters for axes.
     axes.tick_params(
-        axis="both",
+        axis="y", # "y", "x", or "both"
         which="both",
         direction="out",
-        length=5.0,
-        width=3.0,
+        length=10.0, # 5.0
+        width=7.0, # 3.0
         color=colors["black"],
-        pad=5,
-        labelsize=fonts["values"]["four"]["size"],
+        pad=10,
+        labelsize=fonts["values"]["three"]["size"],
+        labelcolor=colors["black"]
+    )
+    axes.tick_params(
+        axis="x", # "y", "x", or "both"
+        which="both",
+        direction="out",
+        length=10.0, # 5.0
+        width=7.0, # 3.0
+        color=colors["black"],
+        pad=10,
+        labelsize=fonts["values"]["three"]["size"],
         labelcolor=colors["black"]
     )
     # Plot points for values from each group.
@@ -2180,7 +2195,7 @@ def plot_scatter_points_discrete_abscissa_ordinate_error_bars(
         markerfacecolor=colors["blue_navy"],
     )
     # Include title label on plot.
-    if len(label_title) > 0:
+    if (len(label_title) > 0):
         matplotlib.pyplot.text(
             0.99,
             0.99,
@@ -2192,7 +2207,6 @@ def plot_scatter_points_discrete_abscissa_ordinate_error_bars(
             color=colors["black"],
             fontproperties=fonts["properties"]["eight"]
         )
-
     # Return figure.
     return figure
 
@@ -2496,7 +2510,7 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
         )
     # Set tick parameters for axes.
     axes.tick_params(
-        axis="y",
+        axis="y", # "y", "x", or "both"
         which="both",
         direction="out",
         length=15.0, # 5.0
@@ -2507,7 +2521,7 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
         labelcolor=colors["black"]
     )
     axes.tick_params(
-        axis="x",
+        axis="x", # "y", "x", or "both"
         which="both",
         direction="out",
         length=15.0, # 5.0
