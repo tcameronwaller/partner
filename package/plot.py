@@ -2065,7 +2065,7 @@ def plot_scatter_points_discrete_abscissa_ordinate_error_bars(
     title_ordinate=None,
     fonts=None,
     colors=None,
-    size=None,
+    size_marker=None,
     label_title=None,
 ):
     """
@@ -2092,7 +2092,7 @@ def plot_scatter_points_discrete_abscissa_ordinate_error_bars(
         factor (str): name of data column with groups or factors of samples
         fonts (dict<object>): references to definitions of font properties
         colors (dict<tuple>): references to definitions of color properties
-        size (int): size of marker
+        size_marker (int): size of marker
         label_title (str): text label title to include on figure
 
     raises:
@@ -2166,11 +2166,12 @@ def plot_scatter_points_discrete_abscissa_ordinate_error_bars(
         values_ordinate,
         yerr=errors_ordinate,
         xerr=None,
-        elinewidth=5.0,
-        barsabove=True,
+        ecolor=colors["gray_dark"],
+        elinewidth=10.0,
+        barsabove=False, # whether to print error bars in layer above points
         linestyle="",
         marker="o",
-        markersize=size, # 5, 15
+        markersize=size_marker, # 5, 15
         markeredgecolor=colors["blue_navy"],
         markerfacecolor=colors["blue_navy"],
     )
