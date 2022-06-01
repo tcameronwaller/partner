@@ -58,7 +58,7 @@ mkdir -p $path_directory_product_temporary
 # This command requires approximately 2 hours for genotypes on 2,000 samples.
 $path_bcftools \
 sort \
---max-mem 24G \
+--max-mem 10G \
 --output $path_file_temporary_sort \
 --output-type u \
 --temp-dir $path_directory_product_temporary \
