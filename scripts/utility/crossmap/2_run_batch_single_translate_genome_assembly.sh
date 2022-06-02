@@ -18,7 +18,7 @@
 ### -e "./error"
 # Queue.
 # "1-hour", "1-day", "4-day", "7-day", "30-day", "lg-mem"
-#$ -q 1-day
+#$ -q 4-day
 # Priority 0-15.
 ### -p -10
 # Memory per iteration.
