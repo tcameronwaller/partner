@@ -15,7 +15,19 @@
 # The "concat" command in BCFTools requires that the multiple VCF files all have
 # the same samples.
 
+# Reference protocol for mapping between genomic assemblies
+# "https://www.protocols.io/view/genotyping-chip-data-lift-over-to-reference-
+# genome-n2bvjmbpvk5w/v2?step=1"
+
 ################################################################################
+
+# TODO: TCW; 02 June 2022
+# TODO: in addition to current quality control steps...
+# TODO: 1. decompose multiallelic sites to biallelic sites (BCFTools "norm" command)
+# TODO: 2. align reference alleles with the reference genome (BCFTools "norm" command, I think)
+
+# TODO: 3. make this script versatile enough to quality control VCF files before AND after assembly mapping
+
 
 ################################################################################
 # Organize arguments.
@@ -61,6 +73,16 @@ $path_file_source_vcf
 echo "----------"
 echo "$path_file_temporary_bcf"
 echo "----------"
+
+# Decompose multiallelic genetic features (SNPs, etc) to separate records for
+# biallelic genetic features.
+# bcftools norm --multiallelics -any
+# Should I also use "bcftools norm --atomize" command?
+
+# Align allelelic designations to the reference genome.
+# bcftools norm -f ___path_to_ref_genome -c ws
+# bcftools norm --fasta-ref ___path_to_ref_genome --check-ref ws
+
 
 # Remove duplicate records for SNPs or other genetic features.
 # I think that option "--rm-dup exact" evokes similar logic to option
