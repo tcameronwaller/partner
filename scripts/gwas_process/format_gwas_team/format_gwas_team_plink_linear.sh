@@ -25,7 +25,7 @@ report=${3} # whether to print reports
 
 name_base_file_product="$(basename $path_file_product_gwas .txt.gz)"
 path_directory_product="$(dirname $path_file_product_gwas)"
-path_directory_product_temporary="${path_directory_product}/temporary_zfgq3" # include unique (hopefully) string
+path_directory_product_temporary="${path_directory_product}/temporary_format_${name_base_file_product}" # hopefully unique
 
 path_file_temporary_constraint="${path_directory_product_temporary}/${name_base_file_product}_constraint.txt"
 path_file_temporary_format="${path_directory_product_temporary}/${name_base_file_product}_format.txt"
@@ -109,7 +109,7 @@ zcat $path_file_source_gwas | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
 # effect standard error: ..................  "SE" .................  "SE" .................. 11
 # probability (p-value): ..................  "P" ..................  "P" ................... 13
 # count total samples: ....................  "N" ..................  "OBS_CT" ..............  9
-# probability (p-value): ..................  "Z" ..................  "NA" .................. (BETA / SE)
+# probability (p-value): ..................  "Z" ..................  "NA" .................. (BETA / SE) # division by zero
 # probability (p-value): ..................  "INFO" ...............  "NA" .................. NA
 # count case samples: .....................  "NCASE" ..............  "NA" .................. NA
 # count control samples: ..................  "NCONT" ..............  "NA" .................. NA
@@ -119,9 +119,9 @@ zcat $path_file_source_gwas | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
 echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format
 cat $path_file_temporary_constraint | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   if ($6 == $5 && $6 != $4)
-    print $3, $1, $2, toupper($6), toupper($4), $7, $10, $11, $13, $9, ($10 / $11), (1), "NA", "NA"
+    print $3, $1, $2, toupper($6), toupper($4), $7, $10, $11, $13, $9, "NA", (1), "NA", "NA"
   else if ($6 == $4 && $6 != $5)
-    print $3, $1, $2, toupper($6), toupper($5), $7, $10, $11, $13, $9, ($10 / $11), (1), "NA", "NA"
+    print $3, $1, $2, toupper($6), toupper($5), $7, $10, $11, $13, $9, "NA", (1), "NA", "NA"
   else
     next
   }' >> $path_file_temporary_format
