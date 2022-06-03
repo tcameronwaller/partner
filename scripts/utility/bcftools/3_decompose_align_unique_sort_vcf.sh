@@ -31,9 +31,9 @@
 
 ################################################################################
 # Organize arguments.
-path_file_source_vcf=${1} # full path to source genotype file in VCF format
-path_directory_product_temporary=${2} # full path to directory for temporary intermediate files, keeps chromosomes separate for parallel computing
-path_file_product_vcf=${3} # full path to product genotype file in BCF format
+path_file_vcf_source=${1} # full path to source genotype file in VCF format
+path_file_vcf_product=${2} # full path to product genotype file in BCF format
+path_file_genome_assembly_sequence=${3} # full path to genome assembly sequence file in FASTA format without compression that matches product genome assembly
 threads=${4} # count of processing threads to use
 path_bcftools=${5} # full path to installation executable file of BCFTools
 report=${6} # whether to print reports
@@ -41,13 +41,19 @@ report=${6} # whether to print reports
 ################################################################################
 # Organize paths.
 
-name_base_file_product="$(basename $path_file_product_vcf .vcf.gz)"
-path_directory_product="$(dirname $path_file_product_vcf)"
-path_file_temporary_bcf="${path_directory_product_temporary}/${name_base_file_product}.bcf"
-path_file_temporary_remove_replicates="${path_directory_product_temporary}/${name_base_file_product}_replicates.bcf"
+name_base_file_product="$(basename $path_file_vcf_product .vcf.gz)"
+path_directory_product="$(dirname $path_file_vcf_product)"
+path_directory_product_temporary="${path_directory_product}/temporary_${name_base_file_product}" # hopefully unique
+
+
+path_file_temporary_1_bcf="${path_directory_product_temporary}/${name_base_file_product}.bcf"
+path_file_temporary_2_atom="${path_directory_product_temporary}/${name_base_file_product}_atom.bcf"
+path_file_temporary_3_multi="${path_directory_product_temporary}/${name_base_file_product}_multi.bcf"
+path_file_temporary_4_align="${path_directory_product_temporary}/${name_base_file_product}_align.bcf"
+path_file_temporary_5_unique="${path_directory_product_temporary}/${name_base_file_product}_unique.bcf"
 path_file_temporary_list_samples="${path_directory_product_temporary}/${name_base_file_product}_list_samples.txt"
-path_file_temporary_sort_samples="${path_directory_product_temporary}/${name_base_file_product}_sort_samples.bcf"
-path_file_temporary_sort_records="${path_directory_product_temporary}/${name_base_file_product}_sort_records.bcf"
+path_file_temporary_6_sort_samples="${path_directory_product_temporary}/${name_base_file_product}_sort_samples.bcf"
+path_file_temporary_7_sort_records="${path_directory_product_temporary}/${name_base_file_product}_sort_records.bcf"
 
 # Initialize directory.
 rm -r $path_directory_product_temporary
@@ -61,28 +67,50 @@ mkdir -p $path_directory_product_temporary
 # The BCF format allows for greater performance in BCFTools.
 # Read file in VCF format with BGZip compression in BCFTools.
 # Write file in BCF format without compression or other format.
-echo "----------"
-echo "$path_file_source_vcf"
-echo "----------"
 $path_bcftools \
 view \
---output $path_file_temporary_bcf \
+--output $path_file_temporary_1_bcf \
 --output-type u \
 --threads $threads \
-$path_file_source_vcf
-echo "----------"
-echo "$path_file_temporary_bcf"
-echo "----------"
+$path_file_vcf_source
+
+# Decompose complex genetic features, such as multiple nucleotide variants, to
+# simpler, consecutive single nucleotide variants.
+$path_bcftools \
+norm \
+--atomize "*" \
+--output $path_file_temporary_2_atom \
+--output-type u \
+--threads $threads \
+$path_file_temporary_1_bcf
+# Remove previous temporary file.
+#rm $path_file_temporary_1_bcf
 
 # Decompose multiallelic genetic features (SNPs, etc) to separate records for
 # biallelic genetic features.
-# bcftools norm --multiallelics -any
-# Should I also use "bcftools norm --atomize" command?
+$path_bcftools \
+norm \
+--multiallelics -any \
+--output $path_file_temporary_3_multi \
+--output-type u \
+--threads $threads \
+$path_file_temporary_2_atom
+# Remove previous temporary file.
+#rm $path_file_temporary_2_atom
 
 # Align allelelic designations to the reference genome.
 # bcftools norm -f ___path_to_ref_genome -c ws
 # bcftools norm --fasta-ref ___path_to_ref_genome --check-ref ws
-
+$path_bcftools \
+norm \
+--fast-ref $path_file_genome_assembly_sequence \
+--check-ref ws \
+--output $path_file_temporary_4_align \
+--output-type u \
+--threads $threads \
+$path_file_temporary_3_multi
+# Remove previous temporary file.
+#rm $path_file_temporary_3_multi
 
 # Remove duplicate records for SNPs or other genetic features.
 # I think that option "--rm-dup exact" evokes similar logic to option
@@ -92,13 +120,12 @@ echo "----------"
 $path_bcftools \
 norm \
 --rm-dup exact \
---output $path_file_temporary_remove_replicates \
+--output $path_file_temporary_5_unique \
 --output-type u \
 --threads $threads \
-$path_file_temporary_bcf
-echo "----------"
-echo "$path_file_temporary_remove_replicates"
-echo "----------"
+$path_file_temporary_4_align
+# Remove previous temporary file.
+#rm $path_file_temporary_4_align
 
 # Sort samples.
 # bcftools query --list-samples input.vcf | sort > samples.txt
@@ -107,39 +134,39 @@ echo "----------"
 $path_bcftools \
 query \
 --list-samples \
-$path_file_temporary_remove_replicates | sort > $path_file_temporary_list_samples
+$path_file_temporary_5_unique | sort > $path_file_temporary_list_samples
 # Sort samples within genotype file.
 $path_bcftools \
 view \
 --samples-file $path_file_temporary_list_samples \
---output $path_file_temporary_sort_samples \
+--output $path_file_temporary_6_sort_samples \
 --output-type u \
 --threads $threads \
-$path_file_temporary_remove_replicates
-echo "----------"
-echo "$path_file_temporary_sort_samples"
-echo "----------"
+$path_file_temporary_5_unique
+# Remove previous temporary file.
+#rm $path_file_temporary_5_unique
 
 # Sort records for SNPs or other genetic features.
 $path_bcftools \
 sort \
 --max-mem 4G \
---output $path_file_temporary_sort_records \
+--output $path_file_temporary_7_sort_records \
 --output-type u \
 --temp-dir $path_directory_product_temporary \
-$path_file_temporary_sort_samples
-echo "----------"
-echo "$path_file_temporary_sort_records"
-echo "----------"
+$path_file_temporary_6_sort_samples
+# Remove previous temporary file.
+#rm $path_file_temporary_6_sort_samples
 
 # Convert genotype files from BCF format without compression to VCF format with
 # BGZip compression.
 $path_bcftools \
 view \
---output $path_file_product_vcf \
+--output $path_file_vcf_product \
 --output-type z9 \
 --threads $threads \
-$path_file_temporary_sort_records
+$path_file_temporary_7_sort_records
+# Remove previous temporary file.
+#rm $path_file_temporary_7_sort_records
 
 # Create Tabix index for file in VCF format with BGZip compression.
 # BCFTools is unable to create a Tabix index for files in BCF format.
@@ -149,10 +176,10 @@ index \
 --force \
 --tbi \
 --threads $threads \
-$path_file_product_vcf
+$path_file_vcf_product
 
 # Remove temporary, intermediate files.
-rm -r $path_directory_product_temporary
+#rm -r $path_directory_product_temporary
 
 
 

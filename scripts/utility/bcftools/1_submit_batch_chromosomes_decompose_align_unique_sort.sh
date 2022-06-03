@@ -22,6 +22,12 @@ prefix_file_source_genotype_vcf=${2} # file name prefix for source genotype file
 suffix_file_source_genotype_vcf=${3} # file name suffix for source genotype file in VCF format
 chromosome_x=${4} # whether to include Chromosome X
 path_directory_product_genotype_vcf=${5} # full path to directory for product genotype files in BCF format
+prefix_file_product_genotype_vcf=${6} # file name prefix for product genotype file in VCF format
+suffix_file_product_genotype_vcf=${7} # file name suffix for product genotype file in VCF format
+
+
+
+
 path_file_list_vcf_files_combination=${6} # full path to file with line-delimiter list of full paths to genotype files in VCF format for combination
 threads=${7} # count of processing threads to use
 path_promiscuity_scripts=${8} # full path to directory of general scripts
