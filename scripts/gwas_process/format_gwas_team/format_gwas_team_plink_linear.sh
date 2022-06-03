@@ -16,15 +16,15 @@
 ################################################################################
 # Organize arguments.
 
-path_file_source_gwas=${1} # full path to file for source GWAS summary statistics with GZip compression
-path_file_product_gwas=${2} # full path to file for product GWAS summary statistics in format with GZip compression
+path_file_gwas_source=${1} # full path to file for source GWAS summary statistics with GZip compression
+path_file_gwas_product=${2} # full path to file for product GWAS summary statistics in format with GZip compression
 report=${3} # whether to print reports
 
 ################################################################################
 # Organize paths.
 
-name_base_file_product="$(basename $path_file_product_gwas .txt.gz)"
-path_directory_product="$(dirname $path_file_product_gwas)"
+name_base_file_product="$(basename $path_file_gwas_product .txt.gz)"
+path_directory_product="$(dirname $path_file_gwas_product)"
 path_directory_product_temporary="${path_directory_product}/temporary_format_${name_base_file_product}" # hopefully unique
 
 path_file_temporary_constraint="${path_directory_product_temporary}/${name_base_file_product}_constraint.txt"
@@ -36,7 +36,7 @@ rm -r $path_directory_product_temporary
 mkdir -p $path_directory_product_temporary
 
 # Remove any previous version of the product file.
-rm $path_file_product_gwas
+rm $path_file_gwas_product
 
 ###########################################################################
 # Execute procedure.
@@ -44,8 +44,8 @@ rm $path_file_product_gwas
 # Report.
 if [[ "$report" == "true" ]]; then
   echo "----------"
-  echo "path to source GWAS file: " $path_file_source_gwas
-  echo "path to product GWAS file: " $path_file_product_gwas
+  echo "path to source GWAS file: " $path_file_gwas_source
+  echo "path to product GWAS file: " $path_file_gwas_product
 fi
 
 # Here are some useful regular expressions to evaluate values in "awk".
@@ -58,8 +58,8 @@ fi
 # LDSC uses 64-bit floating point precision (double precision) to represent
 # values from +/- 2.23E-308 to +/- 1.80E308 (https://github.com/bulik/ldsc/issues/144).
 # Constrain probability values from 1.0E-305 to 1.0.
-zcat $path_file_source_gwas | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_file_temporary_constraint
-zcat $path_file_source_gwas | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
+zcat $path_file_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_file_temporary_constraint
+zcat $path_file_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   if ( NF != 13)
     # Skip any rows with incorrect count of column fields.
     next
@@ -127,7 +127,7 @@ cat $path_file_temporary_constraint | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   }' >> $path_file_temporary_format
 
 # Compress file format.
-gzip -cvf $path_file_temporary_format > $path_file_product_gwas
+gzip -cvf $path_file_temporary_format > $path_file_gwas_product
 
 # Report.
 if [[ "$report" == "true" ]]; then
