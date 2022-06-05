@@ -45,10 +45,11 @@
 
 path_batch_instances=${1} # text list of information for each instance in batch
 batch_instances_count=${2} # count of instances in batch
-threads=${3} # count of processing threads to use
-path_script_preparation=${4} # full path to script for preparation of genotype VCF files for combination
-path_bcftools=${5} # full path to installation executable file of BCFTools
-report=${6} # whether to print reports
+path_file_genome_assembly_sequence=${3} # full path to genome assembly sequence file in FASTA format without compression that matches source and product genome assembly
+threads=${4} # count of processing threads to use
+path_script_decompose_align_unique_sort=${5} # full path to script for preparation of genotype VCF files
+path_bcftools=${6} # full path to installation executable file of BCFTools
+report=${7} # whether to print reports
 
 ###########################################################################
 # Organize variables.
@@ -60,23 +61,23 @@ instance=${batch_instances[$batch_index]}
 
 # Separate fields from instance.
 IFS=";" read -r -a array <<< "${instance}"
-chromosome="${array[0]}"
-path_file_source_vcf_chromosome="${array[1]}"
-path_directory_product_temporary_chromosome="${array[2]}"
-path_file_product_vcf_chromosome="${array[3]}"
+path_file_vcf_source="${array[0]}"
+path_file_vcf_product="${array[1]}"
 
 ###########################################################################
 # Execute procedure.
 
 if true; then
   # Prepare genotype files.
-  /usr/bin/bash "${path_script_preparation}" \
-  $path_file_source_vcf_chromosome \
-  $path_directory_product_temporary_chromosome \
-  $path_file_product_vcf_chromosome \
+  /usr/bin/bash "${path_script_decompose_align_unique_sort}" \
+  $path_file_vcf_source \
+  $path_file_vcf_product \
+  $path_file_genome_assembly_sequence \
   $threads \
   $path_bcftools \
   $report
 fi
+
+
 
 #

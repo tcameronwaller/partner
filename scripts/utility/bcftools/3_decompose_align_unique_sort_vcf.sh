@@ -33,7 +33,7 @@
 # Organize arguments.
 path_file_vcf_source=${1} # full path to source genotype file in VCF format
 path_file_vcf_product=${2} # full path to product genotype file in BCF format
-path_file_genome_assembly_sequence=${3} # full path to genome assembly sequence file in FASTA format without compression that matches product genome assembly
+path_file_genome_assembly_sequence=${3} # full path to genome assembly sequence file in FASTA format without compression that matches source and product genome assembly
 threads=${4} # count of processing threads to use
 path_bcftools=${5} # full path to installation executable file of BCFTools
 report=${6} # whether to print reports
@@ -43,21 +43,21 @@ report=${6} # whether to print reports
 
 name_base_file_product="$(basename $path_file_vcf_product .vcf.gz)"
 path_directory_product="$(dirname $path_file_vcf_product)"
-path_directory_product_temporary="${path_directory_product}/temporary_${name_base_file_product}" # hopefully unique
+path_directory_product_temporary="${path_directory_product}/temporary_dausvcf_${name_base_file_product}" # hopefully unique
 
-
-path_file_temporary_1_bcf="${path_directory_product_temporary}/${name_base_file_product}.bcf"
-path_file_temporary_2_atom="${path_directory_product_temporary}/${name_base_file_product}_atom.bcf"
-path_file_temporary_3_multi="${path_directory_product_temporary}/${name_base_file_product}_multi.bcf"
-path_file_temporary_4_align="${path_directory_product_temporary}/${name_base_file_product}_align.bcf"
-path_file_temporary_5_unique="${path_directory_product_temporary}/${name_base_file_product}_unique.bcf"
+path_file_temporary_1_bcf="${path_directory_product_temporary}/${name_base_file_product}_1.bcf"
+path_file_temporary_2_atom="${path_directory_product_temporary}/${name_base_file_product}_2_atom.bcf"
+path_file_temporary_3_multi="${path_directory_product_temporary}/${name_base_file_product}_3_multi.bcf"
+path_file_temporary_4_align="${path_directory_product_temporary}/${name_base_file_product}_4_align.bcf"
+path_file_temporary_5_unique="${path_directory_product_temporary}/${name_base_file_product}_5_unique.bcf"
 path_file_temporary_list_samples="${path_directory_product_temporary}/${name_base_file_product}_list_samples.txt"
-path_file_temporary_6_sort_samples="${path_directory_product_temporary}/${name_base_file_product}_sort_samples.bcf"
-path_file_temporary_7_sort_records="${path_directory_product_temporary}/${name_base_file_product}_sort_records.bcf"
+path_file_temporary_6_sort_samples="${path_directory_product_temporary}/${name_base_file_product}_6_sort_samples.bcf"
+path_file_temporary_7_sort_records="${path_directory_product_temporary}/${name_base_file_product}_7_sort_records.bcf"
 
 # Initialize directory.
 rm -r $path_directory_product_temporary
 mkdir -p $path_directory_product_temporary
+rm $path_file_vcf_product
 
 ################################################################################
 # Prepare genotype files for combination.
