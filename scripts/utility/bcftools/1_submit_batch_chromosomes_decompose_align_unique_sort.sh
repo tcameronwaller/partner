@@ -94,7 +94,7 @@ if true; then
   "${path_script_run_preparation}" \
   $path_batch_instances \
   $batch_instances_count \
-  $path_file_genome_assembly_sequence
+  $path_file_genome_assembly_sequence \
   $threads \
   $path_script_decompose_align_unique_sort \
   $path_bcftools \
