@@ -103,7 +103,7 @@ $path_file_temporary_2_atom
 # bcftools norm --fasta-ref ___path_to_ref_genome --check-ref ws
 $path_bcftools \
 norm \
---fast-ref $path_file_genome_assembly_sequence \
+--fasta-ref $path_file_genome_assembly_sequence \
 --check-ref ws \
 --output $path_file_temporary_4_align \
 --output-type u \
