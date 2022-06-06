@@ -85,7 +85,7 @@ norm \
 --threads $threads \
 $path_file_temporary_1_bcf
 # Remove previous temporary file.
-#rm $path_file_temporary_1_bcf
+rm $path_file_temporary_1_bcf
 
 # Decompose multiallelic genetic features (SNPs, etc) to separate records for
 # biallelic genetic features.
@@ -97,7 +97,7 @@ norm \
 --threads $threads \
 $path_file_temporary_2_atom
 # Remove previous temporary file.
-#rm $path_file_temporary_2_atom
+rm $path_file_temporary_2_atom
 
 # Align allelelic designations to the reference genome.
 # bcftools norm -f ___path_to_ref_genome -c ws
@@ -111,7 +111,7 @@ norm \
 --threads $threads \
 $path_file_temporary_3_multi
 # Remove previous temporary file.
-#rm $path_file_temporary_3_multi
+rm $path_file_temporary_3_multi
 
 # Remove duplicate records for SNPs or other genetic features.
 # I think that option "--rm-dup exact" evokes similar logic to option
@@ -126,7 +126,7 @@ norm \
 --threads $threads \
 $path_file_temporary_4_align
 # Remove previous temporary file.
-#rm $path_file_temporary_4_align
+rm $path_file_temporary_4_align
 
 # Sort samples.
 # bcftools query --list-samples input.vcf | sort > samples.txt
@@ -145,7 +145,7 @@ view \
 --threads $threads \
 $path_file_temporary_5_unique
 # Remove previous temporary file.
-#rm $path_file_temporary_5_unique
+rm $path_file_temporary_5_unique
 
 # Sort records for SNPs or other genetic features.
 $path_bcftools \
@@ -156,7 +156,7 @@ sort \
 --temp-dir $path_directory_product_temporary \
 $path_file_temporary_6_sort_samples
 # Remove previous temporary file.
-#rm $path_file_temporary_6_sort_samples
+rm $path_file_temporary_6_sort_samples
 
 # Convert genotype files from BCF format without compression to VCF format with
 # BGZip compression.
@@ -167,7 +167,7 @@ view \
 --threads $threads \
 $path_file_temporary_7_sort_records
 # Remove previous temporary file.
-#rm $path_file_temporary_7_sort_records
+rm $path_file_temporary_7_sort_records
 
 # Create Tabix index for file in VCF format with BGZip compression.
 # BCFTools is unable to create a Tabix index for files in BCF format.
@@ -180,7 +180,7 @@ index \
 $path_file_vcf_product
 
 # Remove temporary, intermediate files.
-#rm -r $path_directory_product_temporary
+rm -r $path_directory_product_temporary
 
 
 
