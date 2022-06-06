@@ -78,7 +78,8 @@ $path_file_vcf_source
 # simpler, consecutive single nucleotide variants.
 $path_bcftools \
 norm \
---atomize "*" \
+--atomize \
+--atom-overlaps \* \
 --output $path_file_temporary_2_atom \
 --output-type u \
 --threads $threads \
