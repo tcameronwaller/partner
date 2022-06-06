@@ -43,8 +43,8 @@ path_directory_product="$(dirname $path_file_product_vcf)"
 path_batch_instances="${path_directory_product}/batch_instances.txt"
 
 # Scripts.
-path_script_run_translate_assembly="${path_promiscuity_scripts}/utility/crossmap/2_run_batch_single_translate_genome_assembly.sh"
-path_script_translate_assembly="${path_promiscuity_scripts}/utility/crossmap/3_translate_genome_assembly_vcf.sh"
+path_script_run_map_assembly="${path_promiscuity_scripts}/utility/crossmap/2_run_batch_map_genotype_genome_assembly.sh"
+path_script_map_assembly="${path_promiscuity_scripts}/utility/crossmap/3_map_genotype_genome_assembly_vcf.sh"
 
 # Initialize directory.
 rm -r $path_directory_product
@@ -83,13 +83,13 @@ if true; then
   # Array batch indices must start at one (not zero).
   qsub -t 1-${batch_instances_count}:1 -o \
   "${path_directory_product}/batch_out.txt" -e "${path_directory_product}/batch_error.txt" \
-  "${path_script_run_translate_assembly}" \
+  "${path_script_run_map_assembly}" \
   $path_batch_instances \
   $batch_instances_count \
   $path_assembly_translation_chain \
   $path_genome_assembly_sequence \
   $threads \
-  $path_script_translate_assembly \
+  $path_script_map_assembly \
   $path_environment_crossmap \
   $path_bcftools \
   $report
