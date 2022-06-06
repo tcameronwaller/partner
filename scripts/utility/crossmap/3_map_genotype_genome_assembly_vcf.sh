@@ -31,56 +31,49 @@
 
 ################################################################################
 
+
 ################################################################################
 # Organize arguments.
-path_file_source_vcf=${1} # full path to source file in VCF format
-path_file_product_vcf=${2} # full path to product file in VCF format
-path_assembly_translation_chain=${3} # full path to chain file for assembly translation
-path_genome_assembly_sequence=${4} # full path to genome assembly sequence file in FASTA format without compression that matches product genome assembly
+path_file_vcf_source=${1} # full path to source file in VCF format
+path_file_vcf_product=${2} # full path to product file in VCF format
+path_file_assembly_translation_chain=${3} # full path to chain file for assembly translation
+path_file_genome_assembly_sequence=${4} # full path to genome assembly sequence file in FASTA format without compression that matches product genome assembly
 threads=${5} # count of processing threads to use
 path_environment_crossmap=${6} # full path to Python 3 environment with installation of CrossMap
 path_bcftools=${7} # full path to installation executable file of BCFTools
 report=${8} # whether to print reports
 
-###########################################################################
+################################################################################
 # Organize paths.
 
-name_base_file_product="$(basename $path_file_product_vcf .vcf.gz)"
-path_directory_product="$(dirname $path_file_product_vcf)"
-path_directory_product_temporary="${path_directory_product}/temporary"
+name_base_file_product="$(basename $path_file_vcf_product .vcf.gz)"
+path_directory_product="$(dirname $path_file_vcf_product)"
+path_directory_product_temporary="${path_directory_product}/temporary_mga_${name_base_file_product}" # hopefully unique
 
-path_file_temporary_decompression="${path_directory_product_temporary}/${name_base_file_product}_decompression.vcf"
-path_file_temporary_assembly_raw="${path_directory_product_temporary}/${name_base_file_product}_assembly_raw.vcf"
-path_file_temporary_assembly_bcf="${path_directory_product_temporary}/${name_base_file_product}_assembly_bcf.bcf"
+path_file_temporary_1_vcf="${path_directory_product_temporary}/${name_base_file_product}_1.vcf"
+path_file_temporary_2_raw_vcf="${path_directory_product_temporary}/${name_base_file_product}_2_raw.vcf"
+path_file_temporary_3_raw_bcf="${path_directory_product_temporary}/${name_base_file_product}_3_raw.bcf"
 
-path_file_temporary_remove_replicates="${path_directory_product_temporary}/${name_base_file_product}_replicates.bcf"
 path_file_temporary_list_samples="${path_directory_product_temporary}/${name_base_file_product}_list_samples.txt"
-path_file_temporary_sort_samples="${path_directory_product_temporary}/${name_base_file_product}_sort_samples.bcf"
-path_file_temporary_sort_records="${path_directory_product_temporary}/${name_base_file_product}_sort_records.bcf"
+path_file_temporary_4_sort_samples="${path_directory_product_temporary}/${name_base_file_product}_4_sort_samples.bcf"
+path_file_temporary_5_sort_records="${path_directory_product_temporary}/${name_base_file_product}_5_sort_records.bcf"
 
 # Initialize directory.
 rm -r $path_directory_product_temporary
 mkdir -p $path_directory_product_temporary
 
 ################################################################################
-# Remove "chr" prefix from chromosome identifiers in VCF genotype file.
-# Introduce dbSNP rsID annotations VCF genotype file.
-# Write to file in VCF format with BGZIP compression.
-
 # Translate coordinates for chromosomes and base pair positions from human
 # genome assembly GRCh38 to GRCh37.
-
-# CrossMap uses GZip compression.
-# Do not use GZip compression in order to simplify reading into BCFTools.
 
 # Read VCF file with BGZip compression in BCFTools.
 # Write VCF file without compression.
 $path_bcftools \
 view \
---output $path_file_temporary_decompression \
+--output $path_file_temporary_1_vcf \
 --output-type v \
 --threads $threads \
-$path_file_source_vcf
+$path_file_vcf_source
 
 # Activate Virtual Environment.
 source "${path_environment_crossmap}/bin/activate"
@@ -91,18 +84,23 @@ sleep 5s
 # Read VCF file without compression in CrossMap.
 # Translate coordinates between genome assemblies.
 # Write VCF file without compression.
-# Include "--compress" command to apply simple GZip compression.
+# CrossMap uses GZip compression ("--compress" command).
+# Do not use GZip compression in order to simplify reading into BCFTools.
 CrossMap.py \
 vcf \
 --chromid a \
-$path_assembly_translation_chain \
-$path_file_temporary_decompression \
-$path_genome_assembly_sequence \
-$path_file_temporary_assembly_raw
+$path_file_assembly_translation_chain \
+$path_file_temporary_1_vcf \
+$path_file_genome_assembly_sequence \
+$path_file_temporary_2_raw_vcf
 
 # Deactivate Virtual Environment.
 deactivate
 which python3
+
+# Remove previous temporary file.
+rm $path_file_temporary_1_vcf
+
 
 # The translation of coordinates between genome assemblies introduces records
 # for SNPs in the VCF file that are not in order.
@@ -114,23 +112,16 @@ which python3
 # The BCF format allows for greater performance in BCFTools.
 $path_bcftools \
 view \
---output $path_file_temporary_assembly_bcf \
+--output $path_file_temporary_3_raw_bcf \
 --output-type u \
 --threads $threads \
-$path_file_temporary_assembly_raw
+$path_file_temporary_2_raw_vcf
+# Remove previous temporary file.
+rm $path_file_temporary_2_raw_vcf
 
-# Remove duplicate records for SNPs or other genetic features.
-# I think that option "--rm-dup exact" evokes similar logic to option
-# "--collapse none".
-# I think both of these options require exact match of chromosome, position, and
-# all alleles in order to consider records redundant.
-$path_bcftools \
-norm \
---rm-dup exact \
---output $path_file_temporary_remove_replicates \
---output-type u \
---threads $threads \
-$path_file_temporary_assembly_bcf
+# Sort samples and records in genotype files.
+# BCFTools throws an error when trying to create a Tabix index if records are
+# not in sort order.
 
 # Sort samples.
 # bcftools query --list-samples input.vcf | sort > samples.txt
@@ -139,33 +130,40 @@ $path_file_temporary_assembly_bcf
 $path_bcftools \
 query \
 --list-samples \
-$path_file_temporary_remove_replicates | sort > $path_file_temporary_list_samples
+$path_file_temporary_3_raw_bcf | sort > $path_file_temporary_list_samples
 # Sort samples within genotype file.
 $path_bcftools \
 view \
 --samples-file $path_file_temporary_list_samples \
---output $path_file_temporary_sort_samples \
+--output $path_file_temporary_4_sort_samples \
 --output-type u \
 --threads $threads \
-$path_file_temporary_remove_replicates
+$path_file_temporary_3_raw_bcf
+# Remove previous temporary file.
+rm $path_file_temporary_3_raw_bcf
+
 
 # Sort records for SNPs or other genetic features.
 $path_bcftools \
 sort \
---max-mem 10G \
---output $path_file_temporary_sort_records \
+--max-mem 4G \
+--output $path_file_temporary_5_sort_records \
 --output-type u \
 --temp-dir $path_directory_product_temporary \
-$path_file_temporary_sort_samples
+$path_file_temporary_4_sort_samples
+# Remove previous temporary file.
+rm $path_file_temporary_4_sort_samples
 
 # Convert genotype files from BCF format without compression to VCF format with
 # BGZip compression.
 $path_bcftools \
 view \
---output $path_file_product_vcf \
+--output $path_file_vcf_product \
 --output-type z9 \
 --threads $threads \
-$path_file_temporary_sort_records
+$path_file_temporary_5_sort_records
+# Remove previous temporary file.
+rm $path_file_temporary_5_sort_records
 
 # Create Tabix index for file in VCF format with BGZip compression.
 # BCFTools is unable to create a Tabix index for files in BCF format.
@@ -175,10 +173,10 @@ index \
 --force \
 --tbi \
 --threads $threads \
-$path_file_product_vcf
+$path_file_vcf_product
 
 # Remove temporary, intermediate files.
-#rm -r $path_directory_product_temporary
+rm -r $path_directory_product_temporary
 
 
 

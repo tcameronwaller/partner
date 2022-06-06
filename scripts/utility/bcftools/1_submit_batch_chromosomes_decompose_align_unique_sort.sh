@@ -39,12 +39,13 @@ path_batch_instances="${path_directory_genotype_vcf_product}/batch_instances.txt
 path_script_run_preparation="${path_promiscuity_scripts}/utility/bcftools/2_run_batch_decompose_align_unique_sort.sh"
 path_script_decompose_align_unique_sort="${path_promiscuity_scripts}/utility/bcftools/3_decompose_align_unique_sort_vcf.sh"
 
-###########################################################################
-# Iterate on source genotype files in VCF format for chromosomes.
-
 # Initialize directory.
 rm -r $path_directory_genotype_vcf_product
 mkdir -p $path_directory_genotype_vcf_product
+rm $path_batch_instances
+
+###########################################################################
+# Iterate on source genotype files in VCF format for chromosomes.
 
 # Determine relevant chromosomes.
 if [[ "$chromosome_x" == "true" ]]; then
@@ -70,7 +71,7 @@ done
 # Report.
 if [[ "$report" == "true" ]]; then
   echo "----------"
-  echo "submit_batch_chromosomes_prscs_estimate_allelic_effects.sh"
+  echo "1_submit_batch_chromosomes_decompose_align_unique_sort.sh"
   echo "----------"
 fi
 
