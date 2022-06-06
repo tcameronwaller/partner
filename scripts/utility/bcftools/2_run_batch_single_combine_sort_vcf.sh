@@ -61,7 +61,7 @@ instance=${batch_instances[$batch_index]}
 # Separate fields from instance.
 IFS=";" read -r -a array <<< "${instance}"
 path_file_list_source_vcf_files="${array[0]}"
-path_file_product_vcf="${array[1]}"
+path_file_genotype_vcf_product="${array[1]}"
 
 ###########################################################################
 # Execute procedure.
@@ -70,7 +70,7 @@ if true; then
   # Prepare genotype files.
   /usr/bin/bash "${path_script_combine_sort}" \
   $path_file_list_source_vcf_files \
-  $path_file_product_vcf \
+  $path_file_genotype_vcf_product \
   $threads \
   $path_bcftools \
   $report

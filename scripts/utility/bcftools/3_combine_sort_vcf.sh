@@ -20,7 +20,7 @@
 ################################################################################
 # Organize arguments.
 path_file_list_source_vcf_files=${1} # full path to file with line-delimiter list of full paths to genotype files in VCF formats with BGZip compression and Tabix indices
-path_file_product_vcf=${2} # full path to product file in VCF format with BGZip compression
+path_file_vcf_product=${2} # full path to product file in VCF format with BGZip compression
 threads=${3} # count of processing threads to use
 path_bcftools=${4} # full path to installation executable file of BCFTools
 report=${5} # whether to print reports
@@ -28,16 +28,17 @@ report=${5} # whether to print reports
 ################################################################################
 # Organize paths.
 
-name_base_file_product="$(basename $path_file_product_vcf .vcf.gz)"
-path_directory_product="$(dirname $path_file_product_vcf)"
-path_directory_product_temporary="${path_directory_product}/temporary"
+name_base_file_product="$(basename $path_file_vcf_product .vcf.gz)"
+path_directory_product="$(dirname $path_file_vcf_product)"
+path_directory_product_temporary="${path_directory_product}/temporary_csvcf_${name_base_file_product}" # hopefully unique
 
 path_file_temporary_combination="${path_directory_product_temporary}/${name_base_file_product}_combination.bcf"
 path_file_temporary_sort="${path_directory_product_temporary}/${name_base_file_product}_sort.bcf"
 
 # Initialize directory.
-#rm -r $path_directory_product_temporary
+rm -r $path_directory_product_temporary
 mkdir -p $path_directory_product_temporary
+rm $path_file_vcf_product
 
 ################################################################################
 
@@ -45,14 +46,14 @@ mkdir -p $path_directory_product_temporary
 # Samples must be identical and have same sequence.
 # The BCFTools "concat" command requires source files to have Tabix indices.
 # This command requires approximately 5-7 hours for genotypes on 2,000 samples.
-#$path_bcftools \
-#concat \
-#--allow-overlaps \
-#--rm-dups exact \
-#--file-list $path_file_list_source_vcf_files \
-#--output $path_file_temporary_combination \
-#--output-type u \
-#--threads $threads
+$path_bcftools \
+concat \
+--allow-overlaps \
+--rm-dups exact \
+--file-list $path_file_list_source_vcf_files \
+--output $path_file_temporary_combination \
+--output-type u \
+--threads $threads
 
 # Sort records for SNPs or other genetic features.
 # This command requires approximately 12 hours for genotypes on 2,000 samples.
@@ -75,7 +76,7 @@ $path_file_temporary_combination
 # Write file in BCF format without compression or other format.
 $path_bcftools \
 view \
---output $path_file_product_vcf \
+--output $path_file_vcf_product \
 --output-type z9 \
 --threads $threads \
 $path_file_temporary_sort
@@ -88,9 +89,11 @@ index \
 --force \
 --tbi \
 --threads $threads \
-$path_file_product_vcf
+$path_file_vcf_product
 
 # Remove temporary, intermediate files.
 #rm -r $path_directory_product_temporary
+
+
 
 #
