@@ -31,7 +31,6 @@
 
 ################################################################################
 
-
 ################################################################################
 # Organize arguments.
 path_file_vcf_source=${1} # full path to source file in VCF format
@@ -100,7 +99,6 @@ which python3
 
 # Remove previous temporary file.
 rm $path_file_temporary_1_vcf
-
 
 # The translation of coordinates between genome assemblies introduces records
 # for SNPs in the VCF file that are not in order.
