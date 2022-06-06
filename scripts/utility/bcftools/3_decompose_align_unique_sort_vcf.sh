@@ -32,7 +32,7 @@
 ################################################################################
 # Organize arguments.
 path_file_vcf_source=${1} # full path to source genotype file in VCF format
-path_file_vcf_product=${2} # full path to product genotype file in BCF format
+path_file_vcf_product=${2} # full path to product genotype file in VCF format
 path_file_genome_assembly_sequence=${3} # full path to genome assembly sequence file in FASTA format without compression that matches source and product genome assembly
 threads=${4} # count of processing threads to use
 path_bcftools=${5} # full path to installation executable file of BCFTools
