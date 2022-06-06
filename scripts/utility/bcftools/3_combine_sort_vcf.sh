@@ -92,7 +92,7 @@ index \
 $path_file_vcf_product
 
 # Remove temporary, intermediate files.
-#rm -r $path_directory_product_temporary
+rm -r $path_directory_product_temporary
 
 
 
