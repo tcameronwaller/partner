@@ -36,7 +36,7 @@ rm $path_file_vcf_product_chromosome
 # Extract genotype records for genetic features on current chromosome.
 $path_bcftools \
 view \
---regions $chromosome \
+--regions $chromosome_identifier \
 --output $path_file_vcf_product_chromosome \
 --output-type z9 \
 --threads $threads \

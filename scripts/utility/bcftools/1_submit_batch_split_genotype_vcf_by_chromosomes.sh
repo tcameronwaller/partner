@@ -28,8 +28,6 @@ report=${9} # whether to print reports
 ###########################################################################
 # Organize paths.
 
-name_base_file_product="$(basename $path_file_genotype_vcf_product .vcf.gz)"
-path_directory_genotype_vcf_product="$(dirname $path_file_genotype_vcf_product)"
 path_batch_instances="${path_directory_genotype_vcf_product}/batch_instances.txt"
 
 # Scripts.
