@@ -36,10 +36,11 @@ report=${11} # whether to print reports
 
 name_base_file_product="$(basename $path_file_vcf_product .vcf.gz)"
 path_directory_product="$(dirname $path_file_vcf_product)"
-path_directory_product_temporary="${path_directory_product}/temporary_csvcf_${name_base_file_product}" # hopefully unique
+path_directory_product_temporary="${path_directory_product}/temp_d_${name_base_file_product}" # hopefully unique
 
-path_file_temporary_combination="${path_directory_product_temporary}/${name_base_file_product}_combination.bcf"
-path_file_temporary_sort="${path_directory_product_temporary}/${name_base_file_product}_sort.bcf"
+path_file_temporary_1_preparation="${path_directory_product_temporary}/${name_base_file_product}_prep.vcf.gz"
+path_file_temporary_2_chromosome="${path_directory_product_temporary}/${name_base_file_product}_chr.vcf.gz"
+#path_file_temporary_3_rsid="${path_directory_product_temporary}/${name_base_file_product}_rsid.vcf.gz"
 
 # Initialize directory.
 rm -r $path_directory_product_temporary
@@ -49,10 +50,38 @@ rm $path_file_vcf_product
 ################################################################################
 
 
-# ...
-# ...
-# ...
+if true; then
+  # Prepare genotype files.
+  /usr/bin/bash "${path_script_decompose_align_unique_sort}" \
+  $path_file_vcf_source \
+  $path_file_temporary_1_preparation \
+  $path_file_genome_assembly_sequence \
+  $threads \
+  $path_bcftools \
+  $report
+fi
 
+if true; then
+  # Translate chromosome identifiers.
+  /usr/bin/bash "${path_script_translate_chromosomes}" \
+  $path_file_temporary_1_preparation \
+  $path_file_temporary_2_chromosome \
+  $path_file_chromosome_translations \
+  $threads \
+  $path_bcftools \
+  $report
+fi
+
+if true; then
+  # Translate chromosome identifiers.
+  /usr/bin/bash "${path_script_translate_chromosomes}" \
+  $path_file_temporary_2_chromosome \
+  $path_file_vcf_product \
+  $path_file_dbsnp_reference \
+  $threads \
+  $path_bcftools \
+  $report
+fi
 
 # Remove temporary, intermediate files.
 rm -r $path_directory_product_temporary

@@ -62,13 +62,13 @@ fi
 # Iterate on chromosomes.
 for chromosome in "${chromosomes[@]}"; do
   # Define file names for chromosome.
-  name_file_source_vcf_chromosome="${prefix_file_genotype_vcf_source}${chromosome}${suffix_file_genotype_vcf_source}"
-  name_file_product_vcf_chromosome="${prefix_file_genotype_vcf_product}${chromosome}${suffix_file_genotype_vcf_product}"
+  name_file_vcf_source_chromosome="${prefix_file_genotype_vcf_source}${chromosome}${suffix_file_genotype_vcf_source}"
+  name_file_vcf_product_chromosome="${prefix_file_genotype_vcf_product}${chromosome}${suffix_file_genotype_vcf_product}"
   # Define full file paths for chromosome.
-  path_file_source_vcf_chromosome="${path_directory_genotype_vcf_source}/${name_file_source_vcf_chromosome}"
-  path_file_product_vcf_chromosome="${path_directory_genotype_vcf_product}/${name_file_product_vcf_chromosome}"
+  path_file_vcf_source_chromosome="${path_directory_genotype_vcf_source}/${name_file_vcf_source_chromosome}"
+  path_file_vcf_product_chromosome="${path_directory_genotype_vcf_product}/${name_file_vcf_product_chromosome}"
   # Define and append a new batch instance.
-  instance="${path_file_source_vcf_chromosome};${path_file_product_vcf_chromosome}"
+  instance="${path_file_vcf_source_chromosome};${path_file_vcf_product_chromosome}"
   echo $instance >> $path_batch_instances
 done
 

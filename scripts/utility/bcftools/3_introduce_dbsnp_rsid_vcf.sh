@@ -63,9 +63,9 @@
 
 ################################################################################
 # Organize arguments.
-path_dbsnp_reference=${1} # full path to file for dbSNP reference in VCF format
-path_vcf_source=${2} # full path to source file in VCF format
-path_vcf_product=${3} # full path to product file in VCF format
+path_file_vcf_source=${1} # full path to source genotype file in VCF format
+path_file_vcf_product=${2} # full path to product genotype file in VCF format
+path_file_dbsnp_reference=${3} # full path to file for dbSNP reference in VCF format
 threads=${4} # count of processing threads to use
 path_bcftools=${5} # full path to installation executable file of BCFTools
 report=${6} # whether to print reports
@@ -78,12 +78,12 @@ report=${6} # whether to print reports
 # Only introduce dbSNP rsID annotations.
 $path_bcftools \
 annotate \
---annotations $path_dbsnp_reference \
+--annotations $path_file_dbsnp_reference \
 --columns ID \
---output $path_vcf_product \
+--output $path_file_vcf_product \
 --output-type z9 \
 --threads $threads \
-$path_vcf_source
+$path_file_vcf_source
 
 # Create Tabix index for file in VCF format with BGZip compression.
 # BCFTools is unable to create a Tabix index for files in BCF format.
@@ -93,4 +93,4 @@ index \
 --force \
 --tbi \
 --threads $threads \
-$path_vcf_product
+$path_file_vcf_product

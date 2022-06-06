@@ -66,8 +66,8 @@ instance=${batch_instances[$batch_index]}
 
 # Separate fields from instance.
 IFS=";" read -r -a array <<< "${instance}"
-path_file_source_vcf_chromosome="${array[0]}"
-path_file_product_vcf_chromosome="${array[1]}"
+path_file_vcf_source_chromosome="${array[0]}"
+path_file_vcf_product_chromosome="${array[1]}"
 
 ###########################################################################
 # Execute procedure.
@@ -75,8 +75,8 @@ path_file_product_vcf_chromosome="${array[1]}"
 if true; then
   # Prepare genotype files.
   /usr/bin/bash "${path_script_drive_preparation_format_annotation}" \
-  $path_file_source_vcf_chromosome \
-  $path_file_product_vcf_chromosome \
+  $path_file_vcf_source_chromosome \
+  $path_file_vcf_product_chromosome \
   $path_file_genome_assembly_sequence \
   $path_file_chromosome_translations \
   $path_file_dbsnp_reference \
