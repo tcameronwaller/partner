@@ -37,7 +37,8 @@ path_batch_instances="${path_directory_genotype_vcf_product}/batch_instances.txt
 
 # Scripts.
 path_script_run_preparation="${path_promiscuity_scripts}/utility/bcftools/2_run_batch_decompose_align_unique_sort.sh"
-path_script_decompose_align_unique_sort="${path_promiscuity_scripts}/utility/bcftools/3_decompose_align_unique_sort_vcf.sh"
+#path_script_decompose_align_unique_sort="${path_promiscuity_scripts}/utility/bcftools/3_decompose_align_unique_sort_vcf.sh"
+path_script_decompose_align_unique_sort="${path_promiscuity_scripts}/utility/bcftools/3_align_unique_sort_vcf.sh"
 
 # Initialize directory.
 rm -r $path_directory_genotype_vcf_product
