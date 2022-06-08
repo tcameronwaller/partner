@@ -40,7 +40,8 @@ path_batch_instances="${path_directory_genotype_vcf_product}/batch_instances.txt
 # Scripts.
 path_script_run_preparation_format_annotation="${path_promiscuity_scripts}/utility/bcftools/2_run_batch_preparation_format_annotation_vcf.sh"
 path_script_drive_preparation_format_annotation="${path_promiscuity_scripts}/utility/bcftools/3_drive_prepare_format_annotate_vcf.sh"
-path_script_decompose_align_unique_sort="${path_promiscuity_scripts}/utility/bcftools/3_decompose_align_unique_sort_vcf.sh"
+#path_script_decompose_align_unique_sort="${path_promiscuity_scripts}/utility/bcftools/3_decompose_align_unique_sort_vcf.sh"
+path_script_decompose_align_unique_sort="${path_promiscuity_scripts}/utility/bcftools/3_align_unique_sort_vcf.sh"
 path_script_translate_chromosomes="${path_promiscuity_scripts}/utility/bcftools/3_translate_chromosome_identifiers_vcf.sh"
 path_script_introduce_dbsnp_rsid="${path_promiscuity_scripts}/utility/bcftools/3_introduce_dbsnp_rsid_vcf.sh"
 
@@ -54,16 +55,18 @@ rm $path_batch_instances
 
 # Determine relevant chromosomes.
 if [[ "$chromosome_x" == "true" ]]; then
-  chromosomes=("1")
-  #chromosomes=("1" "2" "3" "4" "5" "6" "7" "8" "9" "10" "11" "12" "13" "14" "15" "16" "17" "18" "19" "20" "21" "22" "X")
+  #chromosomes=("1")
+  chromosomes=("1" "2" "3" "4" "5" "6" "7" "8" "9" "10" "11" "12" "13" "14" "15" "16" "17" "18" "19" "20" "21" "22" "X")
 else
   chromosomes=("1" "2" "3" "4" "5" "6" "7" "8" "9" "10" "11" "12" "13" "14" "15" "16" "17" "18" "19" "20" "21" "22")
 fi
 # Iterate on chromosomes.
 for chromosome in "${chromosomes[@]}"; do
+  # Chromosome identifier for product file name.
+  chromosome_lower="${chromosome,,}"
   # Define file names for chromosome.
   name_file_vcf_source_chromosome="${prefix_file_genotype_vcf_source}${chromosome}${suffix_file_genotype_vcf_source}"
-  name_file_vcf_product_chromosome="${prefix_file_genotype_vcf_product}${chromosome}${suffix_file_genotype_vcf_product}"
+  name_file_vcf_product_chromosome="${prefix_file_genotype_vcf_product}${chromosome_lower}${suffix_file_genotype_vcf_product}"
   # Define full file paths for chromosome.
   path_file_vcf_source_chromosome="${path_directory_genotype_vcf_source}/${name_file_vcf_source_chromosome}"
   path_file_vcf_product_chromosome="${path_directory_genotype_vcf_product}/${name_file_vcf_product_chromosome}"
