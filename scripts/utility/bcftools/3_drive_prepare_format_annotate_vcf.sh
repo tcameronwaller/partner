@@ -74,7 +74,7 @@ fi
 
 if true; then
   # Translate chromosome identifiers.
-  /usr/bin/bash "${path_script_translate_chromosomes}" \
+  /usr/bin/bash "${path_script_introduce_dbsnp_rsid}" \
   $path_file_temporary_2_chromosome \
   $path_file_vcf_product \
   $path_file_dbsnp_reference \
