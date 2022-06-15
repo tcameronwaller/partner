@@ -4043,4 +4043,4 @@ def prepare_curation_report(
 
 ###############################################################################
 # Procedure
-# This module is not executable.
+# Currently, this module is not executable.
