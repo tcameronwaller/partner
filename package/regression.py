@@ -220,20 +220,6 @@ def determine_confidence_interval_range_text(
     return range
 
 
-# TODO: TCW; 20 June 2022
-# TODO: I want a report summary like "(b: -0.01234; 95% CI: -0.012 ... 0.135)"
-# TODO: set the rounding digits...
-
-#    confidence_95 = str(
-#        str(round(confidence_95_low, 5)) + " ... " +
-#        str(round(confidence_95_high, 5))
-#    )
-#    summary = str(
-#        "(rg: " + str(correlation) + "; 95% CI: " + str(confidence_95) + ")"
-#    )
-
-
-
 def organize_linear_logistic_regression_independence_tree(
     independence=None,
     model_parameters=None,
