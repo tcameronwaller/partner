@@ -220,6 +220,20 @@ def determine_confidence_interval_range_text(
     return range
 
 
+# TODO: TCW; 20 June 2022
+# TODO: I want a report summary like "(b: -0.01234; 95% CI: -0.012 ... 0.135)"
+# TODO: set the rounding digits...
+
+#    confidence_95 = str(
+#        str(round(confidence_95_low, 5)) + " ... " +
+#        str(round(confidence_95_high, 5))
+#    )
+#    summary = str(
+#        "(rg: " + str(correlation) + "; 95% CI: " + str(confidence_95) + ")"
+#    )
+
+
+
 def organize_linear_logistic_regression_independence_tree(
     independence=None,
     model_parameters=None,
@@ -289,6 +303,10 @@ def organize_linear_logistic_regression_independence_tree(
                 (pail_tree["intercept"]["interval_95"])
             )
         )
+        pail_tree["intercept"]["summary"] = str(
+            "(b: " + str(round(pail_tree["intercept"]["parameter"], 5)) +
+            "; 95% CI: " + str(pail_tree["intercept"]["range_95"]) + ")"
+        )
         # Probability.
         pail_tree["intercept"]["probability"] = float(
             model_probabilities["const"]
@@ -337,6 +355,10 @@ def organize_linear_logistic_regression_independence_tree(
                 (pail_tree[variable]["parameter"]) +
                 (pail_tree[variable]["interval_95"])
             )
+        )
+        pail_tree[variable]["summary"] = str(
+            "(b: " + str(round(pail_tree[variable]["parameter"], 5)) +
+            "; 95% CI: " + str(pail_tree[variable]["range_95"]) + ")"
         )
         # Probability.
         pail_tree[variable]["probability"] = float(
@@ -667,10 +689,11 @@ def create_missing_regression_independent_variable(
     # Collect information for independent variable.
     pail = dict()
     # Create missing values for the independent variable in linear regression.
+    pail["summary"] = str("(rg: NAN; 95% CI: NAN ... NAN)")
     pail["parameter"] = float("nan")
     pail["error"] = float("nan")
     pail["interval_95"] = float("nan")
-    pail["range_95"] = str("nan ... nan")
+    pail["range_95"] = str("NAN ... NAN")
     pail["range_95_below"] = float("nan")
     pail["range_95_above"] = float("nan")
     pail["probability"] = float("nan")
