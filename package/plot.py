@@ -1822,7 +1822,7 @@ def plot_boxes_groups(
     # Create boxes.
     handle = axes.boxplot(
         values_groups,
-        notch=True,
+        notch=False,
         showfliers=False, # whether to show flier (outlier) points
         vert=False, # whether box groups across horizontal axis
         widths=0.7,
@@ -1841,7 +1841,7 @@ def plot_boxes_groups(
         alpha=1.0,
         backgroundcolor=colors["white"],
         color=colors["black"],
-        fontproperties=fonts["properties"]["three"],
+        fontproperties=fonts["properties"]["four"],
         rotation="horizontal",
     )
     if len(title_ordinate) > 0:
@@ -1851,7 +1851,7 @@ def plot_boxes_groups(
             alpha=1.0,
             backgroundcolor=colors["white"],
             color=colors["black"],
-            fontproperties=fonts["properties"]["three"]
+            fontproperties=fonts["properties"]["four"]
         )
     axes.tick_params(
         axis="both",
@@ -1861,7 +1861,7 @@ def plot_boxes_groups(
         width=3.0,
         color=colors["black"],
         pad=5,
-        labelsize=fonts["values"]["six"]["size"],
+        labelsize=fonts["values"]["four"]["size"],
         labelcolor=colors["black"]
     )
     # Include label or labels on plot area.
