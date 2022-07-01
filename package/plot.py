@@ -1761,6 +1761,8 @@ def plot_bar_stack(
     return figure
 
 
+# https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.violinplot.html#matplotlib.pyplot.violinplot
+
 def plot_boxes_groups(
     values_groups=None,
     title_ordinate=None,
@@ -1820,7 +1822,8 @@ def plot_boxes_groups(
     # Create boxes.
     handle = axes.boxplot(
         values_groups,
-        notch=False,
+        notch=True,
+        showfliers=False, # whether to show flier (outlier) points
         vert=False, # whether box groups across horizontal axis
         widths=0.7,
         patch_artist=True,
@@ -1832,23 +1835,23 @@ def plot_boxes_groups(
         box_patch.set_facecolor(color_box)
         pass
     # Label axes.
-    axes.set_ylabel(
-        ylabel=title_ordinate,
+    axes.set_xlabel(
+        xlabel=title_abscissa,
         labelpad=20,
         alpha=1.0,
         backgroundcolor=colors["white"],
         color=colors["black"],
-        fontproperties=fonts["properties"]["three"]
+        fontproperties=fonts["properties"]["three"],
+        rotation="horizontal",
     )
-    if len(title_abscissa) > 0:
-        axes.set_xlabel(
-            xlabel=title_abscissa,
+    if len(title_ordinate) > 0:
+        axes.set_ylabel(
+            ylabel=title_ordinate,
             labelpad=20,
             alpha=1.0,
             backgroundcolor=colors["white"],
             color=colors["black"],
-            fontproperties=fonts["properties"]["three"],
-            rotation="horizontal",
+            fontproperties=fonts["properties"]["three"]
         )
     axes.tick_params(
         axis="both",
@@ -1858,7 +1861,7 @@ def plot_boxes_groups(
         width=3.0,
         color=colors["black"],
         pad=5,
-        labelsize=fonts["values"]["three"]["size"],
+        labelsize=fonts["values"]["six"]["size"],
         labelcolor=colors["black"]
     )
     # Include label or labels on plot area.
