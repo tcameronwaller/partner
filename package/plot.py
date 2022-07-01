@@ -1821,7 +1821,7 @@ def plot_boxes_groups(
     handle = axes.boxplot(
         values_groups,
         notch=False,
-        vert=True,
+        vert=False, # whether box groups across horizontal axis
         widths=0.7,
         patch_artist=True,
         labels=titles_abscissa_groups,
@@ -1847,7 +1847,7 @@ def plot_boxes_groups(
             alpha=1.0,
             backgroundcolor=colors["white"],
             color=colors["black"],
-            fontproperties=fonts["properties"]["two"],
+            fontproperties=fonts["properties"]["three"],
             rotation="horizontal",
         )
     axes.tick_params(
