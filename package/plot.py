@@ -1761,11 +1761,12 @@ def plot_bar_stack(
     return figure
 
 
-def plot_boxes(
-    arrays=None,
-    labels_groups=None,
-    label_vertical=None,
-    label_horizontal=None,
+def plot_boxes_groups(
+    values_groups=None,
+    title_ordinate=None,
+    title_abscissa=None,
+    titles_abscissa_groups=None,
+    colors_groups=None,
     label_top_center=None,
     label_top_left=None,
     label_top_right=None,
@@ -1774,14 +1775,18 @@ def plot_boxes(
     colors=None,
 ):
     """
-    Creates a figure of a chart of type histogram to represent the frequency
-    distribution of a single series of values.
+    Creates a figure of a chart of type box plot to represent the distribution
+    of multiple series of values.
 
     arguments:
-        arrays (list<array>): NumPy arrays of values for each group
-        labels_groups (list<str>): labels for each group
-        label_vertical (str): label for vertical axis
-        label_horizontal (str): label for horizontal axis
+        values_groups (list<array>): NumPy arrays of non-missing values for each
+            group
+        title_ordinate (str): title for ordinate or vertical axis
+        title_abscissa (str): title for abscissa or horizontal axis
+        titles_abscissa_groups (list<str>): titles for groups on abscissa or
+            horizontal axis in same sort order as 'cohorts_groups'
+        colors_groups (list<tuple>): color parameters for boxes of groups in
+            same sort order as 'values_groups'
         label_top_center (str): label for top center of plot area
         label_top_left (str): label for top left of plot area
         label_top_right (str): label for top right of plot area
@@ -1797,18 +1802,8 @@ def plot_boxes(
 
     """
 
-    # Define colors.
-    color_count = len(arrays)
-    if color_count == 1:
-        colors_series = [colors["blue_navy"]]
-    elif color_count == 2:
-        colors_series = [colors["gray"], colors["blue_navy"]]
-    elif color_count == 3:
-        colors_series = [colors["gray"], colors["blue_navy"], colors["orange"]]
-    elif color_count > 3:
-        colors_series = list(
-            seaborn.color_palette("hls", n_colors=color_count)
-        )
+    #colors_groups = list(seaborn.color_palette("hls", n_colors=color_count))
+
     # Create figure.
     if orientation == "portrait":
         figure = matplotlib.pyplot.figure(
@@ -1824,35 +1819,35 @@ def plot_boxes(
     axes = matplotlib.pyplot.axes()
     # Create boxes.
     handle = axes.boxplot(
-        arrays,
+        values_groups,
         notch=False,
         vert=True,
         widths=0.7,
         patch_artist=True,
-        labels=labels_groups,
+        labels=titles_abscissa_groups,
         manage_ticks=True,
     )
     # Fill boxes with colors.
-    for box_patch, color_box in zip(handle["boxes"], colors_series):
+    for box_patch, color_box in zip(handle["boxes"], colors_groups):
         box_patch.set_facecolor(color_box)
         pass
     # Label axes.
     axes.set_ylabel(
-        ylabel=label_vertical,
+        ylabel=title_ordinate,
         labelpad=20,
         alpha=1.0,
         backgroundcolor=colors["white"],
         color=colors["black"],
-        fontproperties=fonts["properties"]["two"]
+        fontproperties=fonts["properties"]["three"]
     )
-    if len(label_horizontal) > 0:
+    if len(title_abscissa) > 0:
         axes.set_xlabel(
-            xlabel=label_horizontal,
+            xlabel=title_abscissa,
             labelpad=20,
             alpha=1.0,
             backgroundcolor=colors["white"],
             color=colors["black"],
-            fontproperties=fonts["properties"]["one"],
+            fontproperties=fonts["properties"]["two"],
             rotation="horizontal",
         )
     axes.tick_params(
@@ -1863,44 +1858,45 @@ def plot_boxes(
         width=3.0,
         color=colors["black"],
         pad=5,
-        labelsize=fonts["values"]["two"]["size"],
+        labelsize=fonts["values"]["three"]["size"],
         labelcolor=colors["black"]
     )
+    # Include label or labels on plot area.
     if len(label_top_center) > 0:
-        axes.text(
+        matplotlib.pyplot.text(
             0.5,
             0.9,
             label_top_center,
             horizontalalignment="center",
             verticalalignment="top",
             transform=axes.transAxes,
-            backgroundcolor=colors["white"],
+            backgroundcolor=colors["white_faint"],
             color=colors["black"],
-            fontproperties=fonts["properties"]["one"]
+            fontproperties=fonts["properties"]["eight"]
         )
     if len(label_top_left) > 0:
-        axes.text(
-            0.25,
+        matplotlib.pyplot.text(
+            0.1,
             0.9,
             label_top_left,
-            horizontalalignment="center",
+            horizontalalignment="left",
             verticalalignment="top",
             transform=axes.transAxes,
-            backgroundcolor=colors["white"],
+            backgroundcolor=colors["white_faint"],
             color=colors["black"],
-            fontproperties=fonts["properties"]["two"]
+            fontproperties=fonts["properties"]["eight"]
         )
     if len(label_top_right) > 0:
-        axes.text(
-            0.75,
+        matplotlib.pyplot.text(
+            0.9,
             0.9,
             label_top_right,
-            horizontalalignment="center",
+            horizontalalignment="right",
             verticalalignment="top",
             transform=axes.transAxes,
-            backgroundcolor=colors["white"],
+            backgroundcolor=colors["white_faint"],
             color=colors["black"],
-            fontproperties=fonts["properties"]["two"]
+            fontproperties=fonts["properties"]["eight"]
         )
     return figure
 
