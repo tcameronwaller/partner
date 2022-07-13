@@ -16,10 +16,11 @@ pattern_file_log_source=${3} # string glob pattern by which to recognize executi
 path_directory_chromosomes_source=${4} # full path to source parent directory for GWAS across separate chromosomes
 path_file_gwas_product=${5} # full path to product file for concatenation of GWAS summary statistics across chromosomes
 path_file_frequency_product=${6} # full path to product file for concatenation of allele frequencies across chromosomes
-prefix_file_log_product=${7} # file name prefix for product execution log files
-suffix_file_log_product=${8} # file name suffix for product execution log files
-chromosome_xy=${9} # whether to collect GWAS summary statistics, allele frequencies, and execution log reports for Chromosomes X and XY
-report=${10} # whether to print reports
+name_directory_log_product=${7} # name for product directory for execution log files
+prefix_file_log_product=${8} # file name prefix for product execution log files
+suffix_file_log_product=${9} # file name suffix for product execution log files
+chromosome_xy=${10} # whether to collect GWAS summary statistics, allele frequencies, and execution log reports for Chromosomes X and XY
+report=${11} # whether to print reports
 
 ################################################################################
 # Organize paths.
@@ -35,6 +36,7 @@ name_base_file_frequency_product="$(basename $path_file_frequency_product)"
 name_base_file_frequency_product="${name_base_file_frequency_product/".afreq.gz"/}"
 path_directory_product="$(dirname $path_file_gwas_product)"
 path_directory_temporary="${path_directory_product}/temporary_${name_base_file_gwas_product}" # hopefully unique
+path_directory_log_temporary="${path_directory_temporary}/${name_directory_log_product}" # hopefully unique
 
 path_file_gwas_temporary="${path_directory_temporary}/${name_base_file_gwas_product}_concatenation.txt"
 path_file_frequency_temporary="${path_directory_temporary}/${name_base_file_frequency_product}_concatenation.afreq"
@@ -44,6 +46,8 @@ path_file_frequency_temporary="${path_directory_temporary}/${name_base_file_freq
 mkdir -p $path_directory_product
 rm -r $path_directory_temporary || true # silence warning if file or directory does not exist
 mkdir -p $path_directory_temporary
+rm -r $path_directory_log_temporary || true # silence warning if file or directory does not exist
+mkdir -p $path_directory_log_temporary
 
 # Remove any previous version of the product files.
 rm $path_file_gwas_product || true # silence warning if file or directory does not exist
@@ -109,7 +113,7 @@ for chromosome in "${chromosomes[@]}"; do
   matches=$(find "${path_directory_chromosome_source}" -name "$pattern_file_log_source")
   path_file_log_source=${matches[0]}
   name_file_log_product="${prefix_file_log_product}${chromosome}${suffix_file_log_product}"
-  path_file_log_product="${path_directory_product}/${name_file_log_product}"
+  path_file_log_product="${path_directory_log_temporary}/${name_file_log_product}"
   cp "${path_file_log_source}" "${path_file_log_product}"
 
 done
@@ -117,9 +121,10 @@ done
 ##########
 # Compress product files.
 
-# Compress files.
+# Compress directories and files.
 gzip -cvf $path_file_gwas_temporary > $path_file_gwas_product
 gzip -cvf $path_file_frequency_temporary > $path_file_frequency_product
+tar -czvf "${path_directory_product}/${name_directory_log_product}.tar.gz" $path_directory_log_temporary
 
 ##########
 # Remove temporary, intermediate files.
