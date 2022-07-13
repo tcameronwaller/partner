@@ -25,8 +25,8 @@ report=${10} # whether to print reports
 # Organize paths.
 
 # Extract base names of files and directories.
-name_base_file_gwas_product="$(basename $path_file_gwas_product .txt.gz)"
-name_base_file_frequency_product="$(basename $path_file_frequency_product .afreq.gz)"
+name_base_file_gwas_product="$(basename $path_file_gwas_product -s ".txt.gz")"
+name_base_file_frequency_product="$(basename $path_file_frequency_product -s ".afreq.gz")"
 path_directory_product="$(dirname $path_file_gwas_product)"
 path_directory_temporary="${path_directory_product}/temporary_${name_base_file_gwas_product}" # hopefully unique
 
@@ -115,4 +115,4 @@ gzip -cvf $path_file_frequency_temporary > $path_file_frequency_product
 
 ##########
 # Remove temporary, intermediate files.
-rm -r $path_directory_temporary
+#rm -r $path_directory_temporary
