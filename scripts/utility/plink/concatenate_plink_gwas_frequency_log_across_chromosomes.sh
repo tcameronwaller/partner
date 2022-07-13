@@ -36,12 +36,12 @@ path_file_frequency_temporary="${path_directory_temporary}/${name_base_file_freq
 # Initialize directory.
 #rm -r $path_directory_product
 mkdir -p $path_directory_product
-rm -r $path_directory_temporary
+rm -r $path_directory_temporary || true # silence warning if file or directory does not exist
 mkdir -p $path_directory_temporary
 
 # Remove any previous version of the product files.
-rm $path_file_gwas_product
-rm $path_file_frequency_product
+rm $path_file_gwas_product || true # silence warning if file or directory does not exist
+rm $path_file_frequency_product || true # silence warning if file or directory does not exist
 
 # Report.
 if [[ "$report" == "true" ]]; then
