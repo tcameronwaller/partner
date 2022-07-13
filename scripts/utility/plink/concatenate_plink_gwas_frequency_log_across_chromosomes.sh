@@ -1,12 +1,19 @@
 #!/bin/bash
 
-###########################################################################
-###########################################################################
-###########################################################################
+################################################################################
+################################################################################
+################################################################################
 # ...
-###########################################################################
-###########################################################################
-###########################################################################
+
+# Review and test: TCW; 13 July 2022
+# 1. The concatenation files for GWAS summary statistics reports and allele
+# frequency reports both include a single table header row of columns' names,
+# rows for all autosomes (chromosomes 1-22), and rows for chromosomes X and XY.
+# 2. The collection (Tar ball with Gzip compression) of PLINK2 execution log
+# files is concise and has simple directory paths to the constituent files.
+################################################################################
+################################################################################
+################################################################################
 
 ################################################################################
 # Organize arguments.
@@ -44,14 +51,14 @@ path_file_frequency_temporary="${path_directory_temporary}/${name_base_file_freq
 # Initialize directory.
 #rm -r $path_directory_product # Caution: removes the parent directory of the product files
 mkdir -p $path_directory_product
-rm -r $path_directory_temporary || true # silence warning if file or directory does not exist
+rm -r $path_directory_temporary
 mkdir -p $path_directory_temporary
-rm -r $path_directory_log_temporary || true # silence warning if file or directory does not exist
+rm -r $path_directory_log_temporary
 mkdir -p $path_directory_log_temporary
 
 # Remove any previous version of the product files.
-rm $path_file_gwas_product || true # silence warning if file or directory does not exist
-rm $path_file_frequency_product || true # silence warning if file or directory does not exist
+rm $path_file_gwas_product
+rm $path_file_frequency_product
 
 # Report.
 if [[ "$report" == "true" ]]; then
@@ -128,4 +135,4 @@ tar --remove-files -czvf "${path_directory_product}/${name_directory_log_product
 
 ##########
 # Remove temporary, intermediate files.
-#rm -r $path_directory_temporary
+rm -r $path_directory_temporary
