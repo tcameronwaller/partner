@@ -6,10 +6,12 @@
 # ...
 
 # Review and test: TCW; 13 July 2022
-# 1. The concatenation files for GWAS summary statistics reports and allele
+# 1. The script does not have any unintentional removal of the source directory,
+# "path_directory_chromosomes_source" or its child directories.
+# 2. The concatenation files for GWAS summary statistics reports and allele
 # frequency reports both include a single table header row of columns' names,
 # rows for all autosomes (chromosomes 1-22), and rows for chromosomes X and XY.
-# 2. The collection (Tar ball with Gzip compression) of PLINK2 execution log
+# 3. The collection (Tar ball with Gzip compression) of PLINK2 execution log
 # files is concise and has simple directory paths to the constituent files.
 ################################################################################
 ################################################################################
@@ -109,14 +111,14 @@ for chromosome in "${chromosomes[@]}"; do
   # Find file for GWAS summary statistics and concatenate (collect) information.
   matches=$(find "${path_directory_chromosome_source}" -name "$pattern_file_gwas_source")
   path_file_gwas_source=${matches[0]}
-  cat $path_file_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 && NR < 31 { print $0 }' >> $path_file_gwas_temporary # limit rows for test
-  #cat $path_file_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 { print $0 }' >> $path_file_gwas_temporary
+  #cat $path_file_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 && NR < 31 { print $0 }' >> $path_file_gwas_temporary # limit rows for test
+  cat $path_file_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 { print $0 }' >> $path_file_gwas_temporary
 
   # Find file for allele frequencies and concatenate (collect) information.
   matches=$(find "${path_directory_chromosome_source}" -name "$pattern_file_frequency_source")
   path_file_frequency_source=${matches[0]}
-  cat $path_file_frequency_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 && NR < 31 { print $0 }' >> $path_file_frequency_temporary # limit rows for test
-  #cat $path_file_frequency_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 { print $0 }' >> $path_file_frequency_temporary
+  #cat $path_file_frequency_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 && NR < 31 { print $0 }' >> $path_file_frequency_temporary # limit rows for test
+  cat $path_file_frequency_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 { print $0 }' >> $path_file_frequency_temporary
 
   # Find and copy file for PLINK2 execution log.
   matches=$(find "${path_directory_chromosome_source}" -name "$pattern_file_log_source")
