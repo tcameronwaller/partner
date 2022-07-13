@@ -36,7 +36,7 @@ name_base_file_frequency_product="$(basename $path_file_frequency_product)"
 name_base_file_frequency_product="${name_base_file_frequency_product/".afreq.gz"/}"
 path_directory_product="$(dirname $path_file_gwas_product)"
 path_directory_temporary="${path_directory_product}/temporary_${name_base_file_gwas_product}" # hopefully unique
-path_directory_log_temporary="${path_directory_temporary}/${name_directory_log_product}" # hopefully unique
+#path_directory_log_temporary="${path_directory_temporary}/${name_directory_log_product}" # hopefully unique
 
 path_file_gwas_temporary="${path_directory_temporary}/${name_base_file_gwas_product}_concatenation.txt"
 path_file_frequency_temporary="${path_directory_temporary}/${name_base_file_frequency_product}_concatenation.afreq"
@@ -46,8 +46,8 @@ path_file_frequency_temporary="${path_directory_temporary}/${name_base_file_freq
 mkdir -p $path_directory_product
 rm -r $path_directory_temporary || true # silence warning if file or directory does not exist
 mkdir -p $path_directory_temporary
-rm -r $path_directory_log_temporary || true # silence warning if file or directory does not exist
-mkdir -p $path_directory_log_temporary
+#rm -r $path_directory_log_temporary || true # silence warning if file or directory does not exist
+#mkdir -p $path_directory_log_temporary
 
 # Remove any previous version of the product files.
 rm $path_file_gwas_product || true # silence warning if file or directory does not exist
@@ -113,7 +113,7 @@ for chromosome in "${chromosomes[@]}"; do
   matches=$(find "${path_directory_chromosome_source}" -name "$pattern_file_log_source")
   path_file_log_source=${matches[0]}
   name_file_log_product="${prefix_file_log_product}${chromosome}${suffix_file_log_product}"
-  path_file_log_product="${path_directory_log_temporary}/${name_file_log_product}"
+  path_file_log_product="${path_directory_product}/${name_directory_log_product}/${name_file_log_product}"
   cp "${path_file_log_source}" "${path_file_log_product}"
 
 done
@@ -124,7 +124,7 @@ done
 # Compress directories and files.
 gzip -cvf $path_file_gwas_temporary > $path_file_gwas_product
 gzip -cvf $path_file_frequency_temporary > $path_file_frequency_product
-tar -czvf "${path_directory_product}/${name_directory_log_product}.tar.gz" $path_directory_log_temporary
+tar --remove-files -czvf "${path_directory_product}/${name_directory_log_product}.tar.gz" "${path_directory_product}/${name_directory_log_product}"
 
 ##########
 # Remove temporary, intermediate files.
