@@ -40,7 +40,7 @@ path_file_gwas_temporary="${path_directory_temporary}/${name_base_file_gwas_prod
 path_file_frequency_temporary="${path_directory_temporary}/${name_base_file_frequency_product}_concatenation.afreq"
 
 # Initialize directory.
-#rm -r $path_directory_product
+#rm -r $path_directory_product # Caution: removes the parent directory of the product files
 mkdir -p $path_directory_product
 rm -r $path_directory_temporary || true # silence warning if file or directory does not exist
 mkdir -p $path_directory_temporary
@@ -54,6 +54,7 @@ if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "path to source directory: " $path_directory_chromosomes_source
   echo "base file name for GWAS file: " $name_base_file_gwas_product
+  echo "base file name for allele frequency file: " $name_base_file_frequency_product
   echo "path to product GWAS file: " $path_file_gwas_product
   echo "path to product frequency file: " $path_file_frequency_product
 fi
