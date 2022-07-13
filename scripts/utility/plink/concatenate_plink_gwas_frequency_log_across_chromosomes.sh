@@ -25,9 +25,14 @@ report=${10} # whether to print reports
 # Organize paths.
 
 # Extract base names of files and directories.
+# Removal of file suffix string using "basename" is unreliable (parameter "-s").
+# "${[source string]/[string for which to replace first occurrence]/[replacement string]}"
+# "${[source string]//[string for which to replace all occurrences]/[replacement string]}"
 #name_base_file_gwas_product="$(basename $path_file_gwas_product -s .txt.gz)"
 name_base_file_gwas_product="$(basename $path_file_gwas_product)"
-name_base_file_frequency_product="$(basename $path_file_frequency_product -s .afreq.gz)"
+name_base_file_gwas_product="${name_base_file_gwas_product/".txt.gz"/""}"
+name_base_file_frequency_product="$(basename $path_file_frequency_product)"
+name_base_file_frequency_product="${name_base_file_frequency_product/".afreq.gz"/""}"
 path_directory_product="$(dirname $path_file_gwas_product)"
 path_directory_temporary="${path_directory_product}/temporary_${name_base_file_gwas_product}" # hopefully unique
 
