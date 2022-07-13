@@ -25,8 +25,8 @@ report=${10} # whether to print reports
 # Organize paths.
 
 # Extract base names of files and directories.
-name_base_file_gwas_product="$(basename $path_file_gwas_product -s ".txt.gz")"
-name_base_file_frequency_product="$(basename $path_file_frequency_product -s ".afreq.gz")"
+name_base_file_gwas_product="$(basename $path_file_gwas_product -s .txt.gz)"
+name_base_file_frequency_product="$(basename $path_file_frequency_product -s .afreq.gz)"
 path_directory_product="$(dirname $path_file_gwas_product)"
 path_directory_temporary="${path_directory_product}/temporary_${name_base_file_gwas_product}" # hopefully unique
 
@@ -47,6 +47,7 @@ rm $path_file_frequency_product || true # silence warning if file or directory d
 if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "path to source directory: " $path_directory_chromosomes_source
+  echo "base file name for GWAS file: " $name_base_file_gwas_product
   echo "path to product GWAS file: " $path_file_gwas_product
   echo "path to product frequency file: " $path_file_frequency_product
 fi
