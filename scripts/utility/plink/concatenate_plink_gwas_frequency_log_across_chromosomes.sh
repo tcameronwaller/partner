@@ -88,12 +88,14 @@ for chromosome in "${chromosomes[@]}"; do
   # Find file for GWAS summary statistics and concatenate (collect) information.
   matches=$(find "${path_directory_chromosome_source}" -name "$pattern_file_gwas_source")
   path_file_gwas_source=${matches[0]}
-  cat $path_file_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 { print $0 }' >> $path_file_gwas_temporary
+  cat $path_file_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 && NR < 31 { print $0 }' >> $path_file_gwas_temporary
+  #cat $path_file_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 { print $0 }' >> $path_file_gwas_temporary
 
   # Find file for allele frequencies and concatenate (collect) information.
   matches=$(find "${path_directory_chromosome_source}" -name "$pattern_file_frequency_source")
   path_file_frequency_source=${matches[0]}
-  cat $path_file_frequency_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 { print $0 }' >> $path_file_frequency_temporary
+  cat $path_file_frequency_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 && NR < 31 { print $0 }' >> $path_file_frequency_temporary
+  #cat $path_file_frequency_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 { print $0 }' >> $path_file_frequency_temporary
 
   # Find and copy file for PLINK2 execution log.
   matches=$(find "${path_directory_chromosome_source}" -name "$pattern_file_log_source")
