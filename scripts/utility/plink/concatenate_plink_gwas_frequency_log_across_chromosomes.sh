@@ -124,7 +124,7 @@ done
 # Compress directories and files.
 gzip -cvf $path_file_gwas_temporary > $path_file_gwas_product
 gzip -cvf $path_file_frequency_temporary > $path_file_frequency_product
-tar --remove-files -czvf "${path_directory_product}/${name_directory_log_product}.tar.gz" "${path_directory_log_temporary}"
+tar --remove-files -czvf "${path_directory_product}/${name_directory_log_product}.tar.gz" -C "${path_directory_log_temporary}" . # simplify path to source
 
 ##########
 # Remove temporary, intermediate files.
