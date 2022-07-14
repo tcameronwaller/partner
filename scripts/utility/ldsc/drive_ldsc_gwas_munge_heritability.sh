@@ -5,6 +5,18 @@
 ################################################################################
 # Notes...
 # ...
+# TODO: TCW; 14 July 2022
+# TODO: 1. separate script for LDSC Munge
+# TODO: 2. separate script for LDSC heritability (from GWAS sum-stats already munged)
+# TODO: 3. separate script for LDSC correlation (from GWAS sum-stats already munged)
+# TODO: 4. LDSC procedures use NumPy which seems to use as many threads as possible
+# TODO: - - restrict threads in all LDSC driver scripts...
+# TODO: - - use "MKL_NUM_THREADS" global variable to limit threads
+# TODO: https://groups.google.com/g/ldsc_users/c/Bnj7FFl5jlw/m/nrQ7yH-8BgAJ?pli=1
+
+# Force SciPy not to use all available cores on a cluster computation node.
+#export MKL_NUM_THREADS=$threads
+
 ################################################################################
 ################################################################################
 ################################################################################
