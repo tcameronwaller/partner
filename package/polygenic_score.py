@@ -79,6 +79,11 @@ def read_source_collection_polygenic_scores(
     """
     Reads and organizes source information from file.
 
+    This function reads from file a table of information (including paths and
+    parameters) about files of a collection of polygenic scores across relevant
+    genotypes.
+
+
     The column "method" is most relevant as a specification of the format for
     the output of the polygenic scores. It is important to know this format for
     reading the table.
@@ -91,7 +96,8 @@ def read_source_collection_polygenic_scores(
     raises:
 
     returns:
-        (object): source information
+        (object): Pandas data frame of parameters for reading from file and
+            organizing separate tables for polygenic scores
 
     """
 
@@ -253,19 +259,20 @@ def organize_table_polygenic_score_ldpred2(
 
 
 def drive_read_organize_tables_polygenic_scores(
-    table_scores_parameters=None,
+    table_parameter_scores=None,
     filter_inclusion=None,
     report=None,
 ):
     """
     Drives functions to read and organize source information from file.
 
-    This function extracts from a table information about files of polygenic
-    scores across genotypes.
+    This function extracts from a table information (including paths and
+    parameters) about files of a collection of polygenic scores across relevant
+    genotypes.
 
     arguments:
-        table_scores_parameters (object): Pandas data frame of parameters for
-           reading and organizing separate tables for polygenic scores
+        table_parameter_scores (object): Pandas data frame of parameters for
+           reading from file and organizing separate tables for polygenic scores
         filter_inclusion (bool): whether to filter records in polygenic scores
             parameter table by logical binary "inclusion" variable
         report (bool): whether to print reports
@@ -279,14 +286,14 @@ def drive_read_organize_tables_polygenic_scores(
 
     # Filter collection of polygenic scores by "inclusion" flag.
     if filter_inclusion:
-        table_scores_parameters = table_scores_parameters.loc[
+        table_parameter_scores = table_parameter_scores.loc[
             (
-                (table_scores_parameters["inclusion"] == 1)
+                (table_parameter_scores["inclusion"] == 1)
             ), :
         ]
         pass
     # Extract records from table.
-    records = table_scores_parameters.to_dict(
+    records = table_parameter_scores.to_dict(
         orient="records",
     )
     # Collect tables of polygenic scores.
