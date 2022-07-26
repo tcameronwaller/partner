@@ -95,11 +95,6 @@ def read_source_collection_polygenic_scores(
 
     """
 
-    # Specify directories and files.
-    path_table_parameter_scores = os.path.join(
-        path_dock, "parameters", "bipolar_biobank",
-        "polygenic_scores", "table_bipolar_biobank.tsv"
-    )
     # Read information from file.
     table_parameter_scores = pandas.read_csv(
         path_table,
