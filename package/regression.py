@@ -1,5 +1,5 @@
 """
-Supply functionality for Regression Analysis.
+Supply functionality for regression analysis.
 
 Author:
 
@@ -14,7 +14,7 @@ License:
     (https://github.com/tcameronwaller/promiscuity/).
 
     Promiscuity supports data analysis in multiple other projects.
-    Copyright (C) 2021 Thomas Cameron Waller
+    Copyright (C) 2022 Thomas Cameron Waller
 
     Promiscuity is free software: you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by the Free

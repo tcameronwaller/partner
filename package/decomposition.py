@@ -1,5 +1,6 @@
 """
-Supply functionality for Singular Value Decomposition and Principal Components.
+Supply functionality for Singular Value Decomposition (SVD) and
+Principal Components Analysis (PCA).
 
 Author:
 
@@ -14,7 +15,7 @@ License:
     (https://github.com/tcameronwaller/promiscuity/).
 
     Promiscuity supports data analysis in multiple other projects.
-    Copyright (C) 2021 Thomas Cameron Waller
+    Copyright (C) 2022 Thomas Cameron Waller
 
     Promiscuity is free software: you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by the Free
