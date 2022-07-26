@@ -40,6 +40,7 @@ License:
 ###############################################################################
 # Notes
 
+
 ###############################################################################
 # Installation and importation
 
@@ -346,11 +347,6 @@ def drive_read_organize_tables_polygenic_scores(
             pass
     # Return information.
     return tables_polygenic_scores
-
-
-
-
-
 
 
 

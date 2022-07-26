@@ -3121,6 +3121,114 @@ def drive_extract_search_strings_from_table_columns_main_strings(
     return table
 
 
+def merge_tables_supplements_to_main(
+    identifier_main=None,
+    identifier_supplement=None,
+    table_main=None,
+    tables_supplements=None,
+    report=None,
+):
+    """
+    Merge information from multiple source tables to a single main table.
+
+    This function does not discard any existing indices of the main and
+    supplement tables. This behavior might produce redundant or unnecessary
+    columns.
+
+    arguments:
+        identifier_main (str): name of column in main table on which
+            to merge
+        identifier_supplement (str): name of column in supplement tables on
+            which to merge
+        table_main (object): Pandas data frame of information
+        tables_supplements (list<object>): collection of Pandas data frames of
+            information
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data frame of information
+
+    """
+
+    # Copy information in table.
+    table_main = table_main.copy(deep=True)
+
+    # Organize table's index.
+    table_main.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
+    table_main[identifier_main] = (
+        table_main[identifier_main].astype("string")
+    )
+    table_main.set_index(
+        identifier_main,
+        append=False,
+        drop=True, # move regular column to index; remove original column
+        inplace=True,
+    )
+
+    # Iterate on tables for polygenic scores.
+    for table_supplement in tables_supplements:
+        # Organize table's index.
+        table_supplement.reset_index(
+            level=None,
+            inplace=True,
+            drop=False, # remove index; do not move to regular columns
+        )
+        table_supplement[identifier_supplement] = (
+            table_supplement[identifier_supplement].astype("string")
+        )
+        table_supplement.set_index(
+            identifier_supplement,
+            append=False,
+            drop=True, # move regular column to index; remove original column
+            inplace=True
+        )
+        # Merge data tables using database-style join.
+        # Alternative is to use DataFrame.join().
+        table = pandas.merge(
+            table_main, # left table
+            table_supplement, # right table
+            left_on=None, # "identifier_main",
+            right_on=None, # "identifier_supplement",
+            left_index=True,
+            right_index=True,
+            how="outer", # keep union of keys from both tables
+            #suffixes=("_main", "_identifiers"), # deprecated?
+        )
+        pass
+    # Organize table's index.
+    table.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
+    #table.set_index(
+    #    "identifier_genotype",
+    #    append=False,
+    #    drop=True, # move regular column to index; remove original column
+    #    inplace=True
+    #)
+    # Report.
+    if report:
+        utility.print_terminal_partition(level=2)
+        print("report: ")
+        print("merge_tables_supplements_to_main()")
+        utility.print_terminal_partition(level=3)
+        print("table columns: " + str(int(table.shape[1])))
+        print("table rows: " + str(int(table.shape[0])))
+        print("columns")
+        print(table.columns.to_list())
+        print(table)
+        pass
+    # Return information.
+    return table
+
+
 # Stratifications by continuous variables
 
 
