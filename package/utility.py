@@ -3215,10 +3215,10 @@ def merge_tables_supplements_to_main(
     #)
     # Report.
     if report:
-        utility.print_terminal_partition(level=2)
+        print_terminal_partition(level=2)
         print("report: ")
         print("merge_tables_supplements_to_main()")
-        utility.print_terminal_partition(level=3)
+        print_terminal_partition(level=3)
         print("table columns: " + str(int(table.shape[1])))
         print("table rows: " + str(int(table.shape[0])))
         print("columns")
