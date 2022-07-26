@@ -2,6 +2,9 @@
 Supply functionality for reading, organizing, and processing information from
 polygenic scores.
 
+Importation paths within this package "promiscuity" require this package to be a
+subpackage within a higher-level package that manages execution.
+
 Author:
 
     T. Cameron Waller
@@ -58,8 +61,7 @@ import numpy
 import statsmodels.api
 
 # Custom
-
-import promiscuity.polygenic_score as pgs # this import path for subpackage
+import promiscuity.utility as utility
 
 
 #dir()

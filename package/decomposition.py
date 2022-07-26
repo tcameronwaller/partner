@@ -2,6 +2,9 @@
 Supply functionality for Singular Value Decomposition (SVD) and
 Principal Components Analysis (PCA).
 
+Importation paths within this package "promiscuity" require this package to be a
+subpackage within a higher-level package that manages execution.
+
 Author:
 
     T. Cameron Waller
@@ -59,7 +62,6 @@ import numpy
 import statsmodels.api
 
 # Custom
-
 import promiscuity.utility as utility # this import path for subpackage
 
 

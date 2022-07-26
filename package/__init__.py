@@ -1,6 +1,9 @@
 """
 Package to provide supplemental functionality to other packages.
 
+Importation paths within this package "promiscuity" require this package to be a
+subpackage within a higher-level package that manages execution.
+
 Title:
     promiscuity
 

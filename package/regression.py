@@ -1,6 +1,9 @@
 """
 Supply functionality for regression analysis.
 
+Importation paths within this package "promiscuity" require this package to be a
+subpackage within a higher-level package that manages execution.
+
 Author:
 
     T. Cameron Waller
@@ -59,7 +62,6 @@ import statsmodels.api
 import statsmodels.stats.outliers_influence
 
 # Custom
-
 import promiscuity.utility as utility # this import path for subpackage
 
 

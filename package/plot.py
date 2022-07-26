@@ -1,6 +1,9 @@
 """
 Supply basic plotting functionality.
 
+Importation paths within this package "promiscuity" require this package to be a
+subpackage within a higher-level package that manages execution.
+
 Author:
 
     T. Cameron Waller
@@ -58,11 +61,6 @@ import matplotlib.lines
 #import sklearn
 
 # Custom
-
-#import assembly
-#import selection
-#import integration
-#import prediction
 import promiscuity.utility as utility
 
 #dir()
