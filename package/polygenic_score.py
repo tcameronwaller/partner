@@ -2,8 +2,11 @@
 Supply functionality for reading, organizing, and processing information from
 polygenic scores.
 
-Importation paths within this package "promiscuity" require this package to be a
-subpackage within a higher-level package that manages execution.
+This module is not directly executable.
+
+This subpackage 'promiscuity' provides executable functionality under the
+management of a higher level package. Importation paths represent this
+hierarchy.
 
 Author:
 
