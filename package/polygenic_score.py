@@ -238,7 +238,7 @@ def organize_table_polygenic_score_ldpred2(
     )
     # Convert identifiers to type string.
     table["IID"] = table["IID"].astype("string")
-    table["identifier_genotype"] = table["IID"].astype("string")
+    table["identifier_genotype"] = table["IID"].astype("string").copy(deep=True)
     # Translate names of columns.
     #table = table.add_prefix("import_")
     translations = dict()
