@@ -3356,7 +3356,6 @@ def report_stratification_cohort_record_table_sizes(
     raises:
 
     returns:
-        (dict<dict>): entries with information about cohorts
 
     """
 
@@ -3374,8 +3373,7 @@ def report_stratification_cohort_record_table_sizes(
         print("table columns: " + str(int(record["table"].shape[1])))
         print("table rows: " + str(int(record["table"].shape[0])))
         pass
-    # Return information
-    return entries
+    pass
 
 
 def organize_dictionary_entries_stratification_cohorts(
