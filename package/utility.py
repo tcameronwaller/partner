@@ -3189,6 +3189,7 @@ def calculate_table_column_pair_correlations(
         pass
     # Collect information.
     pail = dict()
+    pail["pairs"] = copy.deepcopy(int(table.shape[0]))
     pail["correlation_pearson"] = correlation_pearson
     pail["probability_pearson"] = probability_pearson
     pail["correlation_spearman"] = correlation_spearman
