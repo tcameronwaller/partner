@@ -3363,7 +3363,7 @@ def report_stratification_cohort_record_table_sizes(
     # Report.
     print_terminal_partition(level=3)
     print("report: ")
-    print("report_stratification_cohort_statistics()")
+    print("report_stratification_cohort_record_table_sizes()")
     print_terminal_partition(level=4)
     # Copy information.
     records = copy.deepcopy(records)
