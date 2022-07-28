@@ -3121,7 +3121,7 @@ def drive_extract_search_strings_from_table_columns_main_strings(
     return table
 
 
-def merge_tables_supplements_to_main(
+def merge_columns_tables_supplements_to_main(
     identifier_main=None,
     identifier_supplement=None,
     table_main=None,
@@ -3129,7 +3129,7 @@ def merge_tables_supplements_to_main(
     report=None,
 ):
     """
-    Merge information from multiple source tables to a single main table.
+    Merge columns from multiple source tables to columns of a single main table.
 
     This function does not discard any existing indices of the main and
     supplement tables. This behavior might produce redundant or unnecessary
@@ -3193,10 +3193,10 @@ def merge_tables_supplements_to_main(
         table = pandas.merge(
             table_main, # left table
             table_supplement, # right table
-            left_on=None, # "identifier_main",
-            right_on=None, # "identifier_supplement",
-            left_index=True,
-            right_index=True,
+            left_on=None, # "identifier_main"
+            right_on=None, # "identifier_supplement"
+            left_index=True, # "identifier_main"
+            right_index=True, # "identifier_supplement"
             how="outer", # keep union of keys from both tables
             #suffixes=("_main", "_identifiers"), # deprecated?
         )
@@ -3217,7 +3217,7 @@ def merge_tables_supplements_to_main(
     if report:
         print_terminal_partition(level=2)
         print("report: ")
-        print("merge_tables_supplements_to_main()")
+        print("merge_columns_tables_supplements_to_main()")
         print_terminal_partition(level=3)
         print("table columns: " + str(int(table.shape[1])))
         print("table rows: " + str(int(table.shape[0])))
@@ -3227,6 +3227,115 @@ def merge_tables_supplements_to_main(
         pass
     # Return information.
     return table
+
+
+def merge_columns_two_tables(
+    identifier_first=None,
+    identifier_second=None,
+    table_first=None,
+    table_second=None,
+    report=None,
+):
+    """
+    Merge columns from two tables.
+
+    This function does not discard any existing indices of the main and
+    supplement tables. This behavior might produce redundant or unnecessary
+    columns.
+
+    arguments:
+        identifier_first (str): name of column in first table on which to merge
+        identifier_second (str): name of column in second table on which to
+            merge
+        table_first (object): Pandas data frame of information
+        tables_second (object): Pandas data frame of information
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data frame of information
+
+    """
+
+    # Copy information in table.
+    table_first = table_first.copy(deep=True)
+    table_second = table_second.copy(deep=True)
+
+    # Organize first table's index.
+    table_first.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
+    table_first[identifier_first] = (
+        table_first[identifier_first].astype("string")
+    )
+    table_first.set_index(
+        identifier_first,
+        append=False,
+        drop=True, # move regular column to index; remove original column
+        inplace=True,
+    )
+
+    # Organize second table's index.
+    table_second.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
+    table_second[identifier_second] = (
+        table_second[identifier_second].astype("string")
+    )
+    table_second.set_index(
+        identifier_second,
+        append=False,
+        drop=True, # move regular column to index; remove original column
+        inplace=True,
+    )
+
+    # Merge data tables using database-style join.
+    # Alternative is to use DataFrame.join().
+    table = pandas.merge(
+        table_first, # left table
+        table_second, # right table
+        left_on=None, # "identifier_first"
+        right_on=None, # "identifier_second"
+        left_index=True, # "identifier_first"
+        right_index=True, # "identifier_second"
+        how="outer", # keep union of keys from both tables
+        #suffixes=("_main", "_identifiers"), # deprecated?
+    )
+
+    # Organize table's index.
+    table.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
+    #table.set_index(
+    #    "identifier_genotype",
+    #    append=False,
+    #    drop=True, # move regular column to index; remove original column
+    #    inplace=True
+    #)
+    # Report.
+    if report:
+        print_terminal_partition(level=2)
+        print("report: ")
+        print("merge_columns_two_tables()")
+        print_terminal_partition(level=3)
+        print("table columns: " + str(int(table.shape[1])))
+        print("table rows: " + str(int(table.shape[0])))
+        print("columns")
+        print(table.columns.to_list())
+        print(table)
+        pass
+    # Return information.
+    return table
+
+
+
 
 
 # Stratifications by continuous variables

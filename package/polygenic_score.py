@@ -110,7 +110,7 @@ def read_source_collection_polygenic_scores(
     # Read information from file.
     table_parameter_scores = pandas.read_csv(
         path_table,
-        sep="\t", # "\t"; "\s+"; "\s+|\t+|\s+\t+|\t+\s+"
+        sep="\t", # ","; "\t"; "\s+"; "\s+|\t+|\s+\t+|\t+\s+"
         header=0,
         dtype={
             "inclusion": "int32",
