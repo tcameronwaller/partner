@@ -3121,6 +3121,11 @@ def drive_extract_search_strings_from_table_columns_main_strings(
     return table
 
 
+
+##########################
+# Basic operations on Pandas dataframe tables
+###############################
+
 def merge_columns_tables_supplements_to_main(
     identifier_main=None,
     identifier_supplement=None,
@@ -3337,6 +3342,67 @@ def merge_columns_two_tables(
     # Return information.
     return table
 
+
+def report_stratification_cohort_record_table_sizes(
+    records=None,
+):
+    """
+    Reports basic information from records of stratification cohorts, including
+    the cohort 'name' and the counts of columns and rows in the cohort 'table'.
+
+    arguments:
+        records (list<dict>): records with information about cohorts
+
+    raises:
+
+    returns:
+        (dict<dict>): entries with information about cohorts
+
+    """
+
+    # Report.
+    print_terminal_partition(level=3)
+    print("report: ")
+    print("report_stratification_cohort_statistics()")
+    print_terminal_partition(level=4)
+    # Copy information.
+    records = copy.deepcopy(records)
+    # Iterate on records for stratification cohorts.
+    for record in records:
+        utility.print_terminal_partition(level=5)
+        print("table name: " + str(record["name"]))
+        print("table columns: " + str(int(record["table"].shape[1])))
+        print("table rows: " + str(int(record["table"].shape[0])))
+        pass
+    # Return information
+    return entries
+
+
+def organize_dictionary_entries_stratification_cohorts(
+    records=None,
+):
+    """
+    Organizes information about cohorts.
+
+    arguments:
+        records (list<dict>): records with information about cohorts
+
+    raises:
+
+    returns:
+        (dict<dict>): entries with information about cohorts
+
+    """
+
+    # Copy information.
+    records = copy.deepcopy(records)
+    # Organize dictionary entries for cohorts.
+    entries = dict()
+    for record in records:
+        entries[record["name"]] = record
+        pass
+    # Return information
+    return entries
 
 
 
