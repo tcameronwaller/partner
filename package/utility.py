@@ -3369,7 +3369,7 @@ def report_stratification_cohort_record_table_sizes(
     records = copy.deepcopy(records)
     # Iterate on records for stratification cohorts.
     for record in records:
-        utility.print_terminal_partition(level=5)
+        print_terminal_partition(level=5)
         print("table name: " + str(record["name"]))
         print("table columns: " + str(int(record["table"].shape[1])))
         print("table rows: " + str(int(record["table"].shape[0])))
@@ -3382,7 +3382,9 @@ def organize_dictionary_entries_stratification_cohorts(
     records=None,
 ):
     """
-    Organizes information about cohorts.
+    Organizes information from records of stratification cohorts within
+    dictionary entries for convenient referencing in analyses. The cohort 'name'
+    becomes the dictionary's key for the cohort record entry.
 
     arguments:
         records (list<dict>): records with information about cohorts
