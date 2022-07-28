@@ -3171,6 +3171,9 @@ def merge_columns_tables_supplements_to_main(
         inplace=True,
     )
 
+    # Copy information in table.
+    table_merge = table_main.copy(deep=True)
+
     # Iterate on tables for polygenic scores.
     for table_supplement in tables_supplements:
         # Organize table's index.
@@ -3190,8 +3193,8 @@ def merge_columns_tables_supplements_to_main(
         )
         # Merge data tables using database-style join.
         # Alternative is to use DataFrame.join().
-        table = pandas.merge(
-            table_main, # left table
+        table_merge = pandas.merge(
+            table_merge, # left table
             table_supplement, # right table
             left_on=None, # "identifier_main"
             right_on=None, # "identifier_supplement"
@@ -3202,12 +3205,12 @@ def merge_columns_tables_supplements_to_main(
         )
         pass
     # Organize table's index.
-    table.reset_index(
+    table_merge.reset_index(
         level=None,
         inplace=True,
         drop=False, # remove index; do not move to regular columns
     )
-    #table.set_index(
+    #table_merge.set_index(
     #    "identifier_genotype",
     #    append=False,
     #    drop=True, # move regular column to index; remove original column
@@ -3219,14 +3222,14 @@ def merge_columns_tables_supplements_to_main(
         print("report: ")
         print("merge_columns_tables_supplements_to_main()")
         print_terminal_partition(level=3)
-        print("table columns: " + str(int(table.shape[1])))
-        print("table rows: " + str(int(table.shape[0])))
+        print("table columns: " + str(int(table_merge.shape[1])))
+        print("table rows: " + str(int(table_merge.shape[0])))
         print("columns")
-        print(table.columns.to_list())
-        print(table)
+        print(table_merge.columns.to_list())
+        print(table_merge)
         pass
     # Return information.
-    return table
+    return table_merge
 
 
 def merge_columns_two_tables(
