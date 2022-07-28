@@ -3175,7 +3175,7 @@ def calculate_table_column_pair_correlations(
     )
     # Report.
     if report:
-        utility.print_terminal_partition(level=4)
+        print_terminal_partition(level=4)
         print("Correlations between pair of columns")
         print("column one: " + str(column_one))
         print("column_two: " + str(column_two))
