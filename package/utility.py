@@ -3200,6 +3200,81 @@ def calculate_table_column_pair_correlations(
     return pail
 
 
+def drive_calculate_table_column_pair_correlations(
+    entries_cohorts=None,
+    name_one=None,
+    name_two=None,
+    records_comparisons=None,
+    report=None,
+):
+    """
+    Drives the calculation of Pearson, Spearman, and Kendall correlations
+    between pairs of variables (columns) within tables representing
+    stratification cohorts. Organizes information from these correlations within
+    a summary table.
+
+    arguments:
+        entries_cohorts (dict<dict<object>>): information about variables within
+            Pandas data frame tables that represent stratification cohorts
+        name_one (str): common name for the first variable in comparisons
+        name_two (str): common name for the second variable in comparisons
+        records_comparisons (list<dic<str>>): information for comparisons
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data frame of information about correlations
+
+    """
+
+    # Collect records of information about correlations between variables within
+    # cohorts.
+    records_correlations = list()
+    # Calculate and report correlations between variables within cohorts.
+    for record_comparison in records_comparisons:
+        record = dict()
+        record["cohort"] = record_comparison["cohort"]
+        record[name_one] = record_comparison["one"]
+        record[name_two] = record_comparison["two"]
+        pail = calculate_table_column_pair_correlations(
+            column_one=record[name_one],
+            column_two=record[name_two],
+            table=entries_cohorts[record["cohort"]]["table"],
+            report=report,
+        )
+        record.update(pail)
+        records_correlations.append(record)
+        pass
+
+    # Organize table.
+    table = pandas.DataFrame(data=records_correlations)
+    # Select columns.
+    # columns.insert(0, dependence)
+    columns = [
+        "cohort",
+        name_one, name_two,
+        "pairs",
+        "correlation_pearson", "probability_pearson",
+        "correlation_spearman", "probability_spearman",
+        "correlation_kendall", "probability_kendall",
+    ]
+    table = table.loc[:, table.columns.isin(columns)]
+    # Sort columns.
+    table = table[[*columns]]
+    # Report.
+    if report:
+        print_terminal_partition(level=4)
+        print("report: ")
+        print("drive_calculate_table_column_pair_correlations()")
+        print_terminal_partition(level=5)
+        print(table)
+        pass
+    # Return information.
+    return table
+
+
+
 ##########################
 # Basic operations on Pandas dataframe tables
 ###############################
