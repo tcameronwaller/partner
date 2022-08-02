@@ -1861,18 +1861,18 @@ def plot_boxes_groups(
         },
         medianprops={
             "linestyle": "solid",
-            "linewidth": 2.5, # 1.0, 2.5, 5.0
+            "linewidth": 5.0, # 1.0, 2.5, 5.0
             "color": colors["black"],
         },
         meanprops={
             "marker": "D", # diamond
-            "markersize": 5.0,
+            "markersize": 10.0,
             "markeredgecolor": colors["orange"],
             "markerfacecolor": colors["orange"],
         },
         whiskerprops={
             "linestyle": "solid",
-            "linewidth": 2.5,
+            "linewidth": 3.5,
             "color": colors["black"],
         },
     )
@@ -1908,7 +1908,7 @@ def plot_boxes_groups(
         length=10.0, # 5.0, 15.0
         width=7.5, # 3.0, 11.0
         color=colors["black"],
-        pad=5,
+        pad=10,
         labelsize=fonts["values"]["five"]["size"],
         labelcolor=colors["black"]
     )
