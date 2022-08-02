@@ -1857,7 +1857,7 @@ def plot_boxes_groups(
         showmeans=True, # whether to show marker (point or line) for mean
         meanline=False, # whether to show line for mean
         boxprops={
-            "linestyle": "None",
+            "linestyle": None,
         },
         medianprops={
             "linestyle": "solid",
