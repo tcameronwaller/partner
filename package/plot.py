@@ -94,7 +94,7 @@ def define_font_properties():
         "variant": "normal",
         "stretch": 1000, # '1000' is the maximal permissable font stretch
         "weight": 1000, # '1000' is the maximal permissable font weight
-        "size": 70
+        "size": 70,
     }
     values_2 = {
         "family": "sans-serif",
@@ -102,7 +102,7 @@ def define_font_properties():
         "variant": "normal",
         "stretch": 1000, # '1000' is the maximal permissable font stretch
         "weight": 1000, # '1000' is the maximal permissable font weight
-        "size": 60
+        "size": 60,
     }
     values_3 = {
         "family": "sans-serif",
@@ -110,7 +110,7 @@ def define_font_properties():
         "variant": "normal",
         "stretch": 1000, # '1000' is the maximal permissable font stretch
         "weight": 1000, # '1000' is the maximal permissable font weight
-        "size": 50
+        "size": 50,
     }
     values_4 = {
         "family": "sans-serif",
@@ -118,47 +118,47 @@ def define_font_properties():
         "variant": "normal",
         "stretch": 1000, # '1000' is the maximal permissable font stretch
         "weight": 1000, # '1000' is the maximal permissable font weight
-        "size": 40
+        "size": 45,
     }
     values_5 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
-        "stretch": 900,
-        "weight": 900,
-        "size": 30
+        "stretch": 950, # '1000' is the maximal permissable font stretch
+        "weight": 950, # '1000' is the maximal permissable font weight
+        "size": 40,
     }
     values_6 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
-        "stretch": 750,
-        "weight": 750,
-        "size": 20
+        "stretch": 900,
+        "weight": 900,
+        "size": 30,
     }
     values_7 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
-        "stretch": 500,
-        "weight": 500,
-        "size": 17
+        "stretch": 750,
+        "weight": 750,
+        "size": 20,
     }
     values_8 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
-        "stretch": 400,
-        "weight": 400,
-        "size": 15
+        "stretch": 500,
+        "weight": 500,
+        "size": 17,
     }
     values_9 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
-        "stretch": 300,
-        "weight": 300,
-        "size": 13
+        "stretch": 400,
+        "weight": 400,
+        "size": 15,
     }
     values_10 = {
         "family": "sans-serif",
@@ -166,31 +166,39 @@ def define_font_properties():
         "variant": "normal",
         "stretch": 300,
         "weight": 300,
-        "size": 10
+        "size": 13,
     }
     values_11 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
-        "stretch": 200,
-        "weight": 200,
-        "size": 7
+        "stretch": 300,
+        "weight": 300,
+        "size": 10,
     }
     values_12 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
-        "stretch": 150,
-        "weight": 150,
-        "size": 5
+        "stretch": 200,
+        "weight": 200,
+        "size": 7,
     }
     values_13 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
+        "stretch": 150,
+        "weight": 150,
+        "size": 5,
+    }
+    values_14 = {
+        "family": "sans-serif",
+        "style": "normal",
+        "variant": "normal",
         "stretch": 100,
         "weight": 100,
-        "size": 3
+        "size": 3,
     }
     # Define font properties.
     properties_1 = matplotlib.font_manager.FontProperties(
@@ -297,6 +305,14 @@ def define_font_properties():
         weight=values_13["weight"],
         size=values_13["size"]
     )
+    properties_14 = matplotlib.font_manager.FontProperties(
+        family=values_14["family"],
+        style=values_14["style"],
+        variant=values_14["variant"],
+        stretch=values_14["stretch"],
+        weight=values_14["weight"],
+        size=values_14["size"]
+    )
     # Compile and return references.
     return {
         "values": {
@@ -313,6 +329,7 @@ def define_font_properties():
             "eleven": values_11,
             "twelve": values_12,
             "thirteen": values_13,
+            "fourteen": values_14,
         },
         "properties": {
             "one": properties_1,
@@ -328,6 +345,7 @@ def define_font_properties():
             "eleven": properties_11,
             "twelve": properties_12,
             "thirteen": properties_13,
+            "fourteen": properties_14,
         }
     }
 
@@ -1764,6 +1782,9 @@ def plot_bar_stack(
 
 # https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.violinplot.html#matplotlib.pyplot.violinplot
 
+# TODO: TCW; 02 August 2022
+# TODO: make the lines of the box plots thicker for readability in a larger figure.
+
 def plot_boxes_groups(
     values_groups=None,
     title_ordinate=None,
@@ -1863,7 +1884,7 @@ def plot_boxes_groups(
         width=7.5, # 3.0, 11.0
         color=colors["black"],
         pad=5,
-        labelsize=fonts["values"]["three"]["size"],
+        labelsize=fonts["values"]["four"]["size"],
         labelcolor=colors["black"]
     )
     # Include label or labels on plot area.
