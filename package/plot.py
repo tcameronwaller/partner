@@ -1858,7 +1858,7 @@ def plot_boxes_groups(
         meanline=False, # whether to show line for mean
         boxprops={
             "linestyle": "solid",
-            "linewidth": 1.0,
+            "linewidth": 5.0,
             "color": colors["black"],
         },
         medianprops={
@@ -1868,7 +1868,7 @@ def plot_boxes_groups(
         },
         meanprops={
             "marker": "D", # diamond
-            "markersize": 20.0, # 10.0, 20.0
+            "markersize": 15.0, # 10.0, 20.0
             "markeredgecolor": colors["orange"],
             "markerfacecolor": colors["orange"],
         },
