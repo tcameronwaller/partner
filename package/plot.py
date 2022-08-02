@@ -361,7 +361,7 @@ def define_color_properties():
     blue = (0.0, 0.35, 0.75, 1.0)
     # Blue, Ukraine (red: 0; green: 91; blue: 187).
     blue_ukraine = (0.0, 0.36, 0.73, 1.0)
-    # Blue, Navy (red: 26; green: 64; blue: 176).
+    # Blue, Navy (red: 26; green: 64; blue: 179).
     blue_navy = (0.1, 0.25, 0.7, 1.0)
     blue_navy_faint = (0.0, 0.2, 0.5, 0.75)
     # Purple (red: 204; green: 64; blue: 204).
@@ -1823,7 +1823,7 @@ def plot_boxes_groups(
     # Create boxes.
     handle = axes.boxplot(
         values_groups,
-        notch=False,
+        notch=False, # whether to draw notch at center of box
         showfliers=False, # whether to show flier (outlier) points
         vert=False, # whether box groups across horizontal axis
         widths=0.7,
@@ -1836,15 +1836,16 @@ def plot_boxes_groups(
         box_patch.set_facecolor(color_box)
         pass
     # Label axes.
-    axes.set_xlabel(
-        xlabel=title_abscissa,
-        labelpad=20,
-        alpha=1.0,
-        backgroundcolor=colors["white"],
-        color=colors["black"],
-        fontproperties=fonts["properties"]["four"],
-        rotation="horizontal",
-    )
+    if len(title_abscissa) > 0:
+        axes.set_xlabel(
+            xlabel=title_abscissa,
+            labelpad=20,
+            alpha=1.0,
+            backgroundcolor=colors["white"],
+            color=colors["black"],
+            fontproperties=fonts["properties"]["four"],
+            rotation="horizontal",
+        )
     if len(title_ordinate) > 0:
         axes.set_ylabel(
             ylabel=title_ordinate,
@@ -1858,11 +1859,11 @@ def plot_boxes_groups(
         axis="both",
         which="both",
         direction="out",
-        length=5.0,
-        width=3.0,
+        length=10.0, # 5.0, 15.0
+        width=7.5, # 3.0, 11.0
         color=colors["black"],
         pad=5,
-        labelsize=fonts["values"]["four"]["size"],
+        labelsize=fonts["values"]["three"]["size"],
         labelcolor=colors["black"]
     )
     # Include label or labels on plot area.
