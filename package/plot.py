@@ -1858,8 +1858,8 @@ def plot_boxes_groups(
         meanline=False, # whether to show line for mean
         boxprops={
             "linestyle": "solid",
-            "linewidth": 5.0,
-            "color": color_box,
+            "linewidth": 1.0,
+            "color": colors["black"],
         },
         medianprops={
             "linestyle": "solid",
