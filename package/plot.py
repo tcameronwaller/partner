@@ -1802,6 +1802,9 @@ def plot_boxes_groups(
     Creates a figure of a chart of type box plot to represent the distribution
     of multiple series of values.
 
+    https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.boxplot.html
+    https://towardsdatascience.com/understanding-boxplots-5e2df7bcbd51
+
     arguments:
         values_groups (list<array>): NumPy arrays of non-missing values for each
             group
@@ -1851,7 +1854,29 @@ def plot_boxes_groups(
         patch_artist=True,
         labels=titles_abscissa_groups,
         manage_ticks=True,
+        showmeans=True, # whether to show marker (point or line) for mean
+        meanline=False, # whether to show line for mean
+        boxprops={
+            "linestyle": "",
+        },
+        medianprops={
+            "linestyle": "solid",
+            "linewidth": 2.5, # 1.0, 2.5, 5.0
+            "color": colors["black"],
+        },
+        meanprops={
+            "marker"="D", # diamond
+            "markersize"=5.0,
+            "markeredgecolor"=colors["orange"],
+            "markerfacecolor"=colors["orange"],
+        },
+        whiskerprops={
+            "linestyle": "solid",
+            "linewidth": 2.5,
+            "color": colors["black"],
+        },
     )
+
     # Fill boxes with colors.
     for box_patch, color_box in zip(handle["boxes"], colors_groups):
         box_patch.set_facecolor(color_box)
@@ -1884,7 +1909,7 @@ def plot_boxes_groups(
         width=7.5, # 3.0, 11.0
         color=colors["black"],
         pad=5,
-        labelsize=fonts["values"]["four"]["size"],
+        labelsize=fonts["values"]["five"]["size"],
         labelcolor=colors["black"]
     )
     # Include label or labels on plot area.
@@ -2591,7 +2616,7 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
         elinewidth=11.0, # 7.5
         barsabove=False, # whether to print error bars in layer above points,
         linestyle="",
-        marker="^", # marker shape: up triangle
+        marker="D", # "^" marker shape: up triangle
         markersize=size_marker_two, # 5, 15
         markeredgecolor=colors[color_marker_two], # colors["green"],
         markerfacecolor=colors[color_marker_two], # colors["green"],
