@@ -1865,10 +1865,10 @@ def plot_boxes_groups(
             "color": colors["black"],
         },
         meanprops={
-            "marker"="D", # diamond
-            "markersize"=5.0,
-            "markeredgecolor"=colors["orange"],
-            "markerfacecolor"=colors["orange"],
+            "marker": "D", # diamond
+            "markersize": 5.0,
+            "markeredgecolor": colors["orange"],
+            "markerfacecolor": colors["orange"],
         },
         whiskerprops={
             "linestyle": "solid",
