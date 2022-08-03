@@ -1968,6 +1968,8 @@ def plot_boxes_groups(
             labelsize=fonts["values"]["five"]["size"],
             labelcolor=colors["black"],
             labelrotation=60.0, # 45.0, 60,0
+            horizontalalignment="right",
+            position=(-0.25, 0.0), # (-0.5, 0.0)
         )
 
     # Include label or labels on plot area.
