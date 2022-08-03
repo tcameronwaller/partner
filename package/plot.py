@@ -1782,8 +1782,6 @@ def plot_bar_stack(
 
 # https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.violinplot.html#matplotlib.pyplot.violinplot
 
-# TODO: TCW; 02 August 2022
-# TODO: make the lines of the box plots thicker for readability in a larger figure.
 
 def plot_boxes_groups(
     values_groups=None,
@@ -1794,7 +1792,8 @@ def plot_boxes_groups(
     label_top_center=None,
     label_top_left=None,
     label_top_right=None,
-    orientation=None,
+    aspect=None,
+    orientation_box=None,
     fonts=None,
     colors=None,
 ):
@@ -1817,8 +1816,10 @@ def plot_boxes_groups(
         label_top_center (str): label for top center of plot area
         label_top_left (str): label for top left of plot area
         label_top_right (str): label for top right of plot area
-        orientation (str): orientation of figure, either "portrait" or
-            "landscape"
+        aspect (str): orientation and aspect ratio of figure: either 'portrait',
+            'landscape', or 'landscape_half_height'
+        orientation_box (str): whether the orientation of boxes is 'horizontal'
+            or 'vertical'
         fonts (dict<object>): references to definitions of font properties
         colors (dict<tuple>): references to definitions of color properties
 
@@ -1832,24 +1833,33 @@ def plot_boxes_groups(
     #colors_groups = list(seaborn.color_palette("hls", n_colors=color_count))
 
     # Create figure.
-    if orientation == "portrait":
+    if aspect == "portrait":
         figure = matplotlib.pyplot.figure(
-            figsize=(11.811, 15.748),
+            figsize=(11.811, 15.748), # aspect 3 X 4; 15.748 inches = 39.999 cm
             tight_layout=True
         )
-    elif orientation == "landscape":
+    elif aspect == "landscape":
         figure = matplotlib.pyplot.figure(
-            figsize=(15.748, 11.811),
+            figsize=(15.748, 11.811), # aspect 4 X 3; 11.811 inches = 29.999 cm
+            tight_layout=True
+        )
+    elif aspect == "landscape_half_height":
+        figure = matplotlib.pyplot.figure(
+            figsize=(15.748, 5.906), # aspect 4 X 1.5; 5.906 inches = 15.001 cm
             tight_layout=True
         )
     # Create axes.
     axes = matplotlib.pyplot.axes()
     # Create boxes.
+    if orientation_box == "horizontal":
+        boxes_vertical = False
+    elif orientation_box == "vertical":
+        boxes_vertical = True
     handle = axes.boxplot(
         values_groups,
         notch=False, # whether to draw notch at center of box
         showfliers=False, # whether to show flier (outlier) points
-        vert=False, # whether box groups across horizontal axis
+        vert=boxes_vertical, # whether box groups across horizontal axis
         widths=0.7,
         patch_artist=True,
         labels=titles_abscissa_groups,
