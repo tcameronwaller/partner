@@ -1817,7 +1817,7 @@ def plot_boxes_groups(
         label_top_left (str): label for top left of plot area
         label_top_right (str): label for top right of plot area
         aspect (str): orientation and aspect ratio of figure: either 'portrait',
-            'landscape', or 'landscape_half_height'
+            'portrait_half_width', 'landscape', or 'landscape_half_height'
         orientation_box (str): whether the orientation of boxes is 'horizontal'
             or 'vertical'
         fonts (dict<object>): references to definitions of font properties
@@ -1836,6 +1836,11 @@ def plot_boxes_groups(
     if aspect == "portrait":
         figure = matplotlib.pyplot.figure(
             figsize=(11.811, 15.748), # aspect 3 X 4; 15.748 inches = 39.999 cm
+            tight_layout=True
+        )
+    elif aspect == "portrait_half_width":
+        figure = matplotlib.pyplot.figure(
+            figsize=(5.906, 15.748), # aspect 1.5 X 4; 5.906 inches = 15.001 cm
             tight_layout=True
         )
     elif aspect == "landscape":
@@ -1913,17 +1918,58 @@ def plot_boxes_groups(
             color=colors["black"],
             fontproperties=fonts["properties"]["four"]
         )
-    axes.tick_params(
-        axis="both",
-        which="both",
-        direction="out",
-        length=10.0, # 5.0, 15.0
-        width=7.5, # 3.0, 11.0
-        color=colors["black"],
-        pad=10,
-        labelsize=fonts["values"]["five"]["size"],
-        labelcolor=colors["black"]
-    )
+
+    # Set tick parameters for axes.
+    if orientation_box == "horizontal":
+        # No label rotation necessary for horizontal orientation.
+        axes.tick_params(
+            axis="y", # "y", "x", or "both"
+            which="both",
+            direction="out",
+            length=10.0, # 5.0, 10.0, 15.0
+            width=7.5, # 3.0, 7.5, 11.0
+            color=colors["black"],
+            pad=10,
+            labelsize=fonts["values"]["five"]["size"],
+            labelcolor=colors["black"],
+        )
+        axes.tick_params(
+            axis="x", # "y", "x", or "both"
+            which="both",
+            direction="out",
+            length=10.0, # 5.0, 10.0, 15.0
+            width=7.5, # 3.0, 7.5, 11.0
+            color=colors["black"],
+            pad=10,
+            labelsize=fonts["values"]["five"]["size"],
+            labelcolor=colors["black"],
+        )
+    elif orientation_box == "vertical":
+        # Label rotation necessary for vertical orientation.
+        axes.tick_params(
+            axis="y", # "y", "x", or "both"
+            which="both",
+            direction="out",
+            length=10.0, # 5.0, 10.0, 15.0
+            width=7.5, # 3.0, 7.5, 11.0
+            color=colors["black"],
+            pad=10,
+            labelsize=fonts["values"]["five"]["size"],
+            labelcolor=colors["black"],
+        )
+        axes.tick_params(
+            axis="x", # "y", "x", or "both"
+            which="both",
+            direction="out",
+            length=10.0, # 5.0, 10.0, 15.0
+            width=7.5, # 3.0, 7.5, 11.0
+            color=colors["black"],
+            pad=10,
+            labelsize=fonts["values"]["five"]["size"],
+            labelcolor=colors["black"],
+            labelrotation=60.0, # 45.0, 60,0
+        )
+
     # Include label or labels on plot area.
     if len(label_top_center) > 0:
         matplotlib.pyplot.text(
