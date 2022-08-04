@@ -362,6 +362,15 @@ def define_color_properties():
         (dict<tuple>): references to definitions of color properties
 
     """
+    # (0.1 * 255) = 25.5
+    # (0.2 * 255) = 51.0
+    # (0.3 * 255) = 76.5
+    # (0.4 * 255) = 102.0
+    # (0.5 * 255) = 127.5
+    # (0.6 * 255) = 153.0
+    # (0.7 * 255) = 178.5
+    # (0.8 * 255) = 204.0
+    # (0.9 * 255) = 229.5
 
     # Black.
     black = (0.0, 0.0, 0.0, 1.0)
@@ -375,24 +384,19 @@ def define_color_properties():
     # Clear.
     clear = (1.0, 1.0, 1.0, 0.0)
     clear_faint = (1.0, 1.0, 1.0, 0.25)
-    # Blue.
-    blue = (0.0, 0.35, 0.75, 1.0)
-    # Blue, Ukraine (red: 0; green: 91; blue: 187).
-    blue_ukraine = (0.0, 0.36, 0.73, 1.0)
-    # Blue, Navy (red: 26; green: 64; blue: 179).
-    blue_navy = (0.1, 0.25, 0.7, 1.0)
-    blue_navy_faint = (0.0, 0.2, 0.5, 0.75)
-    # Purple (red: 204; green: 64; blue: 204).
-    purple = (0.8, 0.25, 0.8, 1.0)
+
+    blue_navy = (0.1, 0.2, 0.6, 1.0) # (red: 26; green: 51; blue: 153)
+    blue_navy_faint = (0.1, 0.2, 0.6, 0.75)
+    blue_navy_light = (0.1, 0.3, 0.7, 1.0) # (red: 26; green: 77; blue: 179)
+    blue_sky = (0.1, 0.6, 0.9, 1.0) # (red: 26; green: 153; blue: 230)
+    purple = (0.7, 0.1, 0.7, 1.0) # (red: 179; green: 26; blue: 179)
+    orange = (1.0, 0.6, 0.2, 1.0) # (red: 255; green: 153; blue: 51)
+    orange_faint = (1.0, 0.6, 0.2, 0.75)
+
     # Green (red: 64; green: 191; blue: 64).
     green = (0.25, 0.75, 0.25, 1.0) # a brighter green, similar to "Malachite"
-    # Orange (red: 255; green: 165; blue: 50).
-    orange = (1.0, 0.65, 0.2, 1.0)
-    orange_faint = (1.0, 0.6, 0.2, 0.75)
     # Yellow.
     yellow = (1.0, 0.8, 0.0, 1.0)
-    # Yellow, Ukraine (red: 255; green: 213; blue: 0).
-    yellow_ukraine = (1.0, 0.84, 0.0, 1.0)
     # Compile and return references.
     return {
         "black": black,
@@ -403,16 +407,15 @@ def define_color_properties():
         "white_faint": white_faint,
         "clear": clear,
         "clear_faint": clear_faint,
-        "blue": blue,
-        "blue_ukraine": blue_ukraine,
         "blue_navy": blue_navy,
         "blue_navy_faint": blue_navy_faint,
+        "blue_navy_light": blue_navy_light,
+        "blue_sky": blue_sky,
         "purple": purple,
         "green": green,
         "orange": orange,
         "orange_faint": orange_faint,
         "yellow": yellow,
-        "yellow_ukraine": yellow_ukraine,
     }
 
 
@@ -1970,20 +1973,23 @@ def plot_boxes_groups(
             #labelrotation=45.0, # 45.0, 60,0
             #rotation_mode="anchor",
             #horizontalalignment="right", # not supported in current version
-            #ha="right",
             #position=(-0.25, 0.0), # (-0.5, 0.0)
         )
+        #axes.set_xticklabels(axes.get_xticklabels(), ha="right")
+        #axes.set_xticklabels(axes.get_xticklabels(), rotation=45.0, ha="right")
+        #axes.axis["bottom"].major_ticklabels.set_ha("right")
+
+        # Access and modify the tick labels as text objects.
         for text_tick in axes.get_xticklabels():
+            # set_horizontalalignment()
+            # set_rotation()
+            # set_rotation_mode()
             text_tick.set(
                 rotation=45.0,
                 rotation_mode="anchor",
                 horizontalalignment="right",
                 verticalalignment="top",
             )
-
-        #axes.set_xticklabels(axes.get_xticklabels(), ha="right")
-        #axes.set_xticklabels(axes.get_xticklabels(), rotation=45.0, ha="right")
-        #axes.axis["bottom"].major_ticklabels.set_ha("right")
 
     # Include label or labels on plot area.
     if len(label_top_center) > 0:
