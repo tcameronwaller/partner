@@ -1967,13 +1967,21 @@ def plot_boxes_groups(
             pad=10,
             labelsize=fonts["values"]["five"]["size"],
             labelcolor=colors["black"],
-            labelrotation=45.0, # 45.0, 60,0
-            rotation_mode="anchor",
+            #labelrotation=45.0, # 45.0, 60,0
+            #rotation_mode="anchor",
             #horizontalalignment="right", # not supported in current version
             #ha="right",
             #position=(-0.25, 0.0), # (-0.5, 0.0)
         )
-        axes.set_xticklabels(axes.get_xticklabels(), ha="right")
+        for text_tick in axes.get_xticklabels():
+            text_tick.set(
+                rotation=45.0,
+                rotation_mode="anchor",
+                horizontalalignment="right",
+                verticalalignment="top",
+            )
+
+        #axes.set_xticklabels(axes.get_xticklabels(), ha="right")
         #axes.set_xticklabels(axes.get_xticklabels(), rotation=45.0, ha="right")
         #axes.axis["bottom"].major_ticklabels.set_ha("right")
 
