@@ -388,7 +388,7 @@ def define_color_properties():
     blue_navy = (0.1, 0.2, 0.6, 1.0) # (red: 26; green: 51; blue: 153)
     blue_navy_faint = (0.1, 0.2, 0.6, 0.75)
     blue_navy_light = (0.1, 0.3, 0.7, 1.0) # (red: 26; green: 77; blue: 179)
-    blue_sky = (0.1, 0.6, 0.9, 1.0) # (red: 26; green: 153; blue: 230)
+    blue_sky = (0.1, 0.6, 1.0, 1.0) # (red: 26; green: 153; blue: 255)
     purple = (0.7, 0.1, 0.7, 1.0) # (red: 179; green: 26; blue: 179)
     orange = (1.0, 0.6, 0.2, 1.0) # (red: 255; green: 153; blue: 51)
     orange_faint = (1.0, 0.6, 0.2, 0.75)
