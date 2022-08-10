@@ -4,10 +4,9 @@
 ###########################################################################
 ###########################################################################
 
-# "Organize linear GWAS summary statistics in format for analysis by team."
+# "Organize logistic GWAS summary statistics in format for analysis by team."
 
 # review: TCW; 10 August 2022
-# review: TCW; 03 June 2022
 
 ###########################################################################
 ###########################################################################
@@ -61,15 +60,15 @@ fi
 # Constrain probability values from 1.0E-305 to 1.0.
 zcat $path_file_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_file_temporary_constraint
 zcat $path_file_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
-  if ( NF != 13)
+  if ( NF != 15)
     # Skip any rows with incorrect count of column fields.
     next
-  else if ( ( $13 != "NA" ) && ( ($13 + 0) < 1.0E-305 ) )
+  else if ( ( $15 != "NA" ) && ( ($15 + 0) < 1.0E-305 ) )
     # Constrain probability value.
-    print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, ( 1.0E-305 )
-  else if ( ( $13 != "NA" ) && ( ($13 + 0) > 1.0 ) )
+    print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, ( 1.0E-305 )
+  else if ( ( $15 != "NA" ) && ( ($15 + 0) > 1.0 ) )
     # Constrain probability value.
-    print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, ( 1.0 )
+    print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, ( 1.0 )
   else
     print $0
   }' >> $path_file_temporary_constraint
@@ -106,23 +105,24 @@ zcat $path_file_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
 # alternate allele (effect allele): .......  "A1" .................  "A1" ..................  6
 # reference allele (non-effect allele): ...  "A2" .................  "REF" or "ALT" ........  4 or 5
 # alternate allele frequency: .............  "A1AF" ...............  "A1_FREQ" .............  7
-# effect (coefficient): ...................  "BETA" ...............  "BETA" ................ 10
-# effect standard error: ..................  "SE" .................  "SE" .................. 11
-# probability (p-value): ..................  "P" ..................  "P" ................... 13
-# count total samples: ....................  "N" ..................  "OBS_CT" ..............  9
-# probability (p-value): ..................  "Z" ..................  "NA" .................. (BETA / SE) # division by zero
+# effect (coefficient): ...................  "BETA" ...............  "OR" .................. 12
+# effect standard error: ..................  "SE" .................  "LOG(OR)_SE" .......... 13
+# probability (p-value): ..................  "P" ..................  "P" ................... 15
+# count total samples: ....................  "N" ..................  "OBS_CT" .............. 11
+# probability (p-value): ..................  "Z" ..................  "Z_STAT" .............. 14
 # imputation quality score: ...............  "INFO" ...............  "NA" .................. NA
 # count case samples: .....................  "NCASE" ..............  "NA" .................. NA
 # count control samples: ..................  "NCONT" ..............  "NA" .................. NA
 
 # Organize information from linear GWAS.
 # Select relevant columns and place them in the correct order.
+# Convert original 'odds ratio' to 'log odds' or 'coefficient'.
 echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format
 cat $path_file_temporary_constraint | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   if ($6 == $5 && $6 != $4)
-    print $3, $1, $2, toupper($6), toupper($4), $7, $10, $11, $13, $9, "NA", (1), "NA", "NA"
+    print $3, $1, $2, toupper($6), toupper($4), $7, (log($12)), $13, $15, $11, $14, (1), "NA", "NA"
   else if ($6 == $4 && $6 != $5)
-    print $3, $1, $2, toupper($6), toupper($5), $7, $10, $11, $13, $9, "NA", (1), "NA", "NA"
+    print $3, $1, $2, toupper($6), toupper($5), $7, (log($12)), $13, $15, $11, $14, (1), "NA", "NA"
   else
     next
   }' >> $path_file_temporary_format
