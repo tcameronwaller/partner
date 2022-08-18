@@ -18,7 +18,7 @@
 ### -e "./error"
 # Queue.
 # "1-hour", "1-day", "4-day", "7-day", "30-day", "lg-mem"
-#$ -q 1-hour
+#$ -q 1-day
 # Priority 0-15.
 ### -p -10
 # Memory per iteration.
@@ -40,17 +40,31 @@
 ################################################################################
 # Note.
 
+# TCW; 18 August 2022
+# On genotypes from the Mayo Clinic Bipolar Biobank, PRS-CSX ran successfully
+# with allocations of 1 thread ("-pe threaded 1"), 16 Gigabytes of memory
+# ("-l h_vmem=16G"), and 1 hour of process time ("-q 1-hour").
+# With these allocations, PRS-CSX ran to completion on genotypes for most
+# chromosomes.
+# The SGE manager killed instance jobs for chromosomes 1, 2, 3, 6, and 8
+# presumably because they required more than 1 hour to run.
+
+# Recommendation of allocations for approximately 3,000 genotypes with
+# stratification by chromosome:
+# 24 hours of process time ("-q 1-day")
+# 1 thread ("-pe threaded 1")
+# 16 Gigabytes of memory ("-l h_vmem=16G")
 
 ################################################################################
 # Organize argument variables.
 
-path_batch_instances=${1} # text list of information for each instance in batch
+path_file_batch_instances=${1} # text list of information for each instance in batch
 batch_instances_count=${2} # count of instances in batch
-path_source_gwas_summary=${3} # full path to source GWAS summary statistics in format for PRS-CS
+path_file_gwas_summary=${3} # full path to source GWAS summary statistics in format for PRS-CS
 count_gwas_samples=${4} # integer count of samples for the GWAS study
-path_genetic_reference_prscs=${5} # full path to directory for genetic references
+path_directory_genetic_reference_prscs=${5} # full path to directory for genetic references
 population_ancestry=${6} # character code of ancestral population of GWAS study: 'AFR', 'AMR', 'EAS', 'EUR', or 'SAS'
-path_product_allele_effect_directory=${7} # full path to directory for product reports on posterior allele effect size estimates
+path_directory_allele_effect=${7} # full path to directory for product reports on posterior allele effect size estimates
 threads=${8} # count of processing threads to use
 path_script_prscs_estimate_allelic_effects=${9} # full path to script for estimation of allelic posterior effects in PRS-CSX
 path_environment_prscs=${10} # full path to Python 3 environment with installation of CrossMap
@@ -62,14 +76,14 @@ report=${12} # whether to print reports
 
 # Determine batch instance.
 batch_index=$((SGE_TASK_ID-1))
-readarray -t batch_instances < $path_batch_instances
+readarray -t batch_instances < $path_file_batch_instances
 instance=${batch_instances[$batch_index]}
 
 # Separate fields from instance.
 IFS=";" read -r -a array <<< "${instance}"
 chromosome="${array[0]}"
-path_snp_relevance_bim_prefix="${array[1]}"
-name_file_product="${array[2]}"
+path_file_genotype_snp_bim_prefix="${array[1]}"
+name_file_allele_effect="${array[2]}"
 
 ###########################################################################
 # Execute procedure.
@@ -77,13 +91,13 @@ name_file_product="${array[2]}"
 if true; then
   # Estimate allelic effects in PRS-CSX.
   /usr/bin/bash "${path_script_prscs_estimate_allelic_effects}" \
-  $path_source_gwas_summary \
+  $path_file_gwas_summary \
   $count_gwas_samples \
-  $path_snp_relevance_bim_prefix \
-  $path_genetic_reference_prscs \
+  $path_file_genotype_snp_bim_prefix \
+  $path_directory_genetic_reference_prscs \
   $population_ancestry \
-  $path_product_allele_effect_directory \
-  $name_file_product \
+  $path_directory_allele_effect \
+  $name_file_allele_effect \
   $chromosome \
   $threads \
   $path_environment_prscs \
