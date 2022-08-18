@@ -23,7 +23,7 @@
 ### -p -10
 # Memory per iteration.
 # Segmentation errors commonly indicate a memory error.
-#$ -l h_vmem=4G
+#$ -l h_vmem=16G
 # Concurrent threads; assigns value to variable NSLOTS.
 # Important to specify 32 threads to avoid inconsistency with interactive
 # calculations.
