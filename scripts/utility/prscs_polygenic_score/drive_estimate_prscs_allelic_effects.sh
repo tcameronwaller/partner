@@ -7,6 +7,10 @@
 
 # This script calls PRS-CS to generate posterior effects across SNP alleles.
 
+
+# TODO: TCW; 17 August 2022
+# TODO: I think this script is obsolete... no longer necessary.
+
 ################################################################################
 ################################################################################
 ################################################################################
