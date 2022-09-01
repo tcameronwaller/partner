@@ -3279,6 +3279,7 @@ def drive_calculate_table_column_pair_correlations(
 # Basic operations on Pandas dataframe tables
 ###############################
 
+
 def merge_columns_tables_supplements_to_main(
     identifier_main=None,
     identifier_supplement=None,

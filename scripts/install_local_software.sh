@@ -142,6 +142,29 @@ wget https://github.com/LMMS/lmms/releases/download/v1.2.2/lmms-1.2.2-linux-x86_
 chmod +x ./lmms-1.2.2-linux-x86_64.AppImage
 ./lmms-1.2.2-linux-x86_64.AppImage
 
+# CHIRP
+# review: TCW; 21 August 2022
+# https://chirp.danplanet.com/projects/chirp
+# https://chirp.danplanet.com/projects/chirp/wiki/Running_Under_Linux
+# https://chirp.danplanet.com/projects/chirp/wiki/Beginners_Guide
+# https://chirp.danplanet.com/projects/chirp/wiki/MemoryEditorColumns
+# Installation on Linux Ubuntu via Flatpak repository.
+sudo apt install flatpak
+flatpak update
+sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+flatpak update
+cd ~/Downloads
+wget https://trac.chirp.danplanet.com/chirp_daily/LATEST/chirp-daily-20220823.flatpak
+sudo flatpak install chirp-daily-*.flatpak
+flatpak run com.danplanet.chirp
+# Allow user to access USB ports.
+sudo addgroup tcameronwaller dialout
+sudo usermod -aG dialout tcameronwaller
+dmesg | grep tty # determine to which USB port the radio is connected
+# /dev/ttyUSB0
+
+flatpak uninstall com.danplanet.chirp
+
 ##########
 # BCFTools
 # A bioinformatic tool for tasks on genotype files in Variant Call Format (VCF).
