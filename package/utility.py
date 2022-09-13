@@ -3362,6 +3362,12 @@ def merge_columns_tables_supplements_to_main(
             how="outer", # keep union of keys from both tables
             #suffixes=("_main", "_identifiers"), # deprecated?
         )
+        # Remove unnecessary columns from transformations on tables.
+        table_merge.drop(
+            labels=["index_x", "index_y", "index",],
+            axis="columns",
+            inplace=True
+        )
         pass
     # Organize table's index.
     table_merge.reset_index(
