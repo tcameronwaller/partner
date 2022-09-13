@@ -3314,12 +3314,18 @@ def merge_columns_tables_supplements_to_main(
     # Copy information in table.
     table_main = table_main.copy(deep=True)
 
-    # Organize table's index.
+    # Reset index in original main table.
     table_main.reset_index(
         level=None,
         inplace=True,
         drop=False, # remove index; do not move to regular columns
     )
+
+    # Collect columns in original main table.
+    # This collection must include the index.
+    columns_collection = copy.deepcopy(table_main.columns.to_list())
+
+    # Organize main table's index.
     table_main[identifier_main] = (
         table_main[identifier_main].astype("string")
     )
@@ -3333,17 +3339,19 @@ def merge_columns_tables_supplements_to_main(
     # Copy information in table.
     table_merge = table_main.copy(deep=True)
 
-    # Collect columns in main table.
-    columns_collection = copy.deepcopy(table_merge.columns.to_list())
-
     # Iterate on tables for polygenic scores.
     for table_supplement in tables_supplements:
-        # Organize table's index.
+        # Reset index in original supplement table.
         table_supplement.reset_index(
             level=None,
             inplace=True,
             drop=False, # remove index; do not move to regular columns
         )
+        # Collect columns in original supplement table.
+        # This collection must include the index.
+        columns_supplement = copy.deepcopy(table_supplement.columns.to_list())
+        columns_collection.extend(columns_supplement)
+        # Organize supplement table's index.
         table_supplement[identifier_supplement] = (
             table_supplement[identifier_supplement].astype("string")
         )
@@ -3353,9 +3361,6 @@ def merge_columns_tables_supplements_to_main(
             drop=True, # move regular column to index; remove original column
             inplace=True
         )
-        # Collect columns in supplement table.
-        columns_supplement = copy.deepcopy(table_supplement.columns.to_list())
-        columns_collection.extend(columns_supplement)
         # Merge data tables using database-style join.
         # Alternative is to use DataFrame.join().
         table_merge = pandas.merge(
@@ -3442,12 +3447,25 @@ def merge_columns_two_tables(
     table_first = table_first.copy(deep=True)
     table_second = table_second.copy(deep=True)
 
-    # Organize first table's index.
+    # Reset indices in original tables.
     table_first.reset_index(
         level=None,
         inplace=True,
-        drop=False, # remove index; do not move to regular columns
+        drop=False, # do not remove index; move to regular columns
     )
+    table_second.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # do not remove index; move to regular columns
+    )
+
+    # Collect columns in original tables.
+    # This collection must include the indices.
+    columns_collection = copy.deepcopy(table_first.columns.to_list())
+    columns_second = copy.deepcopy(table_second.columns.to_list())
+    columns_collection.extend(columns_second)
+
+    # Organize first table's index.
     table_first[identifier_first] = (
         table_first[identifier_first].astype("string")
     )
@@ -3457,13 +3475,7 @@ def merge_columns_two_tables(
         drop=True, # move regular column to index; remove original column
         inplace=True,
     )
-
     # Organize second table's index.
-    table_second.reset_index(
-        level=None,
-        inplace=True,
-        drop=False, # remove index; do not move to regular columns
-    )
     table_second[identifier_second] = (
         table_second[identifier_second].astype("string")
     )
@@ -3473,11 +3485,6 @@ def merge_columns_two_tables(
         drop=True, # move regular column to index; remove original column
         inplace=True,
     )
-
-    # Collect columns in original tables.
-    columns_collection = copy.deepcopy(table_first.columns.to_list())
-    columns_second = copy.deepcopy(table_second.columns.to_list())
-    columns_collection.extend(columns_second)
 
     # Merge data tables using database-style join.
     # Alternative is to use DataFrame.join().
