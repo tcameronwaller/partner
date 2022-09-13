@@ -655,6 +655,218 @@ def determine_binary_categorical_products_of_two_binary_variables(
     return table
 
 
+def interpret_raw_string_value_missingness_convert_to_float(
+    value_raw=None,
+):
+    """
+    Inteprets the missingness of a raw string value and converts this value to
+    a float.
+
+    Note:
+
+    arguments:
+        value_raw (str): raw string value for a floating point number
+
+    raises:
+
+    returns:
+        (float): interpretation value
+
+    """
+
+    # Alternative.
+    #table["variable"] = table["variable_raw"].astype("string").copy(
+    #    deep=True,
+    #)
+    #table["variable"].replace(
+    #    "",
+    #    numpy.nan,
+    #    inplace=True,
+    #)
+    #table["variable"] = table["variable"].astype("float")
+
+    # Interpret value.
+    if (
+        (not pandas.isna(value_raw)) and
+        (len(str(value_raw)) > 0)
+    ):
+        # The variable has a valid, non-missing value.
+        # Convert the value to a float.
+        interpretation = float(value_raw)
+    else:
+        # The variable has a missing or uninterpretable value
+        interpretation = float("nan")
+    # Return.
+    return interpretation
+
+
+def prioritize_combination_values_string(
+    value_priority=None,
+    value_spare=None,
+):
+    """
+    Determines the combination or consensus value between a clear priority and
+    spare.
+
+    arguments:
+        value_priority (str): priority value
+        value_spare (str): spare value that is only relevant if the priority
+            value is missing
+
+    raises:
+
+    returns:
+        (str): choice value
+
+    """
+
+    # Determine identifier of priority genotype.
+    if (
+        (not pandas.isna(value_priority)) and
+        (len(str(value_priority)) > 0)
+    ):
+        # Priority value is not missing.
+        choice = str(copy.deepcopy(value_priority))
+    elif (
+        (not pandas.isna(value_spare)) and
+        (len(str(value_spare)) > 0)
+    ):
+        # Priority value is missing.
+        # Spare value is not missing.
+        choice = str(copy.deepcopy(value_spare))
+        pass
+    else:
+        # Both priority and spare values are missing.
+        # There is not a value available.
+        choice = ""
+    # Return information.
+    return choice
+
+
+def prioritize_combination_values_float(
+    value_priority=None,
+    value_spare=None,
+):
+    """
+    Determines the combination or consensus value between a clear priority and
+    spare.
+
+    arguments:
+        value_priority (float): priority value
+        value_spare (float): spare value that is only relevant if the priority
+            value is missing
+
+    raises:
+
+    returns:
+        (float): choice value
+
+    """
+
+    # Determine identifier of priority genotype.
+    if (
+        (not pandas.isna(value_priority))
+    ):
+        # Priority value is not missing.
+        choice = float(copy.deepcopy(value_priority))
+    elif (
+        (not pandas.isna(value_spare))
+    ):
+        # Priority value is missing.
+        # Spare value is not missing.
+        choice = float(copy.deepcopy(value_spare))
+        pass
+    else:
+        # Both priority and spare values are missing.
+        # There is not a value available.
+        choice = float("nan")
+    # Return information.
+    return choice
+
+
+##########
+# Variable interpretations relevant and specific to human physiology
+
+
+def determine_human_physiology_age(
+    value_raw=None,
+):
+    """
+    Determines value of age with consideration of relevant range for human
+    physiology.
+
+    arguments:
+        value_raw (str): raw string value for an age
+
+    raises:
+
+    returns:
+        (float): interpretation value
+
+    """
+
+    # Interpret string value's missingness and convert to float.
+    value = interpret_raw_string_value_missingness_convert_to_float(
+        value_raw=value_raw,
+    )
+    # Comparison.
+    if (
+        (not pandas.isna(value)) and
+        (0.0 <= value and value < 150.0)
+    ):
+        # Value has a valid, non-missing value.
+        # Value is within a human physiologically relevant range.
+        age = value
+    else:
+        # Value has a missing value or is not within a human physiologically
+        # relevant range.
+        age = float("nan")
+    # Return information.
+    return age
+
+
+def determine_human_physiology_body_mass_index(
+    value_raw=None,
+):
+    """
+    Determines value of body mass index (BMI) with consideration of relevant
+    range for human physiology.
+
+    Maximum realistic body mass index (BMI) is less than 185, which would be the
+    BMI of a person with height 6 feet 1 inches and body weight 1,400 pounds.
+
+    https://www.nhlbi.nih.gov/health/educational/lose_wt/BMI/bmicalc.htm
+
+    arguments:
+        value_raw (str): raw string value for a body mass index
+
+    raises:
+
+    returns:
+        (float): interpretation value
+
+    """
+
+    # Interpret string value's missingness and convert to float.
+    value = interpret_raw_string_value_missingness_convert_to_float(
+        value_raw=value_raw,
+    )
+    # Comparison.
+    if (
+        (not pandas.isna(value)) and
+        (5.0 <= value and value < 190.0)
+    ):
+        # Value has a valid, non-missing value.
+        # Value is within a human physiologically relevant range.
+        body = value
+    else:
+        # Value has a missing value or is not within a human physiologically
+        # relevant range.
+        body = float("nan")
+    # Return information.
+    return body
+
+
 ##########
 # Read text from file
 
