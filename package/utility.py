@@ -1133,7 +1133,7 @@ def select_elements_by_sets(
     """
     Selects unique elements that belong to at a minimal count of specific sets.
 
-    This altorithm assumes that each element can belong to multiple sets but
+    This algorithm assumes that each element can belong to multiple sets but
     that each set's elements are unique or nonredundant.
 
     Data format
@@ -3333,6 +3333,9 @@ def merge_columns_tables_supplements_to_main(
     # Copy information in table.
     table_merge = table_main.copy(deep=True)
 
+    # Collect columns in main table.
+    columns_collection = copy.deepcopy(table_merge.columns.to_list())
+
     # Iterate on tables for polygenic scores.
     for table_supplement in tables_supplements:
         # Organize table's index.
@@ -3350,6 +3353,9 @@ def merge_columns_tables_supplements_to_main(
             drop=True, # move regular column to index; remove original column
             inplace=True
         )
+        # Collect columns in supplement table.
+        columns_supplement = copy.deepcopy(table_supplement.columns.to_list())
+        columns_collection.extend(columns_supplement)
         # Merge data tables using database-style join.
         # Alternative is to use DataFrame.join().
         table_merge = pandas.merge(
@@ -3361,12 +3367,6 @@ def merge_columns_tables_supplements_to_main(
             right_index=True, # "identifier_supplement"
             how="outer", # keep union of keys from both tables
             #suffixes=("_main", "_identifiers"), # deprecated?
-        )
-        # Remove unnecessary columns from transformations on tables.
-        table_merge.drop(
-            labels=["index_x", "index_y", "index",],
-            axis="columns",
-            inplace=True
         )
         pass
     # Organize table's index.
@@ -3381,6 +3381,18 @@ def merge_columns_tables_supplements_to_main(
     #    drop=True, # move regular column to index; remove original column
     #    inplace=True
     #)
+    # Determine unique columns from collection.
+    columns_collection = list(set(columns_collection))
+    # Remove unnecessary columns from transformations on tables.
+    # The goal is to avoid any columns from the merge operations themselves.
+    #table_merge.drop(
+    #    labels=["index_x", "index_y", "index",],
+    #    axis="columns",
+    #    inplace=True
+    #)
+    table_merge = table_merge.loc[
+        :, table_merge.columns.isin(columns_collection)
+    ]
     # Report.
     if report:
         print_terminal_partition(level=2)
@@ -3462,6 +3474,11 @@ def merge_columns_two_tables(
         inplace=True,
     )
 
+    # Collect columns in original tables.
+    columns_collection = copy.deepcopy(table_first.columns.to_list())
+    columns_second = copy.deepcopy(table_second.columns.to_list())
+    columns_collection.extend(columns_second)
+
     # Merge data tables using database-style join.
     # Alternative is to use DataFrame.join().
     table = pandas.merge(
@@ -3487,6 +3504,19 @@ def merge_columns_two_tables(
     #    drop=True, # move regular column to index; remove original column
     #    inplace=True
     #)
+    # Determine unique columns from collection.
+    columns_collection = list(set(columns_collection))
+    # Remove unnecessary columns from transformations on tables.
+    # The goal is to avoid any columns from the merge operations themselves.
+    #table_merge.drop(
+    #    labels=["index_x", "index_y", "index",],
+    #    axis="columns",
+    #    inplace=True
+    #)
+    table = table.loc[
+        :, table.columns.isin(columns_collection)
+    ]
+
     # Report.
     if report:
         print_terminal_partition(level=2)
