@@ -294,10 +294,6 @@ def organize_linear_logistic_regression_independence_tree(
                 (pail_tree["intercept"]["interval_95"])
             )
         )
-        pail_tree["intercept"]["summary"] = str(
-            "(b: " + str(round(pail_tree["intercept"]["parameter"], 5)) +
-            "; 95% CI: " + str(pail_tree["intercept"]["range_95"]) + ")"
-        )
         # Probability.
         pail_tree["intercept"]["probability"] = float(
             model_probabilities["const"]
@@ -305,6 +301,16 @@ def organize_linear_logistic_regression_independence_tree(
         # Variance Inflation Factor (VIF).
         # Missing or undefined for intercept?
         pail_tree["intercept"]["inflation"] = float("nan")
+        # Report summaries.
+        pail_tree["intercept"]["report_b95ci"] = str(
+            "b: " + str(round(pail_tree["intercept"]["parameter"], 5)) +
+            "; 95% CI: " + str(pail_tree["intercept"]["range_95"])
+        )
+        pail_tree["intercept"]["report_bep"] = str(
+            "b: " + str(round(pail_tree["intercept"]["parameter"], 5)) +
+            " (" + str(round(pail_tree["intercept"]["error"], 5)) +
+            "); p: " + str(round(pail_tree["intercept"]["probability"], 5))
+        )
     else:
         # Report.
         if report:
@@ -347,10 +353,6 @@ def organize_linear_logistic_regression_independence_tree(
                 (pail_tree[variable]["interval_95"])
             )
         )
-        pail_tree[variable]["summary"] = str(
-            "(b: " + str(round(pail_tree[variable]["parameter"], 5)) +
-            "; 95% CI: " + str(pail_tree[variable]["range_95"]) + ")"
-        )
         # Probability.
         pail_tree[variable]["probability"] = float(
             model_probabilities[variable]
@@ -363,6 +365,16 @@ def organize_linear_logistic_regression_independence_tree(
             )
         )
         pail_tree[variable]["inflation"] = round(inflation_value, 5)
+        # Report summaries.
+        pail_tree[variable]["report_b95ci"] = str(
+            "b: " + str(round(pail_tree[variable]["parameter"], 5)) +
+            "; 95% CI: " + str(pail_tree[variable]["range_95"])
+        )
+        pail_tree[variable]["report_bep"] = str(
+            "b: " + str(round(pail_tree[variable]["parameter"], 5)) +
+            " (" + str(round(pail_tree[variable]["error"], 5)) +
+            "); p: " + str(round(pail_tree[variable]["probability"], 5))
+        )
         # Increment index.
         counter += 1
         pass
@@ -680,7 +692,8 @@ def create_missing_regression_independent_variable(
     # Collect information for independent variable.
     pail = dict()
     # Create missing values for the independent variable in linear regression.
-    pail["summary"] = str("(rg: NAN; 95% CI: NAN ... NAN)")
+    pail["report_b95ci"] = str("b: NAN; 95% CI: NAN ... NAN")
+    pail["report_bep"] = str("b: NAN (NAN); p: NAN")
     pail["parameter"] = float("nan")
     pail["error"] = float("nan")
     pail["interval_95"] = float("nan")
@@ -1280,37 +1293,26 @@ def organize_table_regression_summary(
     # Copy information.
     table = table.copy(deep=True)
     # Define columns according to regression type.
+    columns = [
+        "cohort", "dependence",
+        "model_adjustment", "model_context",
+        "variable",
+        "report_bep", "report_b95ci",
+        "dependence_type",
+        "model", "model_note",
+        "independence",
+        "dependence_actual", "independence_actual",
+        "freedom", "observations", "samples",
+        "log_likelihood", "akaike", "bayes",
+        "variable_key",
+        "parameter", "error", "interval_95",
+        "range_95", "range_95_below", "range_95_above",
+        "probability", "inflation",
+    ]
     if (type == "linear"):
-        columns = [
-            "cohort",
-            "dependence", "dependence_type",
-            "model", "model_adjustment", "model_context", "model_note",
-            "summary",
-            "freedom", "observations", "samples",
-            "r_square", "r_square_adjust", "log_likelihood", "akaike", "bayes",
-            "condition",
-            "variable", "variable_key",
-            "parameter", "error", "interval_95",
-            "range_95", "range_95_below", "range_95_above",
-            "probability", "inflation",
-            "independence",
-            "dependence_actual", "independence_actual",
-        ]
+        columns.extend(["r_square", "r_square_adjust","condition",])
     elif (type == "logistic"):
-        columns = [
-            "cohort",
-            "dependence", "dependence_type",
-            "model", "model_adjustment", "model_context", "model_note",
-            "summary",
-            "freedom", "observations", "samples",
-            "r_square_pseudo", "log_likelihood", "akaike", "bayes",
-            "variable", "variable_key",
-            "parameter", "error", "interval_95",
-            "range_95", "range_95_below", "range_95_above",
-            "probability", "inflation",
-            "independence",
-            "dependence_actual", "independence_actual",
-        ]
+        columns.extend(["r_square_pseudo",])
     else:
         columns = list()
         pass
