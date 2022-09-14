@@ -685,10 +685,19 @@ def interpret_raw_string_value_missingness_convert_to_float(
     #)
     #table["variable"] = table["variable"].astype("float")
 
+    # Define string values indicative of missing values.
+    missingness = [
+        "nan", "naN", "nAN", "NAN", "NaN", "NAn", "Nan", "nAn",
+        "NA", "N/A", "N/a", "n/A", "n/a",
+        "<NAN>", "<nan>", "<NA>", "<na>",
+        "null",
+    ]
+
     # Interpret value.
     if (
         (not pandas.isna(value_raw)) and
-        (len(str(value_raw)) > 0)
+        (len(str(value_raw)) > 0) and
+        (str(value_raw) not in missingness)
     ):
         # The variable has a valid, non-missing value.
         # Convert the value to a float.
