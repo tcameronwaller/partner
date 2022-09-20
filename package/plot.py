@@ -354,6 +354,8 @@ def define_color_properties():
     """
     Defines color properties.
 
+    https://www.w3schools.com/colors/colors_rgb.asp
+
     arguments:
 
     raises:
@@ -385,13 +387,17 @@ def define_color_properties():
     clear = (1.0, 1.0, 1.0, 0.0)
     clear_faint = (1.0, 1.0, 1.0, 0.25)
 
-    blue_navy = (0.1, 0.2, 0.6, 1.0) # (red: 26; green: 51; blue: 153)
-    blue_navy_faint = (0.1, 0.2, 0.6, 0.75)
-    blue_navy_light = (0.1, 0.3, 0.7, 1.0) # (red: 26; green: 77; blue: 179)
-    blue_sky = (0.1, 0.6, 1.0, 1.0) # (red: 26; green: 153; blue: 255)
-    purple = (0.7, 0.1, 0.7, 1.0) # (red: 179; green: 26; blue: 179)
-    orange = (1.0, 0.6, 0.2, 1.0) # (red: 255; green: 153; blue: 51)
-    orange_faint = (1.0, 0.6, 0.2, 0.75)
+    blue_navy = (0.039, 0.196, 0.588, 1.0) # (red: 10; green: 50; blue: 150)
+    blue_navy_faint = (0.039, 0.196, 0.588, 0.75)
+    blue_navy_light = (0.118, 0.314, 0.706, 1.0) # (r: 30; g: 80; b: 180)
+    blue_sky = (0.196, 0.588, 1.0, 1.0) # (red: 50; green: 150; blue: 255)
+    blue_navy_bright = (0.784, 0.824, 1.0, 1.0) # (r: 200; g: 210; b: 255)
+
+    purple = (0.588, 0.196, 0.588, 1.0) # (red: 150; green: 50; blue: 150)
+    magenta = (0.784, 0.275, 0.784, 1.0) # (red: 200; green: 70; blue: 200)
+
+    orange = (1.0, 0.588, 0.039, 1.0) # (red: 255; green: 150; blue: 10)
+    orange_faint = (1.0, 0.588, 0.039, 0.75)
 
     # Green (red: 64; green: 191; blue: 64).
     green = (0.25, 0.75, 0.25, 1.0) # a brighter green, similar to "Malachite"
@@ -412,6 +418,7 @@ def define_color_properties():
         "blue_navy_light": blue_navy_light,
         "blue_sky": blue_sky,
         "purple": purple,
+        "magenta": magenta,
         "green": green,
         "orange": orange,
         "orange_faint": orange_faint,
@@ -1797,6 +1804,7 @@ def plot_boxes_groups(
     label_top_right=None,
     aspect=None,
     orientation_box=None,
+    axis_linear_minimum=None,
     fonts=None,
     colors=None,
 ):
@@ -1823,6 +1831,7 @@ def plot_boxes_groups(
             'portrait_half_width', 'landscape', or 'landscape_half_height'
         orientation_box (str): whether the orientation of boxes is 'horizontal'
             or 'vertical'
+        axis_linear_minimum (float): minimal value for range of linear axis
         fonts (dict<object>): references to definitions of font properties
         colors (dict<tuple>): references to definitions of color properties
 
@@ -1896,6 +1905,16 @@ def plot_boxes_groups(
             "color": colors["black"],
         },
     )
+
+    # Set minimum value of linear axis.
+    if orientation_box == "horizontal":
+        axes.set_xlim(
+            xmin=axis_linear_minimum,
+        )
+    elif orientation_box == "vertical":
+        axes.set_ylim(
+            ymin=axis_linear_minimum,
+        )
 
     # Fill boxes with colors.
     for box_patch, color_box in zip(handle["boxes"], colors_groups):

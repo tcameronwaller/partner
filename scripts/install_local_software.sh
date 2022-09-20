@@ -142,8 +142,9 @@ wget https://github.com/LMMS/lmms/releases/download/v1.2.2/lmms-1.2.2-linux-x86_
 chmod +x ./lmms-1.2.2-linux-x86_64.AppImage
 ./lmms-1.2.2-linux-x86_64.AppImage
 
+##########
 # CHIRP
-# review: TCW; 21 August 2022
+# review: TCW; 15 September 2022
 # https://chirp.danplanet.com/projects/chirp
 # https://chirp.danplanet.com/projects/chirp/wiki/Running_Under_Linux
 # https://chirp.danplanet.com/projects/chirp/wiki/Beginners_Guide
@@ -154,7 +155,7 @@ flatpak update
 sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 flatpak update
 cd ~/Downloads
-wget https://trac.chirp.danplanet.com/chirp_daily/LATEST/chirp-daily-20220823.flatpak
+wget https://trac.chirp.danplanet.com/chirp_daily/LATEST/chirp-daily-20220911.flatpak
 sudo flatpak install chirp-daily-*.flatpak
 flatpak run com.danplanet.chirp
 # Allow user to access USB ports.
@@ -164,6 +165,35 @@ dmesg | grep tty # determine to which USB port the radio is connected
 # /dev/ttyUSB0
 
 flatpak uninstall com.danplanet.chirp
+
+##########
+# FLDigi
+# review: TCW; 17 September 2022
+# http://www.w1hkj.com/
+# https://sourceforge.net/p/fldigi/wiki/debian_howto/
+# http://www.w1hkj.com/LaunchpadInstall.html
+# https://launchpad.net/~ubuntu-hams-updates/+archive/ubuntu/ppa
+# Installation on Linux Ubuntu via PPA Repository.
+sudo add-apt-repository ppa:kamalmostafa/fldigi
+sudo add-apt-repository ppa:ubuntu-hams-updates/ppa
+sudo apt update
+sudo apt install fldigi
+
+##########
+# AndFlmsg
+# review: TCW; 17 September 2022
+# This is an application for Android with some functionality similar to FLDigi.
+# Follow the instructions for installation on Android.
+# It is necessary to download and open the ".apk" file and allow installation
+# from a non standard source.
+# http://www.w1hkj.com/
+# http://www.w1hkj.com/vk2eta/
+# http://www.w1hkj.com/files/AndFlmsg/INSTALL.txt
+# - - Installation instructions.
+# https://sourceforge.net/projects/fldigi/files/AndFlmsg/
+# http://www.w1hkj.com/files/AndFlmsg/
+# http://www.w1hkj.com/files/AndFlmsg/AndFlmsg_V1.5.0-20210812.apk
+
 
 ##########
 # BCFTools
