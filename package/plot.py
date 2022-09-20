@@ -393,7 +393,8 @@ def define_color_properties():
     blue_sky = (0.196, 0.588, 1.0, 1.0) # (red: 50; green: 150; blue: 255)
     blue_navy_bright = (0.784, 0.824, 1.0, 1.0) # (r: 200; g: 210; b: 255)
 
-    purple = (0.588, 0.196, 0.588, 1.0) # (red: 150; green: 50; blue: 150)
+    purple = (0.510, 0.039, 0.510, 1.0) # (red: 130; green: 10; blue: 130)
+    purple_light = (0.588, 0.196, 0.588, 1.0) # (red: 150; green: 50; blue: 150)
     magenta = (0.784, 0.275, 0.784, 1.0) # (red: 200; green: 70; blue: 200)
 
     orange = (1.0, 0.588, 0.039, 1.0) # (red: 255; green: 150; blue: 10)
