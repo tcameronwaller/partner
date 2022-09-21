@@ -1576,7 +1576,7 @@ def plot_distribution_histogram(
         alpha=1.0,
         backgroundcolor=colors["white"],
         color=colors["black"],
-        fontproperties=fonts["properties"]["one"]
+        fontproperties=fonts["properties"]["two"]
     )
     axes.set_ylabel(
         ylabel=label_counts,
@@ -1617,7 +1617,7 @@ def plot_distribution_histogram(
             transform=axes.transAxes,
             backgroundcolor=colors["white_faint"],
             color=colors["black"],
-            fontproperties=fonts["properties"]["two"]
+            fontproperties=fonts["properties"]["four"]
         )
     if label_report:
         matplotlib.pyplot.text(
@@ -1629,7 +1629,7 @@ def plot_distribution_histogram(
             transform=axes.transAxes,
             backgroundcolor=colors["white_faint"],
             color=colors["black"],
-            fontproperties=fonts["properties"]["two"]
+            fontproperties=fonts["properties"]["four"]
         )
         matplotlib.pyplot.text(
             0.99,
@@ -1640,7 +1640,7 @@ def plot_distribution_histogram(
             transform=axes.transAxes,
             backgroundcolor=colors["white_faint"],
             color=colors["black"],
-            fontproperties=fonts["properties"]["two"]
+            fontproperties=fonts["properties"]["four"]
         )
         matplotlib.pyplot.text(
             0.99,
@@ -1651,7 +1651,7 @@ def plot_distribution_histogram(
             transform=axes.transAxes,
             backgroundcolor=colors["white_faint"],
             color=colors["black"],
-            fontproperties=fonts["properties"]["two"]
+            fontproperties=fonts["properties"]["four"]
         )
     return figure
 
