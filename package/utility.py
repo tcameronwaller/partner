@@ -3541,13 +3541,13 @@ def filter_records_by_name(
     ))
     # Report.
     if report:
-        utility.print_terminal_partition(level=2)
+        print_terminal_partition(level=2)
         print("report: ")
         name_function = (
             "filter_records_by_name()"
         )
         print(name_function)
-        utility.print_terminal_partition(level=3)
+        print_terminal_partition(level=3)
         count_records = int(len(records))
         count_records_filter = int(len(records_filter))
         print("count of original records: " + str(count_records))
