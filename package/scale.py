@@ -184,6 +184,10 @@ def transform_values_distribution_scale_standard_z_score(
     """
     Transforms values within a NumPy array by Standard Z Score.
 
+    This method ignores and propagates missing values in the original variable
+    such that any missing values in the original variable do not affect the
+    transformation (such as the variation in values across samples).
+
     An alternative would be to use sklearn.preprocessing.StandardScaler().
 
     arguments:
@@ -311,6 +315,10 @@ def transform_values_distribution_scale_rank_inverse(
     """
     Transforms values within a NumPy array by Rank-Based Inverse Normalization.
 
+    This method ignores and propagates missing values in the original variable
+    such that any missing values in the original variable do not affect the
+    transformation (such as the variation in values across samples).
+
     arguments:
         values_array (object): NumPy array of original values
 
@@ -436,6 +444,90 @@ def apply_transformations_to_variable_distribution_scale(
         pass
     # Return information.
     return table
+
+
+# Drive transformations on multiple variables within multiple separate cohorts.
+
+# TODO: TCW; 5 October 2022
+# TODO: Apply Distribution Scale Transformations on specific variables within
+# TODO: Cohort Stratification Tables
+
+# TODO: 1. stratify cohort tables that include all variables, including missing values
+# TODO: 2. Pass these stratified cohort tables to a new function
+# TODO: 2.1. This new function will apply the Distribution Scale Transformations
+# TODO: 3. New Function will need...
+# TODO: 3.1. A list of stratification records (name of cohort, table itself, etc)
+# TODO: 3.2. A list of variables for which to apply Transformations...
+
+
+def drive_transformations_on_multiple_variables_in_cohorts(
+    variables=None,
+    records_cohorts=None,
+    report=None,
+):
+    """
+    Drives the application of Distribution Scale Transformations on multiple
+    variables within separate tables for stratification cohorts.
+
+    At a minimum, cohort records include a name of the cohort (key: "name") and
+    a table (key: "table") of variables across relevant samples in the cohort.
+
+    Table format must have samples (cases, observations) across rows and
+    dependent and independent variables (features) across columns.
+
+    arguments:
+        variables (list<str>): name of columns within tables for variables on
+            which to apply transformations
+        records_cohorts (list<dict>): records with information about cohorts
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (list<dict>): records with information about cohorts
+
+    """
+
+    # Copy information.
+    records_cohorts_scale = copy.deepcopy(records_cohorts)
+    # Iterate across records.
+    for record in records_cohorts_scale:
+        # Iterate across variables.
+        for variable in variables:
+            record["table"] = apply_transformations_to_variable_distribution_scale(
+                column=str(variable),
+                logarithm_e=True,
+                standard_z_score=True,
+                rank_inverse=True,
+                suffix_logarithm_e="_log",
+                suffix_standard_z_score="_z",
+                suffix_rank_inverse="rank",
+                table=record["table"],
+                report=False,
+            )
+            pass
+        pass
+    # Report.
+    if report:
+        utility.print_terminal_partition(level=2)
+        print("report: ")
+        name_function = (
+            "drive_transformations_on_multiple_variables_in_cohorts()"
+        )
+        print(name_function)
+        utility.print_terminal_partition(level=3)
+        count_cohorts = int(len(records_cohorts))
+        count_cohorts_scale = int(len(records_cohorts_scale))
+        print("count of original cohorts: " + str(count_cohorts))
+        print("count of novel cohorts: " + str(count_cohorts_scale))
+        print("variables for transformation: ")
+        print(variables)
+        pass
+    # Return information
+    return records_cohorts_scale
+
+
+
 
 
 ###############################################################################

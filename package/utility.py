@@ -3440,15 +3440,18 @@ def merge_columns_two_tables(
     return table
 
 ##########
-# Processes on Cohort Stratification Records
+# Processes on simple Records (lists of dictionaries)
 
 
-def report_stratification_cohort_record_table_sizes(
+def report_records_name_table_size(
     records=None,
 ):
     """
     Reports basic information from records of stratification cohorts, including
     the cohort 'name' and the counts of columns and rows in the cohort 'table'.
+
+    At a minimum, records include a name (key: "name") and a table
+    (key: "table").
 
     arguments:
         records (list<dict>): records with information about cohorts
@@ -3462,7 +3465,7 @@ def report_stratification_cohort_record_table_sizes(
     # Report.
     print_terminal_partition(level=3)
     print("report: ")
-    print("report_stratification_cohort_record_table_sizes()")
+    print("report_records_name_table_size()")
     print_terminal_partition(level=4)
     # Copy information.
     records = copy.deepcopy(records)
@@ -3476,13 +3479,16 @@ def report_stratification_cohort_record_table_sizes(
     pass
 
 
-def organize_dictionary_entries_stratification_cohorts(
+def structure_from_records_to_entries(
     records=None,
 ):
     """
-    Organizes information from records of stratification cohorts within
-    dictionary entries for convenient referencing in analyses. The cohort 'name'
-    becomes the dictionary's key for the cohort record entry.
+    Structures information from an original list of dictionary records to a
+    novel dictionary with an entry for each original record. The name
+    (key: "name") from each original record becomes the key for the record's
+    novel entry.
+
+    At a minimum, original records include a name (key: "name").
 
     arguments:
         records (list<dict>): records with information about cohorts
@@ -3494,21 +3500,61 @@ def organize_dictionary_entries_stratification_cohorts(
 
     """
 
-    # Copy information.
-    records = copy.deepcopy(records)
     # Organize dictionary entries for cohorts.
     entries = dict()
     for record in records:
-        entries[record["name"]] = record
+        # Copy information.
+        entries[str(record["name"])] = copy.deepcopy(record)
         pass
     # Return information
     return entries
 
 
-# TODO: TCW; 5 October 2022
-# TODO: Apply Distribution Scale Transformations on specific variables within
-# TODO: Cohort Stratification Tables
+def filter_records_by_name(
+    names=None,
+    records=None,
+    report=None,
+):
+    """
+    Filters records by name (key: "name").
 
+    At a minimum, records include a name (key: "name").
+
+    arguments:
+        names (list<str>): names of records to keep
+        records (list<dict>): records
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (list<dict>): records
+
+    """
+
+    # Copy information.
+    records = copy.deepcopy(records)
+    # Filter records by name.
+    records_filter = list(filter(
+        lambda record: (str(record["name"]) in names),
+        records
+    ))
+    # Report.
+    if report:
+        utility.print_terminal_partition(level=2)
+        print("report: ")
+        name_function = (
+            "filter_records_by_name()"
+        )
+        print(name_function)
+        utility.print_terminal_partition(level=3)
+        count_records = int(len(records))
+        count_records_filter = int(len(records_filter))
+        print("count of original records: " + str(count_records))
+        print("count of novel records: " + str(count_records_filter))
+        pass
+    # Return information
+    return records_filter
 
 
 
