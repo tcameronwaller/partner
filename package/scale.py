@@ -374,6 +374,11 @@ def apply_transformations_to_variable_distribution_scale(
     important to apply these transformations after any filters or cohort
     stratifications on the samples.
 
+    The current methods for Standard Z Score and Rank-Based Inverse Normal
+    ignore and propagate missing values in the original variable such that any
+    missing values in the original variable do not affect the transformation
+    (such as the variation in values across samples).
+
     Table format must have samples (cases, observations) across rows and
     dependent and independent variables (features) across columns.
 
@@ -448,17 +453,6 @@ def apply_transformations_to_variable_distribution_scale(
 
 # Drive transformations on multiple variables within multiple separate cohorts.
 
-# TODO: TCW; 5 October 2022
-# TODO: Apply Distribution Scale Transformations on specific variables within
-# TODO: Cohort Stratification Tables
-
-# TODO: 1. stratify cohort tables that include all variables, including missing values
-# TODO: 2. Pass these stratified cohort tables to a new function
-# TODO: 2.1. This new function will apply the Distribution Scale Transformations
-# TODO: 3. New Function will need...
-# TODO: 3.1. A list of stratification records (name of cohort, table itself, etc)
-# TODO: 3.2. A list of variables for which to apply Transformations...
-
 
 def drive_transformations_on_multiple_variables_in_cohorts(
     variables=None,
@@ -494,17 +488,18 @@ def drive_transformations_on_multiple_variables_in_cohorts(
     for record in records_cohorts_scale:
         # Iterate across variables.
         for variable in variables:
-            record["table"] = apply_transformations_to_variable_distribution_scale(
-                column=str(variable),
-                logarithm_e=True,
-                standard_z_score=True,
-                rank_inverse=True,
-                suffix_logarithm_e="_log",
-                suffix_standard_z_score="_z",
-                suffix_rank_inverse="rank",
-                table=record["table"],
-                report=False,
-            )
+            record["table"] = (
+                apply_transformations_to_variable_distribution_scale(
+                    column=str(variable),
+                    logarithm_e=True,
+                    standard_z_score=True,
+                    rank_inverse=True,
+                    suffix_logarithm_e="_log",
+                    suffix_standard_z_score="_z",
+                    suffix_rank_inverse="rank",
+                    table=record["table"],
+                    report=False,
+            ))
             pass
         pass
     # Report.
