@@ -1,4 +1,4 @@
-pscale.drive_transform_variables_distribution_scale_standard_z_score"""
+"""
 Supply functionality for regression analysis.
 
 This module is not directly executable.
