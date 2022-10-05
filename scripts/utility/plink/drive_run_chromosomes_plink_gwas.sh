@@ -62,7 +62,12 @@ for chromosome in "${chromosomes[@]}"; do
     # linear or logistic regressions across Simple Nucleotide Polymorphisms
     # (SNPs).
     # PLINK2 "--memory" sets a limit on use of random access memory in units of
-    # Mebibytes (MiB). 90,000 Mebibytes (MiB) is 94.372 Gigabytes (GB)
+    # Mebibytes (MiB). 90,000 Mebibytes (MiB) is 94.372 Gigabytes (GB).
+    # PLINK2 parameter "--threads" specifies the count of concurrent processor
+    # threads to use and has a default value of 32. It is important for this
+    # parameter to have the same value as the threads allocated by any batch
+    # scheduler such as the Sun Grid Engine ("-pe threaded", "NSLOTS") or the
+    # 
     # Parameter ""--pfilter 1" tells PLINK2 to drop SNPs with null p-values or
     # any beyond threshold (such as 1).
     # Parameter "--bgen ref-first" tells PLINK2 always to consider the first

@@ -2202,83 +2202,6 @@ def calculate_table_false_discovery_rates(
     return table_discoveries
 
 
-def calculate_array_translate_shift_logarithm_base(
-    array=None,
-    shift_minimum=None,
-    base=None,
-):
-    """
-    Shifts values in an array to positive scale and transforms by logarithm at
-    specific base.
-
-    arguments:
-        array (object): NumPy array of ratio-scale values
-        shift_minimum (float): scalar value for new minimum greater than zero
-            after translation
-        base (float): value for logarithmic base
-
-    raises:
-
-    returns:
-        (object): NumPy array of values after logarithmic transformation
-
-    """
-
-    # Copy information.
-    array = numpy.copy(array)
-    # Calculate shift translation for new minimum.
-    minimum = numpy.nanmin(array)
-    shift = (shift_minimum - minimum)
-    # Shift values to be positive and greater than zero.
-    array = numpy.add(array, shift)
-    # Calculate logarithm.
-    if (math.isclose(base, math.e)):
-        array_log = numpy.log(array)
-    elif (base == 2):
-        array_log = numpy.log2(array)
-    elif (base == 10):
-        array_log = numpy.log10(array)
-    else:
-        array_log = (numpy.log(array) / numpy.log(base))
-    # Return information.
-    return array_log
-
-
-def transform_normalize_table_continuous_ratio_variables(
-    columns=None,
-    table=None,
-):
-    """
-    Transforms variables' values to normalize their distributions.
-
-    arguments:
-        columns (list<str>): names of columns for continuous, ratio-scale
-            variables to transform
-        table (object): Pandas data frame of variables (features) across
-            columns and samples (cases, observations) across rows
-
-    raises:
-
-    returns:
-        (object): Pandas data frame
-
-    """
-
-    # Copy data.
-    table = table.copy(deep=True)
-    # Convert data variable types.
-    for column in columns:
-        column_log = str(column + "_log")
-        table[column_log] = calculate_array_translate_shift_logarithm_base(
-            array=table[column],
-            shift_minimum=1.0, # 0.001 or 1.0
-            base=math.e, # e, 2, 10, etc
-        )
-        # TODO: include Van Der Waerden transformation?
-    # Return information.
-    return table
-
-
 def impute_continuous_variables_missing_values_half_minimum(
     columns=None,
     table=None,
@@ -2358,250 +2281,6 @@ def calculate_relative_variance(
         relative_variance = float("nan")
     # Return information.
     return relative_variance
-
-
-# This is inefficiently implemented... consider obsolete
-def calculate_pseudo_logarithm_signals(
-    pseudo_count=None,
-    base=None,
-    data=None
-):
-    """
-    Adds a pseudo count to signals and then calculates their logarithm.
-
-    arguments:
-        pseudo_count (float): Pseudo count to add to gene signal before
-            transformation to avoid values of zero
-        base (float): logarithmic base
-        data (object): Pandas data frame of signals
-
-    raises:
-
-    returns:
-        (object): Pandas data frame of base-2 logarithmic signals for all genes
-            across specific persons and tissues.
-
-    """
-
-    data_log = data.applymap(
-        lambda value:
-            math.log((value + pseudo_count), base) if (not math.isnan(value))
-            else float("nan")
-    )
-    return data_log
-
-
-# This is inefficiently implemented... consider obsolete
-def calculate_pseudo_logarithm_signals_negative(
-    pseudo_count=None,
-    base=None,
-    axis=None,
-    data=None
-):
-    """
-    Shifts signals across axis by minimal value and adds a pseudo count to
-    avoid negative values before logarithmic transformation.
-
-    arguments:
-        pseudo_count (float): Pseudo count to add to gene signal before
-            transformation to avoid values of zero
-        base (float): logarithmic base
-        axis (str): axis across which to shift values, index or column
-        data (object): Pandas data frame of signals
-
-    raises:
-
-    returns:
-        (object): Pandas data frame of base-2 logarithmic signals for all genes
-            across specific persons and tissues.
-
-    """
-
-    data_log = data.apply(
-        lambda series: list(map(
-            lambda value: math.log(
-                (value + abs(min(series.tolist())) + pseudo_count),
-                base
-            ),
-            series.tolist()
-        )),
-        axis=axis,
-    )
-    return data_log
-
-
-def standardize_scale_values_specific_table_columns(
-    table=None,
-    columns=None,
-    report=None,
-):
-    """
-    Transforms floating-point values in a table to standard or z-score space by
-    column.
-
-    The mean of each column will be zero (mean = 0).
-    The standard deviation of each column will be one (standard deviation = 1).
-
-    arguments:
-        table (object): Pandas data frame of variables (features) across columns
-            and samples (cases) across rows
-        columns (list<str>): names of table's columns for which to standardize
-            the scale of values
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (object): Pandas data frame of variables (features) across columns and
-            samples (cases) across rows
-
-    """
-
-    # Also consider sklearn.preprocessing.StandardScaler.
-
-    # Copy information.
-    table = table.copy(deep=True)
-    table_scale = table.copy(deep=True)
-    # Filter columns by whether they are in the table.
-    columns_relevant = list(filter(
-        lambda column: (str(column) in table.columns.to_list()),
-        columns
-    ))
-    # Calculate standard scores by column.
-    for column in columns_relevant:
-        # This method inserts missing values if the standard deviation is zero.
-        table_scale[column] = scipy.stats.zscore(
-            table_scale[column].to_numpy(),
-            axis=0,
-            ddof=1, # sample standard deviation
-            nan_policy="omit", # Ignore missing values.
-        )
-        pass
-    # Report.
-    if report:
-        # Compare summary statistics before and after transformation.
-        print_terminal_partition(level=2)
-        print("Report from: standardize_scale_values_specific_table_columns()")
-        print_terminal_partition(level=3)
-        print("Summary statistics before standardization.")
-        table_report = table.copy(deep=True)
-        table_report = table_report.loc[
-            :, table_report.columns.isin(columns_relevant)
-        ]
-        table_scale_report = table_scale.copy(deep=True)
-        table_scale_report = table_scale_report.loc[
-            :, table_scale_report.columns.isin(columns_relevant)
-        ]
-        table_mean = table_report.aggregate(
-            lambda series: series.mean(),
-            axis="index", # Apply function to each column of table.
-        )
-        print("Mean")
-        print(table_mean.iloc[0:25])
-        print_terminal_partition(level=4)
-        table_deviation = table_report.aggregate(
-            lambda series: series.std(),
-            axis="index", # Apply function to each column of table.
-        )
-        print("Standard deviation")
-        print(table_deviation.iloc[0:25])
-
-        print_terminal_partition(level=2)
-        print("Summary statistics after standardization.")
-        table_mean = table_scale_report.aggregate(
-            lambda series: series.mean(),
-            axis="index", # Apply function to each column of table.
-        )
-        print("Mean")
-        print(table_mean.iloc[0:25])
-        print_terminal_partition(level=4)
-        table_deviation = table_scale_report.aggregate(
-            lambda series: series.std(),
-            axis="index", # Apply function to each column of table.
-        )
-        print("Standard deviation")
-        print(table_deviation.iloc[0:25])
-    # Return information.
-    return table_scale
-
-
-def standardize_table_values_by_column(
-    table=None,
-    report=None,
-):
-    """
-    Transforms floating-point values in a table to standard or z-score space by
-    column.
-
-    The mean of each column will be zero (mean = 0).
-    The standard deviation of each column will be one (standard deviation = 1).
-
-    arguments:
-        table (object): Pandas data frame of variables (features) across columns
-            and samples (cases) across rows
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (object): Pandas data frame of variables (features) across columns and
-            samples (cases) across rows
-
-    """
-
-    # Also consider sklearn.preprocessing.StandardScaler.
-
-    # Copy information.
-    table = table.copy(deep=True)
-    # Calculate standard scores by column.
-    # This method inserts missing values if the standard deviation is zero.
-    table_scale = table.apply(
-        lambda column: scipy.stats.zscore(
-            column.to_numpy(),
-            axis=0,
-            ddof=1, # sample standard deviation
-            nan_policy="omit", # Ignore missing values.
-        ),
-        axis="index", # Apply function to each column of table.
-    )
-    # Report.
-    if report:
-        # Compare summary statistics before and after transformation.
-        print_terminal_partition(level=2)
-        print("Report from: standardize_table_values_by_column()")
-        print_terminal_partition(level=2)
-        print("Summary statistics before standardization.")
-        table_mean = table.aggregate(
-            lambda series: series.mean(),
-            axis="index", # Apply function to each column of table.
-        )
-        print("Mean")
-        print(table_mean.iloc[0:10])
-        print_terminal_partition(level=4)
-        table_deviation = table.aggregate(
-            lambda series: series.std(),
-            axis="index", # Apply function to each column of table.
-        )
-        print("Standard deviation")
-        print(table_deviation.iloc[0:10])
-
-        print_terminal_partition(level=2)
-        print("Summary statistics after standardization.")
-        table_mean = table_scale.aggregate(
-            lambda series: series.mean(),
-            axis="index", # Apply function to each column of table.
-        )
-        print("Mean")
-        print(table_mean.iloc[0:10])
-        print_terminal_partition(level=4)
-        table_deviation = table_scale.aggregate(
-            lambda series: series.std(),
-            axis="index", # Apply function to each column of table.
-        )
-        print("Standard deviation")
-        print(table_deviation.iloc[0:10])
-    # Return information.
-    return table_scale
 
 
 def count_data_factors_groups_elements(
@@ -3760,6 +3439,9 @@ def merge_columns_two_tables(
     # Return information.
     return table
 
+##########
+# Processes on Cohort Stratification Records
+
 
 def report_stratification_cohort_record_table_sizes(
     records=None,
@@ -3821,6 +3503,13 @@ def organize_dictionary_entries_stratification_cohorts(
         pass
     # Return information
     return entries
+
+
+# TODO: TCW; 5 October 2022
+# TODO: Apply Distribution Scale Transformations on specific variables within
+# TODO: Cohort Stratification Tables
+
+
 
 
 

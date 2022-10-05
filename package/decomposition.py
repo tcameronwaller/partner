@@ -149,14 +149,25 @@ def organize_table_matrix_for_decomposition(
 
     # Principal components analysis assumptions require at least centering the
     # means (mean = 0) of variables (features).
-    # Standardizing the scale of variables (features) is equivalent to
-    # calculation on correlation matrix instead of covariance matrix.
+    # Standardizing the scale of variables (features) by Standard Z Score is
+    # equivalent to calculation on correlation matrix instead of covariance
+    # matrix.
     # Standardize scale across variables (features) to mean zero (mean = 0) and
     # standard deviation one (standard deviation = 1).
-    table_scale = utility.standardize_table_values_by_column(
-        table=table,
-        report=report,
+    # Copy information in table.
+    table_scale = table.copy(deep=True)
+    # Calculate Standard Z Scores across values in each column.
+    # This method inserts missing values if the standard deviation is zero.
+    table_scale = table_scale.apply(
+        lambda column: scipy.stats.zscore(
+            column.to_numpy(),
+            axis=0,
+            ddof=1, # (N - 1) Degrees of Freedom for Sample Standard Deviation.
+            nan_policy="omit", # Ignore missing values in calculation.
+        ),
+        axis="index", # Apply function to each column of table.
     )
+    # Remove missing values.
     table_scale.dropna(
         axis="index",
         how="any",

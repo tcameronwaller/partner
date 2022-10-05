@@ -1,4 +1,4 @@
-"""
+pscale.drive_transform_variables_distribution_scale_standard_z_score"""
 Supply functionality for regression analysis.
 
 This module is not directly executable.
@@ -57,8 +57,6 @@ import math
 # Relevant
 
 import pandas
-import sklearn
-import sklearn.decomposition
 import scipy
 import numpy
 import statsmodels.api
@@ -66,6 +64,7 @@ import statsmodels.stats.outliers_influence
 
 # Custom
 import promiscuity.utility as utility # this import path for subpackage
+import promiscuity.scale as pscale
 
 
 #dir()
@@ -73,6 +72,13 @@ import promiscuity.utility as utility # this import path for subpackage
 
 ###############################################################################
 # Functionality
+
+# Note: TCW; 4 October 2022
+# There are many different methods to "standardize", "scale", "transform", or
+# "standardize" the distributions of multiple variables to simplify their
+# comparisons to each other.
+
+
 
 
 def organize_table_cohort_model_variables_for_regression(
@@ -165,7 +171,7 @@ def organize_table_cohort_model_variables_for_regression(
     # z-score standard scale.
     # Standardization introduces missing values if standard deviation is zero.
     if (standard_scale):
-        table = utility.standardize_scale_values_specific_table_columns(
+        table = pscale.drive_transform_variables_distribution_scale_z_score(
             table=table,
             columns=independence,
             report=report,
