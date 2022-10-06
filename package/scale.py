@@ -499,7 +499,7 @@ def drive_transformations_on_multiple_variables_in_cohorts(
                     rank_inverse=True,
                     suffix_logarithm_e="_log",
                     suffix_standard_z_score="_z",
-                    suffix_rank_inverse="rank",
+                    suffix_rank_inverse="_rank",
                     table=record["table"],
                     report=False,
             ))
