@@ -340,7 +340,7 @@ def transform_values_distribution_scale_rank_inverse(
         axis=0,
         n_quantiles=1e+6, # Use one quantile for each sample.
         output_distribution="normal",
-        ignore_implicit_zeros=True,
+        ignore_implicit_zeros=False,
         subsample=1e+6, # Count of Quantiles cannot exceed count of Samples.
         random_state=777,
         copy=True,
