@@ -331,9 +331,12 @@ def transform_values_distribution_scale_rank_inverse(
 
     # Copy information.
     values_array = numpy.copy(values_array)
+    # Structure information in NumPy matrix.
+    # numpy.expand_dims()
+    values_matrix = numpy.reshape(values_array, (-1, 1), order="C")
     # Calculate Rank-Base Inverse Normal.
     values_rank_array = numpy.squeeze(sklearn.preprocessing.quantile_transform(
-        values_array,
+        values_matrix,
         axis=0,
         n_quantiles=1e+6, # Use one quantile for each sample.
         output_distribution="normal",
