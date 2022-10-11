@@ -3563,7 +3563,7 @@ def write_product_plot_figure(
     write_figure(
         figure=figure,
         format="png",
-        resolution=300, # dots per inch: 300, 600
+        resolution=150, # dots per inch: 150, 300, 600
         path=path_file,
     )
     pass
