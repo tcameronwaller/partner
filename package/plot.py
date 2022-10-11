@@ -1539,7 +1539,7 @@ def plot_distribution_histogram(
     # TODO: TCW; 11 October 2022
     # TODO: I do not remember what is the rationale to call
     # TODO: numpy.histogram_bin_edges() directly. ?
-    
+
     # Define and populate bins.
     # Bin method "auto" is useful.
     #values, edges = numpy.histogram(series, bins=count_bins)
@@ -1614,7 +1614,7 @@ def plot_distribution_histogram(
             alpha=1.0,
             color=colors["orange"],
             linestyle="--",
-            linewidth=7.5, # 3.0, 7.5
+            linewidth=5.0, # 3.0, 7.5
         )
     if len(label_title) > 0:
         matplotlib.pyplot.text(
