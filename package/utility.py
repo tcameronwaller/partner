@@ -2509,6 +2509,7 @@ def filter_table_columns_by_nonmissing_variance(
 
     """
 
+    # Nested function.
     def match_column_variance(
         name=None,
         threshold_column_variance=None,
