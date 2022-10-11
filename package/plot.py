@@ -1491,6 +1491,7 @@ def plot_distribution_histogram(
     title=None,
     bin_method=None,
     bin_count=None,
+    bar_width=None,
     label_bins=None,
     label_counts=None,
     fonts=None,
@@ -1512,6 +1513,7 @@ def plot_distribution_histogram(
         title (str): title for figure
         bin_method (str): method to define bins, "count" or "auto"
         bin_count (int): count of bins to define and populate
+        bar_width (float): proportional of width of bar relative to bin
         label_bins (str): label for bins
         label_counts (str): label for counts
         fonts (dict<object>): references to definitions of font properties
@@ -1533,6 +1535,11 @@ def plot_distribution_histogram(
     count_values = int(array.size)
     mean_values = round(numpy.nanmean(array), 3)
     median_values = round(numpy.nanmedian(array), 3)
+
+    # TODO: TCW; 11 October 2022
+    # TODO: I do not remember what is the rationale to call
+    # TODO: numpy.histogram_bin_edges() directly. ?
+    
     # Define and populate bins.
     # Bin method "auto" is useful.
     #values, edges = numpy.histogram(series, bins=count_bins)
@@ -1553,7 +1560,7 @@ def plot_distribution_histogram(
         histtype="bar",
         align="left",
         orientation="vertical",
-        rwidth=0.35,
+        rwidth=bar_width, # 0.35, 0.50
         log=False,
         color=colors["blue_navy"],
         label=title,
