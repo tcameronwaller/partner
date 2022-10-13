@@ -402,7 +402,7 @@ def apply_transformations_to_variable_distribution_scale(
             the original variable's column
         suffix_rank_inverse (str): string suffix to append to the name of the
             original variable's column
-        table (object): Pandas data frame of variables across columns and
+        table (object): Pandas data frame table of variables across columns and
             samples across rows
         report (bool): whether to print reports
 
