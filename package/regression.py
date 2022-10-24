@@ -926,7 +926,7 @@ def organize_regression_summary_table_for_forest_plots(
         columns=columns_translations,
         inplace=True,
     )
-    table["interval_above"] = table["interval_below"]
+    table["interval_above"] = table["interval_below"] # only if symmetrical
     table["category_sort"] = table.apply(
         lambda row: sorts_categories[row["category"]],
         axis="columns", # apply function to each row
