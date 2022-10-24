@@ -242,6 +242,11 @@ def organize_linear_logistic_regression_independence_tree(
     Organizes a dictionary tree of information about each independent variable
     from a logistic or linear regression.
 
+    https://www.mathsisfun.com/data/confidence-interval.html
+    90% Confidence Interval: (1.645 * standard_error)
+    95% Confidence Interval: (1.960 * standard_error)
+    99% Confidence Interval: (2.576 * standard_error)
+
     arguments:
         independence (list<str>): names of table's columns for independent
             variables
@@ -279,8 +284,11 @@ def organize_linear_logistic_regression_independence_tree(
         #pail_tree["intercept"]["parameter"] = report.params[0]
         pail_tree["intercept"]["parameter"] = float(model_parameters["const"])
         pail_tree["intercept"]["error"] = float(model_parameter_errors["const"])
+        pail_tree["intercept"]["interval_99"] = float(
+            2.576 * pail_tree["intercept"]["error"]
+        )
         pail_tree["intercept"]["interval_95"] = float(
-            1.96 * pail_tree["intercept"]["error"]
+            1.960 * pail_tree["intercept"]["error"]
         )
         pail_tree["intercept"]["range_95"] = (
             determine_confidence_interval_range_text(
@@ -338,8 +346,11 @@ def organize_linear_logistic_regression_independence_tree(
         pail_tree[variable]["parameter"] = float(model_parameters[variable])
         # Parameter standard error
         pail_tree[variable]["error"] = float(model_parameter_errors[variable])
+        pail_tree[variable]["interval_99"] = float(
+            2.576 * pail_tree[variable]["error"]
+        )
         pail_tree[variable]["interval_95"] = float(
-            1.96 * pail_tree[variable]["error"]
+            1.960 * pail_tree[variable]["error"]
         )
         pail_tree[variable]["range_95"] = (
             determine_confidence_interval_range_text(
@@ -702,6 +713,7 @@ def create_missing_regression_independent_variable(
     pail["report_bep"] = str("b: NAN (NAN); p: NAN")
     pail["parameter"] = float("nan")
     pail["error"] = float("nan")
+    pail["interval_99"] = float("nan")
     pail["interval_95"] = float("nan")
     pail["range_95"] = str("NAN ... NAN")
     pail["range_95_below"] = float("nan")
@@ -1311,7 +1323,7 @@ def organize_table_regression_summary(
         "freedom", "observations", "samples",
         "log_likelihood", "akaike", "bayes",
         "variable_key",
-        "parameter", "error", "interval_95",
+        "parameter", "error", "interval_99", "interval_95",
         "range_95", "range_95_below", "range_95_above",
         "probability", "inflation",
     ]
