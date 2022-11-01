@@ -77,6 +77,8 @@ sudo add-apt-repository universe
 sudo apt install gnome-tweak-tool
 
 # Inkscape
+# website: https://inkscape.org/
+# review: TCW; 25 October 2022
 sudo add-apt-repository ppa:inkscape.dev/stable
 sudo apt update
 sudo apt install inkscape

@@ -378,8 +378,8 @@ def define_color_properties():
     black = (0.0, 0.0, 0.0, 1.0)
     # Gray.
     gray = (0.5, 0.5, 0.5, 1.0)
-    gray_dark = (0.3, 0.3, 0.3, 1.0) # (red: 77; green: 77; blue: 77)
-    gray_light = (0.7, 0.7, 0.7, 1.0) # (red: 179; green: 179; blue: 179)
+    gray_dark = (0.3, 0.3, 0.3, 1.0) # (red: 75; green: 75; blue: 75)
+    gray_light = (0.7, 0.7, 0.7, 1.0) # (red: 180; green: 180; blue: 180)
     # White.
     white = (1.0, 1.0, 1.0, 1.0)
     white_faint = (1.0, 1.0, 1.0, 0.75)
