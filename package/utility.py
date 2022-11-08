@@ -3440,8 +3440,63 @@ def merge_columns_two_tables(
     # Return information.
     return table
 
+
+def report_table_column_categories_rows(
+    column=None,
+    table=None,
+):
+    """
+    Reports the total count of unique, categorical values in a single column of
+    a table and also reports counts of rows (samples) with each value.
+
+    These functions do not ignore missing values.
+
+    arguments:
+        column (str): name of column in table with categorical values
+        table (object): Pandas data frame table of variables (features) across
+            columns and samples (records) across rows
+
+    raises:
+
+    returns:
+
+    """
+
+    # Copy information in table.
+    table = table.copy(deep=True)
+    # Count unique, nonmissing categorical values in the table's column.
+    # table[column].nunique(dropna=False)
+    count_unique = table[column].unique().size
+    values_unique = table[column].unique().to_list()
+    # Count rows (samples) with each categorical value of the column (variable).
+    # This represents the frequency of each categorical value.
+    frequencies = table[column].value_counts(
+        normalize=False,
+        sort=True,
+        ascending=False,
+        bins=None,
+        dropna=False, # whether to ignore missing values
+    )
+    # Report.
+    utility.print_terminal_partition(level=2)
+    print("report: ")
+    name_function = (
+        "report_table_column_categories_rows()"
+    )
+    print(name_function)
+    utility.print_terminal_partition(level=3)
+    print("column: " + str(column))
+    print("count of unique values in column: " + str(count_unique))
+    print("unique values:")
+    print(values_unique)
+    print("frequencies of values in column:")
+    print(frequencies)
+    pass
+
+
 ##########
 # Processes on simple Records (lists of dictionaries)
+# Useful for management of multiple stratification cohorts.
 
 
 def report_records_name_table_size(
