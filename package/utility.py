@@ -3478,13 +3478,13 @@ def report_table_column_categories_rows(
         dropna=False, # whether to ignore missing values
     )
     # Report.
-    utility.print_terminal_partition(level=2)
+    print_terminal_partition(level=2)
     print("report: ")
     name_function = (
         "report_table_column_categories_rows()"
     )
     print(name_function)
-    utility.print_terminal_partition(level=3)
+    print_terminal_partition(level=3)
     print("column: " + str(column))
     print("count of unique values in column: " + str(count_unique))
     print("unique values:")
