@@ -3484,7 +3484,7 @@ def report_table_column_categories_rows(
         "report_table_column_categories_rows()"
     )
     print(name_function)
-    print_terminal_partition(level=2)
+    print_terminal_partition(level=4)
     print("column: " + str(column))
     print("count of unique values in column: " + str(count_unique))
     print("unique values:")
