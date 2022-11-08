@@ -3467,7 +3467,7 @@ def report_table_column_categories_rows(
     # Count unique, nonmissing categorical values in the table's column.
     # table[column].nunique(dropna=False)
     count_unique = table[column].unique().size
-    values_unique = table[column].unique().to_list()
+    values_unique = table[column].unique().tolist()
     # Count rows (samples) with each categorical value of the column (variable).
     # This represents the frequency of each categorical value.
     frequencies = table[column].value_counts(
