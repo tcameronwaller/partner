@@ -222,7 +222,11 @@ def organize_table_polygenic_score_ldpred2(
     # Copy information in table.
     table = table.copy(deep=True)
     # Convert all identifiers to type string.
-    table["IID"] = table["IID"].astype("string")
+    table["IID"] = table["IID"].astype(
+        "string",
+        copy=True,
+        errors="raise",
+    )
     # Replace any empty identifier strings with missing values.
     table["IID"].replace(
         "",
@@ -237,8 +241,16 @@ def organize_table_polygenic_score_ldpred2(
         inplace=True,
     )
     # Convert identifiers to type string.
-    table["IID"] = table["IID"].astype("string")
-    table["identifier_genotype"] = table["IID"].astype("string").copy(deep=True)
+    table["IID"] = table["IID"].astype(
+        "string",
+        copy=True,
+        errors="raise",
+    )
+    table["identifier_genotype"] = table["IID"].astype(
+        "string",
+        copy=True,
+        errors="raise",
+    ).copy(deep=True)
     # Translate names of columns.
     #table = table.add_prefix("import_")
     translations = dict()

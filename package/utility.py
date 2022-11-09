@@ -1910,7 +1910,11 @@ def convert_table_columns_variables_types_float(
 
     """
 
-    # table[column] = pandas.DataFrame[column].astype()
+    # table[column] = pandas.DataFrame[column].astype(
+    #    "float32",
+    #    copy=True,
+    #    errors="raise",
+    #)
 
     # Copy information in table.
     table = table.copy(deep=True)
@@ -1918,8 +1922,8 @@ def convert_table_columns_variables_types_float(
     for column in columns:
         table[column] = pandas.to_numeric(
             table[column],
-            errors="coerce", # force any invalid values to missing or null
-            downcast="float",
+            errors="coerce", # force any parse error values to missing "NaN"
+            downcast="float", # cast type to smallest float type
         )
     # Return information.
     return table
@@ -3227,8 +3231,10 @@ def merge_columns_tables_supplements_to_main(
     columns_collection = copy.deepcopy(table_main.columns.to_list())
 
     # Organize main table's index.
-    table_main[identifier_main] = (
-        table_main[identifier_main].astype("string")
+    table_main[identifier_main] = table_main[identifier_main].astype(
+        "string",
+        copy=True,
+        errors="raise",
     )
     table_main.set_index(
         identifier_main,
@@ -3254,8 +3260,11 @@ def merge_columns_tables_supplements_to_main(
         columns_collection.extend(columns_supplement)
         # Organize supplement table's index.
         table_supplement[identifier_supplement] = (
-            table_supplement[identifier_supplement].astype("string")
-        )
+            table_supplement[identifier_supplement].astype(
+                "string",
+                copy=True,
+                errors="raise",
+        ))
         table_supplement.set_index(
             identifier_supplement,
             append=False,
@@ -3367,8 +3376,10 @@ def merge_columns_two_tables(
     columns_collection.extend(columns_second)
 
     # Organize first table's index.
-    table_first[identifier_first] = (
-        table_first[identifier_first].astype("string")
+    table_first[identifier_first] = table_first[identifier_first].astype(
+        "string",
+        copy=True,
+        errors="raise",
     )
     table_first.set_index(
         identifier_first,
@@ -3377,8 +3388,10 @@ def merge_columns_two_tables(
         inplace=True,
     )
     # Organize second table's index.
-    table_second[identifier_second] = (
-        table_second[identifier_second].astype("string")
+    table_second[identifier_second] = table_second[identifier_second].astype(
+        "string",
+        copy=True,
+        errors="raise",
     )
     table_second.set_index(
         identifier_second,

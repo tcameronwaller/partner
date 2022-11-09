@@ -226,6 +226,9 @@ def drive_transform_variables_distribution_scale_z_score(
     The standard deviation of each variable's values will be one (standard
     deviation = 1).
 
+    This function does not modify the names of the columns for the original
+    variables.
+
     arguments:
         table (object): Pandas data frame of variables across columns and
             samples across rows
