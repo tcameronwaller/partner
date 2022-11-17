@@ -9,6 +9,12 @@
 ################################################################################
 ################################################################################
 
+# TODO: TCW; 17 November 2022
+# TODO: I think this script is now obsolete...
+# TODO: I don't use the same script pattern to format individual GWAS for LDSC
+# TODO: Now I first convert all GWAS to the team standard and then translate to LDSC format from there
+# TODO: I also consider the Z-Score method to be problematic.
+
 ################################################################################
 # Organize arguments.
 path_gwas_concatenation_compress=${1} # full path to file for source GWAS summary statistics

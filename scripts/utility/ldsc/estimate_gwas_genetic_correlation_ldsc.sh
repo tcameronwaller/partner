@@ -11,14 +11,16 @@
 
 ################################################################################
 # Organize arguments.
-path_gwas_primary_munge_suffix=${1} # full path to parent directory for source GWAS summary statistics
-path_gwas_secondary_munge_suffix=${2} # full path to parent directory for target GWAS summary statistics
+
+path_file_gwas_primary=${1} # full path to parent directory for source GWAS summary statistics
+path_file_gwas_secondary=${2} # full path to parent directory for target GWAS summary statistics
 path_genetic_correlation_parent=${3} # full path to directory for genetic correlation report
 path_genetic_reference=${4} # full path to directory for genetic reference information
 report=${5} # whether to print reports
 
 ################################################################################
-# Paths.
+# Organize paths.
+
 path_alleles="${path_genetic_reference}/alleles"
 path_disequilibrium="${path_genetic_reference}/disequilibrium"
 path_baseline="${path_genetic_reference}/baseline"
@@ -28,7 +30,7 @@ path_frequencies="${path_genetic_reference}/frequencies"
 path_correlation_report="${path_genetic_correlation_parent}/correlation_report"
 path_correlation_report_suffix="${path_genetic_correlation_parent}/correlation_report.log"
 
-# Remove any previous versions of target files.
+# Remove any previous version of the product file.
 rm $path_correlation_report_suffix
 
 ################################################################################
@@ -47,7 +49,7 @@ sleep 5s
 ################################################################################
 # Estimate genetic correlation in LDSC.
 $path_ldsc/ldsc.py \
---rg ${path_gwas_primary_munge_suffix},${path_gwas_secondary_munge_suffix} \
+--rg ${path_file_gwas_primary},${path_file_gwas_secondary} \
 --ref-ld-chr $path_disequilibrium/eur_w_ld_chr/ \
 --w-ld-chr $path_disequilibrium/eur_w_ld_chr/ \
 --out $path_correlation_report
