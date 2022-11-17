@@ -58,7 +58,7 @@ rm $path_file_product
 
 echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format
 zcat $path_file_source | awk 'BEGIN { FS=","; OFS=" " } NR > 1 {
-  split($1,a,"_"); print (gsub(/chr/, "", a[1]) ":" a[2]), $2, $3, toupper($4), toupper($5), "NA", $7, $8, $9, (3717), "NA", (1), "NA", "NA"
+  split($1,a,"_"); print (sub(/chr/, "", a[1]) ":" a[2]), $2, $3, toupper($4), toupper($5), "NA", $7, $8, $9, (3717), "NA", (1), "NA", "NA"
 }' >> $path_file_temporary_format
 
 # Compress file format.
