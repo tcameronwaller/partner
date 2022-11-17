@@ -57,9 +57,14 @@ rm $path_file_product
 # Translate format of GWAS summary statistics.
 # Note that AWK interprets a single space delimiter (FS=" ") as any white space.
 
+#echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format
+#zcat $path_file_source | awk 'BEGIN { FS=","; OFS=" " } NR > 1 {
+#  split($1,a,"_"); print $1, a[1], a[2], toupper($2), toupper($3), "NA", $5, $6, $7, (3717), "NA", (1), "NA", "NA"
+#}' >> $path_file_temporary_format
+
 echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format
 zcat $path_file_source | awk 'BEGIN { FS=","; OFS=" " } NR > 1 {
-  split($1,a,"_"); print $1, a[1], a[2], toupper($2), toupper($3), "NA", $5, $6, $7, (3717), "NA", (1), "NA", "NA"
+  split($1,a,"_"); print "a[1]_a[2]", a[1], a[2], toupper($2), toupper($3), "NA", $5, $6, $7, (3717), "NA", (1), "NA", "NA"
 }' >> $path_file_temporary_format
 
 # Compress file format.
