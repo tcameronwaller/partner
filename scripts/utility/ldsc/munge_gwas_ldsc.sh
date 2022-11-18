@@ -45,9 +45,9 @@ which python2
 sleep 5s
 
 # Force SciPy not to use all available cores on a cluster computation node.
-export MKL_NUM_THREADS=$threads
-export NUMEXPR_NUM_THREADS=$threads
-export OMP_NUM_THREADS=$threads
+#export MKL_NUM_THREADS=$threads
+#export NUMEXPR_NUM_THREADS=$threads
+#export OMP_NUM_THREADS=$threads
 
 ################################################################################
 # Munge GWAS summary statistics for use in LDSC.
@@ -96,9 +96,9 @@ if [[ "$report" == "true" ]]; then
   echo "path to source GWAS file: " $path_file_source
   echo "path to product GWAS file: " $path_file_product_suffix
   echo "table after munge:"
-  head -10 $path_file_product_suffix
+  #head -10 $path_file_product_suffix
   echo "LDSC Munge Log"
-  cat $path_file_product_log
+  #cat $path_file_product_log
   echo "----------"
   echo "----------"
   echo "----------"
