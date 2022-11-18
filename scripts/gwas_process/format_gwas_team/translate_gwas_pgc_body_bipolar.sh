@@ -5,17 +5,22 @@
 ###########################################################################
 # Notes
 
+# This script is specific to the GWAS summary statistics from an internal GWAS
+# on BMI in Bipolar Disorder cases from the Psychiatric Genomics Consortium
+# (PGC) (year 2019).
+
 # Source Format
 # delimiter: comma
 # columns: SNP A1 A2 QEp b se pval
 
 # Format Translation
 # Many or even all SNPs do not have rsIDs.
-# Instead SNPs use a special identifier format, "chromosome_position_allele".
+# Instead, SNPs use a special identifier format, "chr[chromosome]_[position]_[allele]".
+# Preserve this original identifier format, since LDSC Munge is able to interpret it.
 # Need to extract information about chromosome and base-pair position from the
 # special identifier.
 # Need to remove the "chr" prefix from the chromosome identifier.
-# columns: [chromosome:position], [chromosome], [position], $2, $3, "NA", $5, $6, $7, (3717), "NA", (1), "NA", "NA"
+# columns: $1, [chromosome], [position], $2, $3, "NA", $5, $6, $7, (3717), "NA", (1), "NA", "NA"
 
 # Product Format (Team Standard)
 # delimiter: white space
@@ -59,14 +64,9 @@ rm $path_file_product
 # Translate format of GWAS summary statistics.
 # Note that AWK interprets a single space delimiter (FS=" ") as any white space.
 
-#echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format
-#zcat $path_file_source | awk 'BEGIN { FS=","; OFS=" " } NR > 1 {
-#  split($1,a,"_"); print $1, a[1], a[2], toupper($2), toupper($3), "NA", $5, $6, $7, (3717), "NA", (1), "NA", "NA"
-#}' >> $path_file_temporary_format
-
 echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format
 zcat $path_file_source | awk 'BEGIN {FS = ","; OFS = " "} NR > 1 {
-  split($1, a, "_"); (b = a[1]); sub(/chr/, "", b); print (b ":" a[2]), b, a[2], toupper($2), toupper($3), "NA", $5, $6, $7, (3717), "NA", (1), "NA", "NA"
+  split($1, a, "_"); (b = a[1]); sub(/chr/, "", b); print $1, b, a[2], toupper($2), toupper($3), "NA", $5, $6, $7, (3717), "NA", (1), "NA", "NA"
 }' >> $path_file_temporary_format
 
 # Compress file format.
