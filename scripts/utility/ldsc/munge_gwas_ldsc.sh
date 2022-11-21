@@ -45,9 +45,9 @@ which python2
 sleep 5s
 
 # Force SciPy not to use all available cores on a cluster computation node.
-#export MKL_NUM_THREADS=$threads
-#export NUMEXPR_NUM_THREADS=$threads
-#export OMP_NUM_THREADS=$threads
+export MKL_NUM_THREADS=$threads
+export NUMEXPR_NUM_THREADS=$threads
+export OMP_NUM_THREADS=$threads
 
 ################################################################################
 # Munge GWAS summary statistics for use in LDSC.
