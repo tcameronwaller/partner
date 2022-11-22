@@ -5,6 +5,8 @@
 ################################################################################
 # Notes...
 
+# Review: TCW; 22 November 2022
+
 ################################################################################
 ################################################################################
 ################################################################################
@@ -22,7 +24,6 @@ report=${5} # whether to print reports
 # Organize paths.
 
 # Read private, local file paths.
-cd ~/paths
 cd ~/paths
 path_tools=$(<"./waller_tools.txt")
 path_ldsc=$(<"./tools_ldsc.txt")
@@ -54,7 +55,6 @@ $path_ldsc/ldsc.py \
 --ref-ld-chr ${path_directory_disequilibrium}/ \
 --w-ld-chr ${path_directory_disequilibrium}/ \
 --out $path_file_base_product
-
 
 ################################################################################
 # Deactivate Virtual Environment.
