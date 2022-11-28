@@ -428,7 +428,7 @@ def read_extract_ldsc_correlation(
         "z_score",
         "p_greater_zero",
         "correlation_ci95_not_zero",
-        "correlation_ci95_note_one",
+        "correlation_ci95_not_one",
         "correlation_absolute",
         "correlation",
         "correlation_error",
