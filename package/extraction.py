@@ -184,7 +184,7 @@ def read_extract_ldsc_heritability(
         "(h2: " + str(heritability) + "; 95% CI: " + str(heritability_ci95) + ")"
     )
     summary_heritability_ci99 = str(
-        "(h2: " + str(heritability) + "; 95% CI: " + str(heritability_ci99) + ")"
+        "(h2: " + str(heritability) + "; 99% CI: " + str(heritability_ci99) + ")"
     )
 
     # Collect information.
@@ -224,6 +224,224 @@ def read_extract_ldsc_heritability(
     pail["variables"] = variables
     return pail
 
+
+def read_extract_ldsc_correlation(
+    path_file=None,
+):
+    """
+    Reads and extracts information from log file of LDSC for estimation of
+    genetic correlation between two sets of GWAS summary statistics.
+
+    https://github.com/bulik/ldsc/wiki/Heritability-and-Genetic-Correlation
+    https://github.com/bulik/ldsc/blob/master/munge_sumstats.py
+    https://github.com/bulik/ldsc/wiki/Summary-Statistics-File-Format
+
+    https://www.mathsisfun.com/data/confidence-interval.html
+
+    arguments:
+        path_file (str): full path to file that contains information from a
+            genetic correlation analysis in LDSC
+
+    raises:
+
+    returns:
+        (dict): information about LDSC analysis
+
+    """
+
+    # Determine whether report has a summary table.
+    # Keep index of prefix title.
+    # Read relevant lines from file.
+    #lines = utility.read_file_text_lines(
+    #    path_file=path_file,
+    #    start=50,
+    #    stop=250,
+    #)
+    #index = 50
+    #index_title = float("nan")
+    #count_lines = len(lines)
+    #for line in lines:
+    #    if "Summary of Genetic Correlation Results" in line:
+    #        summary_table = True
+    #        index_title = index
+    #    index += 1
+    #if summary_table:
+    #    # Read values from bottom table in report.
+    #    table = pandas.read_csv(
+    #        path_file,
+    #        sep="\s+",
+    #        header=(index_title + 2),
+    #        #skip_blank_lines=True,
+    #    )
+
+    # Initialize variables for extraction.
+    variants = float("nan")
+    variants_valid = float("nan")
+    covariance = float("nan")
+    covariance_error = float("nan")
+    correlation = float("nan")
+    correlation_error = float("nan")
+    correlation_ci95_low = float("nan")
+    correlation_ci95_high = float("nan")
+    correlation_ci99_low = float("nan")
+    correlation_ci99_high = float("nan")
+    correlation_ci95_not_zero = float("nan")
+    correlation_ci95_not_one = float("nan")
+    correlation_absolute = float("nan")
+    z_score = float("nan")
+    p_greater_zero = float("nan")
+
+    # Read relevant lines of character strings from file.
+    lines = utility.read_file_text_lines(
+        path_file=path_file,
+        start=25,
+        stop=57,
+    )
+
+    # Define character strings that indicate relevant information.
+    prefix_variants = "After merging with summary statistics, "
+    suffix_variants = " SNPs remain."
+    prefix_variants_valid = ""
+    suffix_variants_valid = " SNPs with valid alleles."
+    prefix_covariance = "Total Observed scale gencov: "
+    prefix_correlation = "Genetic Correlation: "
+    prefix_z_score = "Z-score: "
+    prefix_p = "P: "
+
+    # Extract information from lines.
+    for line in lines:
+        if prefix_variants in line:
+            variants = int(
+                line.replace(prefix_variants, "").replace(suffix_variants, "")
+            )
+        elif suffix_variants_valid in line:
+            variants_valid = int(
+                line.replace(suffix_variants_valid, "")
+            )
+        elif prefix_correlation in line:
+            content = line.replace(prefix_correlation, "")
+            contents = content.split(" (")
+            correlation_test = contents[0]
+            if (not "nan" in correlation_test):
+                correlation = float(contents[0])
+                correlation_error = float(contents[1].replace(")", ""))
+            pass
+        elif (
+            (not math.isnan(correlation)) and
+            (prefix_covariance in line)
+        ):
+            content = line.replace(prefix_covariance, "")
+            contents = content.split(" (")
+            covariance_test = contents[0]
+            if (not "NA" in covariance_test):
+                covariance = float(contents[0])
+                covariance_error = float(
+                    contents[1].replace(")", "")
+                )
+            pass
+        elif (
+            (not math.isnan(correlation)) and
+            (prefix_z_score in line)
+        ):
+            z_score = float(line.replace(prefix_z_score, ""))
+            pass
+        elif (
+            (not math.isnan(correlation)) and
+            (prefix_p in line)
+        ):
+            p_greater_zero = float(line.replace(prefix_p, ""))
+            pass
+        pass
+
+    # Organize information.
+    if (
+        (not pandas.isna(correlation)) and
+        (not pandas.isna(correlation_error))
+    ):
+        correlation_absolute = math.fabs(correlation)
+        correlation_ci95_low = (correlation - (1.960 * correlation_error))
+        correlation_ci95_high = (correlation + (1.960 * correlation_error))
+        correlation_ci99_low = (correlation - (2.576 * correlation_error))
+        correlation_ci99_high = (correlation + (2.576 * correlation_error))
+        # Determine confidence interval crosses zero or one.
+        if (
+            ((correlation_ci95_low > 0) and (correlation_ci95_high > 0)) or
+            ((correlation_ci95_low < 0) and (correlation_ci95_high < 0))
+        ):
+            correlation_ci95_not_zero = 1
+        else:
+            correlation_ci95_not_zero = 0
+            pass
+        if ((correlation_ci95_low < 1.0) and (correlation_ci95_high < 1.0)):
+            correlation_ci95_not_one = 1
+        else:
+            correlation_ci95_not_one = 0
+            pass
+        pass
+    correlation_ci95 = str(
+        str(round(correlation_ci95_low, 4)) + " ... " +
+        str(round(correlation_ci95_high, 4))
+    )
+    correlation_ci99 = str(
+        str(round(correlation_ci99_low, 4)) + " ... " +
+        str(round(correlation_ci99_high, 4))
+    )
+    summary_correlation_error = str(
+        str(correlation) + " (" + str(round(correlation_error, 4)) + ")"
+    )
+    summary_correlation_ci95 = str(
+        "(rg: " + str(correlation) + "; 95% CI: " + str(correlation_ci95) + ")"
+    )
+    summary_correlation_ci99 = str(
+        "(rg: " + str(correlation) + "; 99% CI: " + str(correlation_ci99) + ")"
+    )
+
+    # Collect information.
+    record = dict()
+    record["summary_correlation_error"] = summary_correlation_error
+    record["summary_correlation_ci95"] = summary_correlation_ci95
+    record["summary_correlation_ci99"] = summary_correlation_ci99
+    record["variants"] = variants
+    record["variants_valid"] = variants_valid
+    record["covariance"] = correlation
+    record["covariance_error"] = correlation_error
+    record["z_score"] = z_score
+    record["p_greater_zero"] = p_greater_zero
+    record["correlation_ci95_not_zero"] = correlation_ci95_not_zero
+    record["correlation_ci95_not_one"] = correlation_ci95_not_one
+    record["correlation_absolute"] = correlation_absolute
+    record["correlation"] = correlation
+    record["correlation_error"] = correlation_error
+    record["correlation_ci95_low"] = correlation_ci95_low
+    record["correlation_ci95_high"] = correlation_ci95_high
+    record["correlation_ci99_low"] = correlation_ci99_low
+    record["correlation_ci99_high"] = correlation_ci99_high
+    # Define list of variables in order.
+    variables = [
+        "summary_correlation_error",
+        "summary_correlation_ci95",
+        "summary_correlation_ci99",
+        "variants",
+        "variants_valid",
+        "covariance",
+        "covariance_error",
+        "z_score",
+        "p_greater_zero",
+        "correlation_ci95_not_zero",
+        "correlation_ci95_note_one",
+        "correlation_absolute",
+        "correlation",
+        "correlation_error",
+        "correlation_ci95_low",
+        "correlation_ci95_high",
+        "correlation_ci99_low",
+        "correlation_ci99_high",
+    ]
+    # Return information.
+    pail = dict()
+    pail["record"] = record
+    pail["variables"] = variables
+    return pail
 
 
 # parameters:
@@ -290,7 +508,9 @@ def read_extract_from_all_ldsc_files_in_directory(
                 path_file=path_file,
             )
         elif (str(analysis).strip() == "correlation"):
-            print("place holder")
+            pail = read_extract_ldsc_correlation(
+                path_file=path_file,
+            )
             pass
         # Collect and organize information about study.
         # Extraction functions return the relevant variables for each type of
