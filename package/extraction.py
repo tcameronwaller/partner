@@ -142,7 +142,7 @@ def read_extract_ldsc_heritability(
             (not math.isnan(heritability)) and
             (prefix_chi_square in line)
         ):
-            chi_square = float(line.replace(prefix_ratio, ""))
+            chi_square = float(line.replace(prefix_chi_square, ""))
             pass
         elif (
             (not math.isnan(heritability)) and
