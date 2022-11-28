@@ -120,9 +120,12 @@ def read_extract_from_all_ldsc_files_in_directory(
 
     names_files = utility.extract_directory_file_names_filter_by_name(
         path=path_directory,
-        name=".log",
-        name_not="",
+        name=file_name_pattern,
+        name_not=file_name_pattern_not,
     )
+
+    print("here is the list of file names")
+    print(names_files)
 
     # Collect information from analysis on each study.
     records = list()
