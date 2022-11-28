@@ -293,8 +293,10 @@ def read_extract_from_all_ldsc_files_in_directory(
             print("place holder")
             pass
         # Collect and organize information about study.
-        record["path_directory"] = str(path_directory)
-        record["name_file"] = str(name_file)
+        # Extraction functions return the relevant variables for each type of
+        # analysis.
+        pail["record"]["path_directory"] = str(path_directory)
+        pail["record"]["name_file"] = str(name_file)
         records.append(pail["record"])
         if (counter == 0):
             variables = pail["variables"]
