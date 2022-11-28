@@ -12,7 +12,7 @@
 
 # Source Format
 # delimiter: white space
-# SNP CHR POS A1 A2 QEp b se pval
+# columns: SNP CHR POS A1 A2 QEp b se pval
 
 # Format Translation
 # Many or even all SNPs do not have rsIDs.
@@ -24,7 +24,7 @@
 # delimiter: white space
 # columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
 
-# review: TCW; __ November 2022
+# review: TCW; 23 November 2022
 
 ###########################################################################
 ###########################################################################

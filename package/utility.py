@@ -139,7 +139,7 @@ def extract_directory_file_names(path=None):
     raises:
 
     returns:
-        (list<str>): names of subdirectories
+        (list<str>): names of files within the parent directory
 
     """
 
@@ -151,6 +151,37 @@ def extract_directory_file_names(path=None):
         ), contents
     ))
     return files
+
+
+def extract_directory_file_names_filter_by_name(
+    path=None,
+    name=None,
+    name_not=None,
+):
+    """
+    Extracts the names of all files within a parent directory and then filters
+    these file names by whether they include a specific string.
+
+    arguments:
+        path (str): path to directory
+        name (str): characters within names of files to keep
+        name_not (str): characters not within names of files to keep
+
+    raises:
+
+    returns:
+        (list<str>): names of files within the parent directory
+
+    """
+
+    names_files = extract_directory_file_names(path=path)
+    names_files_keep = list(filter(
+        lambda name_file: (
+            (str(name) in str(name_file)) and
+            (str(name_not) not in str(name_file))
+        ), names_files
+    ))
+    return names_files_keep
 
 
 def create_directories(path=None):

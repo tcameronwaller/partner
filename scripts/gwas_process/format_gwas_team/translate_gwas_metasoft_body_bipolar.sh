@@ -13,13 +13,16 @@
 # PVALUES_OF_STUDIES(Tab_delimitered) MVALUES_OF_STUDIES(Tab_delimitered)
 
 # Format Translation
+# Use the values for fixed effects ("_FE").
+# Documentation indicated that column "STD_FE" was for standard error of the
+# coefficient estimate with fixed effects.
 # columns: $1, $2, $3, $4, $5, "NA", $9, $10, $8, (5398), "NA", (1), "NA", "NA"
 
 # Product Format (Team Standard)
 # delimiter: white space
 # columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
 
-# review: TCW; __ November 2022
+# review: TCW; 23 November 2022
 
 ###########################################################################
 ###########################################################################
