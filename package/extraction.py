@@ -363,7 +363,7 @@ def read_extract_ldsc_correlation(
         correlation_ci95_high = (correlation + (1.960 * correlation_error))
         correlation_ci99_low = (correlation - (2.576 * correlation_error))
         correlation_ci99_high = (correlation + (2.576 * correlation_error))
-        # Determine confidence interval crosses zero or one.
+        # Determine whether confidence interval crosses zero or one.
         if (
             ((correlation_ci95_low > 0) and (correlation_ci95_high > 0)) or
             ((correlation_ci95_low < 0) and (correlation_ci95_high < 0))
@@ -442,19 +442,6 @@ def read_extract_ldsc_correlation(
     pail["record"] = record
     pail["variables"] = variables
     return pail
-
-
-# parameters:
-# 1. path to parent directory
-# 2. file name suffix by which to recognize relevant files in parent directory
-# 3. type of information to extract: "heritability" or "correlation"
-# functionality:
-# read names of all files within the parent directory
-# iterate on all files, calling the extraction function for each
-# collect information from the extraction record for each file
-# append the file name to the extraction record
-# organize the extracted information in a table
-# return table
 
 
 def read_extract_from_all_ldsc_files_in_directory(
