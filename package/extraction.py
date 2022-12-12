@@ -74,6 +74,9 @@ import promiscuity.utility as utility # this import path for subpackage
 # Functionality
 
 
+# TODO: TCW; 12 December 2022
+# Use the new utility function to calculate and organize 95% and 99% confidence intervals and ranges.
+
 def read_extract_ldsc_heritability(
     path_file=None,
 ):

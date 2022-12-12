@@ -203,34 +203,6 @@ def organize_table_cohort_model_variables_for_regression(
     return pail
 
 
-def determine_confidence_interval_range_text(
-    estimate=None,
-    interval_low=None,
-    interval_high=None,
-):
-    """
-    Prepares a textual representation of the confidence interval range about an
-    estimate.
-
-    arguments:
-        estimate (float): value of an estimate
-        interval_low (float): value of lower confidence interval
-        interval_high (float): value of higher confidence interval
-
-    raises:
-
-    returns:
-        (str): textual representation of confidence interval range
-    """
-
-    range = str(
-        str(round((float(estimate) - float(interval_low)), 5)) +
-        " ... " +
-        str(round((float(estimate) + float(interval_high)), 5))
-    )
-    return range
-
-
 def organize_linear_logistic_regression_independence_tree(
     independence=None,
     model_parameters=None,
@@ -241,11 +213,6 @@ def organize_linear_logistic_regression_independence_tree(
     """
     Organizes a dictionary tree of information about each independent variable
     from a logistic or linear regression.
-
-    https://www.mathsisfun.com/data/confidence-interval.html
-    90% Confidence Interval: (1.645 * standard_error)
-    95% Confidence Interval: (1.960 * standard_error)
-    99% Confidence Interval: (2.576 * standard_error)
 
     arguments:
         independence (list<str>): names of table's columns for independent
@@ -281,33 +248,17 @@ def organize_linear_logistic_regression_independence_tree(
         # Collect information for intercept.
         pail_tree["intercept"] = dict()
         pail_tree["intercept"]["variable"] = "intercept"
+        # Coefficient or parameter.
         #pail_tree["intercept"]["parameter"] = report.params[0]
         pail_tree["intercept"]["parameter"] = float(model_parameters["const"])
+        # Standard error of parameter.
         pail_tree["intercept"]["error"] = float(model_parameter_errors["const"])
-        pail_tree["intercept"]["interval_99"] = float(
-            2.576 * pail_tree["intercept"]["error"]
+        # Confidence intervals and ranges.
+        pail_confidence = utility.determine_95_99_confidence_intervals_ranges(
+            estimate=pail_tree["intercept"]["parameter"],
+            standard_error=pail_tree["intercept"]["error"],
         )
-        pail_tree["intercept"]["interval_95"] = float(
-            1.960 * pail_tree["intercept"]["error"]
-        )
-        pail_tree["intercept"]["range_95"] = (
-            determine_confidence_interval_range_text(
-                estimate=pail_tree["intercept"]["parameter"],
-                interval_low=pail_tree["intercept"]["interval_95"],
-                interval_high=pail_tree["intercept"]["interval_95"],
-        ))
-        pail_tree["intercept"]["range_95_below"] = float(
-            (
-                (pail_tree["intercept"]["parameter"]) -
-                (pail_tree["intercept"]["interval_95"])
-            )
-        )
-        pail_tree["intercept"]["range_95_above"] = float(
-            (
-                (pail_tree["intercept"]["parameter"]) +
-                (pail_tree["intercept"]["interval_95"])
-            )
-        )
+        pail_tree["intercept"].update(pail_confidence)
         # Probability.
         pail_tree["intercept"]["probability"] = float(
             model_probabilities["const"]
@@ -344,32 +295,14 @@ def organize_linear_logistic_regression_independence_tree(
         # Coefficient or parameter.
         #pail_tree[variable]["parameter"] = report.params[counter]
         pail_tree[variable]["parameter"] = float(model_parameters[variable])
-        # Parameter standard error
+        # Standard error parameter.
         pail_tree[variable]["error"] = float(model_parameter_errors[variable])
-        pail_tree[variable]["interval_99"] = float(
-            2.576 * pail_tree[variable]["error"]
+        # Confidence intervals and ranges.
+        pail_confidence = utility.determine_95_99_confidence_intervals_ranges(
+            estimate=pail_tree[variable]["parameter"],
+            standard_error=pail_tree[variable]["error"],
         )
-        pail_tree[variable]["interval_95"] = float(
-            1.960 * pail_tree[variable]["error"]
-        )
-        pail_tree[variable]["range_95"] = (
-            determine_confidence_interval_range_text(
-                estimate=pail_tree[variable]["parameter"],
-                interval_low=pail_tree[variable]["interval_95"],
-                interval_high=pail_tree[variable]["interval_95"],
-        ))
-        pail_tree[variable]["range_95_below"] = float(
-            (
-                (pail_tree[variable]["parameter"]) -
-                (pail_tree[variable]["interval_95"])
-            )
-        )
-        pail_tree[variable]["range_95_above"] = float(
-            (
-                (pail_tree[variable]["parameter"]) +
-                (pail_tree[variable]["interval_95"])
-            )
-        )
+        pail_tree[variable].update(pail_confidence)
         # Probability.
         pail_tree[variable]["probability"] = float(
             model_probabilities[variable]
@@ -1323,8 +1256,9 @@ def organize_table_regression_summary(
         "freedom", "observations", "samples",
         "log_likelihood", "akaike", "bayes",
         "variable_key",
-        "parameter", "error", "interval_99", "interval_95",
-        "range_95", "range_95_below", "range_95_above",
+        "parameter", "error", "interval_95", "interval_99",
+        "range_95", "range_95_low", "range_95_high",
+        "range_99", "range_99_low", "range_99_high",
         "probability", "inflation",
     ]
     if (type == "linear"):
