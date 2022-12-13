@@ -3812,8 +3812,6 @@ def determine_95_99_confidence_intervals_ranges(
     return pail
 
 
-
-
 # Stratifications by continuous variables
 
 
