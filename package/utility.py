@@ -3788,8 +3788,8 @@ def determine_95_99_confidence_intervals_ranges(
     )
     pail_99 = calculate_confidence_interval_range(
         confidence=0.99,
-        standard_error=pail_tree["intercept"]["error"],
-        estimate=pail_tree["intercept"]["parameter"],
+        standard_error=standard_error,
+        estimate=estimate,
     )
     # Organize information.
     pail["interval_95"] = pail_95["interval"]
