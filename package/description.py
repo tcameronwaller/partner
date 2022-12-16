@@ -562,6 +562,73 @@ def determine_95_99_confidence_intervals_ranges(
     return pail
 
 
+##########
+# Write
+
+
+def write_product_table(
+    name=None,
+    table=None,
+    path_directory=None,
+):
+    """
+    Writes product information to file.
+
+    arguments:
+        name (str): base name for file
+        table (object): table of information to write to file
+        path_directory (str): path to parent directory
+
+    raises:
+
+    returns:
+
+    """
+
+    # Specify directories and files.
+    path_table = os.path.join(
+        path_directory, str(name + ".pickle")
+    )
+    path_table_text = os.path.join(
+        path_directory, str(name + ".tsv")
+    )
+    # Write information to file.
+    table.to_pickle(path_table)
+    table.to_csv(
+        path_or_buf=path_table_text,
+        sep="\t",
+        header=True,
+        index=True,
+    )
+    pass
+
+
+def write_product_tables(
+    pail_write=None,
+    path_directory=None,
+):
+    """
+    Writes product information to file.
+
+    arguments:
+        pail_write (dict<object>): collection of information to write to file,
+            with keys defining names for Pandas data-frame tables as entries
+        path_directory (str): path to parent directory
+
+    raises:
+
+    returns:
+
+    """
+
+    for name in pail_write.keys():
+        write_product_table(
+            name=name,
+            table=pail_write[name],
+            path_directory=path_directory,
+        )
+    pass
+
 
 
 ################################################################################
