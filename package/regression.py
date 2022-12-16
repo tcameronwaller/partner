@@ -65,7 +65,7 @@ import statsmodels.stats.outliers_influence
 # Custom
 import promiscuity.utility as utility # this import path for subpackage
 import promiscuity.scale as pscale
-
+import promiscuity.description as pdesc
 
 #dir()
 #importlib.reload()
@@ -254,7 +254,7 @@ def organize_linear_logistic_regression_independence_tree(
         # Standard error of parameter.
         pail_tree["intercept"]["error"] = float(model_parameter_errors["const"])
         # Confidence intervals and ranges.
-        pail_confidence = utility.determine_95_99_confidence_intervals_ranges(
+        pail_confidence = pdesc.determine_95_99_confidence_intervals_ranges(
             estimate=pail_tree["intercept"]["parameter"],
             standard_error=pail_tree["intercept"]["error"],
         )
@@ -298,7 +298,7 @@ def organize_linear_logistic_regression_independence_tree(
         # Standard error parameter.
         pail_tree[variable]["error"] = float(model_parameter_errors[variable])
         # Confidence intervals and ranges.
-        pail_confidence = utility.determine_95_99_confidence_intervals_ranges(
+        pail_confidence = pdesc.determine_95_99_confidence_intervals_ranges(
             estimate=pail_tree[variable]["parameter"],
             standard_error=pail_tree[variable]["error"],
         )
