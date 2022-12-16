@@ -320,7 +320,7 @@ def create_quantitation_record(
             record["standard_error"] = scipy.stats.sem(array)
             # Confidence intervals and ranges.
             pail_confidence = (
-                utility.determine_95_99_confidence_intervals_ranges(
+                determine_95_99_confidence_intervals_ranges(
                     estimate=record["mean"],
                     standard_error=record["standard_error"],
             ))
