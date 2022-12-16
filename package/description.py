@@ -209,6 +209,8 @@ def drive_assemble_attribution_table(
 def create_quantitation_record(
     name_cohort=None,
     variable=None,
+    variable_attribution=None,
+    value_attribution=None,
     table=None,
 ):
     """
@@ -220,6 +222,9 @@ def create_quantitation_record(
     arguments:
         name_cohort (str): name of cohort
         variable (str): name of table's column for variable
+        variable_attribution (str): name of table's column for a special
+            variable for which to report attribution against main variable
+        value_attribution (object): value of special variable for attribution
         table (object): Pandas data frame of phenotype variables across UK
             Biobank cohort
 
@@ -234,35 +239,38 @@ def create_quantitation_record(
     record = dict()
     record["cohort"] = str(name_cohort)
     record["variable"] = str(variable)
+    record["variable_attribution"] = str(variable_attribution)
+    record["value_attribution"] = value_attribution
     # Copy information.
     table = table.copy(deep=True)
 
     # Stratify table.
     # Select relevant rows of the table.
-    table_genotype = table.loc[
+    table_attribution = table.loc[
         (
-            (~pandas.isna(table["genotype_availability"])) &
-            (table["genotype_availability"] == 1)
+            (~pandas.isna(table[variable_attribution])) &
+            (table[variable_attribution] == value_attribution)
         ), :
     ]
 
-    # Count records.
+    # Counts.
     record["count_cohort_total_records"] = int(table.shape[0])
-    record["count_cohort_total_genotypes"] = int(table_genotype.shape[0])
+    record["count_cohort_total_attribution"] = int(table_attribution.shape[0])
     count_total = record["count_cohort_total_records"]
-    count_total_genotype = record["count_cohort_total_genotypes"]
-    percentage_total_genotype = round(
-        ((count_total_genotype / count_total) * 100), 3
+    count_total_attribution = record["count_cohort_total_attribution"]
+    # Percentages.
+    percentage_total_attribution = round(
+        ((count_total_attribution / count_total) * 100), 3
     )
-    record["percentage_cohort_total_genotypes"] = str(
-        str(record["count_cohort_total_genotypes"]) + " (" +
-        str(percentage_total_genotype) + "%)"
+    record["percentage_cohort_total_attribution"] = str(
+        str(record["count_cohort_total_attribution"]) + " (" +
+        str(percentage_total_attribution) + "%)"
     )
     # Initialize missing values.
     record["count_variable_non_missing"] = float("nan")
     record["percentage_variable_non_missing"] = str("nan (nan%)")
-    record["count_variable_genotypes"] = float("nan")
-    record["percentage_variable_genotypes"] = str("nan (nan%)")
+    record["count_variable_attribution"] = float("nan")
+    record["percentage_variable_attribution"] = str("nan (nan%)")
     record["median"] = float("nan")
     record["minimum"] = float("nan")
     record["maximum"] = float("nan")
@@ -278,12 +286,15 @@ def create_quantitation_record(
     # Determine whether table has the column.
     if (variable in table.columns.to_list()):
         array = copy.deepcopy(table[variable].dropna().to_numpy()) # non-missing
-        array_genotype = copy.deepcopy(
-            table_genotype[variable].dropna().to_numpy()
+        array_attribution = copy.deepcopy(
+            table_attribution[variable].dropna().to_numpy()
         ) # non-missing variable values with genotypes
         # Determine count of valid values.
         record["count_variable_non_missing"] = int(array.size)
         count_variable = record["count_variable_non_missing"]
+        record["count_variable_attribution"] = int(array_attribution.size)
+        count_attribution_variable = record["count_variable_attribution"]
+        # Percentages.
         percentage_variable = round(
             float((count_variable / count_total) * 100), 3
         )
@@ -291,16 +302,14 @@ def create_quantitation_record(
             str(count_variable) + " (" +
             str(percentage_variable) + "%)"
         )
-        record["count_variable_genotypes"] = int(array_genotype.size)
-        count_genotype_variable = record["count_variable_genotypes"]
-        percentage_genotype_variable = round(
-            ((count_genotype_variable / count_total) * 100), 3
+        percentage_attribution_variable = round(
+            ((count_attribution_variable / count_total) * 100), 3
         )
-        record["percentage_variable_genotypes"] = str(
-            str(count_genotype_variable) + " (" +
-            str(percentage_genotype_variable) + "%)"
+        record["percentage_variable_attribution"] = str(
+            str(count_attribution_variable) + " (" +
+            str(percentage_attribution_variable) + "%)"
         )
-        if (count_variable > 10):
+        if (count_variable > 5):
             # Determine mean, median, standard deviation, and standard error of
             # values in array.
             record["median"] = numpy.nanmedian(array)
@@ -324,6 +333,8 @@ def create_quantitation_record(
 
 def drive_assemble_quantitation_table(
     variables=None,
+    variable_attribution=None,
+    value_attribution=None,
     records_cohorts=None,
     report=None,
 ):
@@ -337,6 +348,9 @@ def drive_assemble_quantitation_table(
 
     arguments:
         variables (list<str>): names of variables
+        variable_attribution (str): name of table's column for a special
+            variable for which to report attribution against main variable
+        value_attribution (object): value of special variable for attribution
         records_cohorts (list<dict>): records with information about cohorts
         report (bool): whether to print reports
 
@@ -357,6 +371,8 @@ def drive_assemble_quantitation_table(
             record_description = create_quantitation_record(
                 name_cohort=record_cohort["name"],
                 variable=variable,
+                variable_attribution=variable_attribution,
+                value_attribution=value_attribution,
                 table=record_cohort["table"],
             )
             # Collect records.
@@ -368,14 +384,16 @@ def drive_assemble_quantitation_table(
     # Select and sort relevant columns from table.
     columns = [
         "cohort",
-        "variable",
         "count_cohort_total_records",
-        "count_cohort_total_genotypes",
-        "percentage_cohort_total_genotypes",
+        "variable_attribution",
+        "value_attribution",
+        "count_cohort_total_attribution",
+        "percentage_cohort_total_attribution",
+        "variable",
         "count_variable_non_missing",
         "percentage_variable_non_missing",
-        "count_variable_genotypes",
-        "percentage_variable_genotypes",
+        "count_variable_attribution",
+        "percentage_variable_attribution",
         "median",
         "minimum",
         "maximum",
