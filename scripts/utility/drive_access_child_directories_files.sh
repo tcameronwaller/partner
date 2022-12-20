@@ -50,11 +50,12 @@ do
     # Create child directory if it does not already exist.
     path_directory_child="${path_directory_parent}/${array[1]}"
     mkdir -p $path_directory_child
+    #cd $path_directory_child
     # Access the specific file and save within the child directory.
     wget "${array[3]}" --directory-prefix "${path_directory_child}" --content-disposition --show-progress
     # Decompress file from Zip format.
     if [[ "${array[4]}" == "1" ]]; then
-      unzip "${path_directory_child}/*.zip"
+      unzip "${path_directory_child}/*.zip" --extract-dir "${path_directory_child}"
     fi
   fi
 done < "${input}"
