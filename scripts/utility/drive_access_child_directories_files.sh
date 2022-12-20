@@ -23,8 +23,8 @@
 ################################################################################
 # Organize arguments.
 
-path_directory_parent=${1} # full path to parent directory within which to create child directories and save files
-path_file_accession=${2} # full path to file of parameter table in text format with information about accessions
+path_file_accession=${1} # full path to file of parameter table in text format with information about accessions
+path_directory_parent=${2} # full path to parent directory within which to create child directories and save files
 report=${3} # whether to print reports
 
 ################################################################################
