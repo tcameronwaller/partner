@@ -98,9 +98,9 @@ do
 
     # Remove temporary files.
     for path_file_temporary in "${removals[@]}"; do
-      echo "remove this file: "
-      echo $path_file_temporary
-      #rm $path_file_temporary
+      #echo "remove this file: "
+      #echo $path_file_temporary
+      rm $path_file_temporary
     done
   fi
 done < "${input}"
