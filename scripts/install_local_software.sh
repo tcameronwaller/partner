@@ -196,6 +196,20 @@ sudo apt install fldigi
 # http://www.w1hkj.com/files/AndFlmsg/
 # http://www.w1hkj.com/files/AndFlmsg/AndFlmsg_V1.5.0-20210812.apk
 
+##########
+# BGZip
+# A bioinformatics tool for compression in GZip format with Tabix index.
+# http://www.htslib.org/doc/bgzip.html
+# The HTSLib includes BGZip and Tabix.
+# http://www.htslib.org/download/
+wget https://github.com/samtools/htslib/releases/download/1.16/htslib-1.16.tar.bz2
+tar -xjvf ./htslib-1.16.tar.bz2 -C ./
+cd ./htslib-1.16
+./configure --prefix=../htslib/1.16
+make
+make install
+cd ../htslib/1.16/bin/
+./bgzip --help
 
 ##########
 # BCFTools

@@ -66,7 +66,7 @@ done < "${input}"
 if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "Script complete:"
-  echo "drive_access_child_directories_files.sh"
+  echo "drive_accessions_to_child_directories_files.sh"
   echo "----------"
 fi
 
