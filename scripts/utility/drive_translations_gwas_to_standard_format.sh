@@ -58,7 +58,7 @@ do
     #name_base_file_source="$(basename $path_file_source "${array[6]}")"
 
     # Manage compression formats and file suffices.
-    if [[ "${array[7]}" == "1" ] && [ "${array[8]}" == "1" ]]; then
+    if [ "${array[7]}" == "1" ] && [ "${array[8]}" == "1" ]; then
       # 1. Decompress from BGZip format (http://www.htslib.org/doc/bgzip.html).
       $path_bgzip --decompress "${path_directory_child_source}/${name_file_source}" --stdout > "${path_directory_child_source}/${name_base_file_source}_temporary_tcw_73216.txt"
       # 2. Compress to GZip format.
@@ -68,14 +68,14 @@ do
       removals+=("${path_directory_child_source}/${name_base_file_source}_temporary_tcw_73216.txt")
       removals+=($path_file_source_standard)
     fi
-    if [[ "${array[7]}" != "1" ] && [ "${array[8]}" == "1" ]]; then
+    if [ "${array[7]}" != "1" ] && [ "${array[8]}" == "1" ]; then
       # 1. Compress to Gzip format
       gzip -cvf "${path_directory_child_source}/${name_file_source}" > $path_file_source_standard
       # Collect paths to temporary files for removal after completion of the remainder of procedure.
       removals=()
       removals+=($path_file_source_standard)
     fi
-    if [[ "${array[7]}" != "1" ] && [ "${array[8]}" != "1" ]]; then
+    if [ "${array[7]}" != "1" ] && [ "${array[8]}" != "1" ]; then
       # Manage suffix.
       cp "${path_directory_child_source}/${name_file_source}" $path_file_source_standard
       # Collect paths to temporary files for removal after completion of the remainder of procedure.
