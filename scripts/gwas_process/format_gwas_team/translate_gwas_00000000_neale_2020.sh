@@ -12,6 +12,9 @@
 # Source Format
 # Documentation: https://pan.ukbb.broadinstitute.org/docs/per-phenotype-files#per-phenotype-files
 # Effect Allele (A1) in GWAS was the Alternate Allele (alt).
+# Use of the general columns for Effect Allele Frequency (af_meta), Beta Coefficient (beta_meta),
+# Standard Error (se_meta), and Probability (pval_meta) would be more inclusive as some
+# phenotypes did not pass quality control.
 # delimiter: white space
 # columns: chr pos ref alt af_meta_hq beta_meta_hq se_meta_hq pval_meta_hq pval_heterogeneity_hq af_meta beta_meta se_meta pval_meta pval_heterogeneity ...
 
@@ -25,7 +28,13 @@
 # delimiter: white space
 # columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
 
-# review: TCW; __ December 2022
+# review: TCW; 23 December 2022
+# check: Standard Format Columns [TCW; 22 December 2022]
+# check: Study citation, PubMed, and Host website [TCW; 22 December 2022]
+# check: Study field delimiters [TCW; 23 December 2022]
+# check: Study source columns [TCW; 23 December 2022]
+# check: Translation column order [TCW; 23 December 2022]
+
 
 ###########################################################################
 ###########################################################################

@@ -11,6 +11,8 @@
 # Host: https://www.ebi.ac.uk/gwas/publications/32769997
 
 # Source Format
+# Documentation: http://csg.sph.umich.edu/willer/public/TSH2020/
+# Effect Allele in GWAS (A1) was column "Allele1".
 # delimiter: white space
 # columns: Chr Pos Allele1 Allele2 Freq N Effect SE P-value Direction HetPval
 
@@ -24,7 +26,13 @@
 # delimiter: white space
 # columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
 
-# review: TCW; __ December 2022
+# review: TCW; 23 December 2022
+# check: Standard Format Columns [TCW; 22 December 2022]
+# check: Study citation, PubMed, and Host website [TCW; 22 December 2022]
+# check: Study field delimiters [TCW; 23 December 2022]
+# check: Study source columns [TCW; 23 December 2022]
+# check: Translation column order [TCW; 23 December 2022]
+
 
 ###########################################################################
 ###########################################################################
