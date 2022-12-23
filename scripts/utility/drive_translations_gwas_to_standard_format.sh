@@ -46,41 +46,29 @@ do
   if [[ "${array[0]}" == "1" ]]; then
     # Organize paths.
     path_directory_child_source="${path_directory_parent_source}/${array[1]}"
-    path_file_script="${path_directory_script}/${array[10]}"
-    path_file_product="${path_directory_product}/${array[2]}.txt.gz"
-    # Organize name and suffix of source file.
     name_file_source="${array[5]}"
     suffix_file_source="${array[6]}"
     name_base_file_source=$(echo $name_file_source | sed "s/$suffix_file_source//")
-    path_file_source_standard="${path_directory_child_source}/${name_base_file_source}_temporary_tcw_73216.txt.gz"
-    #name_suffix_file_progress="${name_file_source}"
-    #path_file_source="${path_directory_child_source}/${array[5]}"
-    #name_base_file_source="$(basename $path_file_source "${array[6]}")"
-
+    path_file_source="${path_directory_child_source}/${name_file_source}"
+    path_directory_temporary="${path_directory_product}/temporary_tcw_73216"
+    path_file_source_standard="${path_directory_temporary}/${name_base_file_source}.txt.gz"
+    path_file_script="${path_directory_script}/${array[10]}"
+    path_file_product="${path_directory_product}/${array[2]}.txt.gz"
+    mkdir -p $path_directory_temporary
     # Manage compression formats and file suffices.
     if [ "${array[7]}" == "1" ] && [ "${array[8]}" == "1" ]; then
       # 1. Decompress from BGZip format (http://www.htslib.org/doc/bgzip.html).
-      $path_bgzip --decompress "${path_directory_child_source}/${name_file_source}" --stdout > "${path_directory_child_source}/${name_base_file_source}_temporary_tcw_73216.txt"
+      $path_bgzip --decompress "$path_file_source" --stdout > "${path_directory_temporary}/${name_base_file_source}.txt"
       # 2. Compress to GZip format.
-      gzip -cvf "${path_directory_child_source}/${name_base_file_source}_temporary_tcw_73216.txt" > $path_file_source_standard
-      # Collect paths to temporary files for removal after completion of the remainder of procedure.
-      removals=()
-      removals+=("${path_directory_child_source}/${name_base_file_source}_temporary_tcw_73216.txt")
-      removals+=($path_file_source_standard)
+      gzip -cvf "${path_directory_temporary}/${name_base_file_source}.txt" > $path_file_source_standard
     fi
     if [ "${array[7]}" != "1" ] && [ "${array[8]}" == "1" ]; then
       # 1. Compress to Gzip format
-      gzip -cvf "${path_directory_child_source}/${name_file_source}" > $path_file_source_standard
-      # Collect paths to temporary files for removal after completion of the remainder of procedure.
-      removals=()
-      removals+=($path_file_source_standard)
+      gzip -cvf "$path_file_source" > $path_file_source_standard
     fi
     if [ "${array[7]}" != "1" ] && [ "${array[8]}" != "1" ]; then
       # Manage suffix.
-      cp "${path_directory_child_source}/${name_file_source}" $path_file_source_standard
-      # Collect paths to temporary files for removal after completion of the remainder of procedure.
-      removals=()
-      removals+=($path_file_source_standard)
+      cp "$path_file_source" $path_file_source_standard
     fi
     # Call script for translation.
     if [[ "${array[9]}" == "NA" ]]; then
@@ -95,13 +83,8 @@ do
       ${array[9]} \
       $report
     fi
-
-    # Remove temporary files.
-    for path_file_temporary in "${removals[@]}"; do
-      #echo "remove this file: "
-      #echo $path_file_temporary
-      rm $path_file_temporary
-    done
+    # Remove temporary directory and files.
+    rm -r $path_directory_temporary
   fi
 done < "${input}"
 
