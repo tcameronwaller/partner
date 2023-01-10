@@ -224,3 +224,16 @@ make
 make install
 cd ../bcftools/1.15.1/bin/
 ./bcftools --help
+
+##########
+# GCTB
+# A package of tools for Genome-wide Complex Trait Bayesian (GCTB) analysis
+# Includes the tool SBayesR for calculation of Polygenic Scores (PGS).
+# Authors provided a "statically linked 64-bit Linux executable, gctb".
+# Installation instructions for custom, local compilation (https://cnsgenomics.com/software/gctb/download/README.html).
+cd ./ # navigate to directory in which to install GCTB.
+wget "https://cnsgenomics.com/software/gctb/download/gctb_2.04.3_Linux.zip"
+unzip "./gctb_2.04.3_Linux.zip"
+./gctb_2.04.3_Linux/gctb --help
+
+##########

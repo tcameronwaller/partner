@@ -53,7 +53,7 @@ do
     #cd $path_directory_child
     # Access the specific file and save within the child directory.
     wget "${array[3]}" --directory-prefix "${path_directory_child}" --content-disposition --show-progress
-    # Decompress file from Zip format.
+    # Decompress content from Zip archive format.
     if [[ "${array[4]}" == "1" ]]; then
       # The argument flag "--extract-dir" (synonym for "-d") does not seem to work properly.
       unzip "${path_directory_child}/*.zip" -d "${path_directory_child}"
