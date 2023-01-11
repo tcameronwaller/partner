@@ -49,7 +49,7 @@ url_ld_matrix_sparse_chisquare="https://cnsgenomics.com/data/GCTB/ukbEURu_imp_v3
 url_ld_matrix_banded="https://cnsgenomics.com/data/GCTB/band_ukb_10k_hm3.zip"
 
 # Initialize directories.
-rm -r $path_directory_parent
+#rm -r $path_directory_parent
 mkdir -p $path_directory_parent
 cd $path_directory_parent
 
@@ -96,7 +96,7 @@ fi
 # Linkage Disequilibrium (LD) reference matrix.
 # Sparse (shrinkage) LD reference matrix on 50,000 persons of European ancestral
 # background from the UK Biobank.
-if true; then
+if false; then
   # Access the specific file and save within the child directory.
   wget \
   "${url_ld_matrix_sparse_shrinkage_hapmap3}" \
@@ -112,11 +112,12 @@ fi
 ##########
 # Translate GWAS summary statistics to format for GCTB.
 # columns: SNP   A1   A2   freq   b   se   p   N
-
-/usr/bin/bash "${path_script_gwas_format}" \
-$path_file_gwas_source \
-$path_file_gwas_product \
-$report
+if false; then
+  /usr/bin/bash "${path_script_gwas_format}" \
+  $path_file_gwas_source \
+  $path_file_gwas_product \
+  $report
+fi
 
 ##########
 # Apply SBayesR to adjust weights of effect sizes across SNPs.
