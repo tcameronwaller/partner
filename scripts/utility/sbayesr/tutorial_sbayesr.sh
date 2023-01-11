@@ -37,9 +37,11 @@ path_file_gwas_product="${path_directory_parent}/32042192_ruth_2020_testosterone
 path_file_gwas_tutorial="${path_directory_parent}/gctb_2.0_tutorial/ma/sim_1.ma"
 path_file_ld_matrix_tutorial="${path_directory_parent}/gctb_2.0_tutorial/ldm/sparse/chr22/1000G_eur_chr22.ldm.sparse"
 #path_file_ld_matrix_sparse_europe="${path_directory_parent}/..."
+path_file_base_product="${path_directory_parent}/test_tcw_723"
 
 # Scripts.
 path_script_gwas_format="${path_directory_process}/promiscuity/scripts/utility/sbayesr/constrain_translate_gwas_standard_to_sbayesr.sh"
+path_script_run_sbayesr="${path_directory_process}/promiscuity/scripts/utility/sbayesr/run_sbayesr.sh"
 
 # Uniform Resource Locators (URLs).
 url_gctb="https://cnsgenomics.com/software/gctb/download/gctb_2.04.3_Linux.zip"
@@ -129,17 +131,29 @@ fi
 # --exclude-region
 # --impute-n
 
-$path_sbayesr \
---sbayes R \
---exclude-mhc \
---ldm $path_file_ld_matrix_tutorial \
---pi 0.95,0.02,0.02,0.01 \
---gamma 0.0,0.01,0.1,1 \
---gwas-summary $path_file_gwas_tutorial \
---chain-length 10000 \
---burn-in 2000 \
---out-freq 10 \
---out "${path_directory_parent}/test_tcw_723"
+if true; then
+  $path_sbayesr \
+  --sbayes R \
+  --exclude-mhc \
+  --ldm $path_file_ld_matrix_tutorial \
+  --pi 0.95,0.02,0.02,0.01 \
+  --gamma 0.0,0.01,0.1,1 \
+  --gwas-summary $path_file_gwas_tutorial \
+  --chain-length 10000 \
+  --burn-in 2000 \
+  --out-freq 10 \
+  --out $path_file_base_product
+fi
+
+if false; then
+  /usr/bin/bash $path_script_run_sbayesr \
+  $path_file_gwas_tutorial \
+  $path_file_ld_matrix_tutorial \
+  $path_file_base_product \
+  $path_sbayesr \
+  $report
+fi
+
 
 
 ##########
