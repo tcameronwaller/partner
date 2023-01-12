@@ -53,7 +53,7 @@ url_ld_matrix_sparse_chisquare="https://cnsgenomics.com/data/GCTB/ukbEURu_imp_v3
 url_ld_matrix_banded="https://cnsgenomics.com/data/GCTB/band_ukb_10k_hm3.zip"
 
 # Initialize directories.
-#rm -r $path_directory_parent
+###rm -r $path_directory_parent # Removing parent directory would lose genetic reference data.
 mkdir -p $path_directory_parent
 cd $path_directory_parent
 
@@ -154,8 +154,8 @@ if true; then
   $report
 
   # Remove temporary files.
-  rm $path_file_gwas_product_temporary
-  rm $path_file_gwas_product_temporary_compress
+  rm $path_file_gwas_source_temporary
+  rm $path_file_gwas_source_temporary_compress
 fi
 
 # Translate GWAS summary statistics to format for GCTB.
@@ -205,7 +205,7 @@ if false; then
   $report
 fi
 
-if false; then
+if true; then
   /usr/bin/bash $path_script_run_sbayesr \
   $path_file_gwas_product \
   $path_file_ld_matrix_tutorial \
