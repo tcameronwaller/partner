@@ -130,8 +130,11 @@ fi
 # --exclude-mhc
 # --exclude-region
 # --impute-n
+# File with suffix ".snpRes" gives the new effect sizes across SNPs after
+# adjustment of weights for LD (I think; TCW; 12 January 2023).
 
-if true; then
+
+if false; then
   $path_gctb \
   --sbayes R \
   --exclude-mhc \
@@ -142,10 +145,11 @@ if true; then
   --chain-length 10000 \
   --burn-in 2000 \
   --out-freq 10 \
-  --out $path_file_base_product
+  --out $path_file_base_product \
+  2>&1 | tee "${path_file_base_product}.log"
 fi
 
-if false; then
+if true; then
   /usr/bin/bash $path_script_run_sbayesr \
   $path_file_gwas_tutorial \
   $path_file_ld_matrix_tutorial \
@@ -154,6 +158,10 @@ if false; then
   $report
 fi
 
+
+##########
+# Translate SNP effects from GRCh37 to GRCh38 for calculation of polygenic
+# scores on genotypes.
 
 
 ##########
