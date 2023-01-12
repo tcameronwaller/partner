@@ -134,7 +134,7 @@ fi
 # adjustment of weights for LD (I think; TCW; 12 January 2023).
 
 
-if false; then
+if true; then
   $path_gctb \
   --sbayes R \
   --exclude-mhc \
@@ -145,11 +145,13 @@ if false; then
   --chain-length 10000 \
   --burn-in 2000 \
   --out-freq 10 \
-  --out $path_file_base_product \
-  2>&1 | tee "${path_file_base_product}.log"
+  --out $path_file_base_product 2>&1 | tee "${path_file_base_product}.log"
 fi
 
-if true; then
+echo "Script complete... check for the log file and other outputs..."
+
+
+if false; then
   /usr/bin/bash $path_script_run_sbayesr \
   $path_file_gwas_tutorial \
   $path_file_ld_matrix_tutorial \
