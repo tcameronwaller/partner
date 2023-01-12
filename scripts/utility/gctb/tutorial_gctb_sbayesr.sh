@@ -126,7 +126,7 @@ fi
 ##########
 # Translate GWAS summary statistics to format for GCTB.
 # columns: SNP   A1   A2   freq   b   se   p   N
-if false; then
+if true; then
   /usr/bin/bash "${path_script_gwas_format}" \
   $path_file_gwas_source \
   $path_file_gwas_product \
@@ -160,7 +160,7 @@ if false; then
   --out $path_file_base_product 2>&1 | tee "${path_file_base_product}.log"
 fi
 
-if true; then
+if false; then
   /usr/bin/bash $path_script_run_sbayesr \
   $path_file_gwas_tutorial \
   $path_file_ld_matrix_tutorial \
