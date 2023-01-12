@@ -25,7 +25,7 @@
 cd ~/paths
 path_directory_tools=$(<"./waller_tools.txt")
 path_plink2=$(<"./tools_plink2.txt")
-path_sbayesr=$(<"./tools_waller_sbayesr.txt")
+path_gctb=$(<"./tools_waller_gctb.txt")
 path_directory_gwas_summaries=$(<"./gwas_summaries_waller_metabolism.txt")
 path_directory_process=$(<"./process_psychiatric_metabolism.txt")
 path_directory_dock="${path_directory_process}/dock"
@@ -40,8 +40,8 @@ path_file_ld_matrix_tutorial="${path_directory_parent}/gctb_2.0_tutorial/ldm/spa
 path_file_base_product="${path_directory_parent}/test_sbayesr_out_tcw_723"
 
 # Scripts.
-path_script_gwas_format="${path_directory_process}/promiscuity/scripts/utility/sbayesr/constrain_translate_gwas_standard_to_sbayesr.sh"
-path_script_run_sbayesr="${path_directory_process}/promiscuity/scripts/utility/sbayesr/run_sbayesr.sh"
+path_script_gwas_format="${path_directory_process}/promiscuity/scripts/utility/gctb/constrain_translate_gwas_standard_to_gctb.sh"
+path_script_run_sbayesr="${path_directory_process}/promiscuity/scripts/utility/gctb/run_gctb_sbayesr.sh"
 
 # Uniform Resource Locators (URLs).
 url_gctb="https://cnsgenomics.com/software/gctb/download/gctb_2.04.3_Linux.zip"
@@ -132,7 +132,7 @@ fi
 # --impute-n
 
 if true; then
-  $path_sbayesr \
+  $path_gctb \
   --sbayes R \
   --exclude-mhc \
   --ldm $path_file_ld_matrix_tutorial \
@@ -150,7 +150,7 @@ if false; then
   $path_file_gwas_tutorial \
   $path_file_ld_matrix_tutorial \
   $path_file_base_product \
-  $path_sbayesr \
+  $path_gctb \
   $report
 fi
 

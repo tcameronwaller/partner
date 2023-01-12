@@ -15,7 +15,7 @@
 path_file_gwas=${1} # full directory path and file name for source GWAS summary statistics in GCTB and GCTA-COJO ".ma" format without compression
 path_file_ld_matrix=${2} # full directory path and base file name for Linkage Disequilibrium (LD) reference matrix in GCTB format
 path_file_base_product=${3} # full directory path and base file name for product files from GCTB SBayesR
-path_sbayesr=${4} # full directory path and file name for local executable installation of GCTB SBayesR
+path_gctb=${4} # full directory path and file name for local executable installation of GCTB SBayesR
 report=${5} # whether to print reports
 
 ################################################################################
@@ -31,7 +31,7 @@ report=${5} # whether to print reports
 # --exclude-region
 # --impute-n
 
-$path_sbayesr \
+$path_gctb \
 --sbayes R \
 --exclude-mhc \
 --ldm $path_file_ld_matrix \
