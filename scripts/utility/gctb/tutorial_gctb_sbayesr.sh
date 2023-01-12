@@ -57,6 +57,18 @@ cd $path_directory_parent
 
 
 
+###########################################################################
+# Organize parameters.
+
+report="true"
+
+
+
+###########################################################################
+# Procedure.
+
+
+
 ##########
 # Installation.
 # Authors provided a "statically linked 64-bit Linux executable, gctb".
@@ -134,7 +146,7 @@ fi
 # adjustment of weights for LD (I think; TCW; 12 January 2023).
 
 
-if true; then
+if false; then
   $path_gctb \
   --sbayes R \
   --exclude-mhc \
@@ -148,10 +160,7 @@ if true; then
   --out $path_file_base_product 2>&1 | tee "${path_file_base_product}.log"
 fi
 
-echo "Script complete... check for the log file and other outputs..."
-
-
-if false; then
+if true; then
   /usr/bin/bash $path_script_run_sbayesr \
   $path_file_gwas_tutorial \
   $path_file_ld_matrix_tutorial \
@@ -159,6 +168,7 @@ if false; then
   $path_gctb \
   $report
 fi
+
 
 
 ##########

@@ -43,8 +43,18 @@ $path_gctb \
 --chain-length 10000 \
 --burn-in 2000 \
 --out-freq 10 \
---out $path_file_base_product \
-2>&1 | tee "${path_file_base_product}.log"
+--out $path_file_base_product 2>&1 | tee "${path_file_base_product}.log"
+
+
+
+################################################################################
+# Report.
+if [[ "$report" == "true" ]]; then
+  echo "----------"
+  echo "Script complete:"
+  echo "run_gctb_sbayesr.sh"
+  echo "----------"
+fi
 
 
 
