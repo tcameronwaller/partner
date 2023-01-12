@@ -37,7 +37,7 @@ path_file_gwas_product="${path_directory_parent}/32042192_ruth_2020_testosterone
 path_file_gwas_tutorial="${path_directory_parent}/gctb_2.0_tutorial/ma/sim_1.ma"
 path_file_ld_matrix_tutorial="${path_directory_parent}/gctb_2.0_tutorial/ldm/sparse/chr22/1000G_eur_chr22.ldm.sparse"
 #path_file_ld_matrix_sparse_europe="${path_directory_parent}/..."
-path_file_base_product="${path_directory_parent}/test_tcw_723"
+path_file_base_product="${path_directory_parent}/test_sbayesr_out_tcw_723"
 
 # Scripts.
 path_script_gwas_format="${path_directory_process}/promiscuity/scripts/utility/sbayesr/constrain_translate_gwas_standard_to_sbayesr.sh"
