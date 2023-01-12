@@ -33,6 +33,8 @@ path_directory_parent="${path_directory_dock}/test_sbayesr"
 
 # Files.
 path_file_gwas_source="${path_directory_dock}/hormone_genetics/gwas_format_standard/32042192_ruth_2020_testosterone_bioavailable_female.txt.gz"
+path_file_gwas_source_temporary="${path_directory_parent}/32042192_ruth_2020_testosterone_bioavailable_female_temp.txt"
+path_file_gwas_source_temporary_compress="${path_directory_parent}/32042192_ruth_2020_testosterone_bioavailable_female_temp.txt.gz"
 path_file_gwas_product="${path_directory_parent}/32042192_ruth_2020_testosterone_bioavailable_female.ma"
 path_file_gwas_tutorial="${path_directory_parent}/gctb_2.0_tutorial/ma/sim_1.ma"
 path_file_ld_matrix_tutorial="${path_directory_parent}/gctb_2.0_tutorial/ldm/sparse/chr22/1000G_eur_chr22.ldm.sparse"
@@ -124,14 +126,48 @@ fi
 
 
 ##########
+# Prepare GWAS Summary Statistics.
+
+# Filter GWAS summary statistics to Chromosome 22 and translate to format for GCTB.
+# For test using the tutorial LD Matrix for Chromosome 22.
+if true; then
+  zcat $path_file_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_file_gwas_source_temporary
+  zcat $path_file_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
+    if ( NF != 14)
+      # Skip any rows with incorrect count of column fields.
+      next
+    else if ( ( $2 != "NA" ) && ( ($2 + 0) == 22 ) )
+      # Print the row entirely.
+      print $0
+    else
+      # Skip the row.
+      next
+    }' >> $path_file_gwas_source_temporary
+
+  # Compress file format.
+  gzip -cvf $path_file_gwas_source_temporary > $path_file_gwas_source_temporary_compress
+
+  # Translate GWAS summary statistics.
+  /usr/bin/bash "${path_script_gwas_format}" \
+  $path_file_gwas_source_temporary_compress \
+  $path_file_gwas_product \
+  $report
+
+  # Remove temporary files.
+  rm $path_file_gwas_product_temporary
+  rm $path_file_gwas_product_temporary_compress
+fi
+
+# Translate GWAS summary statistics to format for GCTB.
 # Translate GWAS summary statistics to format for GCTB.
 # columns: SNP   A1   A2   freq   b   se   p   N
-if true; then
+if false; then
   /usr/bin/bash "${path_script_gwas_format}" \
   $path_file_gwas_source \
   $path_file_gwas_product \
   $report
 fi
+
 
 ##########
 # Apply SBayesR to adjust weights of effect sizes across SNPs.
@@ -169,7 +205,7 @@ if false; then
   $report
 fi
 
-if true; then
+if false; then
   /usr/bin/bash $path_script_run_sbayesr \
   $path_file_gwas_product \
   $path_file_ld_matrix_tutorial \
