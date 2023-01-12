@@ -87,8 +87,9 @@ cat $path_file_temporary_constraint | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   print $1, toupper($4), toupper($5), $6, $7, $8, $9, $10
 }' >> $path_file_temporary_format
 
-# Compress file format.
-gzip -cvf $path_file_temporary_format > $path_file_product
+# Do not compress file.
+# Copy to product path and file.
+cp $path_file_temporary_format $path_file_product
 
 # Report.
 if [[ "$report" == "true" ]]; then
