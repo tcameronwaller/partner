@@ -60,7 +60,7 @@ path_script_batch_run_sbayesr="${path_directory_process}/promiscuity/scripts/uti
 path_script_run_sbayesr="${path_directory_process}/promiscuity/scripts/utility/gctb/run_gctb_sbayesr.sh"
 
 # Initialize directories.
-rm -r $path_directory_product
+#rm -r $path_directory_product
 mkdir -p $path_directory_product
 cd $path_directory_product
 
@@ -80,7 +80,7 @@ report="true"
 ##########
 # 1. Prepare GWAS summary statistics.
 
-if true; then
+if false; then
   /usr/bin/bash $path_script_gwas_format \
   $path_file_gwas_source \
   $path_file_gwas_product \
@@ -92,7 +92,7 @@ fi
 ##########
 # 2. Prepare LD matrices.
 
-if true; then
+if false; then
   cp $path_file_ld_matrix_source $path_file_ld_matrix_product
   unzip $path_file_ld_matrix_product -d $path_directory_product
 fi

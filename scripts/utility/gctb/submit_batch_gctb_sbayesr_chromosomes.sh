@@ -40,7 +40,6 @@ report=${12} # whether to print reports
 path_file_batch_instances="${path_directory_product}/batch_instances.txt"
 
 # Initialize directories and files.
-#rm -r $path_directory_product
 mkdir -p $path_directory_product
 rm $path_file_batch_instances
 
@@ -96,7 +95,7 @@ fi
 # Submit array of jobs in batch to Sun Grid Engine.
 # Array batch indices must start at one (not zero).
 
-if false; then
+if true; then
   qsub -t 1-${batch_instances_count}:1 \
   -o "${path_directory_product}/batch_out.txt" \
   -e "${path_directory_product}/batch_error.txt" \
