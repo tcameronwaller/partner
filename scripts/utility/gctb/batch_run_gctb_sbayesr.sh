@@ -23,7 +23,7 @@
 ### -p -10
 # Memory per iteration.
 # Segmentation errors commonly indicate a memory error.
-#$ -l h_vmem=16G
+#$ -l h_vmem=4G
 # Concurrent threads; assigns value to variable NSLOTS.
 #$ -pe threaded 1
 # Range of indices.
@@ -89,7 +89,7 @@ fi
 ###########################################################################
 # Execute procedure.
 
-if false; then
+if true; then
   /usr/bin/bash $path_script_run_sbayesr \
   $path_file_gwas \
   $path_file_base_ld_matrix \

@@ -51,7 +51,7 @@ path_file_ld_matrix_product="${path_directory_product}/ukbEURu_hm3_sparse.zip"
 name_file_ld_matrix_prefix="ukbEURu_hm3_chr"
 name_file_ld_matrix_suffix="_v3_50k.ldm.sparse"
 name_file_product_prefix="sbayesr_female_testosterone_chromosome_"
-name_file_product_suffix="_tcw"
+name_file_product_suffix="_tcw" # Suffix must not be an empty string.
 
 # Scripts.
 path_script_gwas_format="${path_directory_process}/promiscuity/scripts/utility/gctb/constrain_translate_gwas_standard_to_gctb.sh"
