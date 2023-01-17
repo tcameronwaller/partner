@@ -20,14 +20,16 @@
 
 path_file_gwas=${1} # full path and name to file for source GWAS summary statistics in GCTB and GCTA-COJO ".ma" format without compression
 path_directory_ld_matrix=${2} # full path to parent directory for chromosome-specific Linkage Disequilibrium (LD) reference matrices in GCTB format
-prefix_name_file_ld_matrix=${3} # prefix of name of file for chromosome-specific LD reference matrices
-suffix_name_file_ld_matrix=${4} # suffix of name of file for chromosome-specific LD reference matrices
+name_file_ld_matrix_prefix=${3} # prefix of name of file for chromosome-specific LD reference matrices
+name_file_ld_matrix_suffix=${4} # suffix of name of file for chromosome-specific LD reference matrices
 path_directory_product=${5} # full path to parent directory for product files from GCTB SBayesR
-prefix_name_file_product=${6} # prefix of name of file for product files from GCTB SBayesR
-suffix_name_file_product=${7} # suffix of name of file for product files from GCTB SBayesR
+name_file_product_prefix=${6} # prefix of name of file for product files from GCTB SBayesR
+name_file_product_suffix=${7} # suffix of name of file for product files from GCTB SBayesR
 chromosome_x=${8} # whether to include Chromosome X
-path_gctb=${9} # full directory path and file name for local executable installation of GCTB SBayesR
-report=${10} # whether to print reports
+path_script_batch_run_sbayesr=${9} # full path to directory and file of script for execution of batch job for run of GCTB SBayesR
+path_script_run_sbayesr=${10} # full path to directory and file of script for direct run of GCTB SBayesR
+path_gctb=${11} # full path to directory and file for local executable installation of GCTB SBayesR
+report=${12} # whether to print reports
 
 
 
@@ -37,12 +39,8 @@ report=${10} # whether to print reports
 # Files.
 path_file_batch_instances="${path_directory_product}/batch_instances.txt"
 
-# Scripts.
-path_script_batch_run_sbayesr="${path_directory_process}/promiscuity/scripts/utility/gctb/batch_run_gctb_sbayesr.sh"
-path_script_run_sbayesr="${path_directory_process}/promiscuity/scripts/utility/gctb/run_gctb_sbayesr.sh"
-
 # Initialize directories and files.
-rm -r $path_directory_product
+#rm -r $path_directory_product
 mkdir -p $path_directory_product
 rm $path_file_batch_instances
 
@@ -61,10 +59,10 @@ fi
 for chromosome in "${chromosomes[@]}"; do
   # Define paths and names to files for chromosome-specific LD matrix.
   # Use base file name.
-  path_file_base_ld_matrix="${path_directory_ld_matrix}/${prefix_name_file_ld_matrix}${chromosome}${suffix_name_file_ld_matrix}"
+  path_file_base_ld_matrix="${path_directory_ld_matrix}/${name_file_ld_matrix_prefix}${chromosome}${name_file_ld_matrix_suffix}"
   # Define paths and names to files for results from SBayesR procedure.
   # Use base file name.
-  path_file_base_product="${path_directory_product}/${prefix_name_file_product}${chromosome}${suffix_name_file_product}"
+  path_file_base_product="${path_directory_product}/${name_file_product_prefix}${chromosome}${name_file_product_suffix}"
 
   # Define and append a new batch instance.
   instance="${chromosome};${path_file_base_ld_matrix};${path_file_base_product}"
@@ -105,8 +103,8 @@ if false; then
   $path_script_batch_run_sbayesr \
   $path_file_batch_instances \
   $batch_instances_count \
-  $path_script_run_sbayesr \
   $path_file_gwas \
+  $path_script_run_sbayesr \
   $path_gctb \
   $report
 fi

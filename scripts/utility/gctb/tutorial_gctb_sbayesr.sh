@@ -16,6 +16,12 @@
 # Date, first execution: 10 January 2023
 # Date, review: ____
 
+# It is important that Genome-wide Association Study (GWAS) summary statistics
+# and Linkage Disequilibrium (LD) reference matrices to use names (rs
+# identifiers) and coordinates for Single Nucleotide Polymorphisms (SNPs) that
+# are in the same assembly of the human genome, such as GRCh37 or GRCh38.
+# As of year 2023, LD reference matrices for GCTB SBayesR used GRCh37.
+
 # Note: TCW; 13 January 2023
 # SBayesR does not converge when using the tutorial LD matrix (chromosome 22
 # only) with real GWAS summary statistics, even after filtering the summary
@@ -23,7 +29,10 @@
 # coefficients (betas) in the GWAS summary statistics would not have the same
 # distribution after filtering to chromosome 22 only.
 
-
+# Note: TCW; 17 January 2023
+# In a test on real GWAS summary statistics and the shrunk sparse LD matrix for
+# chromosome 1 (largest chromosome), the SBayesR procedure completed
+# successfully in fewer than 10 minutes on the NCSA mForge head node 2.
 
 ################################################################################
 
