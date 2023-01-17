@@ -176,7 +176,7 @@ fi
 # Translate GWAS summary statistics to format for GCTB.
 # Translate GWAS summary statistics to format for GCTB.
 # columns: SNP   A1   A2   freq   b   se   p   N
-if true; then
+if false; then
   /usr/bin/bash "${path_script_gwas_format}" \
   $path_file_gwas_source \
   $path_file_gwas_product \
@@ -212,7 +212,7 @@ if false; then
 fi
 
 # Test using real GWAS summary statistics and LD matrix for chromosome 1.
-if false; then
+if true; then
   $path_gctb \
   --sbayes R \
   --exclude-mhc \
