@@ -38,10 +38,14 @@ report=${12} # whether to print reports
 
 # Files.
 path_file_batch_instances="${path_directory_product}/batch_instances.txt"
+path_file_batch_out="${path_directory_product}/batch_out.txt"
+path_file_batch_error="${path_directory_product}/batch_error.txt"
 
 # Initialize directories and files.
 mkdir -p $path_directory_product
 rm $path_file_batch_instances
+rm $path_file_batch_out
+rm $path_file_batch_error
 
 
 
@@ -97,8 +101,8 @@ fi
 
 if true; then
   qsub -t 1-${batch_instances_count}:1 \
-  -o "${path_directory_product}/batch_out.txt" \
-  -e "${path_directory_product}/batch_error.txt" \
+  -o $path_file_batch_out \
+  -e $path_file_batch_error \
   $path_script_batch_run_sbayesr \
   $path_file_batch_instances \
   $batch_instances_count \
