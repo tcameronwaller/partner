@@ -16,6 +16,15 @@
 # Date, first execution: 10 January 2023
 # Date, review: ____
 
+# Note: TCW; 13 January 2023
+# SBayesR does not converge when using the tutorial LD matrix (chromosome 22
+# only) with real GWAS summary statistics, even after filtering the summary
+# statistics to chromosome 22 only. A possible explanation would be that the
+# coefficients (betas) in the GWAS summary statistics would not have the same
+# distribution after filtering to chromosome 22 only.
+
+
+
 ################################################################################
 
 ##########
@@ -38,7 +47,7 @@ path_file_gwas_source_temporary_compress="${path_directory_parent}/32042192_ruth
 path_file_gwas_product="${path_directory_parent}/32042192_ruth_2020_testosterone_bioavailable_female.ma"
 path_file_gwas_tutorial="${path_directory_parent}/gctb_2.0_tutorial/ma/sim_1.ma"
 path_file_ld_matrix_tutorial="${path_directory_parent}/gctb_2.0_tutorial/ldm/sparse/chr22/1000G_eur_chr22.ldm.sparse"
-#path_file_ld_matrix_sparse_europe="${path_directory_parent}/..."
+path_file_ld_matrix_chromosome_1="${path_directory_parent}/ukbEURu_hm3_shrunk_sparse/ukbEURu_hm3_chr1_v3_50k.ldm.sparse"
 path_file_base_product="${path_directory_parent}/test_sbayesr_out_tcw_723"
 
 # Scripts.
@@ -48,9 +57,15 @@ path_script_run_sbayesr="${path_directory_process}/promiscuity/scripts/utility/g
 # Uniform Resource Locators (URLs).
 url_gctb="https://cnsgenomics.com/software/gctb/download/gctb_2.04.3_Linux.zip"
 url_gctb_tutorial="https://cnsgenomics.com/software/gctb/download/gctb_2.0_tutorial.zip"
+# Linkage Disequilibrium (LD) matrices for reference:
+# 1. Sparse, shrinkage LD matrix on 50K people from UK Biobank used in Lloyd-Jones et al, Nature Communications, 2019 (PubMed:31704910).
 url_ld_matrix_sparse_shrinkage_hapmap3="https://zenodo.org/record/3350914/files/ukbEURu_hm3_sparse.zip"
+# 2. Sparse, shrinkage LD matrix used in Zeng et al, Nature Communications, 2021 (PubMed:33608517)
 url_ld_matrix_sparse_chisquare="https://cnsgenomics.com/data/GCTB/ukbEURu_imp_v3_HM3_n50k.chisq10.zip"
+# 3. Banded matrix, window size 3 cM per SNP as described in Prive et al, Bioinformatics, 2020 (PubMed:33326037)
 url_ld_matrix_banded="https://cnsgenomics.com/data/GCTB/band_ukb_10k_hm3.zip"
+
+
 
 # Initialize directories.
 ###rm -r $path_directory_parent # Removing parent directory would lose genetic reference data.
@@ -130,7 +145,7 @@ fi
 
 # Filter GWAS summary statistics to Chromosome 22 and translate to format for GCTB.
 # For test using the tutorial LD Matrix for Chromosome 22.
-if true; then
+if false; then
   zcat $path_file_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_file_gwas_source_temporary
   zcat $path_file_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
     if ( NF != 14)
@@ -161,7 +176,7 @@ fi
 # Translate GWAS summary statistics to format for GCTB.
 # Translate GWAS summary statistics to format for GCTB.
 # columns: SNP   A1   A2   freq   b   se   p   N
-if false; then
+if true; then
   /usr/bin/bash "${path_script_gwas_format}" \
   $path_file_gwas_source \
   $path_file_gwas_product \
@@ -181,7 +196,7 @@ fi
 # File with suffix ".snpRes" gives the new effect sizes across SNPs after
 # adjustment of weights for LD (I think; TCW; 12 January 2023).
 
-
+# Test using tutorial GWAS summary statistics and tutorial LD matrix.
 if false; then
   $path_gctb \
   --sbayes R \
@@ -196,6 +211,22 @@ if false; then
   --out $path_file_base_product 2>&1 | tee "${path_file_base_product}.log"
 fi
 
+# Test using real GWAS summary statistics and LD matrix for chromosome 1.
+if false; then
+  $path_gctb \
+  --sbayes R \
+  --exclude-mhc \
+  --ldm $path_file_ld_matrix_chromosome_1 \
+  --pi 0.95,0.02,0.02,0.01 \
+  --gamma 0.0,0.01,0.1,1 \
+  --gwas-summary $path_file_gwas_product \
+  --chain-length 10000 \
+  --burn-in 2000 \
+  --out-freq 10 \
+  --out $path_file_base_product
+fi
+
+
 if false; then
   /usr/bin/bash $path_script_run_sbayesr \
   $path_file_gwas_tutorial \
@@ -205,7 +236,7 @@ if false; then
   $report
 fi
 
-if true; then
+if false; then
   /usr/bin/bash $path_script_run_sbayesr \
   $path_file_gwas_product \
   $path_file_ld_matrix_tutorial \
