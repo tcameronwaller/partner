@@ -38,7 +38,12 @@
 ################################################################################
 # Note.
 
-
+# TCW; 17 January 2023
+# Each batch instance job ran the GCTB SBayesR procedure on a single autosomal
+# chromosome.
+# This batch completed successfully in the queue with duration of 1 hour
+# ("-q 1-hour"), with 1 node core thread ("-pe threaded 1"), and 4 Gigabytes of
+# memory ("-l h_vmem=4G").
 
 
 
