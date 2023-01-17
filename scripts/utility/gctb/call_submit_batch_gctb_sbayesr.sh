@@ -70,6 +70,7 @@ cd $path_directory_product
 # Organize parameters.
 
 chromosome_x="false"
+threads=1
 report="true"
 
 
@@ -126,6 +127,7 @@ if true; then
   $path_script_batch_run_sbayesr \
   $path_script_run_sbayesr \
   $path_gctb \
+  $threads \
   $report
 fi
 

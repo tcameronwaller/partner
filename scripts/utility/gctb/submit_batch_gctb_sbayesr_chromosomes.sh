@@ -29,7 +29,8 @@ chromosome_x=${8} # whether to include Chromosome X
 path_script_batch_run_sbayesr=${9} # full path to directory and file of script for execution of batch job for run of GCTB SBayesR
 path_script_run_sbayesr=${10} # full path to directory and file of script for direct run of GCTB SBayesR
 path_gctb=${11} # full path to directory and file for local executable installation of GCTB SBayesR
-report=${12} # whether to print reports
+threads=${12} # count of concurrent or parallel process threads on node cores
+report=${13} # whether to print reports
 
 
 
@@ -109,6 +110,7 @@ if true; then
   $path_file_gwas \
   $path_script_run_sbayesr \
   $path_gctb \
+  $threads \
   $report
 fi
 

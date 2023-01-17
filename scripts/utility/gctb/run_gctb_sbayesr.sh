@@ -35,10 +35,16 @@ path_file_gwas=${1} # full directory path and file name for source GWAS summary 
 path_file_base_ld_matrix=${2} # full directory path and base file name for Linkage Disequilibrium (LD) reference matrix in GCTB format
 path_file_base_product=${3} # full directory path and base file name for product files from GCTB SBayesR
 path_gctb=${4} # full directory path and file name for local executable installation of GCTB SBayesR
-report=${5} # whether to print reports
+threads=${5} # count of concurrent or parallel process threads on node cores
+report=${6} # whether to print reports
 
 ################################################################################
-# Run SBayesR.
+# Execute procedure.
+
+# Regulate concurrent or parallel process threads on node cores.
+export MKL_NUM_THREADS=$threads
+export NUMEXPR_NUM_THREADS=$threads
+export OMP_NUM_THREADS=$threads
 
 ##########
 # Apply SBayesR to adjust weights of effect sizes across SNPs.

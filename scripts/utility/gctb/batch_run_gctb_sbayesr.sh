@@ -50,7 +50,8 @@ batch_instances_count=${2} # count of instances in batch
 path_file_gwas=${3} # full path and name to file for source GWAS summary statistics in GCTB and GCTA-COJO ".ma" format without compression
 path_script_run_sbayesr=${4} # full path to directory and file of script for direct run of GCTB SBayesR
 path_gctb=${5} # full path to directory and file for local executable installation of GCTB SBayesR
-report=${6} # whether to print reports
+threads=${6} # count of concurrent or parallel process threads on node cores
+report=${7} # whether to print reports
 
 
 
@@ -95,6 +96,7 @@ if true; then
   $path_file_base_ld_matrix \
   $path_file_base_product \
   $path_gctb \
+  $threads \
   $report
 fi
 
