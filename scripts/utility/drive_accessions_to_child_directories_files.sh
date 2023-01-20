@@ -52,7 +52,7 @@ do
     mkdir -p $path_directory_child
     #cd $path_directory_child
     # Access the specific file and save within the child directory.
-    wget "${array[3]}" --directory-prefix "${path_directory_child}" --content-disposition --show-progress
+    wget "${array[3]}" --directory-prefix "${path_directory_child}" --content-disposition --no-check-certificate --show-progress
     # Decompress content from Zip archive format.
     if [[ "${array[4]}" == "1" ]]; then
       # The argument flag "--extract-dir" (synonym for "-d") does not seem to work properly.

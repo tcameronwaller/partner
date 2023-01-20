@@ -34,6 +34,14 @@
 # chromosome 1 (largest chromosome), the SBayesR procedure completed
 # successfully in fewer than 10 minutes on the NCSA mForge head node 2.
 
+# Note: TCW; 17 January 2023
+# A test running GCTB SBayesR procedure on all autosomal chromosomes (1-22) for
+# a set of real GWAS summary statistics completed successfully.
+
+# TODO: TCW; 17 January 2023
+# Now I need to translate SNP names (rsID), and genomic coordinates to GRCh38.
+
+
 ################################################################################
 
 ##########
