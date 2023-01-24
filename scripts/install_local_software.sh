@@ -14,6 +14,22 @@ sudo apt install software-properties-common
 sudo apt install wget
 sudo apt install curl
 
+##########
+# BGZip
+# A bioinformatics tool for compression in GZip format with Tabix index.
+# http://www.htslib.org/doc/bgzip.html
+# The HTSLib includes BGZip and Tabix.
+# http://www.htslib.org/download/
+wget https://github.com/samtools/htslib/releases/download/1.16/htslib-1.16.tar.bz2
+tar -xjvf ./htslib-1.16.tar.bz2 -C ./
+cd ./htslib-1.16
+./configure --prefix=../htslib/1.16
+make
+make install
+cd ../htslib/1.16/bin/
+./bgzip --help
+
+
 # Install Tweak tool to customize Ubuntu's appearance and behavior.
 sudo add-apt-repository universe
 sudo apt install gnome-tweaks
@@ -108,6 +124,8 @@ sudo apt install pulseaudio
 sudo apt install pavucontrol
 
 # Jack Audio Connection Kit
+# Utility for high-resolution audio recording without interference from
+# central processing unit.
 sudo apt install jackd
 sudo apt install qjackctl
 whereis jackd
@@ -197,21 +215,6 @@ sudo apt install fldigi
 # http://www.w1hkj.com/files/AndFlmsg/AndFlmsg_V1.5.0-20210812.apk
 
 ##########
-# BGZip
-# A bioinformatics tool for compression in GZip format with Tabix index.
-# http://www.htslib.org/doc/bgzip.html
-# The HTSLib includes BGZip and Tabix.
-# http://www.htslib.org/download/
-wget https://github.com/samtools/htslib/releases/download/1.16/htslib-1.16.tar.bz2
-tar -xjvf ./htslib-1.16.tar.bz2 -C ./
-cd ./htslib-1.16
-./configure --prefix=../htslib/1.16
-make
-make install
-cd ../htslib/1.16/bin/
-./bgzip --help
-
-##########
 # BCFTools
 # A bioinformatic tool for tasks on genotype files in Variant Call Format (VCF).
 # https://samtools.github.io/bcftools/
@@ -227,13 +230,63 @@ cd ../bcftools/1.15.1/bin/
 
 ##########
 # GCTB
+# Installation date: TCW; 13 January 2023
 # A package of tools for Genome-wide Complex Trait Bayesian (GCTB) analysis
 # Includes the tool SBayesR for calculation of Polygenic Scores (PGS).
 # Authors provided a "statically linked 64-bit Linux executable, gctb".
 # Installation instructions for custom, local compilation (https://cnsgenomics.com/software/gctb/download/README.html).
-cd ./ # navigate to directory in which to install GCTB.
+cd ./ # navigate to directory in which to install program.
 wget "https://cnsgenomics.com/software/gctb/download/gctb_2.04.3_Linux.zip"
 unzip "./gctb_2.04.3_Linux.zip"
 ./gctb_2.04.3_Linux/gctb --help
 
 ##########
+# LDSC
+# A package of tools to estimate autosome-wide (excluding sex chromosomes) SNP
+# heritability and genetic correlation by Linkage Disequilibrium (LD) Score
+# Regression.
+# PubMed: ___
+# documentation:
+# LDSC is a Python package, and it is necessary to run this program within a
+# special Python environment.
+# Refer to the script "install_python_virtual_environments_packages.sh".
+
+##########
+# PRS-CSX
+# Install PRS-CS and PRS-CSX.
+cd ./prs_cs/ # Navigate to the directory in which to install program.
+git clone https://github.com/getian107/PRScs.git
+git clone https://github.com/getian107/PRScsx.git
+
+
+
+
+##########
+# GWAS2VCF
+# Installation date: TCW; 23 January 2023
+# A package of tools to translate GWAS summary statistics to the GWAS-VCF
+# format.
+# PubMed: 33441155
+# GWAS-VCF format specification: https://github.com/MRCIEU/gwas-vcf-specification
+# Host of GWAS2VCF: https://github.com/MRCIEU/gwas2vcf
+# Documentation for GWAS2VCF: https://mrcieu.github.io/gwas2vcf/install/#dbsnp
+# GWAS2VCF is a Python package, and it is necessary to run this program within a
+# special Python environment.
+# Refer to the script "install_python_virtual_environments_packages.sh".
+# Access the GWAS2VCF package.
+cd ./tools
+mkdir -p ./gwas2vcf
+cd ./gwas2vcf # Navigate to the directory in which to install program.
+git clone https://github.com/MRCIEU/gwas2vcf.git
+python3 ./gwas2vcf/main.py # Execute within a Python virtual environment with dependencies.
+
+##########
+# CrossMap
+# CrossMap is a Python package, and it is necessary to run this program within a
+# special Python environment.
+# Refer to the script "install_python_virtual_environments_packages.sh".
+
+
+
+
+#
