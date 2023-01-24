@@ -10,9 +10,13 @@
 # Host: https://transfer.sysepi.medizin.uni-greifswald.de/thyroidomics/datasets/
 
 # Source Format
-# effect allele: "Allele1"
+# Human Genome Assembly: GRCh37 (TCW; 24 January 2023)
+# effect allele: "Allele1" ("coding allele") (TCW; 24 January 2023)
 # delimiter: comma
-# columns: MarkerName,Allele1,Allele2,Freq1,Effect,StdErr,P.value,N,I2
+# columns: " MarkerName,Allele1,Allele2,Freq1,Effect,StdErr,P.value,N,I2 " # (TCW; 24 January 2023)
+# Note:
+# The source format is the same for linear and logistic GWAS in collection (TCW; 24 January 2023).
+# Format of "MarkerName" is "[chromosome]:[position]:[type such as SNP]" (TCW; 24 January 2023).
 
 # Format Translation
 # Identifiers of SNP variants is [chromosome]:[position]:"SNP".
@@ -21,14 +25,14 @@
 
 # TODO: TCW; 20 January 2023
 
-# columns: $1, [extract], [extract], toupper($2), toupper($3), $4, $5, $6, $7, $8, "NA", "NA", "NA", "NA"
+# columns: $1, [extract], [extract], toupper($2), toupper($3), $4, $5, $6, $7, $8, "NA", (1), "NA", "NA"
 
 # Product Format (Team Standard)
 # effect allele: "A1"
 # delimiter: white space
 # columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
 
-# review: TCW; ___
+# review: TCW; 24 January 2023
 
 
 ###########################################################################
@@ -70,8 +74,8 @@ rm $path_file_product
 # simple: print $1, $2, $3, toupper($4), toupper($5), $6, $10, $11, $12, $8, "NA", $7, "NA", "NA"
 
 echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format
-zcat $path_file_source | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-  (a = $1); split(a, b, ":"); print a, b[1], b[2], toupper($2), toupper($3), $4, $5, $6, $7, $8, "NA", "NA", "NA", "NA"
+zcat $path_file_source | awk 'BEGIN {FS = ","; OFS = " "} NR > 1 {
+  (a = $1); split(a, b, ":"); print a, b[1], b[2], toupper($2), toupper($3), $4, $5, $6, $7, $8, "NA", (1.0), "NA", "NA"
 }' >> $path_file_temporary_format
 
 # Compress file format.

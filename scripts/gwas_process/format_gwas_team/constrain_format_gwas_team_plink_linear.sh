@@ -6,14 +6,25 @@
 
 # "Organize linear GWAS summary statistics in format for analysis by team."
 
-# Source Format
-# effect allele: "A1"
+# Source Format (PLINK2)
+# https://www.cog-genomics.org/plink/2.0/formats
+# effect allele: "A1" ("Counted allele"; column 6 with 1-based indexing) (TCW; 24 January 2023)
+# delimiter: white space
+# columns: " #CHROM POS ID REF ALT A1 A1_FREQ TEST OBS_CT BETA SE T_STAT P " # (TCW; 24 January 2023)
+# Note: TCW; 24 January 2023
+# The documentation on the format of GWAS summary statistics from PLINK2
+# indicates a few conditional columns that might or might not be present. Hence
+# it is important to be careful and cautious to match the columns.
+# Note: TCW; 24 January 2023
+# Whereas PLINK2 reports "t-statistic" for linear regression, this statistic
+# might be useful in the "Z" column.
 
 # Product Format (Team Standard)
 # effect allele: "A1"
 # delimiter: white space
 # columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
 
+# review: TCW; 24 January 2023
 # review: TCW; 10 August 2022
 # review: TCW; 03 June 2022
 
@@ -92,15 +103,15 @@ zcat $path_file_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
 
 # PLINK2's format documentation describes column "REF" as "Reference allele" and
 # column "ALT" as "All alternate alleles, comma-separated". Column "REF" and
-# column "ALT" are always different (TCW, 7 July 2021).
+# column "ALT" are always different (TCW; 7 July 2021).
 # PLINK2's format documentation also describes column "A1" as "Counted allele in
 # regression". Column "A1" always matches either column "REF" or column "ALT"
-# (TCW, 7 July 2021).
+# (TCW; 7 July 2021).
 
-# The designations of "reference" and "alternate" alleles are irrelevant to
-# downstream analyses on GWAS summary statistics (such as LDSC).
-# What matters is which allele PLINK2 counted as the "effect" allele in GWAS
-# regression and which allele was the other allele.
+# The designations of "reference" and "alternate" alleles may or may not be
+# relevant to downstream analyses on GWAS summary statistics (such as LDSC).
+# What definitely matters is which allele PLINK2 counted as the "effect" allele
+# in GWAS regression and which allele was the other allele.
 
 # Column "A1" is the "effect" allele that PLINK2 counted in the regression,
 # corresponding to the coefficient (beta).
@@ -128,9 +139,9 @@ zcat $path_file_gwas_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
 echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format
 cat $path_file_temporary_constraint | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   if ($6 == $5 && $6 != $4)
-    print $3, $1, $2, toupper($6), toupper($4), $7, $10, $11, $13, $9, "NA", (1), "NA", "NA"
+    print $3, $1, $2, toupper($6), toupper($4), $7, $10, $11, $13, $9, $12, (1.0), "NA", "NA"
   else if ($6 == $4 && $6 != $5)
-    print $3, $1, $2, toupper($6), toupper($5), $7, $10, $11, $13, $9, "NA", (1), "NA", "NA"
+    print $3, $1, $2, toupper($6), toupper($5), $7, $10, $11, $13, $9, $12, (1.0), "NA", "NA"
   else
     next
   }' >> $path_file_temporary_format

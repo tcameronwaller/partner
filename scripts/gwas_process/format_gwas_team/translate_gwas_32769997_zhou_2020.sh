@@ -11,10 +11,10 @@
 # Host: https://www.ebi.ac.uk/gwas/publications/32769997
 
 # Source Format
-# Documentation: http://csg.sph.umich.edu/willer/public/TSH2020/
-# Effect Allele in GWAS (A1) was column "Allele1".
+# Human Genome Assembly: GRCh37 (hg19) (TCW; 24 January 2023)
+# effect allele: "Allele1" ("Effect allele") (TCW; 24 January 2023)
 # delimiter: white space
-# columns: Chr Pos Allele1 Allele2 Freq N Effect SE P-value Direction HetPval
+# columns: " Chr Pos Allele1 Allele2 Freq N Effect SE P-value Direction HetPval " # (TCW; 24 January 2023)
 
 # Format Translation
 # The GWAS summary statistics do not include rs identifiers for SNP variants.
@@ -23,10 +23,11 @@
 # columns: ("chr"$1"_"$2"_"$3), $1, $2, toupper($3), toupper($4), $5, $7, $8, $9, $6, "NA", (1), "NA", "NA"
 
 # Product Format (Team Standard)
+# effect allele: "A1"
 # delimiter: white space
 # columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
 
-# review: TCW; 23 December 2022
+# review: TCW; 24 January 2023
 # check: Standard Format Columns [TCW; 22 December 2022]
 # check: Study citation, PubMed, and Host website [TCW; 22 December 2022]
 # check: Study field delimiters [TCW; 23 December 2022]
@@ -72,7 +73,7 @@ rm $path_file_product
 
 echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format
 zcat $path_file_source | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-  print ("chr"$1"_"$2"_"$3), $1, $2, toupper($3), toupper($4), $5, $7, $8, $9, $6, "NA", (1), "NA", "NA"
+  print ("chr"$1"_"$2"_"$3), $1, $2, toupper($3), toupper($4), $5, $7, $8, $9, $6, "NA", (1.0), "NA", "NA"
 }' >> $path_file_temporary_format
 
 # Compress file format.
