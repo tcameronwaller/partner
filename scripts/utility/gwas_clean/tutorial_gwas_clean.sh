@@ -73,11 +73,25 @@ cd $path_directory_product
 
 
 ##########
+# Translate GWAS summary statistics to standard format.
+# Product Format (Team Standard)
+# delimiter: white space
+# columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
+if false; then
+  /usr/bin/bash "${path_script_gwas_format}" \
+  $path_file_gwas_source \
+  $path_file_gwas_product \
+  $report
+fi
+
+
+
+##########
 # Installation: GWAS2VCF
 # PubMed: 33441155
 # GWAS-VCF format specification: https://github.com/MRCIEU/gwas-vcf-specification
 # Host of GWAS2VCF: https://github.com/MRCIEU/gwas2vcf
-# Documentation for GWAS2VCF: https://mrcieu.github.io/gwas2vcf/install/#dbsnp
+# Documentation for GWAS2VCF: https://mrcieu.github.io/gwas2vcf
 # Refer to notes in script "install_local_software.sh".
 # Refer to notes in script "install_python_virtual_environments_packages.sh"
 if true; then
@@ -96,21 +110,11 @@ fi
 
 
 ##########
-# Translate GWAS summary statistics to standard format.
-# Product Format (Team Standard)
-# delimiter: white space
-# columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
-if false; then
-  /usr/bin/bash "${path_script_gwas_format}" \
-  $path_file_gwas_source \
-  $path_file_gwas_product \
-  $report
-fi
-
-
-
-##########
 # Translate GWAS summary statistics from standard format to GWAS-VCF format.
+# Use tool GWAS2VCF.
+# Functions.
+# 1. Verify and introduce SNPs' rs identifiers from dbSNP reference.
+
 
 
 # Indexing of columns in source GWAS summary statistics bases on zero.
@@ -133,6 +137,19 @@ if false; then
   }" > $path_file_gwas2vcf_parameter
 fi
 
+
+
+
+##########
+# Munge GWAS summary statistics in Bioconductor package "MungeSumstats".
+# documentation:
+
+
+
+##########
+# TCW; 24 January 2023
+# The Bioconductor packange "MungeSumstats" might be preferrable over the
+# "+munge" plugin for BCFTools.
 ##########
 # Munge GWAS summary statistics in BCFTools "+munge" plugin.
 # documentation: https://github.com/freeseek/score#convert-summary-statistics

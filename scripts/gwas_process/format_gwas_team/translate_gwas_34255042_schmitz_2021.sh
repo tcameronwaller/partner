@@ -11,6 +11,7 @@
 # Host: https://zenodo.org/record/4926701
 
 # Source Format
+# effect allele: _____
 # delimiter: white space
 # columns: CHR POS ID REF ALT A1 AX A1_FREQ TEST OBS_CT OR LOG(OR)_SE L95 U95 Z_STAT P
 
@@ -18,6 +19,7 @@
 # columns: $3, $1, $2, toupper($6), toupper($7), $8, log($11), $12, $16, $10, $15, (1), "NA", "NA"
 
 # Product Format (Team Standard)
+# effect allele: "A1"
 # delimiter: white space
 # columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
 

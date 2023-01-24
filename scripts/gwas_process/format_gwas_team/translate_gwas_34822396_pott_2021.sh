@@ -10,6 +10,7 @@
 # Host: https://zenodo.org/record/5644896
 
 # Source Format
+# effect allele: ______ (assume "ea", but confirm)
 # delimiter: white space
 # columns: markername chr bp_hg19 ea oa eaf info nSamples nStudies beta se p I2 phenotype
 
@@ -20,6 +21,7 @@
 # columns: $1, $2, $3, toupper($4), toupper($5), $6, $10, $11, $12, $8, "NA", $7, "NA", "NA"
 
 # Product Format (Team Standard)
+# effect allele: "A1"
 # delimiter: white space
 # columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
 

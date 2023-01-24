@@ -6,6 +6,14 @@
 
 # "Organize linear GWAS summary statistics in format for analysis by team."
 
+# Source Format
+# effect allele: "A1"
+
+# Product Format (Team Standard)
+# effect allele: "A1"
+# delimiter: white space
+# columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
+
 # review: TCW; 10 August 2022
 # review: TCW; 03 June 2022
 

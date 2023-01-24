@@ -11,6 +11,7 @@
 # Host: https://www.health-atlas.de/data_files/207
 
 # Source Format
+# effect allele: _____
 # delimiter: white space
 # columns ("GWAS"): markername chr bp_hg19 effect_allele other_allele effect_allele_freq info n beta se p
 # columns ("META"): markername chr bp_hg19 effect_allele other_allele effect_allele_freq min_info n beta se p CochransQ pCochransQ
@@ -22,6 +23,7 @@
 # columns: $1, $2, $3, toupper($4), toupper($5), $6, $9, $10, $11, $8, "NA", $7, "NA", "NA"
 
 # Product Format (Team Standard)
+# effect allele: "A1"
 # delimiter: white space
 # columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
 
