@@ -87,7 +87,7 @@ if true; then
   which python3
   sleep 5s
   # Test installation of GWAS2VCF.
-  $path_gwas2vcf -h
+  python3 $path_gwas2vcf -h
   # Deactivate Virtual Environment.
   deactivate
   which python3
