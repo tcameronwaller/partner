@@ -10,8 +10,10 @@
 # Host: https://www.ebi.ac.uk/gwas/publications/32042192
 
 # Source Format
-# delimiter: white space
-# columns: variant_id chromosome base_pair_location effect_allele other_allele effect_allele_frequency imputation_quality beta standard_error p_value
+# Human Genome Assembly: GRCh37 (UK Biobank)
+# Effect Allele: "effect_allele"
+# Delimiter: white space
+# Columns: variant_id chromosome base_pair_location effect_allele other_allele effect_allele_frequency imputation_quality beta standard_error p_value
 
 # Format Translation
 # columns: $1, $2, $3, toupper($4), toupper($5), $6, $8, $9, $10, ([count of samples]), "NA", $7, "NA", "NA"
@@ -39,8 +41,12 @@
 
 path_file_source=${1} # full path to file for source GWAS summary statistics with GZip compression
 path_file_product=${2} # full path to file for product GWAS summary statistics in format with GZip compression
-count=${3} # integer value of count of samples to introduce to GWAS summary statistics
-report=${4} # whether to print reports
+fill_observations=${3} # logical binary indicator of whether to fill count of observations across all variants
+observations=${4} # count of observations
+fill_case_control=${5} # logical binary indicator of whether to fill counts of cases and controls across all variants
+cases=${6} # count of cases
+controls=${7} # count of controls
+report=${8} # whether to print reports
 
 ################################################################################
 # Organize paths.
@@ -64,11 +70,13 @@ rm $path_file_product
 ##########
 # Translate format of GWAS summary statistics.
 # Note that AWK interprets a single space delimiter (FS=" ") as any white space.
-
 echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format
-zcat $path_file_source | awk -v count=$count 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-  print $1, $2, $3, toupper($4), toupper($5), $6, $8, $9, $10, (count), "NA", $7, "NA", "NA"
-}' >> $path_file_temporary_format
+# For conciseness, only support the conditions that are relevant.
+if [ "$fill_observations" == "1" ] && [ "$fill_case_control" != "1" ]; then
+  zcat $path_file_source | awk -v observations=$observations 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+    print $1, $2, $3, toupper($4), toupper($5), $6, $8, $9, $10, (observations), "NA", $7, "NA", "NA"
+  }' >> $path_file_temporary_format
+fi
 
 # Compress file format.
 gzip -cvf $path_file_temporary_format > $path_file_product

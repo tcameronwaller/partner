@@ -40,9 +40,10 @@ do
     echo "----------"
     echo "field 0, inclusion: ${array[0]}"
     echo "field 1, directory: ${array[1]}"
-    echo "field 2, phenotype: ${array[2]}"
+    echo "field 2, description: ${array[2]}"
     echo "field 3, path_accession: ${array[3]}"
     echo "field 4, zip: ${array[4]}"
+    echo "field 5, Tarball Gzip archive: ${array[5]}"
     echo "----------"
   fi
   # Execute procedure for current record's parameters.
@@ -57,6 +58,11 @@ do
     if [[ "${array[4]}" == "1" ]]; then
       # The argument flag "--extract-dir" (synonym for "-d") does not seem to work properly.
       unzip "${path_directory_child}/*.zip" -d "${path_directory_child}"
+    fi
+    # Decompress content from Tarball GZip archive format.
+    if [[ "${array[5]}" == "1" ]]; then
+      tar -xzvf "${path_directory_child}/*.tar.gz" --directory $path_directory_child
+      tar -xzvf "${path_directory_child/*.tgz}" --directory $path_directory_child
     fi
   fi
 done < "${input}"

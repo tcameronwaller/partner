@@ -38,8 +38,12 @@ do
     echo "field 6, suffix: ${array[6]}"
     echo "field 7, bgzip: ${array[7]}"
     echo "field 8, gzip: ${array[8]}"
-    echo "field 9, count: ${array[9]}"
-    echo "field 10, script: ${array[10]}"
+    echo "field 9, fill_observations: ${array[9]}"
+    echo "field 10, observations: ${array[10]}"
+    echo "field 11, fill_case_control: ${array[11]}"
+    echo "field 12, cases: ${array[12]}"
+    echo "field 13, controls: ${array[13]}"
+    echo "field 14, script: ${array[14]}"
     echo "----------"
   fi
   # Execute procedure for current record's parameters.
@@ -52,7 +56,7 @@ do
     path_file_source="${path_directory_child_source}/${name_file_source}"
     path_directory_temporary="${path_directory_product}/temporary_tcw_73216"
     path_file_source_standard="${path_directory_temporary}/${name_base_file_source}.txt.gz"
-    path_file_script="${path_directory_script}/${array[10]}"
+    path_file_script="${path_directory_script}/${array[14]}"
     path_file_product="${path_directory_product}/${array[2]}.txt.gz"
     mkdir -p $path_directory_temporary
     # Manage compression formats and file suffices.
@@ -71,18 +75,15 @@ do
       cp "$path_file_source" $path_file_source_standard
     fi
     # Call script for translation.
-    if [[ "${array[9]}" == "NA" ]]; then
-      /usr/bin/bash "${path_directory_script}/${array[10]}" \
-      $path_file_source_standard \
-      $path_file_product \
-      $report
-    elif [[ "${array[9]}" != "NA" ]]; then
-      /usr/bin/bash "${path_directory_script}/${array[10]}" \
-      $path_file_source_standard \
-      $path_file_product \
-      ${array[9]} \
-      $report
-    fi
+    /usr/bin/bash $path_file_script \
+    $path_file_source_standard \
+    $path_file_product \
+    ${array[9]} \
+    ${array[10]} \
+    ${array[11]} \
+    ${array[12]} \
+    ${array[13]} \
+    $report
     # Remove temporary directory and files.
     rm -r $path_directory_temporary
   fi

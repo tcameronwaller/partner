@@ -11,12 +11,13 @@
 
 # Source Format
 # Documentation: https://pan.ukbb.broadinstitute.org/docs/per-phenotype-files#per-phenotype-files
-# Effect Allele (A1) in GWAS was the Alternate Allele (alt).
+# Human Genome Assembly: GRCh37 (UK Biobank)
+# Effect Allele: "alt" ("Used as effect allele for GWAS.") (TCW; 1 February 2023)
 # Use of the general columns for Effect Allele Frequency (af_meta), Beta Coefficient (beta_meta),
 # Standard Error (se_meta), and Probability (pval_meta) would be more inclusive as some
 # phenotypes did not pass quality control.
-# delimiter: white space
-# columns: chr pos ref alt af_meta_hq beta_meta_hq se_meta_hq pval_meta_hq pval_heterogeneity_hq af_meta beta_meta se_meta pval_meta pval_heterogeneity ...
+# Delimiter: white space
+# Columns: chr pos ref alt af_meta_hq beta_meta_hq se_meta_hq pval_meta_hq pval_heterogeneity_hq af_meta beta_meta se_meta pval_meta pval_heterogeneity ...
 
 # Format Translation
 # The GWAS summary statistics do not include rs identifiers for SNP variants.
@@ -47,8 +48,12 @@
 
 path_file_source=${1} # full path to file for source GWAS summary statistics with GZip compression
 path_file_product=${2} # full path to file for product GWAS summary statistics in format with GZip compression
-count=${3} # integer value of count of samples to introduce to GWAS summary statistics
-report=${4} # whether to print reports
+fill_observations=${3} # logical binary indicator of whether to fill count of observations across all variants
+observations=${4} # count of observations
+fill_case_control=${5} # logical binary indicator of whether to fill counts of cases and controls across all variants
+cases=${6} # count of cases
+controls=${7} # count of controls
+report=${8} # whether to print reports
 
 ################################################################################
 # Organize paths.
@@ -72,11 +77,13 @@ rm $path_file_product
 ##########
 # Translate format of GWAS summary statistics.
 # Note that AWK interprets a single space delimiter (FS=" ") as any white space.
-
 echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format
-zcat $path_file_source | awk -v count=$count 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-  print ("chr"$1"_"$2"_"$4), $1, $2, toupper($4), toupper($3), $10, $11, $12, $13, (count), "NA", (1), "NA", "NA"
-}' >> $path_file_temporary_format
+# For conciseness, only support the conditions that are relevant.
+if [ "$fill_observations" == "1" ] && [ "$fill_case_control" != "1" ]; then
+  zcat $path_file_source | awk -v observations=$observations 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+    print ("chr"$1"_"$2"_"$4), $1, $2, toupper($4), toupper($3), $10, $11, $12, $13, (observations), "NA", (1.0), "NA", "NA"
+  }' >> $path_file_temporary_format
+fi
 
 # Compress file format.
 gzip -cvf $path_file_temporary_format > $path_file_product

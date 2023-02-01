@@ -11,9 +11,9 @@
 
 # Source Format
 # Human Genome Assembly: GRCh37 (TCW; 24 January 2023)
-# effect allele: "Allele1" ("coding allele") (TCW; 24 January 2023)
-# delimiter: comma
-# columns: " MarkerName,Allele1,Allele2,Freq1,Effect,StdErr,P.value,N,I2 " # (TCW; 24 January 2023)
+# Effect allele: "Allele1" ("coding allele") (TCW; 24 January 2023)
+# Delimiter: comma
+# Columns: " MarkerName,Allele1,Allele2,Freq1,Effect,StdErr,P.value,N,I2 " # (TCW; 24 January 2023)
 # Note:
 # The source format is the same for linear and logistic GWAS in collection (TCW; 24 January 2023).
 # Format of "MarkerName" is "[chromosome]:[position]:[type such as SNP]" (TCW; 24 January 2023).
@@ -46,7 +46,12 @@
 
 path_file_source=${1} # full path to file for source GWAS summary statistics with GZip compression
 path_file_product=${2} # full path to file for product GWAS summary statistics in format with GZip compression
-report=${3} # whether to print reports
+fill_observations=${3} # logical binary indicator of whether to fill count of observations across all variants
+observations=${4} # count of observations
+fill_case_control=${5} # logical binary indicator of whether to fill counts of cases and controls across all variants
+cases=${6} # count of cases
+controls=${7} # count of controls
+report=${8} # whether to print reports
 
 ################################################################################
 # Organize paths.
@@ -67,16 +72,23 @@ rm $path_file_product
 ###########################################################################
 # Execute procedure.
 
+
+
 ##########
 # Translate format of GWAS summary statistics.
 # Note that AWK interprets a single space delimiter (FS=" ") as any white space.
-
-# simple: print $1, $2, $3, toupper($4), toupper($5), $6, $10, $11, $12, $8, "NA", $7, "NA", "NA"
-
 echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format
-zcat $path_file_source | awk 'BEGIN {FS = ","; OFS = " "} NR > 1 {
-  (a = $1); split(a, b, ":"); print a, b[1], b[2], toupper($2), toupper($3), $4, $5, $6, $7, $8, "NA", (1.0), "NA", "NA"
-}' >> $path_file_temporary_format
+# For conciseness, only support the conditions that are relevant.
+if [ "$fill_observations" != "1" ] && [ "$fill_case_control" != "1" ]; then
+  zcat $path_file_source | awk 'BEGIN {FS = ","; OFS = " "} NR > 1 {
+    (a = $1); split(a, b, ":"); print a, b[1], b[2], toupper($2), toupper($3), $4, $5, $6, $7, $8, "NA", (1.0), "NA", "NA"
+  }' >> $path_file_temporary_format
+fi
+if [ "$fill_observations" != "1" ] && [ "$fill_case_control" == "1" ]; then
+  zcat $path_file_source | awk -v cases=$cases -v controls=$controls 'BEGIN {FS = ","; OFS = " "} NR > 1 {
+    (a = $1); split(a, b, ":"); print a, b[1], b[2], toupper($2), toupper($3), $4, $5, $6, $7, $8, "NA", (1.0), (cases), (controls)
+  }' >> $path_file_temporary_format
+fi
 
 # Compress file format.
 gzip -cvf $path_file_temporary_format > $path_file_product

@@ -10,9 +10,10 @@
 # Host: https://zenodo.org/record/5644896
 
 # Source Format
-# effect allele: ______ (assume "ea", but confirm)
-# delimiter: white space
-# columns: markername chr bp_hg19 ea oa eaf info nSamples nStudies beta se p I2 phenotype
+# Human Genome Assembly: GRCh37 (hg19)
+# Effect allele: ______ (assume "ea", but confirm)
+# Delimiter: white space
+# Columns: markername chr bp_hg19 ea oa eaf info nSamples nStudies beta se p I2 phenotype
 
 # Format Translation
 # Identifiers of SNP variants is [rsID]:[position]:[other allele]:[effect allele].
@@ -44,7 +45,12 @@
 
 path_file_source=${1} # full path to file for source GWAS summary statistics with GZip compression
 path_file_product=${2} # full path to file for product GWAS summary statistics in format with GZip compression
-report=${3} # whether to print reports
+fill_observations=${3} # logical binary indicator of whether to fill count of observations across all variants
+observations=${4} # count of observations
+fill_case_control=${5} # logical binary indicator of whether to fill counts of cases and controls across all variants
+cases=${6} # count of cases
+controls=${7} # count of controls
+report=${8} # whether to print reports
 
 ################################################################################
 # Organize paths.
@@ -68,13 +74,13 @@ rm $path_file_product
 ##########
 # Translate format of GWAS summary statistics.
 # Note that AWK interprets a single space delimiter (FS=" ") as any white space.
-
-# simple: print $1, $2, $3, toupper($4), toupper($5), $6, $10, $11, $12, $8, "NA", $7, "NA", "NA"
-
 echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format
-zcat $path_file_source | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-  (a = $1); split(a, b, ":"); print b[1], $2, $3, toupper($4), toupper($5), $6, $10, $11, $12, $8, "NA", $7, "NA", "NA"
-}' >> $path_file_temporary_format
+# For conciseness, only support the conditions that are relevant.
+if [ "$fill_observations" != "1" ] && [ "$fill_case_control" != "1" ]; then
+  zcat $path_file_source | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+    (a = $1); split(a, b, ":"); print b[1], $2, $3, toupper($4), toupper($5), $6, $10, $11, $12, $8, "NA", $7, "NA", "NA"
+  }' >> $path_file_temporary_format
+fi
 
 # Compress file format.
 gzip -cvf $path_file_temporary_format > $path_file_product
