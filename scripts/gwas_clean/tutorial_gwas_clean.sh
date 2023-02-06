@@ -54,9 +54,11 @@ path_directory_temporary="${path_directory_product}/temporary_tcw_2431687" # hop
 path_directory_reference_gwas2vcf="${path_directory_product}/reference_gwas2vcf"
 
 # Files.
+#identifier_gwas="32042192_ruth_2020_testosterone_female"
+identifier_gwas="30367059_teumer_2018_tsh_female"
 #path_file_gwas_source=
-path_file_gwas_standard_source="${path_directory_dock}/hormone_genetics/gwas_format_standard/32042192_ruth_2020_testosterone_female.txt.gz"
-path_file_gwas_product="${path_directory_product}/32042192_ruth_2020_testosterone_female.txt.gz"
+path_file_gwas_standard_source="${path_directory_dock}/hormone_genetics/gwas_format_standard/${identifier_gwas}.txt.gz"
+path_file_gwas_product="${path_directory_product}/${identifier_gwas}.txt.gz"
 #path_file_reference_genome_sequence="${path_directory_reference_gwas2vcf}/genome_sequence/human_g1k_v37.fasta.gz"
 path_file_reference_genome_sequence="${path_directory_reference_gwas2vcf}/genome_sequence/human_g1k_v37_test.fasta.gz"
 path_file_reference_dbsnp="${path_directory_reference_gwas2vcf}/dbsnp/dbsnp.v153.b37.vcf.gz"
@@ -89,7 +91,6 @@ cd $path_directory_product
 ################################################################################
 # Organize parameters.
 
-identifier_gwas2vcf="32042192_ruth_2020_testosterone_female"
 report="true"
 
 ################################################################################
@@ -166,19 +167,19 @@ if true; then
   # Subsequent use of the parameter "--cohort_controls" to will rewrite any
   # SNP-specific counts of controls.
   echo "{
-    "chr_col": 1,
-    "pos_col": 2,
-    "snp_col": 0,
-    "ea_col": 3,
-    "oa_col": 4,
-    "beta_col": 6,
-    "se_col": 7,
-    "ncontrol_col": 9,
-    "pval_col": 8,
-    "eaf_col": 5,
-    "delimiter": "\t",
-    "header": true,
-    "build": "GRCh37"
+    'chr_col': 1,
+    'pos_col': 2,
+    'snp_col': 0,
+    'ea_col': 3,
+    'oa_col': 4,
+    'beta_col': 6,
+    'se_col': 7,
+    'ncontrol_col': 9,
+    'pval_col': 8,
+    'eaf_col': 5,
+    'delimiter': '\t',
+    'header': true,
+    'build': 'GRCh37'
   }" > $path_file_temporary_gwas2vcf_parameter
   # Activate Virtual Environment.
   source "${path_environment_gwas2vcf}/bin/activate"
