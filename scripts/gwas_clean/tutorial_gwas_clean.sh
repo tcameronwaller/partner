@@ -58,6 +58,7 @@ path_directory_reference_gwas2vcf="${path_directory_product}/reference_gwas2vcf"
 identifier_gwas="30367059_teumer_2018_tsh_female"
 #path_file_gwas_source=
 path_file_gwas_standard_source="${path_directory_dock}/hormone_genetics/gwas_format_standard/${identifier_gwas}.txt.gz"
+path_file_gwas_munge_product="${path_directory_product}/${identifier_gwas}_munge.txt.gz"
 path_file_gwas_product="${path_directory_product}/${identifier_gwas}.txt.gz"
 path_file_gwas2vcf_parameter="${path_directory_process}/promiscuity/scripts/gwas_clean/parameter_gwas_standard_to_gwas2vcf.json"
 #path_file_reference_genome_sequence="${path_directory_reference_gwas2vcf}/genome_sequence/human_g1k_v37.fasta.gz"
@@ -67,8 +68,10 @@ path_file_reference_dbsnp="${path_directory_reference_gwas2vcf}/dbsnp/dbsnp.v153
 
 # Temporary files.
 name_base_file_gwas_product="$(basename $path_file_gwas_product .txt.gz)"
+path_file_temporary_gwas_munge="${path_directory_temporary}/${name_base_file_gwas_product}_munge.txt"
 path_file_temporary_gwas_decompress="${path_directory_temporary}/${name_base_file_gwas_product}.txt"
 path_file_temporary_gwas_vcf="${path_directory_temporary}/${name_base_file_gwas_product}.vcf"
+path_file_temporary_gwas_vcf_compress="${path_directory_temporary}/${name_base_file_gwas_product}.vcf.gz"
 name_base_file_genome_sequence="$(basename $path_file_reference_genome_sequence .fasta.gz)"
 path_file_temporary_genome_decompress="${path_directory_temporary}/${name_base_file_genome_sequence}.fasta"
 path_file_temporary_gwas_nhgriebi_vcf="${path_directory_temporary}/gwas_nhgri_ebi_gwas_catalog_format.vcf.gz"
@@ -77,6 +80,7 @@ path_file_temporary_gwas_nhgriebi_tsv="${path_directory_temporary}/gwas_nhgri_eb
 # Scripts.
 #path_script_gwas_format_source_to_standard="${path_directory_process}/promiscuity/scripts/gwas_format/format_gwas_team/translate_gwas_30367059_teumer_2018.sh"
 path_script_access_reference_gwas2vcf="${path_directory_process}/promiscuity/scripts/gwas_clean/access_reference_gwas2vcf.sh"
+path_script_mungesumstats="${path_directory_process}/promiscuity/scripts/gwas_clean/execute_bioconductor_mungesumstats_format_sumstats.R"
 #path_script_gwas_format_standard_to_gwas2vcf="${path_directory_process}/promiscuity/scripts/utility/gwas_clean/translate_gwas_standard_to_gwas2vcf.sh" # <-- do not need
 #path_script_gwas_clean="${path_directory_process}/promiscuity/scripts/utility/gwas_clean/clean_gwas.sh"
 
@@ -111,6 +115,22 @@ if false; then
   $report
 fi
 
+
+# TODO: TCW; 6 February 2023
+
+# TODO: Need to use Bioconductor MungeSumstats first to introduce rsIDs
+
+##########
+# Munge GWAS summary statistics in Bioconductor package "MungeSumstats".
+# Host of MungeSumstats: https://github.com/neurogenomics/MungeSumstats
+# Getting Started Guide: https://neurogenomics.github.io/MungeSumstats/articles/MungeSumstats.html
+# Documentation: https://bioconductor.org/packages/release/bioc/html/MungeSumstats.html
+# Documentation: https://bioconductor.org/packages/release/bioc/vignettes/MungeSumstats/inst/doc/MungeSumstats.html
+# Documentation: https://bioconductor.org/packages/release/bioc/manuals/MungeSumstats/man/MungeSumstats.pdf
+# Note: MungeSumstats by default removes any SNPs on chromosomes X, Y, or the
+# mitochondrial chromosome, but it is possible to suppress this behavior.
+
+Rscript $path_script_mungesumstats $path_file_gwas_standard_source $path_file_gwas_munge_product
 
 
 ##########
@@ -154,12 +174,13 @@ fi
 # Functions.
 # 1. Verify and introduce SNPs' rs identifiers from dbSNP reference.
 
-if true; then
+if false; then
   # Decompress the GWAS summary statistics.
   gzip -dcvf $path_file_gwas_standard_source > $path_file_temporary_gwas_decompress
   # Decompress the reference genome sequence.
   gzip -dcvf $path_file_reference_genome_sequence > $path_file_temporary_genome_decompress
-  # Define parameters for GWAS2VCF.
+  # Define parameters for GWAS2VCF within a text file in "json" format.
+  # Parameters do need to be within a separate text file.
   # Index of columns in source GWAS summary statistics bases on zero.
   # Use "ncontrol_col" to designate the column for count of observations in
   # linear GWAS or for the column for count of controls in logistic GWAS.
@@ -199,6 +220,7 @@ if true; then
   # Deactivate Virtual Environment.
   deactivate
   which python3
+  gzip -cvf $path_file_temporary_gwas_vcf > $path_file_temporary_gwas_vcf_compress
 fi
 
 
@@ -208,12 +230,12 @@ fi
 # Use tool GWAS2VCF.
 # documentation: https://mrcieu.github.io/gwas2vcf/downstream/#convert
 
-if true; then
+if false; then
   # Translate from GWAS-VCF format to NHGRI-EBI GWAS Catalog format.
   $path_bcftools query \
   -e 'ID == "."' \
   -f '%ID\t[%LP]\t%CHROM\t%POS\t%ALT\t%REF\t%AF\t[%ES\t%SE]\n' \
-  $path_file_temporary_gwas_nhgriebi_vcf | \
+  $path_file_temporary_gwas_vcf_compress | \
   awk 'BEGIN {print "variant_id\tp_value\tchromosome\tbase_pair_location\teffect_allele\tother_allele\teffect_allele_frequency\tbeta\tstandard_error"}; {OFS="\t"; if ($2==0) $2=1; else if ($2==999) $2=0; else $2=10^-$2; print}' > $path_file_temporary_gwas_nhgriebi_tsv
 fi
 
@@ -223,11 +245,6 @@ fi
 # TODO: then remove the temporary directory
 
 
-
-##########
-# Munge GWAS summary statistics in Bioconductor package "MungeSumstats".
-# Documentation: https://bioconductor.org/packages/release/bioc/manuals/MungeSumstats/man/MungeSumstats.pdf
-# Note: MungeSumstats removes any SNPs on chromosomes X, Y, or mitochondrion.
 
 
 ##########
