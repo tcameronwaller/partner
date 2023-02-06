@@ -190,7 +190,7 @@ if true; then
   python3 $path_gwas2vcf \
   --data $path_file_temporary_gwas_decompress \
   --json $path_file_temporary_gwas2vcf_parameter \
-  --id $identifier_gwas2vcf \
+  --id $identifier_gwas \
   --ref $path_file_temporary_genome_decompress \
   --dbsnp $path_file_reference_dbsnp \
   --out $path_file_temporary_gwas_vcf \
