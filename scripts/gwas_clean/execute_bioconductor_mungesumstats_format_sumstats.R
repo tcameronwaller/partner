@@ -9,7 +9,8 @@ path_file_product = arguments[2]
 
 #table_source = read.table(path_file_source, header=TRUE)
 
-if (!require("BiocManager")) install.packages("BiocManager")
+if (!require("BiocManager", quietly = TRUE)) install.packages("BiocManager")
+BiocManager::install(version = "3.17")
 BiocManager::install("MungeSumstats")
 library(MungeSumstats)
 
