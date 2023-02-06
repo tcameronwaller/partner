@@ -49,14 +49,16 @@ path_gwas2vcf="${path_directory_tools}/gwas2vcf/gwas2vcf/main.py"
 path_directory_process=$(<"./process_psychiatric_metabolism.txt")
 path_directory_dock="${path_directory_process}/dock" # parent directory for procedural reads and writes
 path_directory_product="${path_directory_dock}/test_gwas_clean"
+path_directory_reference_gwas2vcf="${path_directory_dock}/test_gwas_clean/reference_gwas2vcf"
 
 # Files.
-path_file_gwas_source="${path_directory_dock}/hormone_genetics/gwas_format_standard/32042192_ruth_2020_testosterone_female.txt.gz"
+path_file_gwas_standard_source="${path_directory_dock}/hormone_genetics/gwas_format_standard/32042192_ruth_2020_testosterone_female.txt.gz"
 path_file_gwas_product="${path_directory_product}/32042192_ruth_2020_testosterone_female.txt.gz"
 path_file_gwas2vcf_parameter="${path_directory_product}/importation_parameter_gwas_standard_to_gwasvcf.json"
 
 # Scripts.
-path_script_gwas_format_source_to_standard="${path_directory_process}/promiscuity/scripts/utility/gwas_process/format_gwas_team/translate_gwas_30367059_teumer_2018.sh"
+#path_script_gwas_format_source_to_standard="${path_directory_process}/promiscuity/scripts/gwas_format/format_gwas_team/translate_gwas_30367059_teumer_2018.sh"
+path_script_access_reference_gwas2vcf="${path_directory_process}/promiscuity/scripts/gwas_clean/access_reference_gwas2vcf.sh"
 #path_script_gwas_format_standard_to_gwas2vcf="${path_directory_process}/promiscuity/scripts/utility/gwas_clean/translate_gwas_standard_to_gwas2vcf.sh" # <-- do not need
 #path_script_gwas_clean="${path_directory_process}/promiscuity/scripts/utility/gwas_clean/clean_gwas.sh"
 
@@ -67,8 +69,14 @@ cd $path_directory_product
 
 
 
-###########################################################################
+################################################################################
 # Organize parameters.
+
+
+report="true"
+
+################################################################################
+# Execute procedure.
 
 
 
@@ -94,7 +102,7 @@ fi
 # Documentation for GWAS2VCF: https://mrcieu.github.io/gwas2vcf
 # Refer to notes in script "install_local_software.sh".
 # Refer to notes in script "install_python_virtual_environments_packages.sh"
-if true; then
+if false; then
   # Activate Virtual Environment.
   source "${path_environment_gwas2vcf}/bin/activate"
   echo "confirm Python Virtual Environment path..."
@@ -110,11 +118,21 @@ fi
 
 
 ##########
+# Access genomic reference information for GWAS2VCF.
+
+if true; then
+  /usr/bin/bash $path_script_access_reference_gwas2vcf \
+  $path_directory_reference_gwas2vcf \
+  $report
+fi
+
+
+
+##########
 # Translate GWAS summary statistics from standard format to GWAS-VCF format.
 # Use tool GWAS2VCF.
 # Functions.
 # 1. Verify and introduce SNPs' rs identifiers from dbSNP reference.
-
 
 
 # Indexing of columns in source GWAS summary statistics bases on zero.
@@ -142,7 +160,7 @@ fi
 
 ##########
 # Munge GWAS summary statistics in Bioconductor package "MungeSumstats".
-# documentation:
+# Documentation: https://bioconductor.org/packages/release/bioc/manuals/MungeSumstats/man/MungeSumstats.pdf
 
 
 
