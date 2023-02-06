@@ -59,9 +59,11 @@ identifier_gwas="30367059_teumer_2018_tsh_female"
 #path_file_gwas_source=
 path_file_gwas_standard_source="${path_directory_dock}/hormone_genetics/gwas_format_standard/${identifier_gwas}.txt.gz"
 path_file_gwas_product="${path_directory_product}/${identifier_gwas}.txt.gz"
+path_file_gwas2vcf_parameter="${path_directory_process}/promiscuity/scripts/gwas_clean/parameter_gwas_standard_to_gwas2vcf.json"
 #path_file_reference_genome_sequence="${path_directory_reference_gwas2vcf}/genome_sequence/human_g1k_v37.fasta.gz"
 path_file_reference_genome_sequence="${path_directory_reference_gwas2vcf}/genome_sequence/human_g1k_v37_test.fasta.gz"
 path_file_reference_dbsnp="${path_directory_reference_gwas2vcf}/dbsnp/dbsnp.v153.b37.vcf.gz"
+
 
 # Temporary files.
 name_base_file_gwas_product="$(basename $path_file_gwas_product .txt.gz)"
@@ -69,7 +71,6 @@ path_file_temporary_gwas_decompress="${path_directory_temporary}/${name_base_fil
 path_file_temporary_gwas_vcf="${path_directory_temporary}/${name_base_file_gwas_product}.vcf"
 name_base_file_genome_sequence="$(basename $path_file_reference_genome_sequence .fasta.gz)"
 path_file_temporary_genome_decompress="${path_directory_temporary}/${name_base_file_genome_sequence}.fasta"
-path_file_temporary_gwas2vcf_parameter="${path_directory_temporary}/importation_parameter_gwas_standard_to_gwasvcf.json"
 path_file_temporary_gwas_nhgriebi_vcf="${path_directory_temporary}/gwas_nhgri_ebi_gwas_catalog_format.vcf.gz"
 path_file_temporary_gwas_nhgriebi_tsv="${path_directory_temporary}/gwas_nhgri_ebi_gwas_catalog_format.tsv"
 
@@ -166,21 +167,21 @@ if true; then
   # the count of cases in logistic GWAS.
   # Subsequent use of the parameter "--cohort_controls" to will rewrite any
   # SNP-specific counts of controls.
-  echo "{
-    'chr_col': 1,
-    'pos_col': 2,
-    'snp_col': 0,
-    'ea_col': 3,
-    'oa_col': 4,
-    'beta_col': 6,
-    'se_col': 7,
-    'ncontrol_col': 9,
-    'pval_col': 8,
-    'eaf_col': 5,
-    'delimiter': '\t',
-    'header': true,
-    'build': 'GRCh37'
-  }" > $path_file_temporary_gwas2vcf_parameter
+  #echo "{
+  #  'chr_col': 1,
+  #  'pos_col': 2,
+  #  'snp_col': 0,
+  #  'ea_col': 3,
+  #  'oa_col': 4,
+  #  'beta_col': 6,
+  #  'se_col': 7,
+  #  'ncontrol_col': 9,
+  #  'pval_col': 8,
+  #  'eaf_col': 5,
+  #  'delimiter': '\t',
+  #  'header': true,
+  #  'build': 'GRCh37'
+  #}" > $path_file_temporary_gwas2vcf_parameter
   # Activate Virtual Environment.
   source "${path_environment_gwas2vcf}/bin/activate"
   echo "confirm Python Virtual Environment path..."
@@ -189,7 +190,7 @@ if true; then
   # Call GWAS2VCF.
   python3 $path_gwas2vcf \
   --data $path_file_temporary_gwas_decompress \
-  --json $path_file_temporary_gwas2vcf_parameter \
+  --json $path_file_gwas2vcf_parameter \
   --id $identifier_gwas \
   --ref $path_file_temporary_genome_decompress \
   --dbsnp $path_file_reference_dbsnp \
