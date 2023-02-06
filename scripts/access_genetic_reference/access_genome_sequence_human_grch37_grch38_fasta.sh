@@ -19,54 +19,79 @@
 # NCBI: https://www.ncbi.nlm.nih.gov/search/all/?term=grch37.p13
 # Ensembl: https://uswest.ensembl.org/index.html
 
+# Review: TCW; 6 February 2023
+
 ################################################################################
+
+
 
 ################################################################################
 # Organize arguments.
-human_genome_assembly=${1} # human genome assembly, either 'grch37' or 'grch38'
-path_genome_parent_container=${2} # full path to parent directory for human genome sequence
+
+path_directory_parent=${1} # full path to parent directory within which to create child directories and save files
+report=${2} # whether to print reports
+
+################################################################################
+# Organize paths.
+
+path_directory_grch37="${path_directory_parent}/grch37"
+path_directory_grch38="${path_directory_parent}/grch38"
+
+# Initialize directory.
+rm -r $path_directory_grch37
+rm -r $path_directory_grch38
+mkdir -p $path_directory_grch37
+mkdir -p $path_directory_grch38
 
 ###########################################################################
 # Execute procedure.
-###########################################################################
 
-# Echo each command to console.
-#set -x
-# Suppress echo each command to console.
-set +x
+
+
+# Report.
+if [[ "$report" == "true" ]]; then
+  echo "----------"
+  echo "----------"
+  echo "----------"
+  echo "Accessing sequence reference files for human genome assembly GRCh37."
+  echo "----------"
+  echo "----------"
+  echo "----------"
+fi
+cd $path_directory_grch37
+# Genome Reference Consortium (GRC) human assembly: GRCh37.p13
+# Description: https://www.gencodegenes.org/human/release_19.html
+# RefSeq accession: GCF_000001405.25
+# Release date: December 2013
+wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/GRCh37.p13.genome.fa.gz # 767 Megabytes
+
+# Report.
+if [[ "$report" == "true" ]]; then
+  echo "----------"
+  echo "----------"
+  echo "----------"
+  echo "Accessing sequence reference files for human genome assembly GRCh38."
+  echo "----------"
+  echo "----------"
+  echo "----------"
+fi
+cd $path_directory_grch38
+# Genome Reference Consortium (GRC) human assembly: GRCh38.p13
+# Description: https://www.gencodegenes.org/human/release_42.html
+# RefSeq accession: GCF_000001405.42
+# Release: 42
+# Release date: April 2022
+wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_42/GRCh38.p13.genome.fa.gz # 848 Megabytes
+
+
 
 ################################################################################
-# Organize directories.
-# Access information from Gencode.
-
-if [[ "$human_genome_assembly" == "grch37" ]]; then
-  echo "Accessing sequence files for human genome assembly GRCh37."
-  path_genome_container="${path_genome_parent_container}/grch37"
-  rm -r $path_genome_container
-  mkdir -p "${path_genome_container}"
-  cd $path_genome_container
-  # Genome Reference Consortium (GRC) human assembly: GRCh37.p13
-  # RefSeq accession: GCF_000001405.25
-  # Release date: December 2013
-  wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/GRCh37.p13.genome.fa.gz # 767 Megabytes
-elif [[ "$human_genome_assembly" == "grch38" ]]; then
-  echo "Accessing sequence files for human genome assembly GRCh38."
-  path_genome_container="${path_genome_parent_container}/grch38"
-  rm -r $path_genome_container
-  mkdir -p "${path_genome_container}"
-  cd $path_genome_container
-  # Genome Reference Consortium (GRC) human assembly: GRCh38.p13
-  # RefSeq accession:
-  # Release: 42
-  # Release date: October 2022
-
-
-  # Genome Reference Consortium (GRC) human assembly: GRCh38.p13
-  # RefSeq accession: GCF_000001405.39
-  # Release date: December 2021
-  wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_39/GRCh38.p13.genome.fa.gz # 848 Megabytes
-else
-  echo "invalid specification of human genome assembly"
+# Report.
+if [[ "$report" == "true" ]]; then
+  echo "----------"
+  echo "Script complete:"
+  echo "access_genome_sequence_human_grch37_grch38_fasta.sh"
+  echo "----------"
 fi
 
 
