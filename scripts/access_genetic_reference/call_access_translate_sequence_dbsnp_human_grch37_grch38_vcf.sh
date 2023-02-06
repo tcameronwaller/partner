@@ -46,14 +46,14 @@ report="true"
 
 
 
-if true; then
+if false; then
   # Call script for accession on genomic sequences. (TCW; 6 February 2023)
   /usr/bin/bash $path_file_script_access_sequence \
   $path_directory_parent_sequence \
   $report
 fi
 
-if false; then
+if true; then
   # Call script for accession on dbSNP.
   /usr/bin/bash $path_file_script_access_dbsnp \
   $path_directory_parent_dbsnp \

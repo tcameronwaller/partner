@@ -63,7 +63,7 @@ cd $path_directory_grch37
 # Description: https://www.gencodegenes.org/human/release_19.html
 # RefSeq accession: GCF_000001405.25
 # Release date: December 2013
-wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/GRCh37.p13.genome.fa.gz # 767 Megabytes
+wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_19/GRCh37.p13.genome.fa.gz # 768 Megabytes
 
 # Report.
 if [[ "$report" == "true" ]]; then
@@ -81,7 +81,7 @@ cd $path_directory_grch38
 # RefSeq accession: GCF_000001405.42
 # Release: 42
 # Release date: April 2022
-wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_42/GRCh38.p13.genome.fa.gz # 848 Megabytes
+wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_42/GRCh38.p13.genome.fa.gz # 849 Megabytes
 
 
 
