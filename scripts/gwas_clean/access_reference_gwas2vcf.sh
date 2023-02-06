@@ -35,7 +35,7 @@ mkdir -p $path_directory_dbsnp
 
 ##########
 # Genomic sequence.
-
+cd $path_directory_sequence
 # GRCh36/hg18/b36
 #wget http://fileserve.mrcieu.ac.uk/ref/2.8/b36/human_b36_both.fasta.gz; gzip -d human_b36_both.fasta.gz
 #wget http://fileserve.mrcieu.ac.uk/ref/2.8/b36/human_b36_both.fasta.fai
@@ -54,7 +54,7 @@ wget http://fileserve.mrcieu.ac.uk/ref/2.8/b37/human_g1k_v37.dict
 
 ##########
 # dbSNP.
-
+cd $path_directory_dbsnp
 # GRCh37/hg19/b37
 wget http://fileserve.mrcieu.ac.uk/dbsnp/dbsnp.v153.b37.vcf.gz .
 wget http://fileserve.mrcieu.ac.uk/dbsnp/dbsnp.v153.b37.vcf.gz.tbi .
@@ -74,3 +74,5 @@ wget http://fileserve.mrcieu.ac.uk/dbsnp/dbsnp.v153.b37.vcf.gz.tbi .
 # Use the "annotate" funtion in BCFTools.
 
 # See: https://mrcieu.github.io/gwas2vcf/install/
+
+# See also script: ".../promiscuity/scripts/access_genetic_reference/call_access_translate_sequence_dbsnp_human_grch37_grch38_vcf"

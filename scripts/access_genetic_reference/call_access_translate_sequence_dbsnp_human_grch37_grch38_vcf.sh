@@ -47,7 +47,7 @@ report="true"
 
 
 if true; then
-  # Call script for accession on genomic sequences.
+  # Call script for accession on genomic sequences. (TCW; 6 February 2023)
   /usr/bin/bash $path_file_script_access_sequence \
   $path_directory_parent_sequence \
   $report
