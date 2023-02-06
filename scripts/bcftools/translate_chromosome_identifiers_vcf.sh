@@ -9,7 +9,6 @@
 # BCFTools specializes in tasks on genotype files in the Variant Call Format
 # (VCF) that describe Single Nucleotide Polymorphisms (SNPs) across samples.
 
-
 # BCFTools documentation
 # https://samtools.github.io/bcftools/bcftools.html
 
@@ -26,7 +25,10 @@
 # https://gist.github.com/obenshaindw/99440ac43de07548e453
 # "/usr/bin/htslib/bcftools/bcftools annotate -a /reference/dbsnp_137.b37.vcf.gz -c ID vcf_to_add_id_to.vcf"
 
+# Review: TCW; 6 February 2023
+
 ################################################################################
+
 
 ################################################################################
 # Organize arguments.
@@ -38,7 +40,7 @@ path_bcftools=${5} # full path to installation executable file of BCFTools
 report=${6} # whether to print reports
 
 ################################################################################
-# Remove "chr" prefix from chromosome identifiers in VCF genotype file.
+# Translate chromosome identifiers.
 # Write to file in VCF format with BGZIP compression.
 
 $path_bcftools \

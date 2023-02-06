@@ -56,6 +56,12 @@ elif [[ "$human_genome_assembly" == "grch38" ]]; then
   mkdir -p "${path_genome_container}"
   cd $path_genome_container
   # Genome Reference Consortium (GRC) human assembly: GRCh38.p13
+  # RefSeq accession:
+  # Release: 42
+  # Release date: October 2022
+
+
+  # Genome Reference Consortium (GRC) human assembly: GRCh38.p13
   # RefSeq accession: GCF_000001405.39
   # Release date: December 2021
   wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_39/GRCh38.p13.genome.fa.gz # 848 Megabytes

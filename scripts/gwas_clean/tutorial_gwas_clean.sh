@@ -41,6 +41,8 @@ cd ~/paths
 path_directory_tools=$(<"./waller_tools.txt")
 path_environment_gwas2vcf="${path_directory_tools}/python/environments/gwas2vcf"
 path_gwas2vcf="${path_directory_tools}/gwas2vcf/gwas2vcf/main.py"
+path_bcftools=$(<"./tools_bcftools.txt")
+
 
 #path_plink2=$(<"./tools_plink2.txt")
 #path_gctb=$(<"./tools_waller_gctb.txt")
@@ -49,12 +51,25 @@ path_gwas2vcf="${path_directory_tools}/gwas2vcf/gwas2vcf/main.py"
 path_directory_process=$(<"./process_psychiatric_metabolism.txt")
 path_directory_dock="${path_directory_process}/dock" # parent directory for procedural reads and writes
 path_directory_product="${path_directory_dock}/test_gwas_clean"
-path_directory_reference_gwas2vcf="${path_directory_dock}/test_gwas_clean/reference_gwas2vcf"
+path_directory_temporary="${path_directory_product}/temporary_tcw_2431687" # hopefully unique
+path_directory_reference_gwas2vcf="${path_directory_product}/reference_gwas2vcf"
 
 # Files.
+#path_file_gwas_source=
 path_file_gwas_standard_source="${path_directory_dock}/hormone_genetics/gwas_format_standard/32042192_ruth_2020_testosterone_female.txt.gz"
 path_file_gwas_product="${path_directory_product}/32042192_ruth_2020_testosterone_female.txt.gz"
-path_file_gwas2vcf_parameter="${path_directory_product}/importation_parameter_gwas_standard_to_gwasvcf.json"
+path_file_reference_genome_sequence="${path_directory_reference_gwas2vcf}/genome_sequence/human_g1k_v37.fasta.gz"
+path_file_reference_dbsnp="${path_directory_reference_gwas2vcf}/dbsnp/dbsnp.v153.b37.vcf.gz"
+
+# Temporary files.
+name_base_file_gwas_product="$(basename $path_file_gwas_product .txt.gz)"
+path_file_temporary_gwas_decompress="${path_directory_temporary}/${name_base_file_gwas_product}.txt"
+path_file_temporary_gwas_vcf="${path_directory_temporary}/${name_base_file_gwas_product}.vcf"
+name_base_file_genome_sequence="$(basename $path_file_reference_genome_sequence .fasta.gz)"
+path_file_temporary_genome_decompress="${path_directory_temporary}/${name_base_file_genome_sequence}.fasta"
+path_file_temporary_gwas2vcf_parameter="${path_directory_temporary}/importation_parameter_gwas_standard_to_gwasvcf.json"
+path_file_temporary_gwas_nhgriebi_1="${path_directory_temporary}/gwas_nhgri_ebi_gwas_catalog_format.vcf.gz"
+path_file_temporary_gwas_nhgriebi_2="${path_directory_temporary}/gwas_nhgri_ebi_gwas_catalog_format.tsv"
 
 # Scripts.
 #path_script_gwas_format_source_to_standard="${path_directory_process}/promiscuity/scripts/gwas_format/format_gwas_team/translate_gwas_30367059_teumer_2018.sh"
@@ -64,7 +79,9 @@ path_script_access_reference_gwas2vcf="${path_directory_process}/promiscuity/scr
 
 # Initialize directories.
 #rm -r $path_directory_product
+rm -r $path_directory_temporary
 mkdir -p $path_directory_product
+mkdir -p $path_directory_temporary
 cd $path_directory_product
 
 
@@ -72,7 +89,7 @@ cd $path_directory_product
 ################################################################################
 # Organize parameters.
 
-
+identifier_gwas2vcf="32042192_ruth_2020_testosterone_female"
 report="true"
 
 ################################################################################
@@ -100,6 +117,8 @@ fi
 # GWAS-VCF format specification: https://github.com/MRCIEU/gwas-vcf-specification
 # Host of GWAS2VCF: https://github.com/MRCIEU/gwas2vcf
 # Documentation for GWAS2VCF: https://mrcieu.github.io/gwas2vcf
+# Host of GWASGlue: https://github.com/MRCIEU/gwasglue
+# Examples of analyses: https://mrcieu.github.io/gwasglue/articles/
 # Refer to notes in script "install_local_software.sh".
 # Refer to notes in script "install_python_virtual_environments_packages.sh"
 if false; then
@@ -119,8 +138,7 @@ fi
 
 ##########
 # Access genomic reference information for GWAS2VCF.
-
-if true; then
+if false; then
   /usr/bin/bash $path_script_access_reference_gwas2vcf \
   $path_directory_reference_gwas2vcf \
   $report
@@ -134,10 +152,15 @@ fi
 # Functions.
 # 1. Verify and introduce SNPs' rs identifiers from dbSNP reference.
 
-
-# Indexing of columns in source GWAS summary statistics bases on zero.
-# TODO: decompress the summary statistics
-if false; then
+if true; then
+  # Define parameters for GWAS2VCF.
+  # Index of columns in source GWAS summary statistics bases on zero.
+  # Use "ncontrol_col" to designate the column for count of observations in
+  # linear GWAS or for the column for count of controls in logistic GWAS.
+  # Can also use the parameter "--cohort_cases" to designate a single value for
+  # the count of cases in logistic GWAS.
+  # Subsequent use of the parameter "--cohort_controls" to will rewrite any
+  # SNP-specific counts of controls.
   echo "{
     "chr_col": 1,
     "pos_col": 2,
@@ -152,16 +175,52 @@ if false; then
     "delimiter": "\t",
     "header": true,
     "build": "GRCh37"
-  }" > $path_file_gwas2vcf_parameter
+  }" > $path_file_temporary_gwas2vcf_parameter
+  # Decompress the GWAS summary statistics.
+  gzip -dcvf $path_file_gwas_standard_source > $path_file_temporary_gwas_decompress
+  # Decompress the reference genome sequence.
+  gzip -dcvf $path_file_reference_genome_sequence > $path_file_temporary_genome_decompress
+  # Activate Virtual Environment.
+  source "${path_environment_gwas2vcf}/bin/activate"
+  echo "confirm Python Virtual Environment path..."
+  which python3
+  sleep 5s
+  # Call GWAS2VCF.
+  python3 $path_gwas2vcf \
+  --data $path_file_temporary_gwas_decompress \
+  --json $path_file_temporary_gwas2vcf_parameter \
+  --id $identifier_gwas2vcf \
+  --ref $path_file_temporary_genome_decompress \
+  --dbsnp $path_file_reference_dbsnp \
+  --out $path_file_temporary_gwas_vcf \
+  --log INFO
+  # Deactivate Virtual Environment.
+  deactivate
+  which python3
 fi
 
+
+
+##########
+# Translate GWAS summary statistics from GWAS-VCF format to standard format.
+# Use tool GWAS2VCF.
+# documentation: https://mrcieu.github.io/gwas2vcf/downstream/#convert
+
+if false; then
+  # Translate from GWAS-VCF format to NHGRI-EBI GWAS Catalog format.
+  $path_bcftools query \
+  -e 'ID == "."' \
+  -f '%ID\t[%LP]\t%CHROM\t%POS\t%ALT\t%REF\t%AF\t[%ES\t%SE]\n' \
+  $path_file_temporary_gwas_nhgriebi_1 | \
+  awk 'BEGIN {print "variant_id\tp_value\tchromosome\tbase_pair_location\teffect_allele\tother_allele\teffect_allele_frequency\tbeta\tstandard_error"}; {OFS="\t"; if ($2==0) $2=1; else if ($2==999) $2=0; else $2=10^-$2; print}' > $path_file_temporary_gwas_nhgriebi_2
+fi
 
 
 
 ##########
 # Munge GWAS summary statistics in Bioconductor package "MungeSumstats".
 # Documentation: https://bioconductor.org/packages/release/bioc/manuals/MungeSumstats/man/MungeSumstats.pdf
-
+# Note: MungeSumstats removes any SNPs on chromosomes X, Y, or mitochondrion.
 
 
 ##########
