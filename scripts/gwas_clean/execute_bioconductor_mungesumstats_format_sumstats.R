@@ -46,7 +46,6 @@ BiocManager::install("BSgenome.Hsapiens.1000genomes.hs37d5")
 path_handle <- MungeSumstats::format_sumstats(
     path=path_file_source,
     ref_genome="GRCh37",
-    dbSNP="155",
     sort_coordinates=FALSE,
     rmv_chrPrefix=TRUE,
     rmv_chr=NULL,
