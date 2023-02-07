@@ -14,7 +14,8 @@
 
 path_file_gwas_source=${1} # full path to file for source GWAS summary statistics with GZip compression
 path_file_gwas_product=${2} # full path to file for product GWAS summary statistics in format with GZip compression
-report=${3} # whether to print reports
+threads=${3} # count of processing threads to use
+report=${4} # whether to print reports
 
 ################################################################################
 # Organize paths.
@@ -25,12 +26,12 @@ path_directory_tools=$(<"./waller_tools.txt")
 path_environment_gwas2vcf="${path_directory_tools}/python/environments/gwas2vcf"
 path_gwas2vcf="${path_directory_tools}/gwas2vcf/gwas2vcf/main.py"
 path_bcftools=$(<"./tools_bcftools.txt")
-#path_directory_reference=$(<"./reference_tcw.txt")
+path_directory_reference=$(<"./reference_tcw.txt")
+path_directory_reference_gwas2vcf="${path_directory_reference}/gwas2vcf"
 path_directory_process=$(<"./process_psychiatric_metabolism.txt")
 path_directory_dock="${path_directory_process}/dock" # parent directory for procedural reads and writes
-path_directory_reference_gwas2vcf="${path_directory_dock}/test_gwas_clean/reference_gwas2vcf"
 path_directory_product="$(dirname $path_file_gwas_product)"
-path_directory_temporary="${path_directory_product}/temporary_tcw_2431687" # hopefully unique
+path_directory_temporary="${path_directory_product}/temporary_tcw_5271693" # hopefully unique
 
 # Files.
 name_base_file_gwas_product="$(basename $path_file_gwas_product .txt.gz)"
@@ -85,53 +86,6 @@ cd $path_directory_product
 
 
 ##########
-# Munge GWAS summary statistics in Bioconductor package "MungeSumstats".
-# Host of MungeSumstats: https://github.com/neurogenomics/MungeSumstats
-# Getting Started Guide: https://neurogenomics.github.io/MungeSumstats/articles/MungeSumstats.html
-# Documentation: https://bioconductor.org/packages/release/bioc/html/MungeSumstats.html
-# Documentation: https://bioconductor.org/packages/release/bioc/vignettes/MungeSumstats/inst/doc/MungeSumstats.html
-# Documentation: https://bioconductor.org/packages/release/bioc/manuals/MungeSumstats/man/MungeSumstats.pdf
-# Note: MungeSumstats by default removes any SNPs on chromosomes X, Y, or the
-# mitochondrial chromosome, but it is possible to suppress this behavior.
-
-if true; then
-  # Translate GWAS summary statistics from standard format to a format
-  # compatible with MungeSumstats.
-  # Source Format (Team Standard)
-  # Effect allele: "A1"
-  # Delimiter: white space
-  # Columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
-  # Product Format (MungeSumstats)
-  # Effect allele: "A2"
-  # Delimiter: white space
-  # Columns: SNP CHR BP A1 A2 FRQ BETA SE P N Z INFO N_CAS N_CON
-  echo "SNP CHR BP A1 A2 FRQ BETA SE P N Z INFO N_CAS N_CON" > $path_ftemp_gwas_premunge
-  zcat $path_file_gwas_standard_source | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-    print $1, $2, $3, toupper($5), toupper($4), $6, $7, $8, $9, $10, $11, $12, $13, $14
-  }' >> $path_ftemp_gwas_premunge
-  # Compress file format.
-  gzip -cvf $path_ftemp_gwas_premunge > $path_ftemp_gwas_premunge_gz
-  # Call MungeSumstats.
-  Rscript $path_script_mungesumstats $path_ftemp_gwas_premunge_gz $path_ftemp_gwas_postmunge_gz > $path_file_munge_report
-  # Translate GWAS summary statistics from MungeSumstats format to standard
-  # format.
-  # Source Format (MungeSumstats)
-  # Effect allele: "A2"
-  # Delimiter: white space
-  # Columns: SNP CHR BP A1 A2 FRQ BETA SE P N Z INFO N_CAS N_CON
-  # Product Format (Team Standard)
-  # Effect allele: "A1"
-  # Delimiter: white space
-  # Columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
-  echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_ftemp_gwas_postmunge_standard
-  zcat $path_ftemp_gwas_postmunge_gz | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-    print $1, $2, $3, toupper($5), toupper($4), $6, $7, $8, $9, $10, $11, $12, $13, $14
-  }' >> $path_ftemp_gwas_postmunge_standard
-fi
-
-
-
-##########
 # Translate GWAS summary statistics from standard format to GWAS-VCF format.
 # Use tool GWAS2VCF.
 # Functions.
@@ -171,7 +125,14 @@ if true; then
   echo "confirm Python Virtual Environment path..."
   which python3
   sleep 5s
+  # Force Python program (especially SciPy) not to use all available cores on a
+  # cluster computation node.
+  export MKL_NUM_THREADS=$threads
+  export NUMEXPR_NUM_THREADS=$threads
+  export OMP_NUM_THREADS=$threads
   # Call GWAS2VCF.
+  # GWAS2VCF automatically applies GZip compression to the file in VCF format
+  # and calculates a Tabix index.
   python3 $path_gwas2vcf \
   --data $path_ftemp_gwas_postmunge_standard \
   --json $path_file_gwas2vcf_parameter \
@@ -183,7 +144,6 @@ if true; then
   # Deactivate Virtual Environment.
   deactivate
   which python3
-  gzip -cvf $path_ftemp_gwas_vcf > $path_ftemp_gwas_vcf_gz
 fi
 
 
@@ -193,7 +153,7 @@ fi
 # Use tool GWAS2VCF.
 # documentation: https://mrcieu.github.io/gwas2vcf/downstream/#convert
 
-if false; then
+if true; then
   # Translate from GWAS-VCF format to NHGRI-EBI GWAS Catalog format.
   $path_bcftools query \
   -e 'ID == "."' \
@@ -210,13 +170,6 @@ fi
 
 
 
-##########
-# TCW; 24 January 2023
-# The Bioconductor packange "MungeSumstats" might be preferrable over the
-# "+munge" plugin for BCFTools.
-##########
-# Munge GWAS summary statistics in BCFTools "+munge" plugin.
-# documentation: https://github.com/freeseek/score#convert-summary-statistics
 
 
 #

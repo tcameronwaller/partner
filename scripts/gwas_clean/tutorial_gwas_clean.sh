@@ -50,7 +50,7 @@ path_bcftools=$(<"./tools_bcftools.txt")
 path_directory_process=$(<"./process_psychiatric_metabolism.txt")
 path_directory_dock="${path_directory_process}/dock" # parent directory for procedural reads and writes
 path_directory_product="${path_directory_dock}/test_gwas_clean"
-path_directory_temporary="${path_directory_product}/temporary_tcw_2431687" # hopefully unique
+path_directory_temporary="${path_directory_product}/temporary_tcw_test_output_format" # hopefully unique
 path_directory_reference_gwas2vcf="${path_directory_product}/reference_gwas2vcf"
 
 # Files.
@@ -131,6 +131,7 @@ fi
 
 # https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-022-04920-7#Sec1
 # "SumStatsRehab" might be able to introdue rsIDs?
+# PubMed: 36284273
 # https://github.com/Kukuster/SumStatsRehab
 
 # Dependency of SumStatsRehab: GZ-Sort
@@ -231,16 +232,16 @@ fi
 
 if true; then
   # Decompress the GWAS summary statistics.
-  gzip -dcvf $path_file_gwas_standard_source > $path_file_temporary_gwas_decompress
+  #gzip -dcvf $path_file_gwas_standard_source > $path_file_temporary_gwas_decompress
   # Switch to tab delimiters (field separators).
   #zcat $path_file_gwas_standard_source | awk 'BEGIN {FS = " "; OFS = "\t"} {
   #  print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
   #}' >> $path_file_temporary_gwas_decompress
   # Keep same delimiters (field separators), but only keep first count of lines.
-  #zcat $path_file_gwas_standard_source | awk 'NR < 10000 {
-  #  print $0
-  #}' >> $path_file_temporary_gwas_decompress
-  #wc -l $path_file_temporary_gwas_decompress
+  zcat $path_file_gwas_standard_source | awk 'NR < 10000 {
+    print $0
+  }' >> $path_file_temporary_gwas_decompress
+  wc -l $path_file_temporary_gwas_decompress
 
   # Decompress the reference genome sequence.
   gzip -dcvf $path_file_reference_genome_sequence > $path_file_temporary_genome_decompress
@@ -273,7 +274,8 @@ if true; then
   echo "confirm Python Virtual Environment path..."
   which python3
   sleep 5s
-  # Force SciPy not to use all available cores on a cluster computation node.
+  # Force Python program (especially SciPy) not to use all available cores on a
+  # cluster computation node.
   export MKL_NUM_THREADS=8
   export NUMEXPR_NUM_THREADS=8
   export OMP_NUM_THREADS=8
