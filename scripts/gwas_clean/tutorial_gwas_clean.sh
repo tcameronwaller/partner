@@ -84,6 +84,9 @@ path_file_temporary_genome_decompress="${path_directory_temporary}/${name_base_f
 path_file_temporary_gwas_nhgriebi_vcf="${path_directory_temporary}/gwas_nhgri_ebi_gwas_catalog_format.vcf.gz"
 path_file_temporary_gwas_nhgriebi_tsv="${path_directory_temporary}/gwas_nhgri_ebi_gwas_catalog_format.tsv"
 
+path_file_temporary_gwas_postvcf_standard="${path_directory_temporary}/gwas_postvcf_format.txt"
+path_file_temporary_gwas_postvcf_standard_gz="${path_directory_temporary}/gwas_postvcf_format.txt.gz"
+
 # Scripts.
 #path_script_gwas_format_source_to_standard="${path_directory_process}/promiscuity/scripts/gwas_format/format_gwas_team/translate_gwas_30367059_teumer_2018.sh"
 path_script_access_reference_gwas2vcf="${path_directory_process}/promiscuity/scripts/gwas_clean/access_reference_gwas2vcf.sh"
@@ -366,12 +369,12 @@ if true; then
   # Effect allele: "A1"
   # Delimiter: white space
   # Columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
-  echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_gwas_product
+  echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_gwas_postvcf_standard
   zcat $path_file_temporary_gwas_nhgriebi_tsv | awk 'BEGIN {FS = "\t"; OFS = " "} NR > 1 {
     print $1, $3, $4, $5, $6, $7, $8, $9, $2, $10, "NA", (1.0), "NA", "NA"
-  }' >> $path_file_gwas_product
+  }' >> $path_file_temporary_gwas_postvcf_standard
   # Compress file format.
-  gzip -cvf $path_file_gwas_product > $path_file_gwas_product_gz
+  gzip -cvf $path_file_temporary_gwas_postvcf_standard > $path_file_temporary_gwas_postvcf_standard_gz
 fi
 
 
