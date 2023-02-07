@@ -299,7 +299,7 @@ fi
 # Use tool GWAS2VCF.
 # documentation: https://mrcieu.github.io/gwas2vcf/downstream/#convert
 
-if false; then
+if true; then
   # Translate from GWAS-VCF format to NHGRI-EBI GWAS Catalog format.
   $path_bcftools query \
   -e 'ID == "."' \
