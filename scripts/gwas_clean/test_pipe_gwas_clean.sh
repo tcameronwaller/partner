@@ -27,12 +27,13 @@ path_directory_product="${path_directory_dock}/test_pipe_gwas_clean"
 
 # Files.
 
-#identifier_gwas="32042192_ruth_2020_testosterone_female"
-#identifier_gwas="30367059_teumer_2018_hyperthyroidism"
+identifier_gwas="30367059_teumer_2018_hyperthyroidism"
 #identifier_gwas="30367059_teumer_2018_hypothyroidism"
 #identifier_gwas="30367059_teumer_2018_tsh_female"
-identifier_gwas="30367059_teumer_2018_tsh_male"
+#identifier_gwas="30367059_teumer_2018_tsh_male"
 #identifier_gwas="32769997_zhou_2020_tsh"
+#identifier_gwas="32042192_ruth_2020_testosterone_female"
+#identifier_gwas="34255042_schmitz_2021_estradiol_female"
 path_file_gwas_source="${path_directory_dock}/hormone_genetics/gwas_format_standard/${identifier_gwas}.txt.gz"
 path_file_gwas_product="${path_directory_product}/${identifier_gwas}.txt.gz"
 
