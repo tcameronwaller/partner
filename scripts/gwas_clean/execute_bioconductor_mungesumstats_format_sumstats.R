@@ -45,6 +45,8 @@ BiocManager::install("BSgenome.Hsapiens.1000genomes.hs37d5")
 # Operation "rmv_chr" removes chromosomes "X", "Y", and "MT" by default.
 # Operation "on_ref_genome" is computational intensive and slow.
 # on_ref_genome=FALSE,
+# Operation "snp_ids_are_rs_ids" determines SNP reference sequence identifiers
+# (rsIDs) from chromosome and base position.
 
 path_handle <- MungeSumstats::format_sumstats(
     path=path_file_source,
@@ -52,6 +54,8 @@ path_handle <- MungeSumstats::format_sumstats(
     sort_coordinates=FALSE,
     rmv_chrPrefix=TRUE,
     rmv_chr=NULL,
+    snp_ids_are_rs_ids=FALSE,
+    on_ref_genome=TRUE,
     save_path=path_file_product,
     write_vcf=FALSE,
     nThread=4

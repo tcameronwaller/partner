@@ -3,33 +3,22 @@
 ################################################################################
 # Notes:
 
-# Download newest genetic reference files:
-# genomic sequences in GRCh37 and GRCh38
-# dbSNP in GRCh37 and GRCh38
-# Use BCFTools to annotate the reference sequences with SNP rs IDs... is that right?
-# UCSC and Ensembl chain files from GRCh37 to GRCh38 and vice versa
-
-
-# update installation of BCFTools and HTSlib
-# install GWAS2VCF
-# install BCFTools plugin for GWAS-VCF
-
-# Steps on GWAS sum stats before SBayesR or LDPred2
-# 1. convert GWAS sum stats to team standard format
-# 2. convert GWAS sum stats to GWAS-VCF format
-# 3. run BCFTools +Munge plugin on GWAS in GWAS-VCF format
-# 4. convert from GWAS-VCF format to GWAS catalog format
-# 5. convert from GWAS catalog format to format for SBayesR and LDPred2
-
-# Steps on output from SBayesR and LDPred2
-# 1. convert output to format for GWAS2VCF
-# 2. convert to GWAS-VCF format
-# 3. run BCFTools +Liftover plugin from GRCh37 to GRCh38
-# 4. convert from GWAS-VCF format to GWAS catalog format
-# 5. convert from GWAS catalog format to format readable by PLINK2 score function
 
 
 ################################################################################
+
+
+
+################################################################################
+# Organize arguments.
+
+path_file_gwas_source=${1} # full path to parent directory within which to create child directories and save files
+path_file_chromosomes_grch37=${2} # full path to white-space-delimited text file of translations for chromosome identifiers
+path_file_chromosomes_grch38=${3} # full path to white-space-delimited text file of translations for chromosome identifiers
+path_file_script=${4} # full path to file of script for translation of chromosome identifiers
+path_bcftools=${5} # full path to installation executable file of BCFTools
+report=${6} # whether to print reports
+
 
 
 
@@ -102,7 +91,7 @@ cd $path_directory_product
 ################################################################################
 # Organize parameters.
 
-report="true"
+
 
 ################################################################################
 # Execute procedure.
