@@ -231,12 +231,15 @@ fi
 
 if true; then
   # Decompress the GWAS summary statistics.
-  gzip -dcvf $path_file_gwas_standard_source > $path_file_temporary_gwas_decompress
+  #gzip -dcvf $path_file_gwas_standard_source > $path_file_temporary_gwas_decompress
   # Switch to tab delimiters (field separators).
-  #echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_gwas_decompress
-  #zcat $path_file_gwas_standard_source | awk 'BEGIN {FS = " "; OFS = "\t"} NR > 1 {
-  #  print $0
+  #zcat $path_file_gwas_standard_source | awk 'BEGIN {FS = " "; OFS = "\t"} {
+  #  print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
   #}' >> $path_file_temporary_gwas_decompress
+  # Keep same delimiters (field separators), but only keep first count of lines.
+  zcat $path_file_gwas_standard_source | awk 'NR < 1000000 {
+    print $0
+  }' >> $path_file_temporary_gwas_decompress
 
   # Decompress the reference genome sequence.
   gzip -dcvf $path_file_reference_genome_sequence > $path_file_temporary_genome_decompress
@@ -269,6 +272,10 @@ if true; then
   echo "confirm Python Virtual Environment path..."
   which python3
   sleep 5s
+  # Force SciPy not to use all available cores on a cluster computation node.
+  export MKL_NUM_THREADS=8
+  export NUMEXPR_NUM_THREADS=8
+  export OMP_NUM_THREADS=8
   # Call GWAS2VCF.
   python3 $path_gwas2vcf \
   --data $path_file_temporary_gwas_decompress \
