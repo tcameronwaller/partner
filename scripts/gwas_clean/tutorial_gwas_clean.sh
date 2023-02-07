@@ -346,9 +346,7 @@ fi
 # Delimiter: white space
 # Columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
 
-if false; then
-  # Attempt to keep sample size (count) and export to format consistent with team standard.
-fi
+
 
 
 
