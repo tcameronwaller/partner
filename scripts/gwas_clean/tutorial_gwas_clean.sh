@@ -242,6 +242,12 @@ if true; then
     print $0
   }' >> $path_file_temporary_gwas_decompress
   wc -l $path_file_temporary_gwas_decompress
+  # Keep same delimiters (field separators), but only keep chromosomes 1-22.
+  #zcat $path_file_gwas_standard_source | awk 'NR < 10000 {
+  #  print $0
+  #}' >> $path_file_temporary_gwas_decompress
+  #wc -l $path_file_temporary_gwas_decompress
+
 
   # Decompress the reference genome sequence.
   gzip -dcvf $path_file_reference_genome_sequence > $path_file_temporary_genome_decompress
@@ -330,9 +336,9 @@ if true; then
   # NC: "Number of cases used to estimate genetic effect"; count of cases per SNP
   $path_bcftools query \
   -e 'ID == "."' \
-  -f '%ID\t[%LP]\t%CHROM\t%POS\t%ALT\t%REF\t%AF\t[%ES]\t[%SE]\t[%SS]\t[%EZ]\t[%INFO]\n' \
+  -f '%ID\t[%LP]\t%CHROM\t%POS\t%ALT\t%REF\t%AF\t[%ES]\t[%SE]\t[%SS]\n' \
   $path_file_temporary_gwas_vcf_compress | \
-  awk 'BEGIN {print "variant_id\tp_value\tchromosome\tbase_pair_location\teffect_allele\tother_allele\teffect_allele_frequency\tbeta\tstandard_error\tobservations\tz_score\tinfo_score"}; {OFS="\t"; if ($2==0) $2=1; else if ($2==999) $2=0; else $2=10^-$2; print}' > $path_file_temporary_gwas_nhgriebi_tsv
+  awk 'BEGIN {print "variant_id\tp_value\tchromosome\tbase_pair_location\teffect_allele\tother_allele\teffect_allele_frequency\tbeta\tstandard_error\tobservations"}; {OFS="\t"; if ($2==0) $2=1; else if ($2==999) $2=0; else $2=10^-$2; print}' > $path_file_temporary_gwas_nhgriebi_tsv
 fi
 
 # Note: TCW; 7 February 2023
