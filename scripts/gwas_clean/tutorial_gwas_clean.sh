@@ -58,7 +58,7 @@ path_directory_reference_gwas2vcf="${path_directory_product}/reference_gwas2vcf"
 identifier_gwas="30367059_teumer_2018_tsh_female"
 #path_file_gwas_source=
 path_file_gwas_standard_source="${path_directory_dock}/hormone_genetics/gwas_format_standard/${identifier_gwas}.txt.gz"
-path_file_gwas_munge_product="${path_directory_product}/${identifier_gwas}_munge.txt.gz"
+path_file_munge_report="${path_directory_product}/${identifier_gwas}_munge_report.log"
 path_file_gwas_product="${path_directory_product}/${identifier_gwas}.txt.gz"
 path_file_gwas2vcf_parameter="${path_directory_process}/promiscuity/scripts/gwas_clean/parameter_gwas_standard_to_gwas2vcf.json"
 #path_file_reference_genome_sequence="${path_directory_reference_gwas2vcf}/genome_sequence/human_g1k_v37.fasta.gz"
@@ -68,7 +68,11 @@ path_file_reference_dbsnp="${path_directory_reference_gwas2vcf}/dbsnp/dbsnp.v153
 
 # Temporary files.
 name_base_file_gwas_product="$(basename $path_file_gwas_product .txt.gz)"
-path_file_temporary_gwas_munge="${path_directory_temporary}/${name_base_file_gwas_product}_munge.txt"
+path_file_temporary_gwas_munge_source="${path_directory_temporary}/${identifier_gwas}_before_munge.txt"
+path_file_temporary_gwas_munge_source_compress="${path_directory_temporary}/${identifier_gwas}_before_munge.txt.gz"
+path_file_temporary_gwas_munge_product="${path_directory_temporary}/${identifier_gwas}_after_munge.txt.gz"
+
+#path_file_temporary_gwas_munge="${path_directory_temporary}/${name_base_file_gwas_product}_munge.txt"
 path_file_temporary_gwas_decompress="${path_directory_temporary}/${name_base_file_gwas_product}.txt"
 path_file_temporary_gwas_vcf="${path_directory_temporary}/${name_base_file_gwas_product}.vcf"
 path_file_temporary_gwas_vcf_compress="${path_directory_temporary}/${name_base_file_gwas_product}.vcf.gz"
@@ -131,7 +135,24 @@ fi
 # mitochondrial chromosome, but it is possible to suppress this behavior.
 
 if true; then
-  Rscript $path_script_mungesumstats $path_file_gwas_standard_source $path_file_gwas_munge_product
+  # Translate GWAS summary statistics from standard format to a format
+  # compatible with MungeSumstats.
+  # Source Format (Team Standard)
+  # Effect allele: "A1"
+  # Delimiter: white space
+  # Columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
+  # Product Format (MungeSumstats)
+  # Effect allele: "A2"
+  # Delimiter: white space
+  # Columns: SNP CHR BP A1 A2 FRQ BETA SE P N Z INFO NCASE NCONT
+  echo "SNP CHR BP A1 A2 FRQ BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_gwas_munge_source
+  zcat $path_file_gwas_standard_source | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+    print $1, $2, $3, toupper($5), toupper($4), $6, $7, $8, $9, $10, $11, $12, $13, $14
+  }' >> $path_file_temporary_gwas_munge_source
+  # Compress file format.
+  gzip -cvf $path_file_temporary_gwas_munge_source > $path_file_temporary_gwas_munge_source_compress
+  # Call MungeSumstats.
+  Rscript $path_script_mungesumstats $path_file_temporary_gwas_munge_source_compress $path_file_temporary_gwas_munge_product > $path_file_munge_report
 fi
 
 ##########

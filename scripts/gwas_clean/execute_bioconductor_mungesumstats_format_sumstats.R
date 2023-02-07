@@ -42,6 +42,9 @@ BiocManager::install("BSgenome.Hsapiens.1000genomes.hs37d5")
 #    nThread=4
 #)
 
+# Operation "rmv_chr" removes chromosomes "X", "Y", and "MT" by default.
+# Operation "on_ref_genome" is computational intensive and slow.
+# on_ref_genome=FALSE,
 
 path_handle <- MungeSumstats::format_sumstats(
     path=path_file_source,
@@ -55,8 +58,12 @@ path_handle <- MungeSumstats::format_sumstats(
 )
 
 # Print the variable for the save path.
-write("hello world!", stdout())
-write(path_handle, stdout())
+# R "print" and "cat" functions write to "stdout".
+# R "message", "warning", and "stop" functions write to "stderr".
+#write("hello world!", stdout())
+#write(path_handle, stdout())
+print("File path to GWAS summary statistics after Munge procedure:")
+print(path_handle)
 
 # Clear garbage from memory.
 #gc()
