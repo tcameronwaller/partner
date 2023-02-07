@@ -130,8 +130,9 @@ fi
 # Note: MungeSumstats by default removes any SNPs on chromosomes X, Y, or the
 # mitochondrial chromosome, but it is possible to suppress this behavior.
 
-Rscript $path_script_mungesumstats $path_file_gwas_standard_source $path_file_gwas_munge_product
-
+if false; then
+  Rscript $path_script_mungesumstats $path_file_gwas_standard_source $path_file_gwas_munge_product
+fi
 
 ##########
 # Installation: GWAS2VCF

@@ -24,12 +24,29 @@ BiocManager::install("SNPlocs.Hsapiens.dbSNP144.GRCh37")
 BiocManager::install("SNPlocs.Hsapiens.dbSNP155.GRCh37")
 BiocManager::install("BSgenome.Hsapiens.1000genomes.hs37d5")
 
+#path_handle <- MungeSumstats::format_sumstats(
+#    path=path_file_source,
+#    ref_genome="GRCh37",
+#    dbSNP=155,
+#    allele_flip_check=1,
+#    allele_flip_drop=TRUE,
+#    bi_allelic_filter=1,
+#    remove_multi_rs_snp=1,
+#    impute_beta=0,
+#    impute_se=0,
+#    sort_coordinates=FALSE,
+#    rmv_chrPrefix=TRUE,
+#    rmv_chr=NULL,
+#    save_path=path_file_product,
+#    write_vcf=FALSE,
+#    nThread=4
+#)
+
+
 path_handle <- MungeSumstats::format_sumstats(
     path=path_file_source,
     ref_genome="GRCh37",
     dbSNP=155,
-    impute_beta=FALSE,
-    impute_se=FALSE,
     sort_coordinates=FALSE,
     rmv_chrPrefix=TRUE,
     rmv_chr=NULL,
