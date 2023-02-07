@@ -33,7 +33,7 @@ path_file_script_pipe_gwas_clean="${path_directory_process}/promiscuity/scripts/
 # Organize parameters.
 
 report="true"
-threads=8
+threads=16
 
 ################################################################################
 # Execute procedure.

@@ -57,6 +57,11 @@ path_ftemp_gwas_postvcf_standard_text="${path_directory_temporary}/${name_base_f
 
 # Scripts.
 
+# Initialize files.
+#rm $path_file_munge_report
+rm $path_file_gwas2vcf_report
+rm $path_file_gwas_product
+
 # Initialize directories.
 #rm -r $path_directory_product
 rm -r $path_directory_temporary
@@ -81,7 +86,7 @@ if true; then
   # Decompress the GWAS summary statistics.
   #gzip -dcvf $path_file_gwas_source > $path_ftemp_gwas_source_decomp
   # Keep same delimiters (field separators), but only keep first count of lines.
-  zcat $path_file_gwas_source | awk 'NR < 10000 {
+  zcat $path_file_gwas_source | awk 'NR < 100000 {
     print $0
   }' >> $path_ftemp_gwas_source_decomp
   # Report.
@@ -208,7 +213,8 @@ fi
 
 ##########
 # Remove temporary directories and files.
-if false; then
+# Suppress this block for debugging.
+if true; then
   rm -r $path_directory_temporary
 fi
 
