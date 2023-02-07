@@ -3,6 +3,12 @@
 ################################################################################
 # Notes:
 
+# Plan: TCW; 7 February 2023
+# Test the pipeline on the NCSA computational cluster.
+# Use 16 threads for job on GWAS summary statistics from each study.
+# Use incremental memory allocations to find the optimum.
+
+
 
 ################################################################################
 

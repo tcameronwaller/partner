@@ -148,6 +148,7 @@ fi
 
 ##########
 # Munge GWAS summary statistics in Bioconductor package "MungeSumstats".
+# PubMed: 34601555
 # Host of MungeSumstats: https://github.com/neurogenomics/MungeSumstats
 # Getting Started Guide: https://neurogenomics.github.io/MungeSumstats/articles/MungeSumstats.html
 # Documentation: https://bioconductor.org/packages/release/bioc/html/MungeSumstats.html
