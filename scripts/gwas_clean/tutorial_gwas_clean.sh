@@ -136,7 +136,7 @@ fi
 # Note: MungeSumstats by default removes any SNPs on chromosomes X, Y, or the
 # mitochondrial chromosome, but it is possible to suppress this behavior.
 
-if true; then
+if false; then
   # Translate GWAS summary statistics from standard format to a format
   # compatible with MungeSumstats.
   # Source Format (Team Standard)
@@ -214,7 +214,7 @@ fi
 # Functions.
 # 1. Verify and introduce SNPs' rs identifiers from dbSNP reference.
 
-if false; then
+if true; then
   # Decompress the GWAS summary statistics.
   gzip -dcvf $path_file_gwas_standard_source > $path_file_temporary_gwas_decompress
   # Decompress the reference genome sequence.

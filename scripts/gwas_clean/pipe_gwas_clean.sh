@@ -12,15 +12,9 @@
 ################################################################################
 # Organize arguments.
 
-path_file_gwas_source=${1} # full path to parent directory within which to create child directories and save files
-path_file_chromosomes_grch37=${2} # full path to white-space-delimited text file of translations for chromosome identifiers
-path_file_chromosomes_grch38=${3} # full path to white-space-delimited text file of translations for chromosome identifiers
-path_file_script=${4} # full path to file of script for translation of chromosome identifiers
-path_bcftools=${5} # full path to installation executable file of BCFTools
-report=${6} # whether to print reports
-
-
-
+path_file_gwas_source=${1} # full path to file for source GWAS summary statistics with GZip compression
+path_file_gwas_product=${2} # full path to file for product GWAS summary statistics in format with GZip compression
+report=${3} # whether to print reports
 
 ################################################################################
 # Organize paths.
@@ -31,42 +25,33 @@ path_directory_tools=$(<"./waller_tools.txt")
 path_environment_gwas2vcf="${path_directory_tools}/python/environments/gwas2vcf"
 path_gwas2vcf="${path_directory_tools}/gwas2vcf/gwas2vcf/main.py"
 path_bcftools=$(<"./tools_bcftools.txt")
-
-#path_plink2=$(<"./tools_plink2.txt")
-#path_gctb=$(<"./tools_waller_gctb.txt")
-#path_directory_gwas_summaries=$(<"./gwas_summaries_waller_metabolism.txt")
 #path_directory_reference=$(<"./reference_tcw.txt")
 path_directory_process=$(<"./process_psychiatric_metabolism.txt")
 path_directory_dock="${path_directory_process}/dock" # parent directory for procedural reads and writes
-path_directory_product="${path_directory_dock}/test_gwas_clean"
+path_directory_reference_gwas2vcf="${path_directory_dock}/test_gwas_clean/reference_gwas2vcf"
+path_directory_product="$(dirname $path_file_gwas_product)"
 path_directory_temporary="${path_directory_product}/temporary_tcw_2431687" # hopefully unique
-path_directory_reference_gwas2vcf="${path_directory_product}/reference_gwas2vcf"
 
 # Files.
-#identifier_gwas="32042192_ruth_2020_testosterone_female"
-identifier_gwas="30367059_teumer_2018_tsh_female"
-#path_file_gwas_source=
-path_file_gwas_standard_source="${path_directory_dock}/hormone_genetics/gwas_format_standard/${identifier_gwas}.txt.gz"
-path_file_munge_report="${path_directory_product}/${identifier_gwas}_munge_report.log"
-path_file_gwas_product="${path_directory_product}/${identifier_gwas}.txt.gz"
+name_base_file_gwas_product="$(basename $path_file_gwas_product .txt.gz)"
+identifier_gwas=name_base_file_gwas_product
+path_file_munge_report="${path_directory_product}/${name_base_file_gwas_product}_munge_report.log"
 path_file_gwas2vcf_parameter="${path_directory_process}/promiscuity/scripts/gwas_clean/parameter_gwas_standard_to_gwas2vcf.json"
-#path_file_reference_genome_sequence="${path_directory_reference_gwas2vcf}/genome_sequence/human_g1k_v37.fasta.gz"
-path_file_reference_genome_sequence="${path_directory_reference_gwas2vcf}/genome_sequence/human_g1k_v37_test.fasta.gz"
+path_file_reference_genome_sequence="${path_directory_reference_gwas2vcf}/genome_sequence/human_g1k_v37.fasta.gz"
+#path_file_reference_genome_sequence="${path_directory_reference_gwas2vcf}/genome_sequence/human_g1k_v37_test.fasta.gz"
 path_file_reference_dbsnp="${path_directory_reference_gwas2vcf}/dbsnp/dbsnp.v153.b37.vcf.gz"
 
-
 # Temporary files.
-name_base_file_gwas_product="$(basename $path_file_gwas_product .txt.gz)"
-path_file_temporary_gwas_munge_source="${path_directory_temporary}/${identifier_gwas}_before_munge.txt"
-path_file_temporary_gwas_munge_source_compress="${path_directory_temporary}/${identifier_gwas}_before_munge.txt.gz"
-path_file_temporary_gwas_munge_product="${path_directory_temporary}/${identifier_gwas}_after_munge.txt.gz"
-path_file_temporary_gwas_munge_standard="${path_directory_temporary}/${identifier_gwas}_munge_standard.txt"
-path_file_temporary_gwas_munge_standard_compress="${path_directory_temporary}/${identifier_gwas}_munge_standard.txt.gz"
+path_ftemp_gwas_premunge="${path_directory_temporary}/${identifier_gwas}_before_munge.txt"
+path_ftemp_gwas_premunge_gz="${path_directory_temporary}/${identifier_gwas}_before_munge.txt.gz"
+path_ftemp_gwas_postmunge_gz="${path_directory_temporary}/${identifier_gwas}_after_munge.txt.gz"
+path_ftemp_gwas_postmunge_standard="${path_directory_temporary}/${identifier_gwas}_munge_standard.txt"
 
-#path_file_temporary_gwas_munge="${path_directory_temporary}/${name_base_file_gwas_product}_munge.txt"
-path_file_temporary_gwas_decompress="${path_directory_temporary}/${name_base_file_gwas_product}.txt"
-path_file_temporary_gwas_vcf="${path_directory_temporary}/${name_base_file_gwas_product}.vcf"
-path_file_temporary_gwas_vcf_compress="${path_directory_temporary}/${name_base_file_gwas_product}.vcf.gz"
+
+path_ftemp_gwas_vcf="${path_directory_temporary}/${name_base_file_gwas_product}.vcf"
+path_ftemp_gwas_vcf_gz="${path_directory_temporary}/${name_base_file_gwas_product}.vcf.gz"
+
+
 name_base_file_genome_sequence="$(basename $path_file_reference_genome_sequence .fasta.gz)"
 path_file_temporary_genome_decompress="${path_directory_temporary}/${name_base_file_genome_sequence}.fasta"
 path_file_temporary_gwas_nhgriebi_vcf="${path_directory_temporary}/gwas_nhgri_ebi_gwas_catalog_format.vcf.gz"
@@ -99,23 +84,6 @@ cd $path_directory_product
 
 
 ##########
-# Translate GWAS summary statistics to standard format.
-# Product Format (Team Standard)
-# delimiter: white space
-# columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
-if false; then
-  /usr/bin/bash "${path_script_gwas_format}" \
-  $path_file_gwas_source \
-  $path_file_gwas_product \
-  $report
-fi
-
-
-# TODO: TCW; 6 February 2023
-
-# TODO: Need to use Bioconductor MungeSumstats first to introduce rsIDs
-
-##########
 # Munge GWAS summary statistics in Bioconductor package "MungeSumstats".
 # Host of MungeSumstats: https://github.com/neurogenomics/MungeSumstats
 # Getting Started Guide: https://neurogenomics.github.io/MungeSumstats/articles/MungeSumstats.html
@@ -136,14 +104,14 @@ if true; then
   # Effect allele: "A2"
   # Delimiter: white space
   # Columns: SNP CHR BP A1 A2 FRQ BETA SE P N Z INFO N_CAS N_CON
-  echo "SNP CHR BP A1 A2 FRQ BETA SE P N Z INFO N_CAS N_CON" > $path_file_temporary_gwas_munge_source
+  echo "SNP CHR BP A1 A2 FRQ BETA SE P N Z INFO N_CAS N_CON" > $path_ftemp_gwas_premunge
   zcat $path_file_gwas_standard_source | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
     print $1, $2, $3, toupper($5), toupper($4), $6, $7, $8, $9, $10, $11, $12, $13, $14
-  }' >> $path_file_temporary_gwas_munge_source
+  }' >> $path_ftemp_gwas_premunge
   # Compress file format.
-  gzip -cvf $path_file_temporary_gwas_munge_source > $path_file_temporary_gwas_munge_source_compress
+  gzip -cvf $path_ftemp_gwas_premunge > $path_ftemp_gwas_premunge_gz
   # Call MungeSumstats.
-  Rscript $path_script_mungesumstats $path_file_temporary_gwas_munge_source_compress $path_file_temporary_gwas_munge_product > $path_file_munge_report
+  Rscript $path_script_mungesumstats $path_ftemp_gwas_premunge_gz $path_ftemp_gwas_postmunge_gz > $path_file_munge_report
   # Translate GWAS summary statistics from MungeSumstats format to standard
   # format.
   # Source Format (MungeSumstats)
@@ -154,45 +122,10 @@ if true; then
   # Effect allele: "A1"
   # Delimiter: white space
   # Columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
-  echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_gwas_munge_standard
-  zcat $path_file_temporary_gwas_munge_product | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+  echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_ftemp_gwas_postmunge_standard
+  zcat $path_ftemp_gwas_postmunge_gz | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
     print $1, $2, $3, toupper($5), toupper($4), $6, $7, $8, $9, $10, $11, $12, $13, $14
-  }' >> $path_file_temporary_gwas_munge_standard
-  # Compress file format.
-  gzip -cvf $path_file_temporary_gwas_munge_standard > $path_file_temporary_gwas_munge_standard_compress
-fi
-
-##########
-# Installation: GWAS2VCF
-# PubMed: 33441155
-# GWAS-VCF format specification: https://github.com/MRCIEU/gwas-vcf-specification
-# Host of GWAS2VCF: https://github.com/MRCIEU/gwas2vcf
-# Documentation for GWAS2VCF: https://mrcieu.github.io/gwas2vcf
-# Host of GWASGlue: https://github.com/MRCIEU/gwasglue
-# Examples of analyses: https://mrcieu.github.io/gwasglue/articles/
-# Refer to notes in script "install_local_software.sh".
-# Refer to notes in script "install_python_virtual_environments_packages.sh"
-if false; then
-  # Activate Virtual Environment.
-  source "${path_environment_gwas2vcf}/bin/activate"
-  echo "confirm Python Virtual Environment path..."
-  which python3
-  sleep 5s
-  # Test installation of GWAS2VCF.
-  python3 $path_gwas2vcf -h
-  # Deactivate Virtual Environment.
-  deactivate
-  which python3
-fi
-
-
-
-##########
-# Access genomic reference information for GWAS2VCF.
-if false; then
-  /usr/bin/bash $path_script_access_reference_gwas2vcf \
-  $path_directory_reference_gwas2vcf \
-  $report
+  }' >> $path_ftemp_gwas_postmunge_standard
 fi
 
 
@@ -203,9 +136,9 @@ fi
 # Functions.
 # 1. Verify and introduce SNPs' rs identifiers from dbSNP reference.
 
-if false; then
+if true; then
   # Decompress the GWAS summary statistics.
-  gzip -dcvf $path_file_gwas_standard_source > $path_file_temporary_gwas_decompress
+  gzip -dcvf $path_file_gwas_standard_source > $path_ftemp_gwas_postmunge_standard
   # Decompress the reference genome sequence.
   gzip -dcvf $path_file_reference_genome_sequence > $path_file_temporary_genome_decompress
   # Define parameters for GWAS2VCF within a text file in "json" format.
@@ -239,17 +172,17 @@ if false; then
   sleep 5s
   # Call GWAS2VCF.
   python3 $path_gwas2vcf \
-  --data $path_file_temporary_gwas_decompress \
+  --data $path_ftemp_gwas_postmunge_standard \
   --json $path_file_gwas2vcf_parameter \
   --id $identifier_gwas \
   --ref $path_file_temporary_genome_decompress \
   --dbsnp $path_file_reference_dbsnp \
-  --out $path_file_temporary_gwas_vcf \
+  --out $path_ftemp_gwas_vcf \
   --log INFO
   # Deactivate Virtual Environment.
   deactivate
   which python3
-  gzip -cvf $path_file_temporary_gwas_vcf > $path_file_temporary_gwas_vcf_compress
+  gzip -cvf $path_ftemp_gwas_vcf > $path_ftemp_gwas_vcf_gz
 fi
 
 
@@ -264,7 +197,7 @@ if false; then
   $path_bcftools query \
   -e 'ID == "."' \
   -f '%ID\t[%LP]\t%CHROM\t%POS\t%ALT\t%REF\t%AF\t[%ES\t%SE]\n' \
-  $path_file_temporary_gwas_vcf_compress | \
+  $path_ftemp_gwas_vcf_gz | \
   awk 'BEGIN {print "variant_id\tp_value\tchromosome\tbase_pair_location\teffect_allele\tother_allele\teffect_allele_frequency\tbeta\tstandard_error"}; {OFS="\t"; if ($2==0) $2=1; else if ($2==999) $2=0; else $2=10^-$2; print}' > $path_file_temporary_gwas_nhgriebi_tsv
 fi
 
