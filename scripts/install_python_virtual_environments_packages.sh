@@ -19,6 +19,7 @@ path_environment_main="${path_tools}/python/environments/main"
 path_environment_prs_cs="${path_tools}/python/environments/prs_cs"
 path_environment_crossmap="${path_tools}/python/environments/crossmap"
 path_environment_gwas2vcf="${path_tools}/python/environments/gwas2vcf"
+path_environment_sumstatsrehab="${path_tools}/python/environments/sumstatsrehab"
 
 # Python 2 environments.
 path_environment_ldsc="${path_tools}/python/environments/ldsc"
@@ -274,6 +275,11 @@ python3 -m pip install Cython==0.29.17 # TCW; 23 January 2023
 python3 -m pip install git+https://github.com/bioinformed/vgraph@v1.4.0#egg=vgraph # TCW; 23 January 2023
 deactivate
 which python3
+
+
+
+##########
+# Python3 environment: "sumstatsrehab"
 
 
 

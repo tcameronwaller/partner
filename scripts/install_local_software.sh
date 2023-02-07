@@ -280,6 +280,17 @@ cd ./gwas2vcf # Navigate to the directory in which to install program.
 git clone https://github.com/MRCIEU/gwas2vcf.git
 python3 ./gwas2vcf/main.py # Execute within a Python virtual environment with dependencies.
 
+
+
+##########
+# GZ-Sort
+# Installation date: TCW; 7 February 2023
+# site: http://kmkeen.com/gz-sort/
+# repository: https://github.com/keenerd/gz-sort
+git clone https://github.com/keenerd/gz-sort; cd gz-sort; make; ./gz-sort -h
+
+
+
 ##########
 # CrossMap
 # CrossMap is a Python package, and it is necessary to run this program within a

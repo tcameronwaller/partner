@@ -121,6 +121,21 @@ if false; then
   $report
 fi
 
+# TODO: TCW; 6 February 2023
+# Plan:
+# 1. install GZ-Sort
+# 2. set up Python 3.8 environment for SumStatsRehab
+# 3. install SumStatsRehab
+# 4. test SumStatsRehab
+
+
+# https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-022-04920-7#Sec1
+# "SumStatsRehab" might be able to introdue rsIDs?
+# https://github.com/Kukuster/SumStatsRehab
+
+# Dependency of SumStatsRehab: GZ-Sort
+# http://kmkeen.com/gz-sort/
+# https://github.com/keenerd/gz-sort
 
 # TODO: TCW; 6 February 2023
 
@@ -216,7 +231,13 @@ fi
 
 if true; then
   # Decompress the GWAS summary statistics.
-  gzip -dcvf $path_file_gwas_standard_source > $path_file_temporary_gwas_decompress
+  #gzip -dcvf $path_file_gwas_standard_source > $path_file_temporary_gwas_decompress
+  # Switch to tab delimiters (field separators).
+  echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_gwas_decompress
+  zcat $path_file_gwas_standard_source | awk 'BEGIN {FS = " "; OFS = "\t"} NR > 1 {
+    print $0
+  }' >> $path_file_temporary_gwas_decompress
+
   # Decompress the reference genome sequence.
   gzip -dcvf $path_file_reference_genome_sequence > $path_file_temporary_genome_decompress
   # Define parameters for GWAS2VCF within a text file in "json" format.
