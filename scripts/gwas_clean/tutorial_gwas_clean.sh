@@ -330,10 +330,16 @@ if true; then
   # NC: "Number of cases used to estimate genetic effect"; count of cases per SNP
   $path_bcftools query \
   -e 'ID == "."' \
-  -f '%ID\t[%LP]\t%CHROM\t%POS\t%ALT\t%REF\t%AF\t[%ES]\t[%SE]\t%SS\t[%EZ]\t[%INFO]\n' \
+  -f '%ID\t[%LP]\t%CHROM\t%POS\t%ALT\t%REF\t%AF\t[%ES\t%SE]\t%SS\t[%EZ\t%INFO]\n' \
   $path_file_temporary_gwas_vcf_compress | \
   awk 'BEGIN {print "variant_id\tp_value\tchromosome\tbase_pair_location\teffect_allele\tother_allele\teffect_allele_frequency\tbeta\tstandard_error\tobservations\tz_score\tinfo_score"}; {OFS="\t"; if ($2==0) $2=1; else if ($2==999) $2=0; else $2=10^-$2; print}' > $path_file_temporary_gwas_nhgriebi_tsv
 fi
+
+# Note: TCW; 7 February 2023
+# It seems to be a problem to request a field that does not exist in the
+# specific GWAS-VCF file.
+# It might be necessary to query GWAS-VCF files differently for those with or
+# without counts of cases and controls.
 
 # Product Format: Team Standard
 # Effect allele: "A1"
