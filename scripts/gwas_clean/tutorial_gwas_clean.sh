@@ -237,9 +237,10 @@ if true; then
   #  print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
   #}' >> $path_file_temporary_gwas_decompress
   # Keep same delimiters (field separators), but only keep first count of lines.
-  zcat $path_file_gwas_standard_source | awk 'NR < 1000000 {
+  zcat $path_file_gwas_standard_source | awk 'NR < 10000 {
     print $0
   }' >> $path_file_temporary_gwas_decompress
+  wc -l $path_file_temporary_gwas_decompress
 
   # Decompress the reference genome sequence.
   gzip -dcvf $path_file_reference_genome_sequence > $path_file_temporary_genome_decompress
