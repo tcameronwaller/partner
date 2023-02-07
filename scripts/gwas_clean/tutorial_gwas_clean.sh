@@ -330,10 +330,30 @@ if true; then
   # NC: "Number of cases used to estimate genetic effect"; count of cases per SNP
   $path_bcftools query \
   -e 'ID == "."' \
-  -f '%ID\t[%LP]\t%CHROM\t%POS\t%ALT\t%REF\t%AF\t[%ES\t%SE]\t%SS\t%NC\t%EZ\t%INFO\n' \
+  -f '%ID\t[%LP]\t%CHROM\t%POS\t%ALT\t%REF\t%AF\t[%ES]\t[%SE]\t%SS\t%NC\t[%EZ]\t[%INFO]\n' \
   $path_file_temporary_gwas_vcf_compress | \
   awk 'BEGIN {print "variant_id\tp_value\tchromosome\tbase_pair_location\teffect_allele\tother_allele\teffect_allele_frequency\tbeta\tstandard_error\tobservations\tcases\tz_score\tinfo_score"}; {OFS="\t"; if ($2==0) $2=1; else if ($2==999) $2=0; else $2=10^-$2; print}' > $path_file_temporary_gwas_nhgriebi_tsv
 fi
+
+# Product Format: Team Standard
+# Effect allele: "A1"
+# Delimiter: white space
+# Columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
+
+if false; then
+  # Attempt to keep sample size (count) and export to format consistent with team standard.
+  # Translate from GWAS-VCF format to NHGRI-EBI GWAS Catalog format.
+  # ID: "Study variant identifier"; reference sequence identifier (rsID)
+  # ES: "Effect size estimate relative to the alternative allele"
+  # SE: "Standard error of effect size estimate"
+  # LP: "-log10 p-value for effect estimate"
+  # AF: "Alternate allele frequency in the association study"
+  # SS: "Sample size used to estimate genetic effect"; count of observations per SNP
+  # EZ: "Z-score provided if it was used to derive the EFFECT and SE fields"; z-score
+  # NC: "Number of cases used to estimate genetic effect"; count of cases per SNP
+fi
+
+
 
 
 
