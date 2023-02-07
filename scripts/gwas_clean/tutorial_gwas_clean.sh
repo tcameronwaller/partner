@@ -289,7 +289,7 @@ if true; then
   # Deactivate Virtual Environment.
   deactivate
   which python3
-  gzip -cvf $path_file_temporary_gwas_vcf > $path_file_temporary_gwas_vcf_compress
+  #gzip -cvf $path_file_temporary_gwas_vcf > $path_file_temporary_gwas_vcf_compress
 fi
 
 
