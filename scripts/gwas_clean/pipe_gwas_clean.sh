@@ -88,8 +88,14 @@ cd $path_directory_product
 ##########
 # Translate GWAS summary statistics from standard format to GWAS-VCF format.
 # Use tool GWAS2VCF.
-# Functions.
-# 1. Verify and introduce SNPs' rs identifiers from dbSNP reference.
+# PubMed: 33441155
+# GWAS-VCF format specification: https://github.com/MRCIEU/gwas-vcf-specification
+# Host of GWAS2VCF: https://github.com/MRCIEU/gwas2vcf
+# Documentation for GWAS2VCF: https://mrcieu.github.io/gwas2vcf
+# Host of GWASGlue: https://github.com/MRCIEU/gwasglue
+# Examples of analyses: https://mrcieu.github.io/gwasglue/articles/
+# Refer to notes in script "install_local_software.sh".
+# Refer to notes in script "install_python_virtual_environments_packages.sh"
 
 if true; then
   # Decompress the GWAS summary statistics.
@@ -164,6 +170,28 @@ fi
 
 
 # TODO: next translate columns to standard format
+
+if true; then
+  # Translate GWAS summary statistics from NHGRI-EBI GWAS Catalog format to
+  # standard format.
+  # Source Format: NHGRI-EBI GWAS Catalog
+  # Effect allele: "effect_allele"
+  # Delimiter: tab
+  # Columns: variant_id p_value chromosome base_pair_location effect_allele other_allele effect_allele_frequency beta standard_error
+  # Columns: 1          2       3          4                  5             6            7                       8    9
+  # Product Format: Team Standard
+  # Effect allele: "A1"
+  # Delimiter: white space
+  # Columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
+  echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_gwas_munge_standard
+  zcat $path_file_temporary_gwas_munge_product | awk 'BEGIN {FS = "\t"; OFS = " "} NR > 1 {
+    print $1, $3, $4, $5, $6, $7, $8, $9, $2, $10, $11, $12, $13, $14
+  }' >> $path_file_temporary_gwas_munge_standard
+  # Compress file format.
+  gzip -cvf $path_file_temporary_gwas_munge_standard > $path_file_temporary_gwas_munge_standard_compress
+fi
+
+
 
 # TODO: then remove the temporary directory
 

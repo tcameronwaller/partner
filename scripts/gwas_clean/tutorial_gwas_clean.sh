@@ -291,7 +291,9 @@ if true; then
   # Deactivate Virtual Environment.
   deactivate
   which python3
-  #gzip -cvf $path_file_temporary_gwas_vcf > $path_file_temporary_gwas_vcf_compress
+  # Examine file.
+  #$path_bcftools head $path_file_temporary_gwas_vcf
+
 fi
 
 
@@ -301,14 +303,38 @@ fi
 # Use tool GWAS2VCF.
 # documentation: https://mrcieu.github.io/gwas2vcf/downstream/#convert
 
-if true; then
+if false; then
+  # This block uses the same extraction code from the GWAS2VCF documentation.
+  # This extraction omits the count of observations used to determine effect for
+  # each SNP.
   # Translate from GWAS-VCF format to NHGRI-EBI GWAS Catalog format.
+  # Notice that the extraction converts the logarithm of the p-value to the
+  # p-value itself.
   $path_bcftools query \
   -e 'ID == "."' \
   -f '%ID\t[%LP]\t%CHROM\t%POS\t%ALT\t%REF\t%AF\t[%ES\t%SE]\n' \
   $path_file_temporary_gwas_vcf_compress | \
   awk 'BEGIN {print "variant_id\tp_value\tchromosome\tbase_pair_location\teffect_allele\tother_allele\teffect_allele_frequency\tbeta\tstandard_error"}; {OFS="\t"; if ($2==0) $2=1; else if ($2==999) $2=0; else $2=10^-$2; print}' > $path_file_temporary_gwas_nhgriebi_tsv
 fi
+
+if true; then
+  # Attempt to keep sample size (count).
+  # Translate from GWAS-VCF format to NHGRI-EBI GWAS Catalog format.
+  # ID: "Study variant identifier"; reference sequence identifier (rsID)
+  # ES: "Effect size estimate relative to the alternative allele"
+  # SE: "Standard error of effect size estimate"
+  # LP: "-log10 p-value for effect estimate"
+  # AF: "Alternate allele frequency in the association study"
+  # SS: "Sample size used to estimate genetic effect"; count of observations per SNP
+  # EZ: "Z-score provided if it was used to derive the EFFECT and SE fields"; z-score
+  # NC: "Number of cases used to estimate genetic effect"; count of cases per SNP
+  $path_bcftools query \
+  -e 'ID == "."' \
+  -f '%ID\t[%LP]\t%CHROM\t%POS\t%ALT\t%REF\t%AF\t[%ES\t%SE]\t%SS\t%NC\t%EZ\t%INFO\n' \
+  $path_file_temporary_gwas_vcf_compress | \
+  awk 'BEGIN {print "variant_id\tp_value\tchromosome\tbase_pair_location\teffect_allele\tother_allele\teffect_allele_frequency\tbeta\tstandard_error\tobservations\tcases\tz_score\tinfo_score"}; {OFS="\t"; if ($2==0) $2=1; else if ($2==999) $2=0; else $2=10^-$2; print}' > $path_file_temporary_gwas_nhgriebi_tsv
+fi
+
 
 
 # TODO: next translate columns to standard format
