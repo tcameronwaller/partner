@@ -39,8 +39,8 @@ path_directory_product="${path_directory_dock}/test_pipe_gwas_clean"
 
 
 #identifier_gwas="BMI_GIANTUKB_EUR"
-#identifier_gwas="BMI_GIANT_EUR"
-identifier_gwas="BD_PGC3_EUR"
+identifier_gwas="BMI_GIANT_EUR"
+#identifier_gwas="BD_PGC3_EUR"
 path_file_gwas_source="${path_directory_dock}/hormone_genetics/gwas_from_team_collection/${identifier_gwas}.txt.gz"
 path_file_gwas_product="${path_directory_product}/${identifier_gwas}.txt.gz"
 
