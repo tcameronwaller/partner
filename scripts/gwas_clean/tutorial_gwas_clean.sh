@@ -231,12 +231,12 @@ fi
 
 if true; then
   # Decompress the GWAS summary statistics.
-  #gzip -dcvf $path_file_gwas_standard_source > $path_file_temporary_gwas_decompress
+  gzip -dcvf $path_file_gwas_standard_source > $path_file_temporary_gwas_decompress
   # Switch to tab delimiters (field separators).
-  echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_gwas_decompress
-  zcat $path_file_gwas_standard_source | awk 'BEGIN {FS = " "; OFS = "\t"} NR > 1 {
-    print $0
-  }' >> $path_file_temporary_gwas_decompress
+  #echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_gwas_decompress
+  #zcat $path_file_gwas_standard_source | awk 'BEGIN {FS = " "; OFS = "\t"} NR > 1 {
+  #  print $0
+  #}' >> $path_file_temporary_gwas_decompress
 
   # Decompress the reference genome sequence.
   gzip -dcvf $path_file_reference_genome_sequence > $path_file_temporary_genome_decompress

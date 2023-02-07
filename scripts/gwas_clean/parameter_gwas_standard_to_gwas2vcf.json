@@ -9,7 +9,7 @@
   "ncontrol_col": 9,
   "pval_col": 8,
   "eaf_col": 5,
-  "delimiter": "\t",
+  "delimiter": " ",
   "header": true,
   "build": "GRCh37"
 }
