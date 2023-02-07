@@ -354,15 +354,10 @@ if true; then
   awk 'BEGIN {print "variant_id\tp_value\tchromosome\tbase_pair_location\teffect_allele\tother_allele\teffect_allele_frequency\tbeta\tstandard_error\tobservations"}; {OFS="\t"; if ($2==0) $2=1; else if ($2==999) $2=0; else $2=10^-$2; print}' > $path_file_temporary_gwas_nhgriebi_tsv
 fi
 
-# Product Format: Team Standard
-# Effect allele: "A1"
-# Delimiter: white space
-# Columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
-
 if true; then
-  # Translate GWAS summary statistics from NHGRI-EBI GWAS Catalog format to
+  # Translate GWAS summary statistics from GWAS2VCF export format to
   # standard format.
-  # Source Format: NHGRI-EBI GWAS Catalog
+  # Source Format: Export from GWAS2VCF GWAS-VCF
   # Effect allele: "effect_allele"
   # Delimiter: tab
   # Columns: variant_id p_value chromosome base_pair_location effect_allele other_allele effect_allele_frequency beta standard_error observations
