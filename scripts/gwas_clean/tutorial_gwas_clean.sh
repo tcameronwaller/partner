@@ -322,6 +322,8 @@ fi
 
 if false; then
   # This block uses the same extraction code from the GWAS2VCF documentation.
+  # The documentation claims that this extraction uses the NHGRI-EBI GWAS
+  # Catalog format.
   # This extraction omits the count of observations used to determine effect for
   # each SNP.
   # Translate from GWAS-VCF format to NHGRI-EBI GWAS Catalog format.
@@ -370,7 +372,7 @@ if true; then
   # Delimiter: white space
   # Columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
   echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_gwas_postvcf_standard
-  zcat $path_file_temporary_gwas_nhgriebi_tsv | awk 'BEGIN {FS = "\t"; OFS = " "} NR > 1 {
+  cat $path_file_temporary_gwas_nhgriebi_tsv | awk 'BEGIN {FS = "\t"; OFS = " "} NR > 1 {
     print $1, $3, $4, $5, $6, $7, $8, $9, $2, $10, "NA", (1.0), "NA", "NA"
   }' >> $path_file_temporary_gwas_postvcf_standard
   # Compress file format.
