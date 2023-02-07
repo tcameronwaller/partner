@@ -86,7 +86,7 @@ if true; then
   # Decompress the GWAS summary statistics.
   #gzip -dcvf $path_file_gwas_source > $path_ftemp_gwas_source_decomp
   # Keep same delimiters (field separators), but only keep first count of lines.
-  zcat $path_file_gwas_source | awk 'NR < 1000002 {
+  zcat $path_file_gwas_source | awk 'NR < 100002 {
     print $0
   }' >> $path_ftemp_gwas_source_decomp
   # Report.
