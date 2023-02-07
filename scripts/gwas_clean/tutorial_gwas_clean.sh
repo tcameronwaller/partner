@@ -59,7 +59,8 @@ identifier_gwas="30367059_teumer_2018_tsh_female"
 #path_file_gwas_source=
 path_file_gwas_standard_source="${path_directory_dock}/hormone_genetics/gwas_format_standard/${identifier_gwas}.txt.gz"
 path_file_munge_report="${path_directory_product}/${identifier_gwas}_munge_report.log"
-path_file_gwas_product="${path_directory_product}/${identifier_gwas}.txt.gz"
+path_file_gwas_product="${path_directory_product}/${identifier_gwas}.txt"
+path_file_gwas_product_gz="${path_directory_product}/${identifier_gwas}.txt.gz"
 path_file_gwas2vcf_parameter="${path_directory_process}/promiscuity/scripts/gwas_clean/parameter_gwas_standard_to_gwas2vcf.json"
 #path_file_reference_genome_sequence="${path_directory_reference_gwas2vcf}/genome_sequence/human_g1k_v37.fasta.gz"
 path_file_reference_genome_sequence="${path_directory_reference_gwas2vcf}/genome_sequence/human_g1k_v37_test.fasta.gz"
@@ -243,6 +244,7 @@ if true; then
   }' >> $path_file_temporary_gwas_decompress
   wc -l $path_file_temporary_gwas_decompress
   # Keep same delimiters (field separators), but only keep chromosomes 1-22.
+  #chromosomes=($(for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22; do echo $i; done))
   #zcat $path_file_gwas_standard_source | awk 'NR < 10000 {
   #  print $0
   #}' >> $path_file_temporary_gwas_decompress
@@ -309,6 +311,12 @@ fi
 # Use tool GWAS2VCF.
 # documentation: https://mrcieu.github.io/gwas2vcf/downstream/#convert
 
+# Note: TCW; 7 February 2023
+# It seems to be a problem to request a field that does not exist in the
+# specific GWAS-VCF file.
+# It might be necessary to query GWAS-VCF files differently for those with or
+# without counts of cases and controls.
+
 if false; then
   # This block uses the same extraction code from the GWAS2VCF documentation.
   # This extraction omits the count of observations used to determine effect for
@@ -341,17 +349,30 @@ if true; then
   awk 'BEGIN {print "variant_id\tp_value\tchromosome\tbase_pair_location\teffect_allele\tother_allele\teffect_allele_frequency\tbeta\tstandard_error\tobservations"}; {OFS="\t"; if ($2==0) $2=1; else if ($2==999) $2=0; else $2=10^-$2; print}' > $path_file_temporary_gwas_nhgriebi_tsv
 fi
 
-# Note: TCW; 7 February 2023
-# It seems to be a problem to request a field that does not exist in the
-# specific GWAS-VCF file.
-# It might be necessary to query GWAS-VCF files differently for those with or
-# without counts of cases and controls.
-
 # Product Format: Team Standard
 # Effect allele: "A1"
 # Delimiter: white space
 # Columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
 
+if true; then
+  # Translate GWAS summary statistics from NHGRI-EBI GWAS Catalog format to
+  # standard format.
+  # Source Format: NHGRI-EBI GWAS Catalog
+  # Effect allele: "effect_allele"
+  # Delimiter: tab
+  # Columns: variant_id p_value chromosome base_pair_location effect_allele other_allele effect_allele_frequency beta standard_error observations
+  # Columns: 1          2       3          4                  5             6            7                       8    9              10
+  # Product Format: Team Standard
+  # Effect allele: "A1"
+  # Delimiter: white space
+  # Columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
+  echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_gwas_product
+  zcat $path_file_temporary_gwas_nhgriebi_tsv | awk 'BEGIN {FS = "\t"; OFS = " "} NR > 1 {
+    print $1, $3, $4, $5, $6, $7, $8, $9, $2, $10, "NA", (1.0), "NA", "NA"
+  }' >> $path_file_gwas_product
+  # Compress file format.
+  gzip -cvf $path_file_gwas_product > $path_file_gwas_product_gz
+fi
 
 
 
