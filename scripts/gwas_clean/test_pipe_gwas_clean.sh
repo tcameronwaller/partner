@@ -55,8 +55,8 @@ path_directory_temporary="${path_directory_product}/temporary_tcw_test_20230208"
 #path_file_gwas_source="${path_directory_dock}/hormone_genetics/gwas_from_team_collection/${identifier_gwas}.txt.gz"
 
 #identifier_gwas="30367059_teumer_2018_hyperthyroidism"
-#identifier_gwas="30367059_teumer_2018_hypothyroidism" # <-- test logistic
-identifier_gwas="30367059_teumer_2018_tsh_female" # <-- test linear
+identifier_gwas="30367059_teumer_2018_hypothyroidism" # <-- test logistic
+#identifier_gwas="30367059_teumer_2018_tsh_female" # <-- test linear
 #identifier_gwas="30367059_teumer_2018_tsh_male"
 #identifier_gwas="32769997_zhou_2020_tsh"
 #identifier_gwas="32042192_ruth_2020_testosterone_female"
@@ -83,8 +83,8 @@ cd $path_directory_product
 ################################################################################
 # Organize parameters.
 
-type="linear"
-#type="logistic"
+#type="linear"
+type="logistic"
 count_cases=532
 threads=16
 report="true"
