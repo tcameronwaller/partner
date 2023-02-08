@@ -40,8 +40,9 @@ name_base_file_gwas_product="$(basename $path_file_gwas_product .txt.gz)"
 identifier_gwas="${name_base_file_gwas_product}"
 #path_file_munge_report="${path_directory_product}/${name_base_file_gwas_product}_munge_report.log"
 path_file_gwas2vcf_report="${path_directory_product}/${name_base_file_gwas_product}_gwas2vcf.log"
-path_file_gwas_product_gwas2vcf_decompress="${path_directory_product}/${name_base_file_gwas_product}_gwas2vcf.vcf"
-path_file_gwas_product_gwas2vcf="${path_file_gwas_product_gwas2vcf_decompress}.gz"
+path_file_gwas_product_gwas2vcf_base="${path_directory_product}/${name_base_file_gwas_product}_gwas2vcf.vcf"
+path_file_gwas_product_gwas2vcf="${path_file_gwas_product_gwas2vcf_base}.gz"
+path_file_gwas_product_gwas2vcf_index="${path_file_gwas_product_gwas2vcf_base}.gz.tbi"
 
 path_file_gwas2vcf_parameter_linear="${path_directory_process}/promiscuity/scripts/gwas_clean/parameter_gwas_standard_to_gwas2vcf_linear.json"
 path_file_gwas2vcf_parameter_logistic="${path_directory_process}/promiscuity/scripts/gwas_clean/parameter_gwas_standard_to_gwas2vcf_logistic.json"
@@ -68,6 +69,7 @@ path_ftemp_gwas_postvcf_standard_text="${path_directory_temporary}/${name_base_f
 #rm $path_file_munge_report
 rm $path_file_gwas_product
 rm $path_file_gwas_product_gwas2vcf
+rm $path_file_gwas_product_gwas2vcf_index
 rm $path_file_gwas2vcf_report
 
 # Initialize directories.
@@ -167,7 +169,7 @@ if true; then
     --id $identifier_gwas \
     --ref $path_ftemp_genome_decomp \
     --dbsnp $path_file_reference_dbsnp \
-    --out $path_file_gwas_product_gwas2vcf_decompress \
+    --out $path_file_gwas_product_gwas2vcf_base \
     --log INFO 2>&1 | tee $path_file_gwas2vcf_report
   elif [[ "$type" == "logistic" ]]; then
     python3 $path_gwas2vcf \
@@ -177,7 +179,7 @@ if true; then
     --ref $path_ftemp_genome_decomp \
     --dbsnp $path_file_reference_dbsnp \
     --cohort_cases $count_cases \
-    --out $path_file_gwas_product_gwas2vcf_decompress \
+    --out $path_file_gwas_product_gwas2vcf_base \
     --log INFO 2>&1 | tee $path_file_gwas2vcf_report
   fi
   # Deactivate Virtual Environment.
@@ -214,21 +216,18 @@ if true; then
   if [[ "$type" == "linear" ]]; then
     $path_bcftools query \
     -e 'ID == "."' \
-    -f '%ID\t[%LP]\t%CHROM\t%POS\t%ALT\t%REF\t%AF\t[%ES]\t[%SE]\t[%SS]\n' \
+    -f '%ID\t[%LP]\t%CHROM\t%POS\t%ALT\t%REF\t%AF\t[%ES]\t[%SE]\t[%EZ]\t[%SI]\t[%SS]\n' \
     $path_file_gwas_product_gwas2vcf | \
-    awk 'BEGIN {print "variant_id\tp_value\tchromosome\tbase_pair_location\teffect_allele\tother_allele\teffect_allele_frequency\tbeta\tstandard_error\tobservations"}; {OFS="\t"; if ($2==0) $2=1; else if ($2==999) $2=0; else $2=10^-$2; print}' > $path_ftemp_gwas_postvcf_tsv
+    awk 'BEGIN {print "variant_id\tp_value\tchromosome\tbase_pair_location\teffect_allele\tother_allele\teffect_allele_frequency\tbeta\tstandard_error\tz_score\timputation_score\tobservations"}; {OFS="\t"; if ($2==0) $2=1; else if ($2==999) $2=0; else $2=10^-$2; print}' > $path_ftemp_gwas_postvcf_tsv
   elif [[ "$type" == "logistic" ]]; then
     $path_bcftools query \
     -e 'ID == "."' \
-    -f '%ID\t[%LP]\t%CHROM\t%POS\t%ALT\t%REF\t%AF\t[%ES]\t[%SE]\t[%SS]\t[%NC]\n' \
+    -f '%ID\t[%LP]\t%CHROM\t%POS\t%ALT\t%REF\t%AF\t[%ES]\t[%SE]\t[%EZ]\t[%SI]\t[%SS]\t[%NC]\n' \
     $path_file_gwas_product_gwas2vcf | \
-    awk 'BEGIN {print "variant_id\tp_value\tchromosome\tbase_pair_location\teffect_allele\tother_allele\teffect_allele_frequency\tbeta\tstandard_error\tobservations\tcount_cases"}; {OFS="\t"; if ($2==0) $2=1; else if ($2==999) $2=0; else $2=10^-$2; print}' > $path_ftemp_gwas_postvcf_tsv
+    awk 'BEGIN {print "variant_id\tp_value\tchromosome\tbase_pair_location\teffect_allele\tother_allele\teffect_allele_frequency\tbeta\tstandard_error\tz_score\timputation_score\tobservations\tcount_cases"}; {OFS="\t"; if ($2==0) $2=1; else if ($2==999) $2=0; else $2=10^-$2; print}' > $path_ftemp_gwas_postvcf_tsv
   fi
 fi
 
-
-# TODO: TCW; 8 February 2023
-# TODO: extract INFO score and Z score
 
 
 ##########
@@ -245,19 +244,19 @@ if true; then
     # Source Format: Export from GWAS2VCF GWAS-VCF for linear GWAS
     # Effect allele: "effect_allele"
     # Delimiter: tab
-    # Columns: variant_id p_value chromosome base_pair_location effect_allele other_allele effect_allele_frequency beta standard_error observations
-    # Columns: 1          2       3          4                  5             6            7                       8    9              10
+    # Columns: variant_id p_value chromosome base_pair_location effect_allele other_allele effect_allele_frequency beta standard_error z_score imputation_score observations
+    # Columns: 1          2       3          4                  5             6            7                       8    9              10      11               12
     cat $path_ftemp_gwas_postvcf_tsv | awk 'BEGIN {FS = "\t"; OFS = " "} NR > 1 {
-      print $1, $3, $4, $5, $6, $7, $8, $9, $2, $10, "NA", (1.0), "NA", "NA"
+      print $1, $3, $4, $5, $6, $7, $8, $9, $2, $12, $10, $11, "NA", "NA"
     }' >> $path_ftemp_gwas_postvcf_standard_text
   elif [[ "$type" == "logistic" ]]; then
     # Source Format: Export from GWAS2VCF GWAS-VCF for linear GWAS
     # Effect allele: "effect_allele"
     # Delimiter: tab
-    # Columns: variant_id p_value chromosome base_pair_location effect_allele other_allele effect_allele_frequency beta standard_error observations count_cases
-    # Columns: 1          2       3          4                  5             6            7                       8    9              10           11
+    # Columns: variant_id p_value chromosome base_pair_location effect_allele other_allele effect_allele_frequency beta standard_error z_score imputation_score observations count_cases
+    # Columns: 1          2       3          4                  5             6            7                       8    9              10      11               12           13
     cat $path_ftemp_gwas_postvcf_tsv | awk 'BEGIN {FS = "\t"; OFS = " "} NR > 1 {
-      print $1, $3, $4, $5, $6, $7, $8, $9, $2, $10, "NA", (1.0), $11, ($10 - $11)
+      print $1, $3, $4, $5, $6, $7, $8, $9, $2, $12, $10, $11, $13, ($12 - $13)
     }' >> $path_ftemp_gwas_postvcf_standard_text
   fi
   # Compress file format.

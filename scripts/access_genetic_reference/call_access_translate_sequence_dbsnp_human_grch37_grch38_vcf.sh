@@ -53,15 +53,15 @@ if false; then
   $report
 fi
 
-if true; then
-  # Call script for accession on dbSNP.
+if false; then
+  # Call script for accession on dbSNP. (TCW; 6 February 2023)
   /usr/bin/bash $path_file_script_access_dbsnp \
   $path_directory_parent_dbsnp \
   $report
 fi
 
-if false; then
-  # Call script for translation on dbSNP.
+if true; then
+  # Call script for translation on dbSNP. (TCW; __ February 2023)
   /usr/bin/bash $path_file_script_translate_dbsnp \
   $path_directory_parent_dbsnp \
   $path_file_translation_grch37 \
