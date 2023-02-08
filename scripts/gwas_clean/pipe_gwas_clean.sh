@@ -82,9 +82,11 @@ cd $path_directory_product
 
 ##########
 # Apply any preparation to the GWAS summary statistics in the source file.
-if false; then
+if true; then
   # Decompress the GWAS summary statistics.
-  #gzip -dcvf $path_file_gwas_source > $path_ftemp_gwas_source_decomp
+  gzip -dcvf $path_file_gwas_source > $path_ftemp_gwas_source_decomp
+fi
+if false; then
   # Keep same delimiters (field separators), but only keep first count of lines.
   zcat $path_file_gwas_source | awk 'NR < 100002 {
     print $0
