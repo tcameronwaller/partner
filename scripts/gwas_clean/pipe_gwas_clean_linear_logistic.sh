@@ -141,14 +141,12 @@ if true; then
   # The existence of the "ncase_col" or "cohort_cases" arguments tells GWAS2VCF
   # to designate the study as "CaseControl" (logistic) rather than "Continuous"
   # (linear).
-
-
-  # Use "ncontrol_col" to designate the column for count of observations in
-  # linear GWAS or for the column for count of controls in logistic GWAS.
-  # Can also use the parameter "--cohort_cases" to designate a single value for
-  # the count of cases in logistic GWAS.
+  # Argument "ncontrol_col" designates the column for count of observations in
+  # linear GWAS or the column for count of controls in logistic GWAS.
   # Subsequent use of the parameter "--cohort_controls" to will rewrite any
   # SNP-specific counts of controls.
+  # Can also use the parameter "--cohort_cases" to designate a single value for
+  # the count of cases in logistic GWAS.
   # Activate Virtual Environment.
   source "${path_environment_gwas2vcf}/bin/activate"
   echo "confirm Python Virtual Environment path..."
@@ -248,7 +246,7 @@ if true; then
     # Columns: 1          2       3          4                  5             6            7                       8    9              10      11               12
     cat $path_ftemp_gwas_postvcf_tsv | awk 'BEGIN {FS = "\t"; OFS = " "} NR > 1 {
       print $1, $3, $4, $5, $6, $7, $8, $9, $2, $12, $10, $11, "NA", "NA"
-    }' >> $path_ftemp_gwas_postvcf_standard_text
+    }; {if ($10==".") $10="NA"; print}' >> $path_ftemp_gwas_postvcf_standard_text
   elif [[ "$type" == "logistic" ]]; then
     # Source Format: Export from GWAS2VCF GWAS-VCF for linear GWAS
     # Effect allele: "effect_allele"
@@ -257,7 +255,7 @@ if true; then
     # Columns: 1          2       3          4                  5             6            7                       8    9              10      11               12           13
     cat $path_ftemp_gwas_postvcf_tsv | awk 'BEGIN {FS = "\t"; OFS = " "} NR > 1 {
       print $1, $3, $4, $5, $6, $7, $8, $9, $2, $12, $10, $11, $13, ($12 - $13)
-    }' >> $path_ftemp_gwas_postvcf_standard_text
+    }; {if ($10==".") $10="NA"; print}' >> $path_ftemp_gwas_postvcf_standard_text
   fi
   # Compress file format.
   gzip -cvf $path_ftemp_gwas_postvcf_standard_text > $path_file_gwas_product
