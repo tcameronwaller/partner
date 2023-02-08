@@ -72,10 +72,6 @@ path_ftemp_gwas_source="${path_directory_temporary}/${identifier_gwas}_source.tx
 # Scripts.
 path_file_script_pipe_gwas_clean="${path_directory_process}/promiscuity/scripts/gwas_clean/pipe_gwas_clean.sh"
 
-# Initialize files.
-rm $path_file_gwas_product_simple
-rm $path_file_gwas_product_gwas2vcf
-
 # Initialize directories.
 rm -r $path_directory_product
 rm -r $path_directory_temporary
