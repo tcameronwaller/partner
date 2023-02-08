@@ -260,7 +260,7 @@ if true; then
         print $1, $3, $4, $5, $6, $7, $8, $9, $2, $12, "NA", $11, $13, ($12 - $13)
       else
         print $1, $3, $4, $5, $6, $7, $8, $9, $2, $12, $10, $11, $13, ($12 - $13)
-    }; {if ($10==".") $10="NA"; print}' >> $path_ftemp_gwas_postvcf_standard_text
+    }' >> $path_ftemp_gwas_postvcf_standard_text
   fi
   # Compress file format.
   gzip -cvf $path_ftemp_gwas_postvcf_standard_text > $path_file_gwas_product
