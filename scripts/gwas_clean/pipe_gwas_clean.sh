@@ -42,7 +42,7 @@ name_base_file_gwas_product="$(basename $path_file_gwas_product .txt.gz)"
 identifier_gwas=name_base_file_gwas_product
 path_file_munge_report="${path_directory_product}/${name_base_file_gwas_product}_munge_report.log"
 path_file_gwas2vcf_report="${path_directory_product}/${name_base_file_gwas_product}_gwas2vcf_report.log"
-path_file_gwas2vcf_parameter="${path_directory_process}/promiscuity/scripts/gwas_clean/parameter_gwas_standard_to_gwas2vcf.json"
+path_file_gwas2vcf_parameter="${path_directory_process}/promiscuity/scripts/gwas_clean/parameter_gwas_standard_to_gwas2vcf_linear.json"
 path_file_reference_genome_sequence="${path_directory_reference_gwas2vcf}/genome_sequence/human_g1k_v37.fasta.gz"
 path_file_reference_dbsnp="${path_directory_reference_gwas2vcf}/dbsnp/dbsnp.v153.b37.vcf.gz"
 

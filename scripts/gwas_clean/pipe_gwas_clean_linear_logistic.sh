@@ -37,10 +37,15 @@ path_directory_temporary="${path_directory_product}/temporary_tcw_test_20230207_
 
 # Files.
 name_base_file_gwas_product="$(basename $path_file_gwas_product .txt.gz)"
-identifier_gwas=name_base_file_gwas_product
-path_file_munge_report="${path_directory_product}/${name_base_file_gwas_product}_munge_report.log"
-path_file_gwas2vcf_report="${path_directory_product}/${name_base_file_gwas_product}_gwas2vcf_report.log"
-path_file_gwas2vcf_parameter="${path_directory_process}/promiscuity/scripts/gwas_clean/parameter_gwas_standard_to_gwas2vcf.json"
+identifier_gwas="${name_base_file_gwas_product}"
+#path_file_munge_report="${path_directory_product}/${name_base_file_gwas_product}_munge_report.log"
+path_file_gwas2vcf_report="${path_directory_product}/${name_base_file_gwas_product}_gwas2vcf.log"
+path_file_gwas_product_gwas2vcf_decompress="${path_directory_product}/${name_base_file_gwas_product}_gwas2vcf.vcf"
+path_file_gwas_product_gwas2vcf="${path_file_gwas_product_gwas2vcf_decompress}.gz"
+
+path_file_gwas2vcf_parameter_linear="${path_directory_process}/promiscuity/scripts/gwas_clean/parameter_gwas_standard_to_gwas2vcf_linear.json"
+path_file_gwas2vcf_parameter_logistic="${path_directory_process}/promiscuity/scripts/gwas_clean/parameter_gwas_standard_to_gwas2vcf_logistic.json"
+
 path_file_reference_genome_sequence="${path_directory_reference_gwas2vcf}/genome_sequence/human_g1k_v37.fasta.gz"
 path_file_reference_dbsnp="${path_directory_reference_gwas2vcf}/dbsnp/dbsnp.v153.b37.vcf.gz"
 
@@ -52,8 +57,8 @@ path_file_reference_dbsnp="${path_directory_reference_gwas2vcf}/dbsnp/dbsnp.v153
 path_ftemp_gwas_source_decomp="${path_directory_temporary}/${name_base_file_gwas_product}_source.txt"
 name_base_file_genome_sequence="$(basename $path_file_reference_genome_sequence .fasta.gz)"
 path_ftemp_genome_decomp="${path_directory_temporary}/${name_base_file_genome_sequence}.fasta"
-path_ftemp_gwas_vcf="${path_directory_temporary}/${name_base_file_gwas_product}.vcf"
-path_ftemp_gwas_vcf_gz="${path_directory_temporary}/${name_base_file_gwas_product}.vcf.gz"
+#path_ftemp_gwas_vcf="${path_directory_temporary}/${name_base_file_gwas_product}.vcf"
+#path_ftemp_gwas_vcf_gz="${path_directory_temporary}/${name_base_file_gwas_product}.vcf.gz"
 path_ftemp_gwas_postvcf_tsv="${path_directory_temporary}/${name_base_file_gwas_product}_postvcf.tsv"
 path_ftemp_gwas_postvcf_standard_text="${path_directory_temporary}/${name_base_file_gwas_product}_postvcf_standard_format.txt"
 
@@ -61,8 +66,9 @@ path_ftemp_gwas_postvcf_standard_text="${path_directory_temporary}/${name_base_f
 
 # Initialize files.
 #rm $path_file_munge_report
-rm $path_file_gwas2vcf_report
 rm $path_file_gwas_product
+rm $path_file_gwas_product_gwas2vcf
+rm $path_file_gwas2vcf_report
 
 # Initialize directories.
 #rm -r $path_directory_product
@@ -127,6 +133,14 @@ if true; then
   # Define parameters for GWAS2VCF within a text file in "json" format.
   # Parameters do need to be within a separate text file.
   # Index of columns in source GWAS summary statistics bases on zero.
+  # Within the parameter file (.json), use arguments "ncontrol_col" and
+  # "ncase_col" to specify the source columns for counts of total or control
+  # observations and case observations.
+  # The existence of the "ncase_col" or "cohort_cases" arguments tells GWAS2VCF
+  # to designate the study as "CaseControl" (logistic) rather than "Continuous"
+  # (linear).
+
+
   # Use "ncontrol_col" to designate the column for count of observations in
   # linear GWAS or for the column for count of controls in logistic GWAS.
   # Can also use the parameter "--cohort_cases" to designate a single value for
@@ -149,28 +163,28 @@ if true; then
   if [[ "$type" == "linear" ]]; then
     python3 $path_gwas2vcf \
     --data $path_ftemp_gwas_source_decomp \
-    --json $path_file_gwas2vcf_parameter \
+    --json $path_file_gwas2vcf_parameter_linear \
     --id $identifier_gwas \
     --ref $path_ftemp_genome_decomp \
     --dbsnp $path_file_reference_dbsnp \
-    --out $path_ftemp_gwas_vcf \
+    --out $path_file_gwas_product_gwas2vcf_decompress \
     --log INFO 2>&1 | tee $path_file_gwas2vcf_report
   elif [[ "$type" == "logistic" ]]; then
     python3 $path_gwas2vcf \
     --data $path_ftemp_gwas_source_decomp \
-    --json $path_file_gwas2vcf_parameter \
+    --json $path_file_gwas2vcf_parameter_logistic \
     --id $identifier_gwas \
     --ref $path_ftemp_genome_decomp \
     --dbsnp $path_file_reference_dbsnp \
     --cohort_cases $count_cases \
-    --out $path_ftemp_gwas_vcf \
+    --out $path_file_gwas_product_gwas2vcf_decompress \
     --log INFO 2>&1 | tee $path_file_gwas2vcf_report
   fi
   # Deactivate Virtual Environment.
   deactivate
   which python3
   # Examine file.
-  #$path_bcftools head $path_ftemp_gwas_vcf_gz
+  #$path_bcftools head $path_file_gwas_product_gwas2vcf
 fi
 
 
@@ -201,22 +215,20 @@ if true; then
     $path_bcftools query \
     -e 'ID == "."' \
     -f '%ID\t[%LP]\t%CHROM\t%POS\t%ALT\t%REF\t%AF\t[%ES]\t[%SE]\t[%SS]\n' \
-    $path_ftemp_gwas_vcf_gz | \
+    $path_file_gwas_product_gwas2vcf | \
     awk 'BEGIN {print "variant_id\tp_value\tchromosome\tbase_pair_location\teffect_allele\tother_allele\teffect_allele_frequency\tbeta\tstandard_error\tobservations"}; {OFS="\t"; if ($2==0) $2=1; else if ($2==999) $2=0; else $2=10^-$2; print}' > $path_ftemp_gwas_postvcf_tsv
   elif [[ "$type" == "logistic" ]]; then
     $path_bcftools query \
     -e 'ID == "."' \
     -f '%ID\t[%LP]\t%CHROM\t%POS\t%ALT\t%REF\t%AF\t[%ES]\t[%SE]\t[%SS]\t[%NC]\n' \
-    $path_ftemp_gwas_vcf_gz | \
+    $path_file_gwas_product_gwas2vcf | \
     awk 'BEGIN {print "variant_id\tp_value\tchromosome\tbase_pair_location\teffect_allele\tother_allele\teffect_allele_frequency\tbeta\tstandard_error\tobservations\tcount_cases"}; {OFS="\t"; if ($2==0) $2=1; else if ($2==999) $2=0; else $2=10^-$2; print}' > $path_ftemp_gwas_postvcf_tsv
   fi
 fi
 
 
-# TODO: TCW; 7 February 2023
-# TODO: for logistic GWAS, it might not even be necessary to pass count of cases to GWAS2VCF.
-# TODO: then when translating the format, use "SS" as the count of observations per SNP
-# TODO: and calculate count of controls as
+# TODO: TCW; 8 February 2023
+# TODO: extract INFO score and Z score
 
 
 ##########
