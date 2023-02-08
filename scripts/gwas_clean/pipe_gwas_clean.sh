@@ -243,8 +243,12 @@ if true; then
     # Delimiter: tab
     # Columns: variant_id p_value chromosome base_pair_location effect_allele other_allele effect_allele_frequency beta standard_error z_score imputation_score observations
     # Columns: 1          2       3          4                  5             6            7                       8    9              10      11               12
-    cat $path_ftemp_gwas_postvcf_tsv | awk 'BEGIN {FS = "\t"; OFS = " "; if index($10, ".") $10="NA"} NR > 1 {
-      print $1, $3, $4, $5, $6, $7, $8, $9, $2, $12, $10, $11, "NA", "NA"
+    # print $1, $3, $4, $5, $6, $7, $8, $9, $2, $12, $10, $11, "NA", "NA"
+    cat $path_ftemp_gwas_postvcf_tsv | awk 'BEGIN {FS = "\t"; OFS = " "} NR > 1 {
+      if ($10==".")
+        print $1, $3, $4, $5, $6, $7, $8, $9, $2, $12, "NA", $11, "NA", "NA"
+      else
+        print $1, $3, $4, $5, $6, $7, $8, $9, $2, $12, $10, $11, "NA", "NA"
     }' >> $path_ftemp_gwas_postvcf_standard_text
   elif [[ "$type" == "logistic" ]]; then
     # Source Format: Export from GWAS2VCF GWAS-VCF for linear GWAS
