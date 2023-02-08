@@ -53,6 +53,17 @@ path_file_gwas_product_gwas2vcf="${path_directory_product}/${identifier_gwas}_re
 # Scripts.
 path_file_script_pipe_gwas_clean="${path_directory_process}/promiscuity/scripts/gwas_clean/pipe_gwas_clean.sh"
 
+# Initialize files.
+rm $path_file_gwas_product_simple
+rm $path_file_gwas_product_gwas2vcf
+
+# Initialize directories.
+rm -r $path_directory_product
+rm -r $path_directory_temporary
+mkdir -p $path_directory_product
+mkdir -p $path_directory_temporary
+cd $path_directory_product
+
 ################################################################################
 # Organize parameters.
 
