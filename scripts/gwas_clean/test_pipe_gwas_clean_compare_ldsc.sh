@@ -74,7 +74,7 @@ threads=16
 # Execute procedure.
 
 # Keep only the first 1 million records.
-zcat $path_file_gwas_source | awk 'NR < 1000002 {
+zcat $path_file_gwas_source | awk 'NR < 100002 {
   print $0
 }' >> $path_ftemp_gwas_source_decomp
 

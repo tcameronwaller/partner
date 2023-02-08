@@ -12,6 +12,27 @@
 
 ################################################################################
 
+# Strategy below is for the driving script that submits the batch.
+
+# Find element in array...
+# Look-up parameters for each GWAS within the parameter table
+# Find the correct record in the array by matching the study identifier
+
+#array=("a b" "c d")
+
+#for ((i=0; i<${#array[@]}; i++)); do
+#  if [[ ${array[$i]} == "a b" ]]; then
+#    echo "Element $i matched"
+#  fi
+#done
+
+#Output:
+
+#Element 0 matched
+
+#${#array[@]} contains number of last element in array.
+
+
 
 
 ################################################################################

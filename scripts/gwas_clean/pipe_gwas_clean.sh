@@ -17,6 +17,10 @@ path_file_gwas_product=${2} # full path to file for product GWAS summary statist
 threads=${3} # count of processing threads to use
 report=${4} # whether to print reports
 
+# New arguments:
+# type
+# count_cases
+
 ################################################################################
 # Organize paths.
 
@@ -117,6 +121,9 @@ fi
 # Examples of analyses: https://mrcieu.github.io/gwasglue/articles/
 # Refer to notes in script "install_local_software.sh".
 # Refer to notes in script "install_python_virtual_environments_packages.sh"
+# Documentation within the "main.py" class of GWAS2VCF gives more detail on the
+# parameters relevant to this procedure.
+# https://github.com/MRCIEU/gwas2vcf/blob/master/main.py
 
 if true; then
   # Decompress the reference genome sequence.
@@ -143,6 +150,27 @@ if true; then
   # Call GWAS2VCF.
   # GWAS2VCF automatically applies GZip compression to the file in VCF format
   # and calculates a Tabix index.
+  #if [[ "$type" == "linear" ]]; then
+  #  python3 $path_gwas2vcf \
+  #  --data $path_ftemp_gwas_source_decomp \
+  #  --json $path_file_gwas2vcf_parameter \
+  #  --id $identifier_gwas \
+  #  --ref $path_ftemp_genome_decomp \
+  #  --dbsnp $path_file_reference_dbsnp \
+  #  --out $path_ftemp_gwas_vcf \
+  #  --log INFO 2>&1 | tee $path_file_gwas2vcf_report
+  #elif [[ "$type" == "logistic" ]]; then
+  #  python3 $path_gwas2vcf \
+  #  --data $path_ftemp_gwas_source_decomp \
+  #  --json $path_file_gwas2vcf_parameter \
+  #  --id $identifier_gwas \
+  #  --ref $path_ftemp_genome_decomp \
+  #  --dbsnp $path_file_reference_dbsnp \
+  #  --cohort_cases $count_cases \
+  #  --out $path_ftemp_gwas_vcf \
+  #  --log INFO 2>&1 | tee $path_file_gwas2vcf_report
+  #fi
+
   python3 $path_gwas2vcf \
   --data $path_ftemp_gwas_source_decomp \
   --json $path_file_gwas2vcf_parameter \
@@ -187,6 +215,11 @@ if true; then
   awk 'BEGIN {print "variant_id\tp_value\tchromosome\tbase_pair_location\teffect_allele\tother_allele\teffect_allele_frequency\tbeta\tstandard_error\tobservations"}; {OFS="\t"; if ($2==0) $2=1; else if ($2==999) $2=0; else $2=10^-$2; print}' > $path_ftemp_gwas_postvcf_tsv
 fi
 
+
+# TODO: TCW; 7 February 2023
+# TODO: for logistic GWAS, it might not even be necessary to pass count of cases to GWAS2VCF.
+# TODO: then when translating the format, use "SS" as the count of observations per SNP
+# TODO: and calculate count of controls as
 
 
 ##########
