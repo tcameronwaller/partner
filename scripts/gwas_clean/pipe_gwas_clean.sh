@@ -31,7 +31,7 @@ path_directory_reference_gwas2vcf="${path_directory_reference}/gwas2vcf"
 path_directory_process=$(<"./process_psychiatric_metabolism.txt")
 path_directory_dock="${path_directory_process}/dock" # parent directory for procedural reads and writes
 path_directory_product="$(dirname $path_file_gwas_product)"
-path_directory_temporary="${path_directory_product}/temporary_tcw_test_5271693" # hopefully unique
+path_directory_temporary="${path_directory_product}/temporary_tcw_test_20230207_5271693" # hopefully unique
 
 # Files.
 name_base_file_gwas_product="$(basename $path_file_gwas_product .txt.gz)"
@@ -82,7 +82,7 @@ cd $path_directory_product
 
 ##########
 # Apply any preparation to the GWAS summary statistics in the source file.
-if true; then
+if false; then
   # Decompress the GWAS summary statistics.
   #gzip -dcvf $path_file_gwas_source > $path_ftemp_gwas_source_decomp
   # Keep same delimiters (field separators), but only keep first count of lines.
