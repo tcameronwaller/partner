@@ -43,8 +43,8 @@
 
 path_batch_instances=${1} # text list of information for each instance in batch
 batch_instances_count=${2} # count of instances in batch
-path_script_format_gwas_linear=${3} # full path to script for format on linear GWAS
-path_script_format_gwas_logistic=${4} # full path to script for format on logistic GWAS
+path_script_pipe_gwas_clean=${3} # full path to script for format on logistic GWAS
+threads=${6} # count of processing threads to use
 report=${5} # whether to print reports
 
 ###########################################################################
@@ -57,27 +57,21 @@ instance=${batch_instances[$batch_index]}
 
 # Separate fields from instance.
 IFS=";" read -r -a array <<< "${instance}"
-type_regression="${array[0]}"
-path_file_gwas_source="${array[1]}"
-path_file_gwas_product="${array[2]}"
+path_file_gwas_source="${array[0]}"
+path_file_gwas_product="${array[1]}"
+type="${array[2]}"
+count_cases="${array[3]}"
 
 ###########################################################################
 # Execute procedure.
 
-# Determine appropriate script.
-if [[ "$type_regression" == "linear" ]]; then
-  path_script_format_gwas="${path_script_format_gwas_linear}"
-elif [[ "$type_regression" == "logistic" ]]; then
-  path_script_format_gwas="${path_script_format_gwas_logistic}"
-else
-  echo "invalid specification of regression type"
-fi
-
 # Adjust format of GWAS summary statistics.
 if true; then
-  /usr/bin/bash "${path_script_format_gwas}" \
+  /usr/bin/bash $path_script_pipe_gwas_clean \
   $path_file_gwas_source \
   $path_file_gwas_product \
+  $type \
+  $count_cases \
   $report
 fi
 

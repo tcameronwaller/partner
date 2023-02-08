@@ -2,11 +2,22 @@
 
 ################################################################################
 # Author: T. Cameron Waller
-# Date: 22 December 2022
+# Date: ___ 2023
 ################################################################################
 # Note
 
-# Format of parameter table:
+# TODO: TCW; 8 February 2023
+# TODO: This is an EARLY draft of this script... not yet functional.
+
+
+# TODO: need to specify paths to files for "run_batch" and "pipe" scripts.
+
+# 1. filter by "inclusion" column
+# 2. use "name" column to assemble file name of the source GWAS file
+# 3. use an argument for the directory for source GWAS files
+# 4. Assemble batch instance:
+# "path_file_gwas_source;path_file_gwas_product;type;count_cases"
+# 4. pass the "type" variable on to the "run_batch" script.
 
 ################################################################################
 # Organize arguments.
