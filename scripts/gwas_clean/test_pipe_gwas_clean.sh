@@ -86,7 +86,7 @@ cd $path_directory_product
 #type="linear"
 type="logistic"
 count_cases=532
-threads=16
+threads=1
 report="true"
 
 ################################################################################
