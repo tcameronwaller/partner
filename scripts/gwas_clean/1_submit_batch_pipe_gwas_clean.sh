@@ -9,28 +9,47 @@
 # TODO: TCW; 8 February 2023
 # TODO: This is an EARLY draft of this script... not yet functional.
 
-
-# TODO: need to specify paths to files for "run_batch" and "pipe" scripts.
-
-# 1. filter by "inclusion" column
-# 2. use "name" column to assemble file name of the source GWAS file
-# 3. use an argument for the directory for source GWAS files
-# 4. Assemble batch instance:
-# "path_file_gwas_source;path_file_gwas_product;type;count_cases"
-# 4. pass the "type" variable on to the "run_batch" script.
-
 ################################################################################
 # Organize arguments.
 
 path_file_translation=${1} # full path to file of parameter table in text format with information about translations
-path_directory_parent_source=${2} # full path to parent directory within which to find child directories and files of source GWAS summary statistics
-path_directory_script=${3} # full path to directory within which to find scripts for format translations
-path_directory_product=${4} # full path to directory within which to save files of product GWAS summary statistics
-path_bgzip=${5} # full path to installation executable file of BGZip
-report=${6} # whether to print reports
+path_directory_source=${2} # full path to directory within which to find files of source GWAS summary statistics
+path_directory_product=${3} # full path to directory within which to save files of product GWAS summary statistics
+report=${4} # whether to print reports
 
 ################################################################################
-# Procedure.
+# Organize paths.
+
+# Directories.
+cd ~/paths
+path_directory_process=$(<"./process_psychiatric_metabolism.txt")
+path_directory_dock="${path_directory_process}/dock" # parent directory for procedural reads and writes
+
+# Files.
+path_file_batch_instances="${path_directory_product}/batch_instances.txt"
+
+# Scripts.
+path_file_script_run_batch="${path_directory_process}/promiscuity/scripts/gwas_clean/2_run_batch_pipe_gwas_clean.sh"
+path_file_script_pipe_gwas_clean="${path_directory_process}/promiscuity/scripts/gwas_clean/pipe_gwas_clean.sh"
+
+# Initialize files.
+rm $path_file_batch_instances
+
+# Initialize directories.
+rm -r $path_directory_product
+mkdir -p $path_directory_product
+cd $path_directory_product
+
+################################################################################
+# Organize parameters.
+
+threads=16
+#report="true"
+
+################################################################################
+# Execute procedure.
+
+# 5. pass the "type" variable on to the "run_batch" script.
 
 
 # Read lines from file and split fields within each line by space, tab, or new-line delimiters.
@@ -61,53 +80,55 @@ do
   fi
   # Execute procedure for current record's parameters.
   if [[ "${array[0]}" == "1" ]]; then
+    # Define variables.
+    name="${array[2]}"
+    type="${array[9]}"
+    count_cases="${array[13]}"
     # Organize paths.
-    path_directory_child_source="${path_directory_parent_source}/${array[1]}"
-    name_file_source="${array[5]}"
-    suffix_file_source="${array[6]}"
-    name_base_file_source=$(echo $name_file_source | sed "s/$suffix_file_source//")
-    path_file_source="${path_directory_child_source}/${name_file_source}"
-    path_directory_temporary="${path_directory_product}/temporary_tcw_73216"
-    path_file_source_standard="${path_directory_temporary}/${name_base_file_source}.txt.gz"
-    path_file_script="${path_directory_script}/${array[15]}"
-    path_file_product="${path_directory_product}/${array[2]}.txt.gz"
-    mkdir -p $path_directory_temporary
-    # Manage compression formats and file suffices.
-    if [ "${array[7]}" == "1" ] && [ "${array[8]}" == "1" ]; then
-      # 1. Decompress from BGZip format (http://www.htslib.org/doc/bgzip.html).
-      $path_bgzip --decompress "$path_file_source" --stdout > "${path_directory_temporary}/${name_base_file_source}.txt"
-      # 2. Compress to GZip format.
-      gzip -cvf "${path_directory_temporary}/${name_base_file_source}.txt" > $path_file_source_standard
-    fi
-    if [ "${array[7]}" != "1" ] && [ "${array[8]}" == "1" ]; then
-      # 1. Compress to Gzip format
-      gzip -cvf "$path_file_source" > $path_file_source_standard
-    fi
-    if [ "${array[7]}" != "1" ] && [ "${array[8]}" != "1" ]; then
-      # Manage suffix.
-      cp "$path_file_source" $path_file_source_standard
-    fi
-    # Call script for translation.
-    /usr/bin/bash $path_file_script \
-    $path_file_source_standard \
-    $path_file_product \
-    ${array[10]} \
-    ${array[11]} \
-    ${array[12]} \
-    ${array[13]} \
-    ${array[14]} \
-    $report
-    # Remove temporary directory and files.
-    rm -r $path_directory_temporary
+    path_file_gwas_source="${path_directory_source}/${name}.txt.gz"
+    path_file_gwas_product="${path_directory_product}/${name}.txt.gz"
+    # Define and append a new batch instance.
+    instance="${path_file_gwas_source};${path_file_gwas_product};${type};${count_cases}"
+    echo $instance >> $path_file_batch_instances
   fi
 done < "${input}"
+
+
+
+################################################################################
+# Submit batch instances to cluster scheduler.
+
+# Read batch instances.
+readarray -t batch_instances < $path_file_batch_instances
+batch_instances_count=${#batch_instances[@]}
+echo "----------"
+echo "count of batch instances: " $batch_instances_count
+echo "first batch instance: " ${batch_instances[0]} # notice base-zero indexing
+echo "last batch instance: " ${batch_instances[$batch_instances_count - 1]}
+
+# Execute batch with grid scheduler.
+if false; then
+  # Submit array batch to Sun Grid Engine.
+  # Array batch indices must start at one (not zero).
+  qsub -t 1-${batch_instances_count}:1 \
+  -o "${path_directory_product}/batch_out.txt" \
+  -e "${path_directory_product}/batch_error.txt" \
+  $path_file_script_run_batch \
+  $path_file_batch_instances \
+  $batch_instances_count \
+  $path_file_script_pipe_gwas_clean \
+  $threads \
+  $report
+fi
+
+
 
 ################################################################################
 # Report.
 if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "Script complete:"
-  echo "drive_translations_gwas_to_standard_format.sh"
+  echo "1_submit_batch_pipe_gwas_clean.sh"
   echo "----------"
 fi
 

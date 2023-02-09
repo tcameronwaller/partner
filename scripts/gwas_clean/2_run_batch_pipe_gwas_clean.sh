@@ -18,12 +18,12 @@
 ### -e "./error"
 # Queue.
 # "1-hour", "1-day", "4-day", "7-day", "30-day", "lg-mem"
-#$ -q 1-day
+#$ -q 4-day
 # Priority 0-15.
 ### -p -10
 # Memory per iteration.
 # Segmentation errors commonly indicate a memory error.
-#$ -l h_vmem=4G
+#$ -l h_vmem=16G
 # Concurrent threads; assigns value to variable NSLOTS.
 #$ -pe threaded 16
 # Range of indices.
@@ -38,13 +38,17 @@
 ################################################################################
 # Note.
 
+# TODO: TCW; 8 February 2023
+# TODO: test "pipe_gwas_clean" with different counts of threads to evaluate performance
+
+
 ################################################################################
 # Organize argument variables.
 
 path_batch_instances=${1} # text list of information for each instance in batch
 batch_instances_count=${2} # count of instances in batch
 path_script_pipe_gwas_clean=${3} # full path to script for format on logistic GWAS
-threads=${6} # count of processing threads to use
+threads=${4} # count of processing threads to use
 report=${5} # whether to print reports
 
 ###########################################################################
