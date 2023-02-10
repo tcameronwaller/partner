@@ -10,7 +10,10 @@
 
 ################################################################################
 
-
+# TODO: TCW; 9 February 2023
+# I think it's unnecessary to pass count_cases as an argument here.
+# I tell GWAS2VCF which column to use for cases.
+# So I don't need that "--cohort_cases" argument after all.
 
 ################################################################################
 # Organize arguments.

@@ -2,12 +2,9 @@
 
 ################################################################################
 # Author: T. Cameron Waller
-# Date: ___ 2023
+# Date: 9 February 2023
 ################################################################################
 # Note
-
-# TODO: TCW; 8 February 2023
-# TODO: This is an EARLY draft of this script... not yet functional.
 
 ################################################################################
 # Organize arguments.
@@ -107,7 +104,7 @@ echo "first batch instance: " ${batch_instances[0]} # notice base-zero indexing
 echo "last batch instance: " ${batch_instances[$batch_instances_count - 1]}
 
 # Execute batch with grid scheduler.
-if false; then
+if true; then
   # Submit array batch to Sun Grid Engine.
   # Array batch indices must start at one (not zero).
   qsub -t 1-${batch_instances_count}:1 \
