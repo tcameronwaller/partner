@@ -39,10 +39,10 @@ path_directory_reference_gwas2vcf="${path_directory_reference}/gwas2vcf"
 path_directory_process=$(<"./process_psychiatric_metabolism.txt")
 path_directory_dock="${path_directory_process}/dock" # parent directory for procedural reads and writes
 path_directory_product="$(dirname $path_file_gwas_product)"
-path_directory_temporary="${path_directory_product}/temporary_tcw_test_20230207_5271693" # hopefully unique
+name_base_file_gwas_product="$(basename $path_file_gwas_product .txt.gz)"
+path_directory_temporary="${path_directory_product}/temporary_${name_base_file_gwas_product}" # must be unique
 
 # Files.
-name_base_file_gwas_product="$(basename $path_file_gwas_product .txt.gz)"
 identifier_gwas="${name_base_file_gwas_product}"
 #path_file_munge_report="${path_directory_product}/${name_base_file_gwas_product}_munge_report.log"
 path_file_gwas2vcf_report="${path_directory_product}/${name_base_file_gwas_product}_gwas2vcf.log"
