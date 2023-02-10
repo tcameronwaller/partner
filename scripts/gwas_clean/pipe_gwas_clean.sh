@@ -3,6 +3,8 @@
 ################################################################################
 # Notes:
 
+# In tests on 9 February 2023, there did not seem to be any difference in the
+# duration of this script's process when executed with 1 or 16 threads.
 
 # Review: TCW; 8 February 2023
 

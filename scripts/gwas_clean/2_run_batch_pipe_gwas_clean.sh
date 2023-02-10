@@ -25,21 +25,19 @@
 # Segmentation errors commonly indicate a memory error.
 #$ -l h_vmem=16G
 # Concurrent threads; assigns value to variable NSLOTS.
-#$ -pe threaded 16
+#$ -pe threaded 1
 # Range of indices.
 # Specify as argument when calling qsub.
 # Array batch indices cannot start at zero.
 ### -t 1-100:1
 # Limit on concurrent processes.
-#$ -tc 10
+#$ -tc 30
 
 # http://gridscheduler.sourceforge.net/htmlman/htmlman1/qsub.html
 
 ################################################################################
 # Note.
 
-# TODO: TCW; 8 February 2023
-# TODO: test "pipe_gwas_clean" with different counts of threads to evaluate performance
 
 
 ################################################################################
