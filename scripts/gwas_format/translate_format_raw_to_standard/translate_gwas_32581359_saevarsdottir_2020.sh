@@ -6,35 +6,31 @@
 # Notes
 
 # This script translates the format of GWAS summary statistics from
-# Zhou et al, Nature Communications, 2020 (PubMed:32769997).
-# Host: http://csg.sph.umich.edu/willer/public/TSH2020/
-# Host: https://www.ebi.ac.uk/gwas/publications/32769997
+# Saevarsdottir et al, Nature, 2020 (PubMed:32581359).
+# Host: https://www.decode.com/summarydata/
 
 # Source Format
-# Human Genome Assembly: GRCh37 (hg19) (TCW; 24 January 2023)
-# Effect allele: "Allele1" ("Effect allele") (TCW; 24 January 2023)
+# Human Genome Assembly: GRCh37 (UK Biobank)
+# Effect Allele: "A1"
 # Delimiter: white space
-# Columns: Chr Pos Allele1 Allele2 Freq N Effect SE P-value Direction HetPval
-#          1   2   3       4       5    6 7      8  9       10        11      (TCW; 15 February 2023)
+# Columns: Chr Pos rsID A0 A1 IS-frq IS-info UKB-frq UKB-info OR-A1 P   I2  P-het
+#          1   2   3    4  5  6      7       8       9        10    11  12  13    (TCW; 15 February 2023)
+# Note: Meta analysis from UK and Iceland Biobanks.
+# Note: Combine allele frequencies and imputation "info" scores from both cohorts.
+# - - Observations in Iceland: 346,753 (cases: 4,692; controls: 342,061) of 755,406 total (45.9%)
+# - - Observations in UK: 408,653 (cases: 25,542; controls: 383,111) of 755,406 total (54.1%)
+# Note: combination = ((value_IS * 0.459) + (value_UKB * 0.541))
 
 # Format Translation
-# The GWAS summary statistics do not include rs identifiers for SNP variants.
-# Instead, define for SNP variants a special identifier format, "chr[chromosome]_[position]_[effect allele]".
-# The LDSC Munge procedure might be able to interpret this identifier.
-# columns: ("chr"$1"_"$2"_"$3), $1, $2, toupper($3), toupper($4), $5, $7, $8, $9, $6, "NA", (1), "NA", "NA"
+# columns:
 
-# Product Format (Team Standard)
-# effect allele: "A1"
-# delimiter: white space
-# columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
+# Product Format: Team Standard
+# Effect allele: "A1"
+# Delimiter: white space
+# Columns: SNP CHR BP A1 A2 A1AF BETA SE P N  Z  INFO NCASE NCONT
+#          1   2   3  4  5  6    7    8  9 10 11 12   13    14
 
-# review: TCW; 24 January 2023
-# check: Standard Format Columns [TCW; 22 December 2022]
-# check: Study citation, PubMed, and Host website [TCW; 22 December 2022]
-# check: Study field delimiters [TCW; 23 December 2022]
-# check: Study source columns [TCW; 23 December 2022]
-# check: Translation column order [TCW; 23 December 2022]
-
+# review: TCW; 15 Febuary 2023
 
 ###########################################################################
 ###########################################################################
@@ -78,9 +74,20 @@ rm $path_file_product
 # Note that AWK interprets a single space delimiter (FS=" ") as any white space.
 echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format
 # For conciseness, only support the conditions that are relevant.
-if [ "$fill_observations" != "1" ] && [ "$fill_case_control" != "1" ]; then
-  zcat $path_file_source | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-    print ("chr"$1"_"$2"_"$3), $1, $2, toupper($3), toupper($4), $5, $7, $8, $9, $6, "NA", (1.0), "NA", "NA"
+if [ "$fill_observations" == "1" ] && [ "$fill_case_control" == "1" ]; then
+  zcat $path_file_source | awk -v observations=$observations -v cases=$cases -v controls=$controls 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+    if ((toupper($6) != "NA") && (toupper($7) != "NA") && (toupper($8) != "NA") && (toupper($9) != "NA"))
+      # Calculate frequency and imputation score from non-missing values.
+      (a = $1); sub("chr", "", a); print $3, a, $2, toupper($5), toupper($4), (($6*0.459)+($8*0.541)), log($10), "NA", $11, (observations), "NA", (($7*0.459)+($9*0.541)), (cases), (controls)
+    else if ((toupper($6) != "NA") && (toupper($7) != "NA") && (toupper($8) == "NA") && (toupper($9) == "NA"))
+      # Report non-missing values from Iceland Biobank.
+      (a = $1); sub("chr", "", a); print $3, a, $2, toupper($5), toupper($4), ($6), log($10), "NA", $11, (observations), "NA", ($7), (cases), (controls)
+    else if ((toupper($6) == "NA") && (toupper($7) == "NA") && (toupper($8) != "NA") && (toupper($9) != "NA"))
+      # Report non-missing values from UK Biobank.
+      (a = $1); sub("chr", "", a); print $3, a, $2, toupper($5), toupper($4), ($8), log($10), "NA", $11, (observations), "NA", ($9), (cases), (controls)
+    else
+      # Print missing values for frequency and imputation score.
+      (a = $1); sub("chr", "", a); print $3, a, $2, toupper($5), toupper($4), "NA", log($10), "NA", $11, (observations), "NA", (1.0), (cases), (controls)
   }' >> $path_file_temporary_format
 fi
 

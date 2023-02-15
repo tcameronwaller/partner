@@ -15,6 +15,8 @@
 # Effect allele: "A1"
 # Delimiter: white space
 # Columns: CHR POS ID REF ALT A1 AX A1_FREQ TEST OBS_CT OR LOG(OR)_SE L95 U95 Z_STAT P
+#          1   2   3  4   5   6  7  8       9    10     11 12         13  14  15     16 (TCW; 15 February 2023)
+# Note: It seems that the authors already converted the standard error of the odds ratio to the standard error for a beta coefficient.
 
 # Format Translation
 # columns: $3, $1, $2, toupper($6), toupper($7), $8, log($11), $12, $16, $10, $15, (1), "NA", "NA"

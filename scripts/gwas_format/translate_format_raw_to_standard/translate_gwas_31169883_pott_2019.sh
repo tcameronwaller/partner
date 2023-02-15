@@ -14,8 +14,9 @@
 # Human Genome Assembly:
 # Effect allele: "effect_allele"
 # Delimiter: white space
-# Columns ("GWAS"): markername chr bp_hg19 effect_allele other_allele effect_allele_freq info n beta se p
-# Columns ("META"): markername chr bp_hg19 effect_allele other_allele effect_allele_freq min_info n beta se p CochransQ pCochransQ
+# Columns ("GWAS"): markername chr bp_hg19 effect_allele other_allele effect_allele_freq info     n  beta se  p
+# Columns ("META"): markername chr bp_hg19 effect_allele other_allele effect_allele_freq min_info n  beta se  p CochransQ pCochransQ
+#                   1          2   3       4             5            6                  7        8  9    10  11                     (TCW; 15 February 2023)
 
 # Format Translation
 # Identifiers of SNP variants is [rsID]:[position]:[other allele]:[effect allele].

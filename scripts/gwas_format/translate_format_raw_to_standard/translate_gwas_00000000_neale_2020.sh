@@ -13,11 +13,13 @@
 # Documentation: https://pan.ukbb.broadinstitute.org/docs/per-phenotype-files#per-phenotype-files
 # Human Genome Assembly: GRCh37 (UK Biobank)
 # Effect Allele: "alt" ("Used as effect allele for GWAS.") (TCW; 1 February 2023)
-# Use of the general columns for Effect Allele Frequency (af_meta), Beta Coefficient (beta_meta),
-# Standard Error (se_meta), and Probability (pval_meta) would be more inclusive as some
-# phenotypes did not pass quality control.
 # Delimiter: white space
 # Columns: chr pos ref alt af_meta_hq beta_meta_hq se_meta_hq pval_meta_hq pval_heterogeneity_hq af_meta beta_meta se_meta pval_meta pval_heterogeneity ...
+#          1   2   3   4   5          6            7          8            9                     10      11        12      13        14                    (TCW; 15 February 2023)
+# Note: Use the general columns for Effect Allele Frequency (af_meta), Beta Coefficient (beta_meta),
+# Standard Error (se_meta), and Probability (pval_meta) would be more inclusive as some
+# phenotypes did not pass quality control.
+
 
 # Format Translation
 # The GWAS summary statistics do not include rs identifiers for SNP variants.

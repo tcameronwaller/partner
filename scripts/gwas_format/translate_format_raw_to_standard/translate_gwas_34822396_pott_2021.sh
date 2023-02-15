@@ -11,9 +11,10 @@
 
 # Source Format
 # Human Genome Assembly: GRCh37 (hg19)
-# Effect allele: ______ (assume "ea", but confirm)
+# Effect allele: "ea"
 # Delimiter: white space
-# Columns: markername chr bp_hg19 ea oa eaf info nSamples nStudies beta se p I2 phenotype
+# Columns: markername chr bp_hg19 ea oa eaf info nSamples nStudies beta se  p  I2  phenotype
+#          1          2   3       4  5  6   7    8        9        10   11  12 13  14        (TCW; 15 February 2023)
 
 # Format Translation
 # Identifiers of SNP variants is [rsID]:[position]:[other allele]:[effect allele].

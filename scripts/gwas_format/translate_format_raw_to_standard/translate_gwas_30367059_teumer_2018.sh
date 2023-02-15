@@ -13,7 +13,8 @@
 # Human Genome Assembly: GRCh37 (TCW; 24 January 2023)
 # Effect allele: "Allele1" ("coding allele") (TCW; 24 January 2023)
 # Delimiter: comma
-# Columns: " MarkerName,Allele1,Allele2,Freq1,Effect,StdErr,P.value,N,I2 " # (TCW; 24 January 2023)
+# Columns: MarkerName Allele1 Allele2 Freq1 Effect StdErr P.value N I2
+#          1          2       3       4     5      6      7       8 9 (TCW; 15 February 2023)
 # Note:
 # The source format is the same for linear and logistic GWAS in collection (TCW; 24 January 2023).
 # Format of "MarkerName" is "[chromosome]:[position]:[type such as SNP]" (TCW; 24 January 2023).

@@ -6,34 +6,21 @@
 # Notes
 
 # This script translates the format of GWAS summary statistics from
-# Zhou et al, Nature Communications, 2020 (PubMed:32769997).
-# Host: http://csg.sph.umich.edu/willer/public/TSH2020/
-# Host: https://www.ebi.ac.uk/gwas/publications/32769997
+# Mathieu et al, iScience, 2022 (PubMed:36093044).
+# Host: https://www.ebi.ac.uk/gwas/publications/36093044
 
 # Source Format
-# Human Genome Assembly: GRCh37 (hg19) (TCW; 24 January 2023)
-# Effect allele: "Allele1" ("Effect allele") (TCW; 24 January 2023)
+# Human Genome Assembly: GRCh37 (UK Biobank)
+# Effect Allele: "effect_allele"
 # Delimiter: white space
-# Columns: Chr Pos Allele1 Allele2 Freq N Effect SE P-value Direction HetPval
-#          1   2   3       4       5    6 7      8  9       10        11      (TCW; 15 February 2023)
-
-# Format Translation
-# The GWAS summary statistics do not include rs identifiers for SNP variants.
-# Instead, define for SNP variants a special identifier format, "chr[chromosome]_[position]_[effect allele]".
-# The LDSC Munge procedure might be able to interpret this identifier.
-# columns: ("chr"$1"_"$2"_"$3), $1, $2, toupper($3), toupper($4), $5, $7, $8, $9, $6, "NA", (1), "NA", "NA"
+# Columns: variant_id chromosome base_pair_location effect_allele other_allele beta standard_error p_value
+#          1          2          3                  4             5            6    7              8       (TCW; 15 February 2023)
 
 # Product Format (Team Standard)
-# effect allele: "A1"
 # delimiter: white space
 # columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
 
-# review: TCW; 24 January 2023
-# check: Standard Format Columns [TCW; 22 December 2022]
-# check: Study citation, PubMed, and Host website [TCW; 22 December 2022]
-# check: Study field delimiters [TCW; 23 December 2022]
-# check: Study source columns [TCW; 23 December 2022]
-# check: Translation column order [TCW; 23 December 2022]
+# review: TCW; __ February 2023
 
 
 ###########################################################################
@@ -78,11 +65,13 @@ rm $path_file_product
 # Note that AWK interprets a single space delimiter (FS=" ") as any white space.
 echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format
 # For conciseness, only support the conditions that are relevant.
-if [ "$fill_observations" != "1" ] && [ "$fill_case_control" != "1" ]; then
-  zcat $path_file_source | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-    print ("chr"$1"_"$2"_"$3), $1, $2, toupper($3), toupper($4), $5, $7, $8, $9, $6, "NA", (1.0), "NA", "NA"
+if [ "$fill_observations" == "1" ] && [ "$fill_case_control" == "1" ]; then
+  zcat $path_file_source | awk -v observations=$observations -v cases=$cases -v controls=$controls 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+    print $1, $2, $3, toupper($4), toupper($5), $6, $8, $9, $10, (observations), "NA", $7, (cases), (controls)
   }' >> $path_file_temporary_format
 fi
+
+
 
 # Compress file format.
 gzip -cvf $path_file_temporary_format > $path_file_product

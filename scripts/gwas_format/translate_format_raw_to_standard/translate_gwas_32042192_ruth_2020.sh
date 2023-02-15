@@ -14,6 +14,7 @@
 # Effect Allele: "effect_allele"
 # Delimiter: white space
 # Columns: variant_id chromosome base_pair_location effect_allele other_allele effect_allele_frequency imputation_quality beta standard_error p_value
+#          1          2          3                  4             5            6                       7                  8    9              10      (TCW; 15 February 2023)
 
 # Format Translation
 # columns: $1, $2, $3, toupper($4), toupper($5), $6, $8, $9, $10, ([count of samples]), "NA", $7, "NA", "NA"
