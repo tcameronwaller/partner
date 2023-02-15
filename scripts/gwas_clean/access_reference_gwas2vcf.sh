@@ -3,6 +3,17 @@
 ################################################################################
 # Notes:
 
+##########
+# Tool: GWAS2VCF
+# PubMed: 33441155
+# GWAS-VCF format specification: https://github.com/MRCIEU/gwas-vcf-specification
+# Host of GWAS2VCF: https://github.com/MRCIEU/gwas2vcf
+# Documentation for GWAS2VCF: https://mrcieu.github.io/gwas2vcf
+# Host of GWASGlue: https://github.com/MRCIEU/gwasglue
+# Examples of analyses: https://mrcieu.github.io/gwasglue/articles/
+
+# Last accession: 15 February 2023
+
 ################################################################################
 
 ################################################################################
@@ -30,8 +41,7 @@ mkdir -p $path_directory_dbsnp
 
 ################################################################################
 # Option 1: Access references files organized specifically for GWAS2VCF.
-
-
+# https://mrcieu.github.io/gwas2vcf/install/
 
 ##########
 # Genomic sequence.
@@ -43,7 +53,7 @@ cd $path_directory_sequence
 
 # GRCh37/hg19/b37
 #wget http://fileserve.mrcieu.ac.uk/ref/2.8/b37/human_g1k_v37.fasta.gz; gzip -d human_g1k_v37.fasta.gz
-wget http://fileserve.mrcieu.ac.uk/ref/2.8/b37/human_g1k_v37.fasta.gz # <-- need to access again... TCW; 6 February 2023
+wget http://fileserve.mrcieu.ac.uk/ref/2.8/b37/human_g1k_v37.fasta.gz
 wget http://fileserve.mrcieu.ac.uk/ref/2.8/b37/human_g1k_v37.fasta.fai
 wget http://fileserve.mrcieu.ac.uk/ref/2.8/b37/human_g1k_v37.dict
 
@@ -55,6 +65,7 @@ wget http://fileserve.mrcieu.ac.uk/ref/2.8/b37/human_g1k_v37.dict
 ##########
 # dbSNP.
 cd $path_directory_dbsnp
+
 # GRCh37/hg19/b37
 wget http://fileserve.mrcieu.ac.uk/dbsnp/dbsnp.v153.b37.vcf.gz .
 wget http://fileserve.mrcieu.ac.uk/dbsnp/dbsnp.v153.b37.vcf.gz.tbi .
