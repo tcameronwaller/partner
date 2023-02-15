@@ -14,22 +14,6 @@ sudo apt install software-properties-common
 sudo apt install wget
 sudo apt install curl
 
-##########
-# BGZip
-# A bioinformatics tool for compression in GZip format with Tabix index.
-# http://www.htslib.org/doc/bgzip.html
-# The HTSLib includes BGZip and Tabix.
-# http://www.htslib.org/download/
-wget https://github.com/samtools/htslib/releases/download/1.16/htslib-1.16.tar.bz2
-tar -xjvf ./htslib-1.16.tar.bz2 -C ./
-cd ./htslib-1.16
-./configure --prefix=../htslib/1.16
-make
-make install
-cd ../htslib/1.16/bin/
-./bgzip --help
-
-
 # Install Tweak tool to customize Ubuntu's appearance and behavior.
 sudo add-apt-repository universe
 sudo apt install gnome-tweaks
@@ -214,19 +198,42 @@ sudo apt install fldigi
 # http://www.w1hkj.com/files/AndFlmsg/
 # http://www.w1hkj.com/files/AndFlmsg/AndFlmsg_V1.5.0-20210812.apk
 
+
+
+##########
+# BGZip
+# Last installation: TCW; 15 February 2023 (on NCSA server)
+# A bioinformatics tool for compression in GZip format with Tabix index.
+# http://www.htslib.org/doc/bgzip.html
+# The HTSLib includes BGZip and Tabix.
+# http://www.htslib.org/download/
+wget https://github.com/samtools/htslib/releases/download/1.16/htslib-1.16.tar.bz2
+tar -xjvf ./htslib-1.16.tar.bz2 -C ./
+cd ./htslib-1.16
+./configure --prefix=../htslib/1.16 # requires absolute directory path
+make
+make install
+cd ../htslib/1.16/bin/
+./bgzip --help
+
+
+
 ##########
 # BCFTools
+# Last installation: TCW; 15 February 2023 (on NCSA server)
 # A bioinformatic tool for tasks on genotype files in Variant Call Format (VCF).
 # https://samtools.github.io/bcftools/
 # http://www.htslib.org/download/
-wget https://github.com/samtools/bcftools/releases/download/1.15.1/bcftools-1.15.1.tar.bz2
-tar -xjvf ./bcftools-1.15.1.tar.bz2 -C ./
-cd ./bcftools-1.15.1
-./configure --prefix=../bcftools/1.15.1
+wget https://github.com/samtools/bcftools/releases/download/1.16/bcftools-1.16.tar.bz2
+tar -xjvf ./bcftools-1.16.tar.bz2 -C ./
+cd ./bcftools-1.16
+./configure --prefix=../bcftools/1.16 # requires absolute directory path
 make
 make install
-cd ../bcftools/1.15.1/bin/
+cd ../bcftools/1.16/bin/
 ./bcftools --help
+
+
 
 ##########
 # GCTB

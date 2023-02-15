@@ -79,7 +79,6 @@ wget http://fileserve.mrcieu.ac.uk/dbsnp/dbsnp.v153.b37.vcf.gz.tbi .
 ################################################################################
 # Option 2: Access references files from original sources.
 
-
 # dbSNP.
 # Need to translate names of chromosomes in the dbSNP reference.
 # Use the "annotate" funtion in BCFTools.
@@ -87,3 +86,7 @@ wget http://fileserve.mrcieu.ac.uk/dbsnp/dbsnp.v153.b37.vcf.gz.tbi .
 # See: https://mrcieu.github.io/gwas2vcf/install/
 
 # See also script: ".../promiscuity/scripts/access_genetic_reference/call_access_translate_sequence_dbsnp_human_grch37_grch38_vcf"
+
+
+
+#
