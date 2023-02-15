@@ -83,8 +83,7 @@ if [ "$fill_observations" != "1" ] && [ "$fill_case_control" != "1" ]; then
   zcat $path_file_source | awk 'BEGIN {FS = ","; OFS = " "} NR > 1 {
     (a = $1); split(a, b, ":"); print a, b[1], b[2], toupper($2), toupper($3), $4, $5, $6, $7, $8, "NA", (1.0), "NA", "NA"
   }' >> $path_file_temporary_format
-fi
-if [ "$fill_observations" != "1" ] && [ "$fill_case_control" == "1" ]; then
+elif [ "$fill_observations" != "1" ] && [ "$fill_case_control" == "1" ]; then
   zcat $path_file_source | awk -v cases=$cases -v controls=$controls 'BEGIN {FS = ","; OFS = " "} NR > 1 {
     (a = $1); split(a, b, ":"); print a, b[1], b[2], toupper($2), toupper($3), $4, $5, $6, $7, $8, "NA", (1.0), (cases), (controls)
   }' >> $path_file_temporary_format

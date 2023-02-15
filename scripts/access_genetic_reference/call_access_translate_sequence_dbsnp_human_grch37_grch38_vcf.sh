@@ -4,7 +4,7 @@
 ################################################################################
 # Notes:
 
-# Last execution: __ February 2023 (TCW; on NCSA server)
+# Last execution: TCW; 15 February 2023 (TCW; on NCSA server)
 
 # Review: TCW; 6 February 2023
 
@@ -61,7 +61,7 @@ if false; then
 fi
 
 if true; then
-  # Call script for translation on dbSNP. (TCW; __ February 2023)
+  # Call script for translation on dbSNP. (TCW; 15 February 2023)
   /usr/bin/bash $path_file_script_translate_dbsnp \
   $path_directory_parent_dbsnp \
   $path_file_translation_grch37 \

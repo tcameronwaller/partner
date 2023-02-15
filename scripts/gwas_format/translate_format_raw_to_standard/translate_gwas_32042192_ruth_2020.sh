@@ -76,7 +76,13 @@ if [ "$fill_observations" == "1" ] && [ "$fill_case_control" != "1" ]; then
   zcat $path_file_source | awk -v observations=$observations 'BEGIN {FS = " "; OFS = " "} NR > 1 {
     print $1, $2, $3, toupper($4), toupper($5), $6, $8, $9, $10, (observations), "NA", $7, "NA", "NA"
   }' >> $path_file_temporary_format
+elif [ "$fill_observations" == "1" ] && [ "$fill_case_control" == "1" ]; then
+  zcat $path_file_source | awk -v observations=$observations -v cases=$cases -v controls=$controls 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+    print $1, $2, $3, toupper($4), toupper($5), $6, $8, $9, $10, (observations), "NA", $7, (cases), (controls)
+  }' >> $path_file_temporary_format
 fi
+
+
 
 # Compress file format.
 gzip -cvf $path_file_temporary_format > $path_file_product

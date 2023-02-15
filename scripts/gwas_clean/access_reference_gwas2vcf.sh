@@ -12,7 +12,7 @@
 # Host of GWASGlue: https://github.com/MRCIEU/gwasglue
 # Examples of analyses: https://mrcieu.github.io/gwasglue/articles/
 
-# Last accession: 15 February 2023
+# Last execution: TCW; 15 February 2023
 
 ################################################################################
 
