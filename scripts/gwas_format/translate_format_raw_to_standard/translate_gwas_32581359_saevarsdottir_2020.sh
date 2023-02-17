@@ -78,16 +78,16 @@ if [ "$fill_observations" == "1" ] && [ "$fill_case_control" == "1" ]; then
   zcat $path_file_source | awk -v observations=$observations -v cases=$cases -v controls=$controls 'BEGIN {FS = " "; OFS = " "} NR > 1 {
     if ((toupper($6) != "NA") && (toupper($7) != "NA") && (toupper($8) != "NA") && (toupper($9) != "NA"))
       # Calculate frequency and imputation score from non-missing values.
-      print $3, $1, $2, toupper($5), toupper($4), (($6*0.459)+($8*0.541)), log($10), "NA", $11, (observations), "NA", (($7*0.459)+($9*0.541)), (cases), (controls)
+      (a = $1); sub(/chr/, "", a); print $3, a, $2, toupper($5), toupper($4), (($6*0.459)+($8*0.541)), log($10), "NA", $11, (observations), "NA", (($7*0.459)+($9*0.541)), (cases), (controls)
     else if ((toupper($6) != "NA") && (toupper($7) != "NA") && (toupper($8) == "NA") && (toupper($9) == "NA"))
       # Report non-missing values from Iceland Biobank.
-      print $3, $1, $2, toupper($5), toupper($4), ($6), log($10), "NA", $11, (observations), "NA", ($7), (cases), (controls)
+      (a = $1); sub(/chr/, "", a); print $3, a, $2, toupper($5), toupper($4), ($6), log($10), "NA", $11, (observations), "NA", ($7), (cases), (controls)
     else if ((toupper($6) == "NA") && (toupper($7) == "NA") && (toupper($8) != "NA") && (toupper($9) != "NA"))
       # Report non-missing values from UK Biobank.
-      print $3, $1, $2, toupper($5), toupper($4), ($8), log($10), "NA", $11, (observations), "NA", ($9), (cases), (controls)
+      (a = $1); sub(/chr/, "", a); print $3, a, $2, toupper($5), toupper($4), ($8), log($10), "NA", $11, (observations), "NA", ($9), (cases), (controls)
     else
       # Print missing values for frequency and imputation score.
-      print $3, $1, $2, toupper($5), toupper($4), "NA", log($10), "NA", $11, (observations), "NA", (1.0), (cases), (controls)
+      (a = $1); sub(/chr/, "", a); print $3, a, $2, toupper($5), toupper($4), "NA", log($10), "NA", $11, (observations), "NA", (1.0), (cases), (controls)
   }' >> $path_file_temporary_format
 fi
 
