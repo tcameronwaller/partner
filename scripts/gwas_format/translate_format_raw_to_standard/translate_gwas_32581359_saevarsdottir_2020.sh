@@ -110,10 +110,11 @@ if [ "$fill_observations" == "1" ] && [ "$fill_case_control" == "1" ]; then
 fi
 
 # Remove "chr" prefix from chromosome identifiers.
-echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format_2
-awk 'BEGIN {FS = " "; OFS = " "} NR > 1 { sub(/chr/,"", $2); print } ' $path_file_temporary_format >> $path_file_temporary_format_2
 #awk 'BEGIN {FS = " "; OFS = " "} NR > 1 { gsub(/chr/,"", $2); print } ' $path_file_temporary_format > $path_file_temporary_format
-
+echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format_2
+cat $path_file_temporary_format | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+  (a = $2); sub(/chr/,"", a); print $1, a, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
+} ' >> $path_file_temporary_format_2
 
 # Compress file format.
 gzip -cvf $path_file_temporary_format_2 > $path_file_product
