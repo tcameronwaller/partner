@@ -26,7 +26,7 @@
 # delimiter: white space
 # columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
 
-# Review: TCW; 15 February 2023
+# Review: TCW; 17 February 2023
 
 ###########################################################################
 ###########################################################################
