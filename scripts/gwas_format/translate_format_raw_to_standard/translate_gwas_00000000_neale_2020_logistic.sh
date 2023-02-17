@@ -12,32 +12,25 @@
 # Source Format
 # Documentation: https://pan.ukbb.broadinstitute.org/docs/per-phenotype-files#per-phenotype-files
 # Human Genome Assembly: GRCh37 (UK Biobank)
-# Effect Allele: "alt" ("Used as effect allele for GWAS.") (TCW; 1 February 2023)
+# Effect Allele: "alt" ("Alternate allele ... Used as effect allele for GWAS.") (TCW; 16 February 2023)
 # Delimiter: white space
-# Columns: chr pos ref alt af_meta_hq beta_meta_hq se_meta_hq pval_meta_hq pval_heterogeneity_hq af_meta beta_meta se_meta pval_meta pval_heterogeneity ...
-#          1   2   3   4   5          6            7          8            9                     10      11        12      13        14                    (TCW; 15 February 2023)
+# Columns: chr pos ref alt af_cases_meta  af_controls_meta beta_meta se_meta neglog10_pval_meta neglog10_pval_heterogeneity ...
+#          1   2   3   4   5              6                7         8       9                  10                          (TCW; 16 February 2023)
 # Note: Use the general columns for Effect Allele Frequency (af_meta), Beta Coefficient (beta_meta),
 # Standard Error (se_meta), and Probability (pval_meta) would be more inclusive as some
 # phenotypes did not pass quality control.
-
 
 # Format Translation
 # The GWAS summary statistics do not include rs identifiers for SNP variants.
 # Instead, define for SNP variants a special identifier format, "chr[chromosome]_[position]_[effect allele]".
 # The LDSC Munge procedure might be able to interpret this identifier.
-# columns: ("chr"$1"_"$2"_"$4), $1, $2, toupper($4), toupper($3), $10, $11, $12, $13, ([count of samples]), "NA", (1), "NA", "NA"
+# columns: ("chr"$1"_"$2"_"$4), ...
 
 # Product Format (Team Standard)
 # delimiter: white space
 # columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
 
-# review: TCW; 23 December 2022
-# check: Standard Format Columns [TCW; 22 December 2022]
-# check: Study citation, PubMed, and Host website [TCW; 22 December 2022]
-# check: Study field delimiters [TCW; 23 December 2022]
-# check: Study source columns [TCW; 23 December 2022]
-# check: Translation column order [TCW; 23 December 2022]
-
+# Review: TCW; 16 February 2023
 
 ###########################################################################
 ###########################################################################
@@ -81,16 +74,16 @@ rm $path_file_product
 # Note that AWK interprets a single space delimiter (FS=" ") as any white space.
 echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format
 # For conciseness, only support the conditions that are relevant.
-if [ "$fill_observations" == "1" ] && [ "$fill_case_control" != "1" ]; then
-  zcat $path_file_source | awk -v observations=$observations 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-    print ("chr"$1"_"$2"_"$4), $1, $2, toupper($4), toupper($3), $10, $11, $12, $13, (observations), "NA", (1.0), "NA", "NA"
-  }' >> $path_file_temporary_format
-elif [ "$fill_observations" == "1" ] && [ "$fill_case_control" == "1" ]; then
+if [ "$fill_observations" == "1" ] && [ "$fill_case_control" == "1" ]; then
   zcat $path_file_source | awk -v observations=$observations -v cases=$cases -v controls=$controls 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-    print ("chr"$1"_"$2"_"$4), $1, $2, toupper($4), toupper($3), $10, $11, $12, $13, (observations), "NA", (1.0), (cases), (controls)
+    if ((toupper($5) != "NA") && (toupper($6) != "NA"))
+      # Calculate allele frequency from combination of cases and controls.
+      print ("chr"$1"_"$2"_"$4), $1, $2, toupper($4), toupper($3), (($5*(cases / (cases + controls))) + ($6*(controls / (cases + controls)))), $7, $8, (10^-$9), (observations), "NA", (1.0), (cases), (controls)
+    else
+      # Print missing value for allele frequency.
+      print ("chr"$1"_"$2"_"$4), $1, $2, toupper($4), toupper($3), "NA", $7, $8, (10^-$9), (observations), "NA", (1.0), (cases), (controls)
   }' >> $path_file_temporary_format
 fi
-
 
 # Compress file format.
 gzip -cvf $path_file_temporary_format > $path_file_product

@@ -213,7 +213,7 @@ fi
 # Note: There might be a difference between "[%AF]" and "%AF".
 # Note: The documentation uses "%AF", but this could be an error.
 # Note: TCW; 7 February 2023
-# Note: This extraction converts the logarithm of the p-value to the p-value itself.
+# Note: This extraction converts the negative logarithm (base ten) of the p-value to the p-value itself.
 # Note: It seems to be a problem to request a field that does not exist in the specific GWAS-VCF file.
 # Note: It might be necessary to query GWAS-VCF files differently for those with or without counts of cases and controls.
 if true; then

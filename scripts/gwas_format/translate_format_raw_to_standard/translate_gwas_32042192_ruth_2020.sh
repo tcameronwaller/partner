@@ -23,13 +23,7 @@
 # delimiter: white space
 # columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
 
-# review: TCW; 23 December 2022
-# check: Standard Format Columns [TCW; 22 December 2022]
-# check: Study citation, PubMed, and Host website [TCW; 22 December 2022]
-# check: Study field delimiters [TCW; 23 December 2022]
-# check: Study source columns [TCW; 23 December 2022]
-# check: Translation column order [TCW; 23 December 2022]
-
+# Review: TCW; 15 February 2023
 
 ###########################################################################
 ###########################################################################

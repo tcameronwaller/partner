@@ -6,22 +6,31 @@
 # Notes
 
 # This script translates the format of GWAS summary statistics from
-# Mathieu et al, iScience, 2022 (PubMed:36093044).
-# Host: https://www.ebi.ac.uk/gwas/publications/36093044
+# Neale Lab, 2020.
+# Host: https://pan.ukbb.broadinstitute.org/downloads
 
 # Source Format
+# Documentation: https://pan.ukbb.broadinstitute.org/docs/per-phenotype-files#per-phenotype-files
 # Human Genome Assembly: GRCh37 (UK Biobank)
-# Effect Allele: "effect_allele"
+# Effect Allele: "alt" ("Alternate allele ... Used as effect allele for GWAS.") (TCW; 16 February 2023)
 # Delimiter: white space
-# Columns: variant_id chromosome base_pair_location effect_allele other_allele beta standard_error p_value
-#          1          2          3                  4             5            6    7              8       (TCW; 15 February 2023)
+# Columns: chr pos ref alt af_cases_meta_hq af_controls_meta_hq beta_meta_hq se_meta_hq neglog10_pval_meta_hq neglog10_pval_heterogeneity_hq af_cases_meta af_controls_meta beta_meta se_meta neglog10_pval_meta neglog10_pval_heterogeneity ...
+#          1   2   3   4   5                6                   7            8          9                     10                             11            12               13         14     15                 16                          (TCW; 16 February 2023)
+# Note: Use the general columns for Effect Allele Frequency (af_meta), Beta Coefficient (beta_meta),
+# Standard Error (se_meta), and Probability (pval_meta) would be more inclusive as some
+# phenotypes did not pass quality control.
+
+# Format Translation
+# The GWAS summary statistics do not include rs identifiers for SNP variants.
+# Instead, define for SNP variants a special identifier format, "chr[chromosome]_[position]_[effect allele]".
+# The LDSC Munge procedure might be able to interpret this identifier.
+# columns: ("chr"$1"_"$2"_"$4), ...
 
 # Product Format (Team Standard)
 # delimiter: white space
 # columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
 
-# Review: TCW; 15 February 2023
-
+# Review: TCW; 16 February 2023
 
 ###########################################################################
 ###########################################################################
@@ -67,11 +76,14 @@ echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_tempora
 # For conciseness, only support the conditions that are relevant.
 if [ "$fill_observations" == "1" ] && [ "$fill_case_control" == "1" ]; then
   zcat $path_file_source | awk -v observations=$observations -v cases=$cases -v controls=$controls 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-    print $1, $2, $3, toupper($4), toupper($5), "NA", $6, $7, $8, (observations), "NA", (1.0), (cases), (controls)
+    if ((toupper($11) != "NA") && (toupper($12) != "NA"))
+      # Calculate allele frequency from combination of cases and controls.
+      print ("chr"$1"_"$2"_"$4), $1, $2, toupper($4), toupper($3), (($11*(cases / (cases + controls))) + ($12*(controls / (cases + controls)))), $13, $14, (10^-$15), (observations), "NA", (1.0), (cases), (controls)
+    else
+      # Print missing value for allele frequency.
+      print ("chr"$1"_"$2"_"$4), $1, $2, toupper($4), toupper($3), "NA", $13, $14, (10^-$15), (observations), "NA", (1.0), (cases), (controls)
   }' >> $path_file_temporary_format
 fi
-
-
 
 # Compress file format.
 gzip -cvf $path_file_temporary_format > $path_file_product
