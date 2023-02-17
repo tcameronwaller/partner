@@ -113,7 +113,7 @@ fi
 #awk 'BEGIN {FS = " "; OFS = " "} NR > 1 { gsub(/chr/,"", $2); print } ' $path_file_temporary_format > $path_file_temporary_format
 echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format_2
 cat $path_file_temporary_format | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-  (a = $2); gsub(/chr/,"", a); print $1, a, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
+  (a = $2); sub(/chr/,"", a); print $1, a, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
 } ' >> $path_file_temporary_format_2
 
 # Compress file format.
@@ -128,7 +128,7 @@ if [[ "$report" == "true" ]]; then
   echo "path to source GWAS file: " $path_file_source
   echo "path to product GWAS file: " $path_file_product
   echo "table after format:"
-  head -10 $path_file_temporary_format
+  head -10 $path_file_temporary_format_2
   echo "----------"
   echo "----------"
   echo "----------"
