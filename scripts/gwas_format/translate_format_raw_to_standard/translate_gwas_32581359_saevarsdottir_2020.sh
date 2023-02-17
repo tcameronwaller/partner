@@ -72,6 +72,8 @@ rm $path_file_product
 # Note: TCW; 17 February 2023
 # The logarithm of a negative number or zero is undefined.
 
+# (toupper($10) != "NA") && (($10 + 0) > 0) &&
+
 ##########
 # Translate format of GWAS summary statistics.
 # Note that AWK interprets a single space delimiter (FS=" ") as any white space.
@@ -79,16 +81,16 @@ echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_tempora
 # For conciseness, only support the conditions that are relevant.
 if [ "$fill_observations" == "1" ] && [ "$fill_case_control" == "1" ]; then
   zcat $path_file_source | awk -v observations=$observations -v cases=$cases -v controls=$controls 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-    if ((toupper($10) != "NA") && (($10 + 0) > 0) && (toupper($6) != "NA") && (toupper($7) != "NA") && (toupper($8) != "NA") && (toupper($9) != "NA"))
+    if ((($10 + 0) > 0) && (toupper($6) != "NA") && (toupper($7) != "NA") && (toupper($8) != "NA") && (toupper($9) != "NA"))
       # Calculate frequency and imputation quality score from non-missing values.
       (a = $1); sub(/chr/, "", a); print $3, a, $2, toupper($5), toupper($4), (($6*0.459)+($8*0.541)), log($10), "NA", $11, (observations), "NA", (($7*0.459)+($9*0.541)), (cases), (controls)
-    else if ((toupper($10) != "NA") && (($10 + 0) > 0) && (toupper($6) != "NA") && (toupper($7) != "NA") && (toupper($8) == "NA") && (toupper($9) == "NA"))
+    else if ((($10 + 0) > 0) && (toupper($6) != "NA") && (toupper($7) != "NA") && (toupper($8) == "NA") && (toupper($9) == "NA"))
       # Report non-missing values from Iceland Biobank.
       (a = $1); sub(/chr/, "", a); print $3, a, $2, toupper($5), toupper($4), ($6), log($10), "NA", $11, (observations), "NA", ($7), (cases), (controls)
-    else if ((toupper($10) != "NA") && (($10 + 0) > 0) && (toupper($6) == "NA") && (toupper($7) == "NA") && (toupper($8) != "NA") && (toupper($9) != "NA"))
+    else if ((($10 + 0) > 0) && (toupper($6) == "NA") && (toupper($7) == "NA") && (toupper($8) != "NA") && (toupper($9) != "NA"))
       # Report non-missing values from UK Biobank.
       (a = $1); sub(/chr/, "", a); print $3, a, $2, toupper($5), toupper($4), ($8), log($10), "NA", $11, (observations), "NA", ($9), (cases), (controls)
-    else if ((toupper($10) != "NA") && (($10 + 0) > 0))
+    else if ((($10 + 0) > 0))
       # Report missing values for allele frequency and a meaningless imputation quality score.
       (a = $1); sub(/chr/, "", a); print $3, a, $2, toupper($5), toupper($4), "NA", log($10), "NA", $11, (observations), "NA", (1.0), (cases), (controls)
     else
