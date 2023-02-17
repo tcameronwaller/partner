@@ -65,6 +65,9 @@ rm $path_file_product
 ###########################################################################
 # Execute procedure.
 
+# Note: TCW; 17 February 2023
+# The logarithm of a negative number or zero is undefined.
+
 ##########
 # Translate format of GWAS summary statistics.
 # Note that AWK interprets a single space delimiter (FS=" ") as any white space.
@@ -72,7 +75,10 @@ echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_tempora
 # For conciseness, only support the conditions that are relevant.
 if [ "$fill_observations" != "1" ] && [ "$fill_case_control" == "1" ]; then
   zcat $path_file_source | awk -v cases=$cases -v controls=$controls 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-    print $3, $1, $2, toupper($6), toupper($7), $8, log($11), $12, $16, $10, $15, (1.0), (cases), (controls)
+    if ((toupper($11) != "NA") && (($11 + 0) > 0))
+      print $3, $1, $2, toupper($6), toupper($7), $8, log($11), $12, $16, $10, $15, (1.0), (cases), (controls)
+    else
+      print $3, $1, $2, toupper($6), toupper($7), $8, "NA", $12, $16, $10, $15, (1.0), (cases), (controls)
   }' >> $path_file_temporary_format
 fi
 
