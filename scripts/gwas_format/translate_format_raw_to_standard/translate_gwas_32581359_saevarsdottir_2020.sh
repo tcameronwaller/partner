@@ -57,6 +57,7 @@ name_base_file_product="$(basename $path_file_product .txt.gz)"
 path_directory_product="$(dirname $path_file_product)"
 path_directory_product_temporary="${path_directory_product}/temporary_format_${name_base_file_product}" # hopefully unique
 path_file_temporary_format="${path_directory_product_temporary}/${name_base_file_product}_format.txt"
+path_file_temporary_format_2="${path_directory_product_temporary}/${name_base_file_product}_format_2.txt"
 
 # Initialize directory.
 mkdir -p $path_directory_product
@@ -72,9 +73,16 @@ rm $path_file_product
 # Note: TCW; 17 February 2023
 # The logarithm of a negative number or zero is undefined.
 
-# (toupper($10) != "NA") && (($10 + 0) > 0) &&
-
-# (a = $1); sub(/chr/, "", a);
+# Note: TCW; 17 February 2023
+# For some odd reason, the following blocks of code in awk return a syntax error
+# when executed within a conditional statement.
+# Comparable blocks of code in awk do not return a syntax error when executed
+# without a conditional statement.
+# "(a = $1); sub(/chr/, "", a); print $3, a, ..."
+# "(a = $1); sub("chr", "", a); print $3, a, ..."
+# "(a = $1); gsub(/chr/, "", a); print $3, a, ..."
+# "(a = $1); gsub("chr", "", a); print $3, a, ..."
+# Avoid the problem by removing the string in a subsequent call to awk.
 
 ##########
 # Translate format of GWAS summary statistics.
@@ -84,7 +92,7 @@ echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_tempora
 if [ "$fill_observations" == "1" ] && [ "$fill_case_control" == "1" ]; then
   zcat $path_file_source | awk -v observations=$observations -v cases=$cases -v controls=$controls 'BEGIN {FS = " "; OFS = " "} NR > 1 {
     if ((toupper($10) != "NA") && (($10 + 0) > 0) && (toupper($6) != "NA") && (toupper($7) != "NA") && (toupper($8) != "NA") && (toupper($9) != "NA"))
-      # Calculate frequency and imputation quality score from non-missing values.
+      # Calculate allele frequency and imputation quality score from non-missing values for Iceland Biobank and UK Biobank.
       print $3, $1, $2, toupper($5), toupper($4), (($6*0.459)+($8*0.541)), log($10), "NA", $11, (observations), "NA", (($7*0.459)+($9*0.541)), (cases), (controls)
     else if ((toupper($10) != "NA") && (($10 + 0) > 0) && (toupper($6) != "NA") && (toupper($7) != "NA") && (toupper($8) == "NA") && (toupper($9) == "NA"))
       # Report non-missing values from Iceland Biobank.
@@ -100,13 +108,15 @@ if [ "$fill_observations" == "1" ] && [ "$fill_case_control" == "1" ]; then
       print $3, $1, $2, toupper($5), toupper($4), "NA", "NA", "NA", $11, (observations), "NA", (1.0), (cases), (controls)
   }' >> $path_file_temporary_format
 fi
+
 # Remove "chr" prefix from chromosome identifiers.
-awk 'BEGIN {FS = " "; OFS = " "} NR > 1 { sub(/chr/,"", $2); print } ' $path_file_temporary_format > $path_file_temporary_format
+echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format_2
+awk 'BEGIN {FS = " "; OFS = " "} NR > 1 { sub(/chr/,"", $2); print } ' $path_file_temporary_format >> $path_file_temporary_format_2
 #awk 'BEGIN {FS = " "; OFS = " "} NR > 1 { gsub(/chr/,"", $2); print } ' $path_file_temporary_format > $path_file_temporary_format
 
 
 # Compress file format.
-gzip -cvf $path_file_temporary_format > $path_file_product
+gzip -cvf $path_file_temporary_format_2 > $path_file_product
 
 # Report.
 if [[ "$report" == "true" ]]; then
