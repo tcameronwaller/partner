@@ -54,7 +54,8 @@ path_directory_temporary="${path_directory_product}/temporary_tcw_test_20230208"
 #identifier_gwas="BD_PGC3_EUR"
 #path_file_gwas_source="${path_directory_dock}/hormone_genetics/gwas_from_team_collection/${identifier_gwas}.txt.gz"
 
-identifier_gwas="32581359_saevarsdottir_2020_aitd" # logistic
+#identifier_gwas="32581359_saevarsdottir_2020_aitd" # logistic
+identifier_gwas="36093044_mathieu_2022_hypothyroidism" # logistic
 
 #identifier_gwas="30367059_teumer_2018_hyperthyroidism"
 #identifier_gwas="30367059_teumer_2018_hypothyroidism" # <-- test logistic
