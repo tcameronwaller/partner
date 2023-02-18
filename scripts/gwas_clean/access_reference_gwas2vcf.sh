@@ -12,7 +12,7 @@
 # Host of GWASGlue: https://github.com/MRCIEU/gwasglue
 # Examples of analyses: https://mrcieu.github.io/gwasglue/articles/
 
-# Last execution: TCW; 15 February 2023
+# Last execution: TCW; 17 February 2023
 
 ################################################################################
 
@@ -26,13 +26,13 @@ report=${2} # whether to print reports
 # Organize paths.
 
 path_directory_sequence="${path_directory_parent}/genome_sequence"
-path_directory_dbsnp="${path_directory_parent}/dbsnp"
+#path_directory_dbsnp="${path_directory_parent}/dbsnp"
 
 # Initialize directory.
 #rm -r $path_directory_sequence
 #rm -r $path_directory_dbsnp
 mkdir -p $path_directory_sequence
-mkdir -p $path_directory_dbsnp
+#mkdir -p $path_directory_dbsnp
 
 ###########################################################################
 # Execute procedure.
