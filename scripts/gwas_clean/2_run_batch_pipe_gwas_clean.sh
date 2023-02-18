@@ -73,8 +73,10 @@ if true; then
   $path_file_gwas_source \
   $path_file_gwas_product \
   $type \
-  $count_cases \
+  $threads \
   $report
 fi
+
+
 
 #

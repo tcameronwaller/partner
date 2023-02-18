@@ -64,11 +64,11 @@ wget http://fileserve.mrcieu.ac.uk/ref/2.8/b37/human_g1k_v37.dict
 
 ##########
 # dbSNP.
-cd $path_directory_dbsnp
+#cd $path_directory_dbsnp
 
 # GRCh37/hg19/b37
-wget http://fileserve.mrcieu.ac.uk/dbsnp/dbsnp.v153.b37.vcf.gz .
-wget http://fileserve.mrcieu.ac.uk/dbsnp/dbsnp.v153.b37.vcf.gz.tbi .
+#wget http://fileserve.mrcieu.ac.uk/dbsnp/dbsnp.v153.b37.vcf.gz .
+#wget http://fileserve.mrcieu.ac.uk/dbsnp/dbsnp.v153.b37.vcf.gz.tbi .
 
 # GRCh38/hg38/b38
 #wget http://fileserve.mrcieu.ac.uk/dbsnp/dbsnp.v153.hg38.vcf.gz .

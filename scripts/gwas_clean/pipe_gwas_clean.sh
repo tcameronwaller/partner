@@ -6,14 +6,11 @@
 # In tests on 9 February 2023, there did not seem to be any difference in the
 # duration of this script's process when executed with 1 or 16 threads.
 
-# Review: TCW; 8 February 2023
+# Review: TCW; 17 February 2023
 
 ################################################################################
 
-# TODO: TCW; 9 February 2023
-# I think it's unnecessary to pass count_cases as an argument here.
-# I tell GWAS2VCF which column to use for cases.
-# So I don't need that "--cohort_cases" argument after all.
+
 
 ################################################################################
 # Organize arguments.
@@ -21,9 +18,8 @@
 path_file_gwas_source=${1} # full path to file for source GWAS summary statistics with GZip compression
 path_file_gwas_product=${2} # full path to file for product GWAS summary statistics in format with GZip compression
 type=${3} # type of genome-wide association study, either linear or logistic
-count_cases=${4} # count of cases in logistic genome-wide association study
-threads=${5} # count of processing threads to use
-report=${6} # whether to print reports
+threads=${4} # count of processing threads to use
+report=${5} # whether to print reports
 
 ################################################################################
 # Organize paths.
@@ -186,7 +182,6 @@ if true; then
     --id $identifier_gwas \
     --ref $path_ftemp_genome_decomp \
     --dbsnp $path_file_reference_dbsnp \
-    --cohort_cases $count_cases \
     --out $path_file_gwas_product_gwas2vcf_base \
     --log INFO 2>&1 | tee $path_file_gwas2vcf_report
   fi
