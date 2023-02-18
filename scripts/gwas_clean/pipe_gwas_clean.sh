@@ -53,8 +53,12 @@ path_file_gwas_product_gwas2vcf_index="${path_file_gwas_product_gwas2vcf_base}.g
 path_file_gwas2vcf_parameter_linear="${path_directory_process}/promiscuity/scripts/gwas_clean/parameter_gwas_standard_to_gwas2vcf_linear.json"
 path_file_gwas2vcf_parameter_logistic="${path_directory_process}/promiscuity/scripts/gwas_clean/parameter_gwas_standard_to_gwas2vcf_logistic.json"
 
+
+
 path_file_reference_genome_sequence="${path_directory_reference_gwas2vcf}/genome_sequence/human_g1k_v37.fasta.gz"
 path_file_reference_dbsnp="${path_directory_reference_gwas2vcf}/dbsnp/dbsnp.v153.b37.vcf.gz"
+
+
 
 # Temporary files.
 #path_ftemp_gwas_premunge="${path_directory_temporary}/${identifier_gwas}_before_munge.txt"
