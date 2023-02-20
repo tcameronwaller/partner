@@ -123,7 +123,9 @@ def read_extract_ldsc_heritability(
     # Define character strings that indicate relevant information.
     prefix_variants = "After merging with regression SNP LD, "
     suffix_variants = " SNPs remain."
-    prefix_heritability = "Total Observed scale h2: "
+    #prefix_heritability = "Total Observed scale h2: "
+    prefix_heritability_observed = "Total Observed scale h2: "
+    prefix_heritability_liability = "Total Liability scale h2: "
     prefix_chi_square = "Mean Chi^2: "
     prefix_ratio = "Ratio: "
 
@@ -133,8 +135,16 @@ def read_extract_ldsc_heritability(
             variants = int(
                 line.replace(prefix_variants, "").replace(suffix_variants, "")
             )
-        elif prefix_heritability in line:
-            content = line.replace(prefix_heritability, "")
+        elif prefix_heritability_observed in line:
+            content = line.replace(prefix_heritability_observed, "")
+            contents = content.split(" (")
+            heritability_test = contents[0]
+            if (not "NA" in heritability_test):
+                heritability = float(contents[0])
+                heritability_error = float(contents[1].replace(")", ""))
+            pass
+        elif prefix_heritability_liability in line:
+            content = line.replace(prefix_heritability_liability, "")
             contents = content.split(" (")
             heritability_test = contents[0]
             if (not "NA" in heritability_test):
