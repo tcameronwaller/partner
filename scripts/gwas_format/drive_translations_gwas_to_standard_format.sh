@@ -44,8 +44,10 @@ do
     echo "field 12, fill_case_control: ${array[12]}"
     echo "field 13, cases: ${array[13]}"
     echo "field 14, controls: ${array[14]}"
-    echo "field 15, script: ${array[15]}"
-    echo "field 16, note: ${array[16]}"
+    echo "field 15, prevalence_sample: ${array[15]}"
+    echo "field 16, prevalence_population: ${array[16]}"
+    echo "field 15, script: ${array[17]}"
+    echo "field 16, note: ${array[18]}"
     echo "----------"
   fi
   # Execute procedure for current record's parameters.
@@ -58,7 +60,7 @@ do
     path_file_source="${path_directory_child_source}/${name_file_source}"
     path_directory_temporary="${path_directory_product}/temporary_tcw_73216"
     path_file_source_standard="${path_directory_temporary}/${name_base_file_source}.txt.gz"
-    path_file_script="${path_directory_script}/${array[15]}"
+    path_file_script="${path_directory_script}/${array[17]}"
     path_file_product="${path_directory_product}/${array[2]}.txt.gz"
     mkdir -p $path_directory_temporary
     # Manage compression formats and file suffices.
