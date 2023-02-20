@@ -14,6 +14,11 @@
 ################################################################################
 
 
+# TODO: TCW; 20 Februayr 2023
+# New argument:
+# observations_variant <-- whether observations are variant-specific
+
+
 
 ################################################################################
 # Organize arguments.

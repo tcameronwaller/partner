@@ -204,10 +204,11 @@ fi
 # The path to the LD matrix actually points to three separate files with
 # different suffixes: ".bin", ".info", ".log".
 # Extra commands for SBayesR:
-# --unscale-genotype
-# --exclude-mhc
+# --unscale-genotype # <-- Recommended!
+# --exclude-mhc # <-- Recommended!
 # --exclude-region
-# --impute-n
+# --impute-n # <-- use this if the count of observations is unreliable
+# --robust # apply a more robust algorithm for convergence
 # File with suffix ".snpRes" gives the new effect sizes across SNPs after
 # adjustment of weights for LD (I think; TCW; 12 January 2023).
 

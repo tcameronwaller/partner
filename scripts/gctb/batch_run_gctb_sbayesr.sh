@@ -23,7 +23,7 @@
 ### -p -10
 # Memory per iteration.
 # Segmentation errors commonly indicate a memory error.
-#$ -l h_vmem=4G
+#$ -l h_vmem=8G
 # Concurrent threads; assigns value to variable NSLOTS.
 #$ -pe threaded 1
 # Range of indices.
@@ -44,6 +44,12 @@
 # This batch completed successfully in the queue with duration of 1 hour
 # ("-q 1-hour"), with 1 node core thread ("-pe threaded 1"), and 4 Gigabytes of
 # memory ("-l h_vmem=4G").
+
+
+
+# TODO: TCW; 20 Februayr 2023
+# New argument:
+# observations_variant <-- whether observations are variant-specific
 
 
 
