@@ -119,7 +119,7 @@ fi
 ##########
 # Translate GWAS summary statistics from standard format to GWAS-VCF format.
 # Use tool GWAS2VCF.
-# PubMed: 33441155
+# Publication: Lyon, Genome Biology, 2021 (PubMed:33441155)
 # GWAS-VCF format specification: https://github.com/MRCIEU/gwas-vcf-specification
 # Host of GWAS2VCF: https://github.com/MRCIEU/gwas2vcf
 # Documentation for GWAS2VCF: https://mrcieu.github.io/gwas2vcf

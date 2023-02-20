@@ -9,9 +9,12 @@
 # GCTB is a package of tools for Genome-wide Complex Trait Bayesian (GCTB)
 # analysis that includes the tool SBayesR for calculation of Polygenic Scores
 # (PGS).
+# Publication: Lloyd-Jones, Nature Communications, 2019 (PubMed:31704910)
 # Documentation on GCTB.
-# site: https://cnsgenomics.com/software/gctb/#Overview
-# tutorial: https://cnsgenomics.com/software/gctb/#Tutorial
+# Site: http://cnsgenomics.com/software/gctb/
+# Site: https://cnsgenomics.com/software/gctb/#Overview
+# Site: https://cnsgenomics.com/software/gctb/#Tutorial
+# Tutorial: https://cnsgenomics.com/software/gctb/#Tutorial
 # educational presentation slides and video: https://www.cnsgenomics.com/data/teaching/PCTG/SBayes/
 
 # It is advisable to use this script to run the SBayesR procedure on a single
@@ -51,17 +54,15 @@ export OMP_NUM_THREADS=$threads
 
 ##########
 # Apply SBayesR to adjust weights of effect sizes across SNPs.
-# The path to the LD matrix actually points to three separate files with
+# The file path to the LD matrix actually points to three separate files with
 # different suffixes: ".bin", ".info", ".log".
 # Extra commands for SBayesR:
-# --unscale-genotype
-# --exclude-mhc
+# --unscale-genotype # remove default assumption that genotypes on unit variance scale (not sure what this means; TCW; 20 February 2023)
+# --exclude-mhc # exclude Human Leukocyte Antigen (HLA) Mayor Histocompatibility Complex (MHC) region (extremely high heterogeneity)
 # --exclude-region
-# --impute-n
+# --impute-n # estimate (impute) variant-specific counts of observations
+# --robust # apply an alternative parameterisation for SNP effect variance
 
-# Apply SBayesR to adjust weights of effect sizes across SNPs.
-# The path to the LD matrix actually points to three separate files with
-# different suffixes: ".bin", ".info", ".log".
 # Extra commands for SBayesR:
 # --unscale-genotype # <-- Recommended!
 # --exclude-mhc # <-- Recommended!
@@ -72,32 +73,34 @@ export OMP_NUM_THREADS=$threads
 # adjustment of weights for LD (I think; TCW; 12 January 2023).
 
 
-
-
-
 if [[ "$observations_variant" == "1" ]]; then
   $path_gctb \
   --sbayes R \
-  --exclude-mhc \
+  --gwas-summary $path_file_gwas \
   --ldm $path_file_base_ld_matrix \
   --pi 0.95,0.02,0.02,0.01 \
-  --gamma 0.0,0.01,0.1,1 \
-  --gwas-summary $path_file_gwas \
+  --gamma 0.0,0.01,0.1,1.0 \
   --chain-length 10000 \
   --burn-in 2000 \
   --out-freq 10 \
+  --unscale-genotype \
+  --exclude-mhc \
+  --robust \
   --out $path_file_base_product 2>&1 | tee "${path_file_base_product}.log"
 elif [[ "$observations_variant" == "0" ]]; then
   $path_gctb \
   --sbayes R \
-  --exclude-mhc \
+  --gwas-summary $path_file_gwas \
   --ldm $path_file_base_ld_matrix \
   --pi 0.95,0.02,0.02,0.01 \
-  --gamma 0.0,0.01,0.1,1 \
-  --gwas-summary $path_file_gwas \
+  --gamma 0.0,0.01,0.1,1.0 \
   --chain-length 10000 \
   --burn-in 2000 \
   --out-freq 10 \
+  --unscale-genotype \
+  --exclude-mhc \
+  --robust \
+  --impute-n \
   --out $path_file_base_product 2>&1 | tee "${path_file_base_product}.log"
 fi
 
