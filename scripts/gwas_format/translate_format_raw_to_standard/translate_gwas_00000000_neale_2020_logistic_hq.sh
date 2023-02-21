@@ -56,7 +56,8 @@ report=${8} # whether to print reports
 name_base_file_product="$(basename $path_file_product .txt.gz)"
 path_directory_product="$(dirname $path_file_product)"
 path_directory_product_temporary="${path_directory_product}/temporary_format_${name_base_file_product}" # hopefully unique
-path_file_temporary_format="${path_directory_product_temporary}/${name_base_file_product}_format.txt"
+path_file_temporary_format_1="${path_directory_product_temporary}/${name_base_file_product}_format_1.txt"
+path_file_temporary_format_2="${path_directory_product_temporary}/${name_base_file_product}_format_2.txt"
 
 # Initialize directory.
 mkdir -p $path_directory_product
@@ -70,23 +71,40 @@ rm $path_file_product
 # Execute procedure.
 
 ##########
-# Translate format of GWAS summary statistics.
+# Translate format and organize GWAS summary statistics in multiple steps.
 # Note that AWK interprets a single space delimiter (FS=" ") as any white space.
-echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format
-# For conciseness, only support the conditions that are relevant.
+# For conciseness, only support the conditions that are relevant with regard to
+# introduction of counts of observations, cases, and controls.
+
+# 1. Translate column format while combining information on allele frequencies
+#    and introducing counts of observations, cases, and controls.
+echo "SNP CHR BP A1 A2 A1AF BETA SE NEG_LOG_P N Z INFO NCASE NCONT" > $path_file_temporary_format_1
 if [ "$fill_observations" == "1" ] && [ "$fill_case_control" == "1" ]; then
   zcat $path_file_source | awk -v observations=$observations -v cases=$cases -v controls=$controls 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-    if ((toupper($11) != "NA") && (toupper($12) != "NA"))
-      # Calculate allele frequency from combination of cases and controls.
-      print ("chr"$1"_"$2"_"$4), $1, $2, toupper($4), toupper($3), (($11*(cases / (cases + controls))) + ($12*(controls / (cases + controls)))), $13, $14, (10^-$15), (observations), "NA", (1.0), (cases), (controls)
+    if ((toupper($11) != "NA")  && (($11 + 0) > 0) && (toupper($12) != "NA") && (($12 + 0) > 0))
+      # Calculate allele frequency as weighted average of non-missing values for cases and controls.
+      print ("chr"$1"_"$2"_"$4), $1, $2, toupper($4), toupper($3), (($11*(cases / (cases + controls))) + ($12*(controls / (cases + controls)))), $13, $14, $15, (observations), "NA", (1.0), (cases), (controls)
     else
       # Print missing value for allele frequency.
-      print ("chr"$1"_"$2"_"$4), $1, $2, toupper($4), toupper($3), "NA", $13, $14, (10^-$15), (observations), "NA", (1.0), (cases), (controls)
-  }' >> $path_file_temporary_format
+      print ("chr"$1"_"$2"_"$4), $1, $2, toupper($4), toupper($3), "NA", $13, $14, $15, (observations), "NA", (1.0), (cases), (controls)
+  }' >> $path_file_temporary_format_1
 fi
 
+# 2. Calculate probability (p-value) not on a negative logarithmic scale.
+echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format_2
+cat $path_file_temporary_format_1 | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+  if ((toupper($9) != "NA")  && (($9 + 0) > 0))
+    # Calculate probability (p-value) not on a negative logarithmic scale.
+    print $1, $2, $3, $4, $5, $6, $7, $8, (10^-$9), $10, $11, $12, $13, $14
+  else
+    # Print missing value for probability (p-value).
+    print $1, $2, $3, $4, $5, $6, $7, $8, "NA", $10, $11, $12, $13, $14
+}' >> $path_file_temporary_format_2
+
+##########
+
 # Compress file format.
-gzip -cvf $path_file_temporary_format > $path_file_product
+gzip -cvf $path_file_temporary_format_2 > $path_file_product
 
 # Report.
 if [[ "$report" == "true" ]]; then

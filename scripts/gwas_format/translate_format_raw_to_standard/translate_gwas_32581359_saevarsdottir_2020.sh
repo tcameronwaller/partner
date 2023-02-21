@@ -56,8 +56,9 @@ report=${8} # whether to print reports
 name_base_file_product="$(basename $path_file_product .txt.gz)"
 path_directory_product="$(dirname $path_file_product)"
 path_directory_product_temporary="${path_directory_product}/temporary_format_${name_base_file_product}" # hopefully unique
-path_file_temporary_format="${path_directory_product_temporary}/${name_base_file_product}_format.txt"
+path_file_temporary_format_1="${path_directory_product_temporary}/${name_base_file_product}_format_1.txt"
 path_file_temporary_format_2="${path_directory_product_temporary}/${name_base_file_product}_format_2.txt"
+path_file_temporary_format_3="${path_directory_product_temporary}/${name_base_file_product}_format_3.txt"
 
 # Initialize directory.
 mkdir -p $path_directory_product
@@ -85,39 +86,61 @@ rm $path_file_product
 # Avoid the problem by removing the string in a subsequent call to awk.
 
 ##########
-# Translate format of GWAS summary statistics.
+# Translate format and organize GWAS summary statistics in multiple steps.
 # Note that AWK interprets a single space delimiter (FS=" ") as any white space.
-echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format
-# For conciseness, only support the conditions that are relevant.
+# For conciseness, only support the conditions that are relevant with regard to
+# introduction of counts of observations, cases, and controls.
+
+# 1. Translate column format while combining information on allele frequencies
+#    and imputation quality scores and introducing counts of observations,
+#    cases, and controls.
+echo "SNP CHR BP A1 A2 A1AF OR SE P N Z INFO NCASE NCONT" > $path_file_temporary_format_1
 if [ "$fill_observations" == "1" ] && [ "$fill_case_control" == "1" ]; then
   zcat $path_file_source | awk -v observations=$observations -v cases=$cases -v controls=$controls 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-    if ((toupper($10) != "NA") && (($10 + 0) > 0) && (toupper($6) != "NA") && (toupper($7) != "NA") && (toupper($8) != "NA") && (toupper($9) != "NA"))
-      # Calculate allele frequency and imputation quality score from non-missing values for Iceland Biobank and UK Biobank.
-      print $3, $1, $2, toupper($5), toupper($4), (($6*0.459)+($8*0.541)), log($10), "NA", $11, (observations), "NA", (($7*0.459)+($9*0.541)), (cases), (controls)
-    else if ((toupper($10) != "NA") && (($10 + 0) > 0) && (toupper($6) != "NA") && (toupper($7) != "NA") && (toupper($8) == "NA") && (toupper($9) == "NA"))
+    if ((toupper($6) != "NA") && (toupper($7) != "NA") && (toupper($8) != "NA") && (toupper($9) != "NA"))
+      # Calculate allele frequency and imputation quality score as weighted averages of non-missing values for Iceland Biobank and UK Biobank.
+      print $3, $1, $2, toupper($5), toupper($4), (($6*0.459)+($8*0.541)), $10, "NA", $11, (observations), "NA", (($7*0.459)+($9*0.541)), (cases), (controls)
+    else if ((toupper($6) != "NA") && (toupper($7) != "NA") && (toupper($8) == "NA") && (toupper($9) == "NA"))
       # Report non-missing values from Iceland Biobank.
-      print $3, $1, $2, toupper($5), toupper($4), ($6), log($10), "NA", $11, (observations), "NA", ($7), (cases), (controls)
-    else if ((toupper($10) != "NA") && (($10 + 0) > 0) && (toupper($6) == "NA") && (toupper($7) == "NA") && (toupper($8) != "NA") && (toupper($9) != "NA"))
+      print $3, $1, $2, toupper($5), toupper($4), ($6), $10, "NA", $11, (observations), "NA", ($7), (cases), (controls)
+    else if ((toupper($6) == "NA") && (toupper($7) == "NA") && (toupper($8) != "NA") && (toupper($9) != "NA"))
       # Report non-missing values from UK Biobank.
-      print $3, $1, $2, toupper($5), toupper($4), ($8), log($10), "NA", $11, (observations), "NA", ($9), (cases), (controls)
-    else if ((toupper($10) != "NA") && (($10 + 0) > 0))
-      # Report missing values for allele frequency and a meaningless imputation quality score.
-      print $3, $1, $2, toupper($5), toupper($4), "NA", log($10), "NA", $11, (observations), "NA", (1.0), (cases), (controls)
+      print $3, $1, $2, toupper($5), toupper($4), ($8), $10, "NA", $11, (observations), "NA", ($9), (cases), (controls)
     else
-      # Print missing values for effect, allele frequency, and a meaningless imputation quality score.
-      print $3, $1, $2, toupper($5), toupper($4), "NA", "NA", "NA", $11, (observations), "NA", (1.0), (cases), (controls)
-  }' >> $path_file_temporary_format
+      # Print missing value for allele frequency and a meaningless imputation quality score.
+      print $3, $1, $2, toupper($5), toupper($4), "NA", $10, "NA", $11, (observations), "NA", (1.0), (cases), (controls)
+  }' >> $path_file_temporary_format_1
 fi
 
-# Remove "chr" prefix from chromosome identifiers.
+# 2. Remove prefix ("chr") from chromosome identifiers.
 #awk 'BEGIN {FS = " "; OFS = " "} NR > 1 { gsub(/chr/,"", $2); print } ' $path_file_temporary_format > $path_file_temporary_format
-echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format_2
-cat $path_file_temporary_format | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+echo "SNP CHR BP A1 A2 A1AF OR SE P N Z INFO NCASE NCONT" > $path_file_temporary_format_2
+cat $path_file_temporary_format_1 | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
   (a = $2); sub(/chr/,"", a); print $1, a, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
 } ' >> $path_file_temporary_format_2
 
+# 3. Calculate the estimate of effect as the natural logarithm of the odds
+#    ratio, and calculate an estimate of the standard error of the effect from
+#    the natural logarithm of the odds ratio and the probability (p-value).
+# Reference:
+# PubMed:21824904
+# Title: "How to obtain the confidence interval from a P value"
+echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format_3
+cat $path_file_temporary_format_2 | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+  if ((toupper($7) != "NA") && (($7 + 0) > 0) && (toupper($9) != "NA") && (($9 + 0) > 0))
+    # Calculate estimate of effect as natural logarithm of odds ratio.
+    # Calculate estimate of standard error of effect from natural logarithm of
+    # odds ratio and probability (p-value).
+    print $1, $2, $3, $4, $5, $6, log($7), (log($7) / (-0.862 + sqrt(0.743 - (2.404 * log($9))))), $9, $10, $11, $12, $13, $14
+  else
+    # Print missing values for effect, standard error, and probability (p-value).
+    print $1, $2, $3, $4, $5, $6, "NA", "NA", "NA", $10, $11, $12, $13, $14
+}' >> $path_file_temporary_format_3
+
+##########
+
 # Compress file format.
-gzip -cvf $path_file_temporary_format_2 > $path_file_product
+gzip -cvf $path_file_temporary_format_3 > $path_file_product
 
 # Report.
 if [[ "$report" == "true" ]]; then
