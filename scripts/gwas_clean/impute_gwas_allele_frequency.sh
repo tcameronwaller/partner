@@ -15,7 +15,9 @@
 # Columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
 
 # Author: T. Cameron Waller
-# First execution: TCW; __ February 2023
+
+# Review: TCW; 22 February 2023
+# First execution: TCW; 22 February 2023
 # Last execution: TCW; __ February 2023
 
 ################################################################################
@@ -54,7 +56,8 @@ path_ftemp_1kg_frequency="${path_directory_temporary}/1kg_european_allele_freque
 path_ftemp_1kg_frequency_identifier="${path_directory_temporary}/1kg_european_allele_frequency_identifier.txt"
 path_ftemp_gwas_identifier="${path_directory_temporary}/gwas_source_identifier.txt"
 path_ftemp_frequency_gwas_merge="${path_directory_temporary}/frequency_gwas_merge.txt"
-path_ftemp_frequency_gwas_merge_organize="${path_directory_temporary}/frequency_gwas_merge_organize.txt"
+path_ftemp_frequency_gwas_merge_filter="${path_directory_temporary}/frequency_gwas_merge_filter.txt"
+path_ftemp_product_format="${path_directory_temporary}/gwas_product_format.txt"
 
 # Initialize files.
 rm $path_file_gwas_product
@@ -95,17 +98,17 @@ $path_bcftools norm --multiallelics +snps $path_file_reference_1kg_vcf | $path_b
 # Extract relevant information to a flat text table.
 # https://samtools.github.io/bcftools/howtos/query.html
 #$path_bcftools query -f '%ID %CHROM %POS %REF %ALT %INFO/EUR\n' $path_ftemp_1kg_biallelic_sites | head -10
-echo "ID CHROM POS REF ALT AF_EUR" > $path_ftemp_1kg_frequency
-$path_bcftools query -f '%ID %CHROM %POS %REF %ALT %INFO/EUR\n' $path_ftemp_1kg_biallelic_sites >> $path_ftemp_1kg_frequency
+echo "ID CHROM POS ALT REF AF_EUR" > $path_ftemp_1kg_frequency
+$path_bcftools query -f '%ID %CHROM %POS %ALT %REF %INFO/EUR\n' $path_ftemp_1kg_biallelic_sites >> $path_ftemp_1kg_frequency
 
 ##########
 # 2. Assemble unique identifiers specific to site (chromosome, position) and
 #    allele (alternate allele).
 
 # Alternate allele frequencies from 1000 Genomes.
-echo "identifier_merge ID CHROM POS REF ALT AF_EUR" > $path_ftemp_1kg_frequency_identifier
+echo "identifier_merge ID CHROM POS ALT REF AF_EUR" > $path_ftemp_1kg_frequency_identifier
 cat $path_ftemp_1kg_frequency | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-  print ($2"_"$3"_"$5), $1, $2, $3, $4, $5, $6
+  print ($2"_"$3"_"$4), $1, $2, $3, $4, $5, $6
 }' >> $path_ftemp_1kg_frequency_identifier
 
 # GWAS summary statistics.
@@ -140,55 +143,74 @@ fi
 
 # For computational efficiency, the first file ought to be the subset of the
 # second file.
+# It is not necessary to print the header row separately.
 
-echo "identifier_merge ID CHROM POS REF ALT AF_EUR SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_ftemp_frequency_gwas_merge
+#echo "identifier_merge ID CHROM POS ALT REF AF_EUR SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_ftemp_frequency_gwas_merge
 awk 'FNR==NR{a[$1]=$2FS$3FS$4FS$5FS$6FS$7FS$8FS$9FS$10FS$11FS$12FS$13FS$14FS$15; next} {
   if(a[$1]==""){a[$1]="NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"}; print $1, $2, $3, $4, $5, $6, $7, a[$1]}
-' $path_ftemp_gwas_identifier $path_ftemp_1kg_frequency_identifier >> $path_ftemp_frequency_gwas_merge
+' $path_ftemp_gwas_identifier $path_ftemp_1kg_frequency_identifier > $path_ftemp_frequency_gwas_merge
 
-cat $path_ftemp_frequency_gwas_merge | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_ftemp_frequency_gwas_merge_organize
+cat $path_ftemp_frequency_gwas_merge | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_ftemp_frequency_gwas_merge_filter
 cat $path_ftemp_frequency_gwas_merge | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   if ( NF != 21)
     # Skip any rows with incorrect count of column fields.
     next
   else if ( $1 == "NA" )
-    # Empty record from second file that did not match first file.
+    # Empty record indicates that second file that did not match first file.
+    next
+  else if (($3 != $9) || ($4 != $10) || (toupper($5) != toupper($11)))
+    # Chromosome, position, or alternate allele do not match.
     next
   else
     # Keep record from merge of first file and second file.
     print $0
-  }' >> $path_ftemp_frequency_gwas_merge_organize
+  }' >> $path_ftemp_frequency_gwas_merge_filter
 
-  # Report.
-  if [[ "$report" == "true" ]]; then
-    echo "----------"
-    echo "----------"
-    echo "----------"
-    echo "GWAS summary statistics with alternate allele frequencies."
-    echo "- - table after merge:"
-    head -30 $path_ftemp_frequency_gwas_merge_organize
-    echo "----------"
-    echo "----------"
-    echo "----------"
-  fi
+echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_ftemp_product_format
+cat $path_ftemp_frequency_gwas_merge_filter | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+  print $8, $9, $10, toupper($11), toupper($12), $7, $14, $15, $16, $17, $18, $19, $20, $21
+}' >> $path_ftemp_product_format
+
+# Report.
+if [[ "$report" == "true" ]]; then
+  echo "----------"
+  echo "----------"
+  echo "----------"
+  echo "GWAS summary statistics with alternate allele frequencies."
+  echo "- - table after merge:"
+  head -30 $path_ftemp_product_format
+  echo "----------"
+  echo "----------"
+  echo "----------"
+fi
+
+# Compress file format.
+gzip -cvf $path_ftemp_product_format > $path_file_gwas_product
 
 
-  # Compress file format.
-  gzip -cvf $path_ftemp_frequency_gwas_merge_organize > $path_file_gwas_product
 
+##########
+# Report.
+if [[ "$report" == "true" ]]; then
+  echo "----------"
+  echo "----------"
+  echo "----------"
+  echo "Procedure complete."
+  echo "- - Count of lines in source GWAS summary statistics:"
+  zcat $path_file_gwas_source | wc -l
+  echo "- - Count of lines in product GWAS summary statistics:"
+  zcat $path_file_gwas_product | wc -l
+  echo "----------"
+  echo "----------"
+  echo "----------"
+fi
 
-# TODO: TCW; 21 February 2023
-# TODO: organize steps above in an executable script that is conveniently callable for a single set of GWAS sum stats
-# TODO: - - Include turn-on-able reports that show the first few lines of the flat text table from the bcftools query, for example.
-# TODO: use awk to construct a unique row identifier with rsID_chrom_position_alternate-allele
-# TODO: use that unique row identifier to merge in awk to the GWAS summ stats
-# TODO: adjust format appropriately
 
 
 ##########
 # Remove temporary directories and files.
 # Suppress this block for debugging.
-if false; then
+if true; then
   rm -r $path_directory_temporary
 fi
 
