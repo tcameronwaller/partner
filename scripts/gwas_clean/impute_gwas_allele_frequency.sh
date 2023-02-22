@@ -34,8 +34,12 @@ report=${3} # whether to print reports
 cd ~/paths
 path_bcftools=$(<"./tools_bcftools.txt")
 path_directory_reference=$(<"./reference_tcw.txt")
-path_directory_reference_1kg="${path_directory_reference}/1000_genomes_phase_3" # genomic variation (Variant Call Format; VCF); accession: TCW; ___
+#path_directory_reference_1kg="${path_directory_reference}/1000_genomes_phase_3" # genomic variation (Variant Call Format; VCF); accession: TCW; ___
+
 path_directory_process=$(<"./process_psychiatric_metabolism.txt")
+
+path_directory_reference_1kg="${path_directory_process}/1000_genomes_test" # genomic variation (Variant Call Format; VCF); accession: TCW; ___
+
 path_directory_dock="${path_directory_process}/dock" # parent directory for procedural reads and writes
 path_directory_product="$(dirname $path_file_gwas_product)"
 name_base_file_gwas_product="$(basename $path_file_gwas_product .txt.gz)"
@@ -46,9 +50,9 @@ path_file_reference_1kg_vcf="${path_directory_reference_1kg}/1000GENOMES-phase_3
 
 # Temporary files.
 path_ftemp_1kg_biallelic_sites="${path_directory_temporary}/1kg_biallelic_sites.vcf.gz"
-path_ftemp_1kg_frequency="${path_directory_temporary}/1kg_eur_allele_frequency.txt"
-path_ftemp_1kg_frequency_merge="${path_directory_temporary}/1kg_eur_allele_frequency_merge.txt"
-path_ftemp_gwas_merge="${path_directory_temporary}/gwas_source_merge.txt"
+path_ftemp_1kg_frequency="${path_directory_temporary}/1kg_european_allele_frequency.txt"
+path_ftemp_1kg_frequency_identifier="${path_directory_temporary}/1kg_european_allele_frequency_identifier.txt"
+path_ftemp_gwas_identifier="${path_directory_temporary}/gwas_source_identifier.txt"
 path_ftemp_frequency_gwas_merge="${path_directory_temporary}/frequency_gwas_merge.txt"
 path_ftemp_frequency_gwas_merge_organize="${path_directory_temporary}/frequency_gwas_merge_organize.txt"
 
@@ -99,16 +103,16 @@ $path_bcftools query -f '%ID %CHROM %POS %REF %ALT %INFO/EUR\n' $path_ftemp_1kg_
 #    allele (alternate allele).
 
 # Alternate allele frequencies from 1000 Genomes.
-echo "identifier_merge ID CHROM POS REF ALT AF_EUR" > $path_ftemp_1kg_frequency_merge
+echo "identifier_merge ID CHROM POS REF ALT AF_EUR" > $path_ftemp_1kg_frequency_identifier
 cat $path_ftemp_1kg_frequency | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
   print ($2"_"$3"_"$5), $1, $2, $3, $4, $5, $6
-}' >> $path_ftemp_1kg_frequency_merge
+}' >> $path_ftemp_1kg_frequency_identifier
 
 # GWAS summary statistics.
-echo "identifier_merge SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_ftemp_gwas_merge
+echo "identifier_merge SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_ftemp_gwas_identifier
 zcat $path_file_gwas_source | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
   print ($2"_"$3"_"$4), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
-}' >> $path_ftemp_gwas_merge
+}' >> $path_ftemp_gwas_identifier
 
 # Report.
 if [[ "$report" == "true" ]]; then
@@ -117,13 +121,13 @@ if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "Alternate allele frequencies from 1000 Genomes European ancestry."
   echo "- - table before merge:"
-  head -30 $path_ftemp_1kg_frequency_merge
+  head -30 $path_ftemp_1kg_frequency_identifier
   echo "----------"
   echo "----------"
   echo "----------"
   echo "GWAS summary statistics."
   echo "- - table before merge:"
-  head -30 $path_ftemp_gwas_merge
+  head -30 $path_ftemp_gwas_identifier
   echo "----------"
   echo "----------"
   echo "----------"
@@ -139,8 +143,8 @@ fi
 
 echo "identifier_merge ID CHROM POS REF ALT AF_EUR SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_ftemp_frequency_gwas_merge
 awk 'FNR==NR{a[$1]=$2FS$3FS$4FS$5FS$6FS$7FS$8FS$9FS$10FS$11FS$12FS$13FS$14FS$15; next} {
-  if(a[$1]==""){a[$1]="NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS}; print $1, $2, $3, $4, $5, $6, $7, a[$1]}
-' $path_ftemp_gwas_merge $path_ftemp_1kg_frequency_merge >> $path_ftemp_frequency_gwas_merge
+  if(a[$1]==""){a[$1]="NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"}; print $1, $2, $3, $4, $5, $6, $7, a[$1]}
+' $path_ftemp_gwas_identifier $path_ftemp_1kg_frequency_identifier >> $path_ftemp_frequency_gwas_merge
 
 cat $path_ftemp_frequency_gwas_merge | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_ftemp_frequency_gwas_merge_organize
 cat $path_ftemp_frequency_gwas_merge | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
@@ -184,7 +188,7 @@ cat $path_ftemp_frequency_gwas_merge | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
 ##########
 # Remove temporary directories and files.
 # Suppress this block for debugging.
-if true; then
+if false; then
   rm -r $path_directory_temporary
 fi
 
