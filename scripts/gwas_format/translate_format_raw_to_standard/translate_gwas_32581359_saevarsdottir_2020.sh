@@ -151,7 +151,7 @@ if [[ "$report" == "true" ]]; then
   echo "path to source GWAS file: " $path_file_source
   echo "path to product GWAS file: " $path_file_product
   echo "table after format:"
-  head -10 $path_file_temporary_format_2
+  head -10 $path_file_temporary_format_3
   echo "----------"
   echo "----------"
   echo "----------"
