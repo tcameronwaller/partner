@@ -222,6 +222,8 @@ cd ../htslib/1.16/bin/
 # BCFTools
 # Last installation: TCW; 15 February 2023 (on NCSA server)
 # A bioinformatic tool for tasks on genotype files in Variant Call Format (VCF).
+# Documentation from SamTools (https://samtools.github.io/bcftools/howtos/index.html).
+# Documentation manual (https://samtools.github.io/bcftools/bcftools.html).
 # https://samtools.github.io/bcftools/
 # http://www.htslib.org/download/
 wget https://github.com/samtools/bcftools/releases/download/1.16/bcftools-1.16.tar.bz2
