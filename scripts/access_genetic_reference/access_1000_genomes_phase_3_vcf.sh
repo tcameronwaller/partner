@@ -15,7 +15,7 @@
 # Site: https://ftp.ensembl.org/pub/grch37/current/variation/vcf/homo_sapiens/
 
 # Review: TCW; 22 February 2023
-# Last Accession: __ February 2023 (TCW; to NCSA server)
+# Last Accession: TCW; 22 February 2023 (to NCSA mForge server)
 
 ################################################################################
 

@@ -36,19 +36,15 @@ report=${3} # whether to print reports
 cd ~/paths
 path_bcftools=$(<"./tools_bcftools.txt")
 path_directory_reference=$(<"./reference_tcw.txt")
-#path_directory_reference_1kg="${path_directory_reference}/1000_genomes_phase_3" # genomic variation (Variant Call Format; VCF); accession: TCW; ___
-
+path_directory_reference_1kg="${path_directory_reference}/1000_genomes_phase_3" # genomic variation (Variant Call Format; VCF); accession: TCW; ___
 path_directory_process=$(<"./process_psychiatric_metabolism.txt")
-
-path_directory_reference_1kg="${path_directory_process}/1000_genomes_test" # genomic variation (Variant Call Format; VCF); accession: TCW; ___
-
 path_directory_dock="${path_directory_process}/dock" # parent directory for procedural reads and writes
 path_directory_product="$(dirname $path_file_gwas_product)"
 name_base_file_gwas_product="$(basename $path_file_gwas_product .txt.gz)"
 path_directory_temporary="${path_directory_product}/temporary_${name_base_file_gwas_product}" # must be unique
 
 # Files.
-path_file_reference_1kg_vcf="${path_directory_reference_1kg}/1000GENOMES-phase_3.vcf.gz" # dbSNP build 155; accession: TCW; 2023-02-06; chromosome translation: TCW; 2023-02-15
+path_file_reference_1kg_vcf="${path_directory_reference_1kg}/1000GENOMES-phase_3.vcf.gz" # accession: TCW; 2023-02-22;
 
 # Temporary files.
 path_ftemp_1kg_biallelic_sites="${path_directory_temporary}/1kg_biallelic_sites.vcf.gz"
