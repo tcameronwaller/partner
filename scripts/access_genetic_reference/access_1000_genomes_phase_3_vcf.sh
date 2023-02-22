@@ -1,21 +1,20 @@
 #!/bin/bash
 
-
 ################################################################################
 # Notes:
 
 # This script accesses genomic variation information in Variant Call Format
-# (vcf) from Phase 3 of the 1000 Genomes project.
-# EnsEMBL hosts these data.
-# This variant information uses the GRCh37 assembly of the human genome.
+# (VCF) from an EnsEMBL host version of Phase 3 of the 1000 Genomes project.
+# This genomic variation information uses the GRCh37 assembly of the human
+# genome.
 
 # EnsEMBL host website.
 # Site: https://grch37.ensembl.org/info/data/ftp/index.html
 
-# Ensembl File Transfer Protocol (FTP) server.
+# EnsEMBL File Transfer Protocol (FTP) server.
 # Site: https://ftp.ensembl.org/pub/grch37/current/variation/vcf/homo_sapiens/
 
-# Review: TCW; __ February 2023
+# Review: TCW; 22 February 2023
 # Last Accession: __ February 2023 (TCW; to NCSA server)
 
 ################################################################################
@@ -53,16 +52,23 @@ if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "----------"
   echo "----------"
-  echo "Accessing 1000 Genomes genomic variation information from EnsEMBL."
-  echo "Human Genome Assembly GRCh37."
+  echo "Accessing EnsEMBL host version of genomic variation information in"
+  echo "Phase 3 of the 1000 Genomes Project."
+  echo "Human Genome Assembly: GRCh37"
   echo "----------"
   echo "----------"
   echo "----------"
 fi
 
 # Access the specific files and save within the directory.
+
+# File date: 2021-03-20; File size: 5.5 K
 wget "https://ftp.ensembl.org/pub/grch37/current/variation/vcf/homo_sapiens/README" --directory-prefix $path_directory_parent --content-disposition --no-check-certificate --show-progress
+
+# File date: 2021-04-04; File size: 1.6 G
 wget "https://ftp.ensembl.org/pub/grch37/current/variation/vcf/homo_sapiens/1000GENOMES-phase_3.vcf.gz" --directory-prefix $path_directory_parent --content-disposition --no-check-certificate --show-progress
+
+# File date: 2021-04-04; File size: 1.7 M
 wget "https://ftp.ensembl.org/pub/grch37/current/variation/vcf/homo_sapiens/1000GENOMES-phase_3.vcf.gz.csi" --directory-prefix $path_directory_parent --content-disposition --no-check-certificate --show-progress
 
 

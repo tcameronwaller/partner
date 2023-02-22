@@ -3,53 +3,175 @@
 ################################################################################
 # Notes:
 
-##########
-# Tool: GWAS2VCF
-# PubMed: 33441155
-# GWAS-VCF format specification: https://github.com/MRCIEU/gwas-vcf-specification
-# Host of GWAS2VCF: https://github.com/MRCIEU/gwas2vcf
-# Documentation for GWAS2VCF: https://mrcieu.github.io/gwas2vcf
-# Host of GWASGlue: https://github.com/MRCIEU/gwasglue
-# Examples of analyses: https://mrcieu.github.io/gwasglue/articles/
+# This script extracts from genomic variation (Variant Call Format; VCF) in
+# Phase 3 of the 1000 Genomes Project frequencies of alternate alleles for the
+# European ("EUR") superpopulation and introduces these to a set of GWAS summary
+# statistics.
+# For simplicity, this script filters to biallelic variant sites.
 
-# Last execution: TCW; 17 February 2023
+# GWAS summary statistics Format (Team Standard)
+# Effect allele: "A1"
+# Delimiter: white space
+# Columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
+
+# Author: T. Cameron Waller
+# First execution: TCW; __ February 2023
+# Last execution: TCW; __ February 2023
 
 ################################################################################
 
 ################################################################################
 # Organize arguments.
 
-path_directory_parent=${1} # full path to parent directory within which to create child directories and save files
-report=${2} # whether to print reports
+path_file_gwas_source=${1} # full path to file for source GWAS summary statistics with GZip compression
+path_file_gwas_product=${2} # full path to file for product GWAS summary statistics in format with GZip compression
+report=${3} # whether to print reports
 
 ################################################################################
 # Organize paths.
 
-path_directory_sequence="${path_directory_parent}/genome_sequence"
-#path_directory_dbsnp="${path_directory_parent}/dbsnp"
+# Directories.
+cd ~/paths
+path_bcftools=$(<"./tools_bcftools.txt")
+path_directory_reference=$(<"./reference_tcw.txt")
+path_directory_reference_1kg="${path_directory_reference}/1000_genomes_phase_3" # genomic variation (Variant Call Format; VCF); accession: TCW; ___
+path_directory_process=$(<"./process_psychiatric_metabolism.txt")
+path_directory_dock="${path_directory_process}/dock" # parent directory for procedural reads and writes
+path_directory_product="$(dirname $path_file_gwas_product)"
+name_base_file_gwas_product="$(basename $path_file_gwas_product .txt.gz)"
+path_directory_temporary="${path_directory_product}/temporary_${name_base_file_gwas_product}" # must be unique
 
-# Initialize directory.
-#rm -r $path_directory_sequence
-#rm -r $path_directory_dbsnp
-mkdir -p $path_directory_sequence
-#mkdir -p $path_directory_dbsnp
+# Files.
+path_file_reference_1kg_vcf="${path_directory_reference_1kg}/1000GENOMES-phase_3.vcf.gz" # dbSNP build 155; accession: TCW; 2023-02-06; chromosome translation: TCW; 2023-02-15
+
+# Temporary files.
+path_ftemp_1kg_biallelic_sites="${path_directory_temporary}/1kg_biallelic_sites.vcf.gz"
+path_ftemp_1kg_frequency="${path_directory_temporary}/1kg_eur_allele_frequency.txt"
+path_ftemp_1kg_frequency_merge="${path_directory_temporary}/1kg_eur_allele_frequency_merge.txt"
+path_ftemp_gwas_merge="${path_directory_temporary}/gwas_source_merge.txt"
+path_ftemp_frequency_gwas_merge="${path_directory_temporary}/frequency_gwas_merge.txt"
+path_ftemp_frequency_gwas_merge_organize="${path_directory_temporary}/frequency_gwas_merge_organize.txt"
+
+# Initialize files.
+rm $path_file_gwas_product
+
+# Initialize directories.
+#rm -r $path_directory_product
+rm -r $path_directory_temporary
+mkdir -p $path_directory_product
+mkdir -p $path_directory_temporary
+cd $path_directory_product
 
 ###########################################################################
 # Execute procedure.
 
+##########
+# 1. Extract allelic frequencies for European ancestry from genomic variation in
+#    Phase 3 of the 1000 Genomes Project.
+
+# BCFTools
+# A bioinformatic tool for tasks on genotype files in Variant Call Format (VCF).
+# Documentation from SamTools (https://samtools.github.io/bcftools/howtos/index.html).
+# Documentation manual (https://samtools.github.io/bcftools/bcftools.html).
+# https://plink.readthedocs.io/en/latest/bcftools_mani/
+# https://www.htslib.org/howtos/headers.html
+
 # View header of 1000 Genomes file in Variant Call Format (VCF) to determine
 # available tags for extraction.
-$path_bcftools head $path_file_1000_genomes_vcf
+#$path_bcftools head $path_file_reference_1kg_vcf
+# "##INFO=<ID=EUR,Number=A,Type=Float,Description='Allele frequency for European populations in the 1000 Genomes Project Phase 3'>"
 
 # View records within 1000 Genomes file.
-$path_bcftools view --no-header --regions 7:1000-1010 $path_file_1000_genomes_vcf
+#$path_bcftools view --no-header --regions 7:1000-1010 $path_file_reference_1kg_vcf
 
 # Filter to sites (loci) that only have two allelic variants (biallelic sites).
-#$path_bcftools norm --multiallelics +snps $path_file_1000_genomes_vcf | $path_bcftools view --no-header --min-alleles 2 --max-alleles 2 --types snps | head -10
-$path_bcftools norm --multiallelics +snps $path_file_1000_genomes_vcf | $path_bcftools view --min-alleles 2 --max-alleles 2 --types snps > $path_ftemp_biallelic_sites
+#$path_bcftools norm --multiallelics +snps $path_file_reference_1kg_vcf | $path_bcftools view --no-header --min-alleles 2 --max-alleles 2 --types snps | head -10
+$path_bcftools norm --multiallelics +snps $path_file_reference_1kg_vcf | $path_bcftools view --min-alleles 2 --max-alleles 2 --types snps > $path_ftemp_1kg_biallelic_sites
 
 # Extract relevant information to a flat text table.
-$path_bcftools query -f '%ID %CHROM %POS %REF %ALT %INFO/EUR\n' $path_ftemp_biallelic_loci | head -100
+# https://samtools.github.io/bcftools/howtos/query.html
+#$path_bcftools query -f '%ID %CHROM %POS %REF %ALT %INFO/EUR\n' $path_ftemp_1kg_biallelic_sites | head -10
+echo "ID CHROM POS REF ALT AF_EUR" > $path_ftemp_1kg_frequency
+$path_bcftools query -f '%ID %CHROM %POS %REF %ALT %INFO/EUR\n' $path_ftemp_1kg_biallelic_sites >> $path_ftemp_1kg_frequency
+
+##########
+# 2. Assemble unique identifiers specific to site (chromosome, position) and
+#    allele (alternate allele).
+
+# Alternate allele frequencies from 1000 Genomes.
+echo "identifier_merge ID CHROM POS REF ALT AF_EUR" > $path_ftemp_1kg_frequency_merge
+cat $path_ftemp_1kg_frequency | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+  print ($2"_"$3"_"$5), $1, $2, $3, $4, $5, $6
+}' >> $path_ftemp_1kg_frequency_merge
+
+# GWAS summary statistics.
+echo "identifier_merge SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_ftemp_gwas_merge
+zcat $path_file_gwas_source | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+  print ($2"_"$3"_"$4), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
+}' >> $path_ftemp_gwas_merge
+
+# Report.
+if [[ "$report" == "true" ]]; then
+  echo "----------"
+  echo "----------"
+  echo "----------"
+  echo "Alternate allele frequencies from 1000 Genomes European ancestry."
+  echo "- - table before merge:"
+  head -30 $path_ftemp_1kg_frequency_merge
+  echo "----------"
+  echo "----------"
+  echo "----------"
+  echo "GWAS summary statistics."
+  echo "- - table before merge:"
+  head -30 $path_ftemp_gwas_merge
+  echo "----------"
+  echo "----------"
+  echo "----------"
+fi
+
+##########
+# 3. Introduce allelic frequencies to GWAS summary statistics.
+# Bash command "join" might be capable of this type of merge or join, but it
+# might require the same identifiers in sort order.
+
+# For computational efficiency, the first file ought to be the subset of the
+# second file.
+
+echo "identifier_merge ID CHROM POS REF ALT AF_EUR SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_ftemp_frequency_gwas_merge
+awk 'FNR==NR{a[$1]=$2FS$3FS$4FS$5FS$6FS$7FS$8FS$9FS$10FS$11FS$12FS$13FS$14FS$15; next} {
+  if(a[$1]==""){a[$1]="NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS}; print $1, $2, $3, $4, $5, $6, $7, a[$1]}
+' $path_ftemp_gwas_merge $path_ftemp_1kg_frequency_merge >> $path_ftemp_frequency_gwas_merge
+
+cat $path_ftemp_frequency_gwas_merge | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_ftemp_frequency_gwas_merge_organize
+cat $path_ftemp_frequency_gwas_merge | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
+  if ( NF != 21)
+    # Skip any rows with incorrect count of column fields.
+    next
+  else if ( $1 == "NA" )
+    # Empty record from second file that did not match first file.
+    next
+  else
+    # Keep record from merge of first file and second file.
+    print $0
+  }' >> $path_ftemp_frequency_gwas_merge_organize
+
+  # Report.
+  if [[ "$report" == "true" ]]; then
+    echo "----------"
+    echo "----------"
+    echo "----------"
+    echo "GWAS summary statistics with alternate allele frequencies."
+    echo "- - table after merge:"
+    head -30 $path_ftemp_frequency_gwas_merge_organize
+    echo "----------"
+    echo "----------"
+    echo "----------"
+  fi
+
+
+  # Compress file format.
+  gzip -cvf $path_ftemp_frequency_gwas_merge_organize > $path_file_gwas_product
+
 
 # TODO: TCW; 21 February 2023
 # TODO: organize steps above in an executable script that is conveniently callable for a single set of GWAS sum stats
@@ -57,6 +179,15 @@ $path_bcftools query -f '%ID %CHROM %POS %REF %ALT %INFO/EUR\n' $path_ftemp_bial
 # TODO: use awk to construct a unique row identifier with rsID_chrom_position_alternate-allele
 # TODO: use that unique row identifier to merge in awk to the GWAS summ stats
 # TODO: adjust format appropriately
+
+
+##########
+# Remove temporary directories and files.
+# Suppress this block for debugging.
+if true; then
+  rm -r $path_directory_temporary
+fi
+
 
 
 #
