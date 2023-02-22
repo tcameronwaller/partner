@@ -63,13 +63,13 @@ fi
 # Access the specific files and save within the directory.
 
 # File date: 2021-03-20; File size: 5.5 K
-wget --directory-prefix $path_directory_parent --content-disposition --no-check-certificate --show-progress "https://ftp.ensembl.org/pub/grch37/current/variation/vcf/homo_sapiens/README"
+wget --directory-prefix $path_directory_parent --content-disposition --no-check-certificate "https://ftp.ensembl.org/pub/grch37/current/variation/vcf/homo_sapiens/README"
 
 # File date: 2021-04-04; File size: 1.6 G
-wget --directory-prefix $path_directory_parent --content-disposition --no-check-certificate --show-progress "https://ftp.ensembl.org/pub/grch37/current/variation/vcf/homo_sapiens/1000GENOMES-phase_3.vcf.gz"
+wget --directory-prefix $path_directory_parent --content-disposition --no-check-certificate "https://ftp.ensembl.org/pub/grch37/current/variation/vcf/homo_sapiens/1000GENOMES-phase_3.vcf.gz"
 
 # File date: 2021-04-04; File size: 1.7 M
-wget --directory-prefix $path_directory_parent --content-disposition --no-check-certificate --show-progress "https://ftp.ensembl.org/pub/grch37/current/variation/vcf/homo_sapiens/1000GENOMES-phase_3.vcf.gz.csi"
+wget --directory-prefix $path_directory_parent --content-disposition --no-check-certificate "https://ftp.ensembl.org/pub/grch37/current/variation/vcf/homo_sapiens/1000GENOMES-phase_3.vcf.gz.csi"
 
 
 ################################################################################
