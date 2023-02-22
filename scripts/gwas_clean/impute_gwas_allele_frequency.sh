@@ -16,9 +16,9 @@
 
 # Author: T. Cameron Waller
 
-# Review: TCW; 22 February 2023
-# First execution: TCW; 22 February 2023
-# Last execution: TCW; 22 February 2023
+# Date, review: TCW; 22 February 2023
+# Date, first execution: TCW; 22 February 2023
+# Date, last execution: TCW; 22 February 2023
 
 ################################################################################
 
