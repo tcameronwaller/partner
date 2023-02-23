@@ -21,7 +21,7 @@ License:
     (https://github.com/tcameronwaller/promiscuity/).
 
     Promiscuity supports data analysis in multiple other projects.
-    Copyright (C) 2022 Thomas Cameron Waller
+    Copyright (C) 2023 Thomas Cameron Waller
 
     Promiscuity is free software: you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by the Free
@@ -39,6 +39,8 @@ License:
 
 ###############################################################################
 # Notes
+
+
 
 ###############################################################################
 # Installation and importation
@@ -79,7 +81,7 @@ import promiscuity.utility as utility # this import path for subpackage
 
 
 def create_attribution_record(
-    name_cohort=None,
+    cohort_name=None,
     name_variable_value=None,
     variable=None,
     value=None,
@@ -90,7 +92,7 @@ def create_attribution_record(
     categorical or discrete variable values across cohorts.
 
     arguments:
-        name_cohort (str): name of cohort
+        cohort_name (str): name of cohort
         name_variable_value (str): name of variable's value for report
         variable (str): name of table's column for variable
         value (object): categorical or discrete value of variable
@@ -106,7 +108,7 @@ def create_attribution_record(
 
     # Collect information for record.
     record = dict()
-    record["cohort"] = str(name_cohort)
+    record["description_cohort_name"] = str(cohort_name)
     record["variable_value"] = str(name_variable_value)
     record["variable"] = str(variable)
     record["value"] = str(value)
@@ -156,6 +158,15 @@ def drive_assemble_attribution_table(
     specific values of nominal, categorical, or discrete variables within
     cohorts.
 
+    The description records and the description table that this function
+    assembles preserve all information (variable names and their values) within
+    each cohort record (Python dictionaries). Use variables within each cohort
+    record to define details of each stratification cohort such as type of
+    data records available (phenotypes, genotypes), sex (any, female, male),
+    ancestry or race or ethnicity, stage of life (young, middle, old,
+    premenopause, perimenopause, postmenopause), and special exclusions. At a
+    minimum, the cohort record needs a variable named "cohort_name".
+
     arguments:
         records_attribution (list<dict>): records with information about values
             of variables for attribution within cohorts, including entries for
@@ -178,12 +189,14 @@ def drive_assemble_attribution_table(
         for record_attribution in records_attribution:
             # Organize information for description record.
             record_description = create_attribution_record(
-                name_cohort=record_cohort["name"],
+                cohort_name=record_cohort["cohort_name"],
                 name_variable_value=record_attribution["name"],
                 variable=record_attribution["variable"],
                 value=record_attribution["value"],
                 table=record_cohort["table"],
             )
+            # Preserve information from stratification cohort record.
+            record_description.update(record_cohort)
             # Collect records.
             records_description.append(record_description)
             pass
@@ -207,7 +220,7 @@ def drive_assemble_attribution_table(
 
 
 def create_quantitation_record(
-    name_cohort=None,
+    cohort_name=None,
     variable=None,
     variable_attribution=None,
     value_attribution=None,
@@ -220,7 +233,7 @@ def create_quantitation_record(
     Report percentages relative to the total count of records in the cohort.
 
     arguments:
-        name_cohort (str): name of cohort
+        cohort_name (str): name of cohort
         variable (str): name of table's column for variable
         variable_attribution (str): name of table's column for a special
             variable for which to report attribution against main variable
@@ -237,7 +250,7 @@ def create_quantitation_record(
 
     # Collect information for record.
     record = dict()
-    record["cohort"] = str(name_cohort)
+    record["description_cohort_name"] = str(cohort_name)
     record["variable"] = str(variable)
     record["variable_attribution"] = str(variable_attribution)
     record["value_attribution"] = value_attribution
@@ -346,6 +359,15 @@ def drive_assemble_quantitation_table(
     on interval, or ratio scales, but they can also be informative for discrete
     variables on ordinal scales.
 
+    The description records and the description table that this function
+    assembles preserve all information (variable names and their values) within
+    each cohort record (Python dictionaries). Use variables within each cohort
+    record to define details of each stratification cohort such as type of
+    data records available (phenotypes, genotypes), sex (any, female, male),
+    ancestry or race or ethnicity, stage of life (young, middle, old,
+    premenopause, perimenopause, postmenopause), and special exclusions. At a
+    minimum, the cohort record needs a variable named "cohort_name".
+
     arguments:
         variables (list<str>): names of variables
         variable_attribution (str): name of table's column for a special
@@ -369,12 +391,14 @@ def drive_assemble_quantitation_table(
         for variable in variables:
             # Organize information for description record.
             record_description = create_quantitation_record(
-                name_cohort=record_cohort["name"],
+                cohort_name=record_cohort["cohort_name"],
                 variable=variable,
                 variable_attribution=variable_attribution,
                 value_attribution=value_attribution,
                 table=record_cohort["table"],
             )
+            # Preserve information from stratification cohort record.
+            record_description.update(record_cohort)
             # Collect records.
             records_description.append(record_description)
             pass
@@ -383,7 +407,7 @@ def drive_assemble_quantitation_table(
     table = pandas.DataFrame(data=records_description)
     # Select and sort relevant columns from table.
     columns = [
-        "cohort",
+        "description_cohort_name",
         "count_cohort_total_records",
         "variable_attribution",
         "value_attribution",
@@ -409,6 +433,7 @@ def drive_assemble_quantitation_table(
         "range_99_low",
         "range_99_high",
     ]
+    columns.insert(0, list(records_cohorts[0].keys()))
     table = table.loc[
         :, table.columns.isin(columns)
     ]
@@ -652,3 +677,7 @@ def write_product_tables(
 ################################################################################
 # Procedure
 # Currently, this module is not executable.
+
+
+
+#
