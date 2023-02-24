@@ -197,6 +197,7 @@ def drive_assemble_attribution_table(
             )
             # Preserve information from stratification cohort record.
             record_description.update(record_cohort)
+            del record_description["table"]
             # Collect records.
             records_description.append(record_description)
             pass
