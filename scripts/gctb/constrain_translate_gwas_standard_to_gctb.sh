@@ -11,10 +11,13 @@
 
 # Product Format (SBayesR from GCTB)
 # site: https://cnsgenomics.com/software/gctb/#Tutorial
-# delimiter: white space
-# columns: SNP A1 A2 freq b se p N
+# Delimiter: white space
+# Effect allele: "A1"
+# Other allele: "A2"
+# Frequency of effect allele "A1": "freq"
+# Columns: SNP A1 A2 freq b se p N
 
-# review: TCW; 10 January 2023
+# review: TCW; 27 February 2023
 
 ###########################################################################
 ###########################################################################

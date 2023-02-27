@@ -6,6 +6,12 @@
 # In tests on 9 February 2023, there did not seem to be any difference in the
 # duration of this script's process when executed with 1 or 16 threads.
 
+# In a batch submitted on 26 February 2023, each job completed successfully on
+# a single processor thread with an allocation of 16 Gigabytes of memory. The
+# longest duration jobs completed in approximately 24 hours. I think that a
+# previous test job completed with only 4 or 8 Gigabytes of memory on a single
+# processor thread.
+
 # Review: TCW; 17 February 2023
 
 ################################################################################
