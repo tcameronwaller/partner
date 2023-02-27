@@ -69,6 +69,9 @@ report=${7} # whether to print reports
 ###########################################################################
 # Organize parameters.
 
+observations_variant="1" # temporarily tell SBayesR not to impute "N" for GWAS summary statistics... need to set for each GWAS sum stats file
+
+
 # Determine batch instance.
 batch_index=$((SGE_TASK_ID-1))
 readarray -t batch_instances < $path_file_batch_instances
@@ -106,12 +109,11 @@ if true; then
   $path_file_gwas \
   $path_file_base_ld_matrix \
   $path_file_base_product \
+  $observations_variant \
   $path_gctb \
   $threads \
   $report
 fi
-
-
 
 
 
