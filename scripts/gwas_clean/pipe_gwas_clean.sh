@@ -37,7 +37,7 @@ path_environment_gwas2vcf="${path_directory_tools}/python/environments/gwas2vcf"
 path_gwas2vcf="${path_directory_tools}/gwas2vcf/gwas2vcf/main.py"
 path_bcftools=$(<"./tools_bcftools.txt")
 path_directory_reference=$(<"./reference_tcw.txt")
-path_directory_reference_gwas2vcf="${path_directory_reference}/gwas2vcf" # GWAS2VCF defaul; accession: TCW; 2023-02-17
+path_directory_reference_gwas2vcf="${path_directory_reference}/gwas2vcf" # GWAS2VCF default; accession: TCW; 2023-02-17
 path_directory_reference_dbsnp="${path_directory_reference}/dbsnp/grch37_chromosome" # dbSNP build 155; accession: TCW; 2023-02-06; chromosome translation: TCW; 2023-02-15
 path_directory_process=$(<"./process_psychiatric_metabolism.txt")
 path_directory_dock="${path_directory_process}/dock" # parent directory for procedural reads and writes
@@ -54,7 +54,7 @@ path_file_gwas_product_gwas2vcf="${path_file_gwas_product_gwas2vcf_base}.gz"
 path_file_gwas_product_gwas2vcf_index="${path_file_gwas_product_gwas2vcf_base}.gz.tbi"
 path_file_gwas2vcf_parameter_linear="${path_directory_process}/promiscuity/scripts/gwas_clean/parameter_gwas_standard_to_gwas2vcf_linear.json"
 path_file_gwas2vcf_parameter_logistic="${path_directory_process}/promiscuity/scripts/gwas_clean/parameter_gwas_standard_to_gwas2vcf_logistic.json"
-path_file_reference_genome_sequence="${path_directory_reference_gwas2vcf}/genome_sequence/human_g1k_v37.fasta.gz" # GWAS2VCF defaul; accession: TCW; 2023-02-17
+path_file_reference_genome_sequence="${path_directory_reference_gwas2vcf}/genome_sequence/human_g1k_v37.fasta.gz" # GWAS2VCF default; accession: TCW; 2023-02-17
 #path_file_reference_dbsnp="${path_directory_reference_gwas2vcf}/dbsnp/dbsnp.v153.b37.vcf.gz" # GWAS2VCF default
 path_file_reference_dbsnp="${path_directory_reference_dbsnp}/GCF_000001405.25.gz" # dbSNP build 155; accession: TCW; 2023-02-06; chromosome translation: TCW; 2023-02-15
 
