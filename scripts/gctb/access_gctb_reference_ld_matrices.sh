@@ -58,6 +58,7 @@ fi
 # Access the specific files and save within the directory.
 
 # GCTB SBayesR "Shrunk sparse matrix"
+# Last accession: TCW; 1 March 2023 (NCSA mForge server)
 # PubMed: 31704910
 # Human Genome Assembly: GRCh37
 # Variants: 1.1 million HapMap3 SNPs
