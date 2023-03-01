@@ -62,7 +62,6 @@ IFS=";" read -r -a array <<< "${instance}"
 path_file_gwas_source="${array[0]}"
 path_file_gwas_product="${array[1]}"
 type="${array[2]}"
-count_cases="${array[3]}"
 
 ###########################################################################
 # Execute procedure.

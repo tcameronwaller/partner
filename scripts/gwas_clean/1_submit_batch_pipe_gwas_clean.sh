@@ -82,12 +82,12 @@ do
     # Define variables.
     name="${array[2]}"
     type="${array[9]}"
-    count_cases="${array[13]}"
+    #count_cases="${array[13]}"
     # Organize paths.
     path_file_gwas_source="${path_directory_source}/${name}.txt.gz"
     path_file_gwas_product="${path_directory_product}/${name}.txt.gz"
     # Define and append a new batch instance.
-    instance="${path_file_gwas_source};${path_file_gwas_product};${type};${count_cases}"
+    instance="${path_file_gwas_source};${path_file_gwas_product};${type}"
     echo $instance >> $path_file_batch_instances
   fi
 done < "${input}"
@@ -95,7 +95,7 @@ done < "${input}"
 
 
 ################################################################################
-# Submit batch instances to cluster scheduler.
+# Submit batch instances to grid cluster scheduler.
 
 # Read batch instances.
 readarray -t batch_instances < $path_file_batch_instances
