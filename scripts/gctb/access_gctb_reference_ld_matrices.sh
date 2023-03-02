@@ -78,7 +78,7 @@ fi
 # Detail: LD correlations set to zero according to chi-squared test statistic threshold (10)
 # Host site: https://cnsgenomics.com/software/gctb/#Download
 # File date: ?; File size: ___ GB
-if true; then
+if false; then
   wget --directory-prefix $path_directory_parent --content-disposition --no-check-certificate "https://cnsgenomics.com/data/GCTB/ukbEURu_imp_v3_HM3_n50k.chisq10.zip"
 fi
 
@@ -90,7 +90,7 @@ fi
 # Detail: LD correlation banded matrix with window size of 3 cM per SNP (PubMed: 33326037);
 # Host site: https://cnsgenomics.com/software/gctb/#Download
 # File date: ?; File size: __ GB
-if false; then
+if true; then
   wget --directory-prefix $path_directory_parent --content-disposition --no-check-certificate "https://cnsgenomics.com/data/GCTB/band_ukb_10k_hm3.zip"
 fi
 
