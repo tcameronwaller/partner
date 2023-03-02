@@ -66,7 +66,7 @@ fi
 # Detail: observed LD correlations shrunk toward expected value from genetic map on 1000 Genomes (PubMed: 21479081); LD correlations less than threshold (1e-5) set to zero for sparse format;
 # Host site: https://zenodo.org/record/3350914
 # File date: 23 August 2019; File size: 22.1 GB
-if true; then
+if false; then
   wget --directory-prefix $path_directory_parent --content-disposition --no-check-certificate "https://zenodo.org/record/3350914/files/ukbEURu_hm3_sparse.zip"
 fi
 
@@ -78,7 +78,7 @@ fi
 # Detail: LD correlations set to zero according to chi-squared test statistic threshold (10)
 # Host site: https://cnsgenomics.com/software/gctb/#Download
 # File date: ?; File size: ___ GB
-if false; then
+if true; then
   wget --directory-prefix $path_directory_parent --content-disposition --no-check-certificate "https://cnsgenomics.com/data/GCTB/ukbEURu_imp_v3_HM3_n50k.chisq10.zip"
 fi
 
