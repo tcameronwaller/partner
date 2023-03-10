@@ -55,6 +55,9 @@ if [[ "$report" == "true" ]]; then
   echo "----------"
 fi
 
+# Initialize cumulative variable.
+count_lines_cumulative=0
+
 # Collect information.
 echo "Id Name Chrom Position A1 A2 A1Frq A1Effect SE PIP" > $path_file_product
 # Iterate on relevant chromosomes.
@@ -75,6 +78,8 @@ for chromosome in "${chromosomes[@]}"; do
   # Report.
   if [[ "$report" == "true" ]]; then
     count_lines=($(cat $path_file_source | wc -l))
+    #((count_lines_cumulative += $count_lines))
+    count_lines_cumulative=($count_lines_cumulative + $count_lines)
     echo "Chromosome " $chromosome " original lines: " $count_lines
   fi
 done
@@ -85,8 +90,9 @@ if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "----------"
   echo "Collection complete."
+  echo "Cumulative count of lines: " $count_lines_cumulative
   count_lines=($(cat $path_file_product | wc -l))
-  echo "Total collection lines: " $count_lines
+  echo "Total lines in collection product: " $count_lines
   echo "----------"
   echo "----------"
   echo "----------"
