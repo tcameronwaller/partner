@@ -11,10 +11,10 @@
 # Format of SNP effect weights from SBayesR.
 # file suffix: ".snpRes"
 # delimiter: white space
-# columns: Id Name Chrom Position A1 A2 A1Frq A1Effect SE PIP
+# columns: Id Name Chrom Position A1 A2 A1Frq A1Effect SE PIP (TCW; 2023-03-10)
 #          1  2    3     4        5  6  7     8        9  10
 
-# review: ___; ___
+# review: TCW; 10 March 2023
 
 ###########################################################################
 ###########################################################################
