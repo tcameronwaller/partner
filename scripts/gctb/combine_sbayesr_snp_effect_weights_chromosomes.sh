@@ -78,8 +78,8 @@ for chromosome in "${chromosomes[@]}"; do
   # Report.
   if [[ "$report" == "true" ]]; then
     count_lines=($(cat $path_file_source | wc -l))
-    #((count_lines_cumulative += $count_lines))
-    count_lines_cumulative=($count_lines_cumulative + $count_lines)
+    ((count_lines_cumulative += $count_lines))
+    #count_lines_cumulative=$((count_lines_cumulative + $count_lines))
     echo "Chromosome " $chromosome " original lines: " $count_lines
   fi
 done
