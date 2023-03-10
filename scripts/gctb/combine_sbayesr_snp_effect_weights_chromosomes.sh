@@ -91,6 +91,7 @@ if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "Collection complete."
   echo "Cumulative count of lines: " $count_lines_cumulative
+  echo "(Expect that cumulative count to be about 21 greater due to header lines.)"
   count_lines=($(cat $path_file_product | wc -l))
   echo "Total lines in collection product: " $count_lines
   echo "----------"
