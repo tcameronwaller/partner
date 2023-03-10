@@ -219,6 +219,30 @@ make install # TCW, 6 July 2021
 # rm -rf [virtual environment path and name] # remove virtual environment
 
 
+##########
+# Python3 environment: "crossmap"
+# Documentation for Python 2 CrossMap: "https://pythonhosted.org/CrossMap/"
+# Documentation for Python 3 CrossMap: "https://sourceforge.net/projects/crossmap/"
+# Documentation for Python 3 CrossMap: "http://crossmap.sourceforge.net/"
+# Initialize Python 3.9.6 virtual environment.
+# Installation of Python 3.9.6: path_python_396="${path_python}/python_3.9.6"
+# Path to environment: path_environment_crossmap="${path_tools}/python/environments/crossmap"
+"${path_python_396}/bin/python3" -m venv $path_environment_crossmap # TCW; 10 March 2023
+source "${path_environment_crossmap}/bin/activate"
+which python3 # "${path_environment_crossmap}/bin/python3"; TCW; 10 March 2023
+python3 -m pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org pip setuptools
+python3 -m pip install --upgrade pip # TCW; 10 March 2023
+# Successfully installed pip-23.0.1
+python3 -m pip --version # "pip 23.0.1 from ${path_environment_crossmap}/lib/python3.9/site-packages/pip (python 3.9)"; TCW; 10 March 2023
+python3 -m pip install --upgrade CrossMap # TCW; 10 March 2023
+# "Successfully installed CrossMap-0.6.5 bx-python-0.9.0 cython-0.29.33 numpy-1.24.2 pyBigWig-0.3.20 pysam-0.20.0"
+CrossMap.py --help # call "CrossMap.py" directly as an executable
+CrossMap.py bed --help
+CrossMap.py vcf --help
+deactivate
+which python3
+
+
 
 ##########
 # Python3 environment: "main"
@@ -284,26 +308,6 @@ which python3
 
 
 ################################################################################
-# Python3 virtual environment: "crossmap"
-# Documentation for Python 2 CrossMap: "https://pythonhosted.org/CrossMap/"
-# Documentation for Python 3 CrossMap: "https://sourceforge.net/projects/crossmap/"
-# Initialize Python 3 virtual environment for CrossMap installation.
-#path_python_396="${path_python}/python_3.9.6"
-#path_environment_crossmap="${path_tools}/python/environments/crossmap"
-"${path_python_396}/bin/python3" -m venv $path_environment_crossmap # TCW; 23 May 2022
-# source ./python/environments/prs_cs/bin/activate # TCW; 28 April 2022
-source "${path_environment_crossmap}/bin/activate"
-which python3 # "${path_environment_crossmap}/bin/python3"; TCW; 23 May 2022
-python3 -m pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org pip setuptools
-python3 -m pip install --upgrade pip # TCW; 23 May 2022
-# Successfully installed pip-22.1.1
-python3 -m pip --version # "pip 22.1.1 from ${path_environment_crossmap}/lib/python3.9/site-packages/pip (python 3.9)"; TCW; 23 May 2022
-python3 -m pip install --upgrade CrossMap # TCW; 23 May 2022
-# "Successfully installed CrossMap-0.6.3 bx-python-0.8.13 cython-0.29.30 numpy-1.22.4 pyBigWig-0.3.18 pysam-0.19.0"
-CrossMap.py --help # call "CrossMap.py" directly as an executable
-CrossMap.py vcf --help
-deactivate
-which python3
 
 
 

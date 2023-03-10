@@ -1,7 +1,8 @@
 #!/bin/bash
 
 ################################################################################
-################################################################################
+# Author: T. Cameron Waller
+# Date, first execution: 12 January 2023
 ################################################################################
 # Notes:
 # This script functions as a customizable call to the SBayesR procedure of the
@@ -21,8 +22,6 @@
 # chromosome at a time via an upstream driver script or a submission to a
 # computational cluster (such as the Sun Grid Engine) for parallel processing.
 
-# Author: T. Cameron Waller
-# Date, first execution: 12 January 2023
 # Date, review: 16 January 2023
 
 ################################################################################

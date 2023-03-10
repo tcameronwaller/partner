@@ -1,6 +1,9 @@
 #!/bin/bash
 
 ################################################################################
+# Author: T. Cameron Waller
+# Date, first execution: 17 February 2023
+################################################################################
 # Notes:
 
 # In tests on 9 February 2023, there did not seem to be any difference in the
@@ -15,6 +18,9 @@
 # Review: TCW; 17 February 2023
 
 ################################################################################
+
+# TODO: TCW; 10 March 2023
+# TODO: switch to NCBI standard genomic reference sequence for human genome assembly GRCh37.
 
 
 
