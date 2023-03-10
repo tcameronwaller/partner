@@ -88,7 +88,9 @@ if [[ "$report" == "true" ]]; then
   echo "BED format for UCSC Genome Browser and CrossMap."
   echo "path to source SNP effect weights file: " $path_file_source
   echo "path to product SNP effect weights file: " $path_file_product
-  echo "table after format:"
+  echo "table before format translation:"
+  head -10 $path_file_source
+  echo "table after format translation:"
   head -10 $path_file_temporary_format
   echo "----------"
   echo "----------"
