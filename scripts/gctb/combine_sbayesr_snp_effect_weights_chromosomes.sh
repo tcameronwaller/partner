@@ -74,7 +74,7 @@ for chromosome in "${chromosomes[@]}"; do
   } ' >> $path_file_product
   # Report.
   if [[ "$report" == "true" ]]; then
-    count_lines=($(zcat $path_file_source | wc -l))
+    count_lines=($(cat $path_file_source | wc -l))
     echo "Chromosome " $chromosome " original lines: " $count_lines
   fi
 done
@@ -85,7 +85,7 @@ if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "----------"
   echo "Collection complete."
-  count_lines=($(zcat $path_file_product | wc -l))
+  count_lines=($(cat $path_file_product | wc -l))
   echo "Total collection lines: " $count_lines
   echo "----------"
   echo "----------"
