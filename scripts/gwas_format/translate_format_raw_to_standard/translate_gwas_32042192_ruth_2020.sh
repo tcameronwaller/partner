@@ -21,7 +21,8 @@
 
 # Product Format (Team Standard)
 # delimiter: white space
-# columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
+# columns: SNP CHR BP A1 A2 A1AF BETA SE P   N   Z   INFO NCASE NCONT
+#          1   2   3  4  5  6    7    8  9   10  11  12   13    14
 
 # Review: TCW; 15 February 2023
 

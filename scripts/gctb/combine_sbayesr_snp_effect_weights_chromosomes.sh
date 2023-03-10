@@ -8,11 +8,31 @@
 # This script combines reports of SNP effect weights from GCTB SBayesR across
 # chromosomes.
 
-# Format of SNP effect weights from SBayesR.
-# file suffix: ".snpRes"
-# delimiter: white space
-# columns: Id Name Chrom Position A1 A2 A1Frq A1Effect SE PIP (TCW; 2023-03-10)
+# Source Format and Product Format
+# Description: Format of SNP effect weights from SBayesR.
+# Documentation site: https://cnsgenomics.com/software/gctb/#Tutorial
+# File suffix: ".snpRes"
+# File type: text
+# File compression: none
+# Delimiter: white space
+# Chromosome base position coordinate system: base 1
+#   Site: https://www.biostars.org/p/84686/
+#   Note: Coordinates designate 1-based integer position of each base
+# Columns: Id Name Chrom Position A1 A2 A1Frq A1Effect SE PIP (TCW; 2023-03-10)
 #          1  2    3     4        5  6  7     8        9  10
+# Column Descriptions
+# 1. "Id": sequential integer designator of SNP that SBayesR creates without general significance
+#   - Not unique after combining SNPs across chromosomes
+# 2. "Name": reference SNP cluster identifier (rsID) of SNP
+# 3. "Chrom": chromosome
+# 4. "Position": base position in human genome assembly (GRCh37 as of 10 March 2023)
+# 5. "A1": effect allele
+# 6. "A2": other allele
+# 7. "A1Frq": frequency of effect allele
+# 8. "A1Effect": LD-adjusted effect
+# 9. "SE": standard error of LD-adjusted effect
+# 10. "PIP": posterior inclusion probability
+#   - "frequency of the SNP being fitted as a non-zero effect in the model across MCMC samples"
 
 # review: TCW; 10 March 2023
 

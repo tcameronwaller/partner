@@ -7,6 +7,9 @@
 # (VCF) from an EnsEMBL host version of Phase 3 of the 1000 Genomes project.
 # This genomic variation information uses the GRCh37 assembly of the human
 # genome.
+# This genomic variation information includes frequencies of alternate alleles
+# calculated in superpopulations of the 1000 Genomes Project, such as the
+# European superpopulation.
 
 # EnsEMBL host website.
 # Site: https://grch37.ensembl.org/info/data/ftp/index.html
