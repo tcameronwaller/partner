@@ -1,9 +1,15 @@
 #!/bin/bash
 
-
+################################################################################
+# Author: T. Cameron Waller
+# Date, first execution: 24 May 2022
+# Date, last execution: __ March 2023
+# Review: TCW; 12 March 2023
 ################################################################################
 # Note
 
+# This script accesses chain files for the translation of genomic coordinates
+# from one assembly of the human genome to another.
 # Chain files specify the translations of coordinates for chromosomes and base
 # pair positions of Single Nucleotide Polymorphisms (SNPs) from a source human
 # genome assembly to a target human genome assembly.
@@ -19,65 +25,71 @@
 # Genome Reference Consortium (GRC) human assembly: GRCh37.p13
 # Genome Reference Consortium (GRC) human assembly: GRCh38.p14
 
-# File Transfer Protocol (FTP)
-# http://ftp.ensembl.org/pub/assembly_mapping/homo_sapiens/
-
 ################################################################################
 
-# TODO: TCW; 24 May 2022
-# TODO: also download the "hg19" to/from "hg38" chain files from UCSC
-# TODO: links in the CrossMap documentation
+
 
 ################################################################################
 # Organize arguments.
-path_assembly_chain_parent_container=${1} # full path to parent directory for chain files
+
+path_directory_parent=${1} # full path to parent directory within which to create child directories and save files
+report=${2} # whether to print reports
+
+################################################################################
+# Organize paths.
+
+path_directory_ucsc="${path_directory_parent}/ucsc"
+path_directory_ensembl="${path_directory_parent}/ensembl"
+
+# Initialize directory.
+rm -r $path_directory_ucsc
+rm -r $path_directory_ensembl
+mkdir -p $path_directory_ucsc
+mkdir -p $path_directory_ensembl
 
 ###########################################################################
 # Execute procedure.
-###########################################################################
 
 # Echo each command to console.
 #set -x
 # Suppress echo each command to console.
-set +x
+#set +x
 
-###########################################################################
-# Organize directories.
-# Access chain files to map between assemblies of the human genome.
+
 
 ##########
 # Assembly chain files from UCSC.
-path_assembly_chain_container="${path_assembly_chain_parent_container}/ucsc"
-rm -r $path_assembly_chain_container
-mkdir -p "${path_assembly_chain_container}"
-cd $path_assembly_chain_container
+# http://hgdownload.soe.ucsc.edu/goldenPath/
 # Source human genome assembly: GRCh37 (hg19)
 # Target human genome assembly: GRCh38 (hg38)
 # File date: 31 December 2013
+# File size: 222 kilobytes
 # Host: UCSC
-wget http://hgdownload.soe.ucsc.edu/goldenPath/hg19/liftOver/hg19ToHg38.over.chain.gz # 222 Kilobytes
+wget --directory-prefix $path_directory_ucsc --content-disposition --no-check-certificate "http://hgdownload.soe.ucsc.edu/goldenPath/hg19/liftOver/hg19ToHg38.over.chain.gz"
 # Source human genome assembly: GRCh38 (hg38)
 # Target human genome assembly: GRCh37 (hg19)
 # File date: 31 December 2013
+# File size: 1.2 Megabytes
 # Host: UCSC
-wget http://hgdownload.soe.ucsc.edu/goldenPath/hg38/liftOver/hg38ToHg19.over.chain.gz # 1.2 Megabytes
+wget --directory-prefix $path_directory_ucsc --content-disposition --no-check-certificate "http://hgdownload.soe.ucsc.edu/goldenPath/hg38/liftOver/hg38ToHg19.over.chain.gz"
+
+
 
 ##########
 # Assembly chain files from Ensembl.
-path_assembly_chain_container="${path_assembly_chain_parent_container}/ensembl"
-rm -r $path_assembly_chain_container
-mkdir -p "${path_assembly_chain_container}"
-cd $path_assembly_chain_container
+# http://ftp.ensembl.org/pub/assembly_mapping/homo_sapiens/
 # Source human genome assembly: GRCh37
 # Target human genome assembly: GRCh38
 # File date: 25 July 2014
+# File size: 279 kilobytes
 # Host: Ensembl
-wget http://ftp.ensembl.org/pub/assembly_mapping/homo_sapiens/GRCh37_to_GRCh38.chain.gz # 279 Kilobytes
+wget --directory-prefix $path_directory_ensembl --content-disposition --no-check-certificate "http://ftp.ensembl.org/pub/assembly_mapping/homo_sapiens/GRCh37_to_GRCh38.chain.gz"
 # Source human genome assembly: GRCh38
 # Target human genome assembly: GRCh37
 # File date: 25 July 2014
+# File size: 713 kilobytes
 # Host: Ensembl
-wget http://ftp.ensembl.org/pub/assembly_mapping/homo_sapiens/GRCh38_to_GRCh37.chain.gz # 713 Kilobytes
+wget --directory-prefix $path_directory_ensembl --content-disposition --no-check-certificate "http://ftp.ensembl.org/pub/assembly_mapping/homo_sapiens/GRCh38_to_GRCh37.chain.gz"
 
 
 

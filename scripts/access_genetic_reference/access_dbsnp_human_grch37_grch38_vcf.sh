@@ -13,6 +13,15 @@
 # includes unique reference SNP identifiers (rsIDs). This information is
 # available in the Variant Call Format (VCF).
 
+# The reference SNP cluster identifier (rsID) is a semi-stable designation of a
+# genomic locus that dbSNP defines. The rsID itself is not dependent on assembly
+# of the human genome (GRCh37 or GRCh38); however, for the purposes of matching
+# an rsID to genomic coordinates, the dbSNP definitions do specify genomic
+# coordinates according to a specific assembly (GRCh37 or GRCh38).
+
+# Here is an informatie description of the rsID.
+# Site: https://annovar.openbioinformatics.org/en/latest/articles/dbSNP/
+
 # File Transfer Protocol (FTP)
 # https://ftp.ncbi.nih.gov/snp/
 # https://ftp.ncbi.nlm.nih.gov/snp/
