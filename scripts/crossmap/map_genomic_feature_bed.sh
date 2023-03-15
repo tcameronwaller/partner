@@ -58,8 +58,10 @@ path_environment_crossmap="${path_waller_tools}/python/environments/crossmap"
 
 path_directory_product="$(dirname $path_file_product)"
 name_base_file_product="$(basename $path_file_product .bed.gz)"
+path_directory_product_temporary="${path_directory_product}/temporary_${name_base_file_product}" # hopefully unique
 
 # Files.
+path_file_temporary_map="${path_directory_product_temporary}/${name_base_file_product}_map.bed"
 path_file_product_unmap="${path_directory_product}/${name_base_file_product}_unmap.txt"
 
 # Initialize directory.
@@ -91,10 +93,13 @@ bed \
 --unmap-file $path_file_product_unmap \
 $path_file_chain \
 $path_file_source \
-$path_file_product
+$path_file_temporary_map
 # Deactivate Virtual Environment.
 deactivate
 which python3
+
+# Compress file format.
+gzip -cvf $path_file_temporary_map > $path_file_product
 
 # Report.
 if [[ "$report" == "true" ]]; then
@@ -124,7 +129,7 @@ fi
 
 
 # Remove temporary, intermediate files.
-#rm -r $path_directory_product_temporary
+rm -r $path_directory_product_temporary
 
 
 
