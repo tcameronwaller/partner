@@ -15,6 +15,7 @@
 # Documentation for Python 2 CrossMap: "https://pythonhosted.org/CrossMap/"
 # Documentation for Python 3 CrossMap: "https://sourceforge.net/projects/crossmap/"
 # Documentation for Python 3 CrossMap: "http://crossmap.sourceforge.net/"
+# Documentation for Python 3 CrossMap: "https://crossmap.readthedocs.io/en/latest/"
 # The CrossMap tool translates coordinates for chromosomes, base-pair positions,
 # and alleles of Single Nucleotide Polymorphisms (SNPs) from a source human
 # genome assembly to a target human genome assembly.
@@ -37,6 +38,9 @@
 # appropriate to combine VCF files for all chromosomes (using BCFTools "concat"
 # command) before the translation and then split by chromosome after the
 # translation (using BCFTools "view" command with "--regions" option).
+
+# The product file in BED format that CrossMap creates does not have a header.
+# This script introduces a header.
 
 ################################################################################
 
@@ -62,6 +66,7 @@ path_directory_product_temporary="${path_directory_product}/temporary_${name_bas
 
 # Files.
 path_file_temporary_map="${path_directory_product_temporary}/${name_base_file_product}_map.bed"
+path_file_temporary_map_header="${path_directory_product_temporary}/${name_base_file_product}_map_header.bed"
 path_file_product_unmap="${path_directory_product}/${name_base_file_product}_unmap.txt"
 
 # Initialize directory.
@@ -99,8 +104,13 @@ $path_file_temporary_map
 deactivate
 which python3
 
+# Introduce the same header from the source file to the product file.
+# CrossMap does not transfer the original header.
+zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_file_temporary_map_header
+cat $path_file_temporary_map >> $path_file_temporary_map_header
+
 # Compress file format.
-gzip -cvf $path_file_temporary_map > $path_file_product
+gzip -cvf $path_file_temporary_map_header > $path_file_product
 
 # Report.
 if [[ "$report" == "true" ]]; then

@@ -15,6 +15,7 @@
 # File type: text
 # File compression: Gzip
 # Delimiter: Tab
+# Header: No
 # Chromosome base position coordinate system: base 0
 #   Site: https://www.biostars.org/p/84686/
 #   Note: Coordinates designate 0-based integer range flanking base or range of bases
@@ -29,6 +30,7 @@
 # File type: text
 # File compression: none
 # Delimiter: white space
+# Header: Yes
 # Chromosome base position coordinate system: base 1
 #   Site: https://www.biostars.org/p/84686/
 #   Note: Coordinates designate 1-based integer position of each base
