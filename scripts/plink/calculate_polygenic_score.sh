@@ -1,8 +1,34 @@
 #!/bin/bash
 
 ################################################################################
+# Author: T. Cameron Waller
+# Date, first execution: __ March 2023
+# Date, last execution: __ March 2023
+# Review: TCW; ___
+################################################################################
+# Note
+
+# https://www.cog-genomics.org/plink/1.9/score
+# https://www.cog-genomics.org/plink/2.0/score
+
+
+# The output file of PLINK2 "score" command is in ".sscore" format.
+# https://www.cog-genomics.org/plink/2.0/formats#sscore
+
+
+# Arguments
+# 1. SNP effect weights
+# 2. genotypes (have to be in VCF?)
+#
+
+# TODO: TCW; 15 March 2023
+# 1. Do I need a format translation script?
+# 2.
+
 ################################################################################
 ################################################################################
+################################################################################
+
 # Notes...
 
 # BEFORE calling this script, concatenate PRS-CS reports across all chromosomes
@@ -10,10 +36,6 @@
 
 # This script WILL CALL PLINK2 to apply a linear combination across allelic
 # effects to create a polygenic score to represent an entire genotype.
-
-
-# The output file of PLINK2 "score" command is in ".sscore" format.
-# https://www.cog-genomics.org/plink/2.0/formats#sscore
 
 
 # TODO: TCW; 17 August 2022
@@ -50,8 +72,6 @@ path_plink2=$(<"./tools_plink2.txt")
 
 ################################################################################
 # Combine allelic effects in PLINK2.
-# https://www.cog-genomics.org/plink/1.9/score
-# https://www.cog-genomics.org/plink/2.0/score
 
 # Format from PRS-CS.
 #   chromosome   rsID   base position   A1   A2   effect size

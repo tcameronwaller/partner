@@ -3,6 +3,8 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: __ March 2023
+# Date, last execution: __ March 2023
+# Review: TCW; 15 March 2023
 ################################################################################
 # Note
 
@@ -58,7 +60,7 @@ path_directory_product="$(dirname $path_file_product)"
 name_base_file_product="$(basename $path_file_product .bed.gz)"
 
 # Files.
-path_file_unmap="${path_directory_product}/${name_base_file_product}_unmap.txt"
+path_file_product_unmap="${path_directory_product}/${name_base_file_product}_unmap.txt"
 
 # Initialize directory.
 #rm -r $path_directory_product
@@ -86,13 +88,38 @@ export OMP_NUM_THREADS=$threads
 CrossMap.py \
 bed \
 --chromid a \
---unmap-file $path_file_unmap \
+--unmap-file $path_file_product_unmap \
 $path_file_chain \
 $path_file_source \
 $path_file_product
 # Deactivate Virtual Environment.
 deactivate
 which python3
+
+# Report.
+if [[ "$report" == "true" ]]; then
+  echo "----------"
+  echo "----------"
+  echo "----------"
+  echo "Translate genomic features from human genome assembly"
+  echo "GRCh37 to GRCh38 in CrossMap."
+  echo "path to source file: " $path_file_source
+  echo "path to chain file: " $path_file_chain
+  echo "path to product file: " $path_file_product
+  echo "----------"
+  echo "table before translation:"
+  echo "Count lines: "
+  zcat $path_file_source | wc -l
+  zcat $path_file_source | head -10
+  echo "----------"
+  echo "table after translation:"
+  echo "Count lines: "
+  zcat $path_file_product | wc -l
+  zcat $path_file_product | head -10
+  echo "----------"
+  echo "----------"
+  echo "----------"
+fi
 
 
 
