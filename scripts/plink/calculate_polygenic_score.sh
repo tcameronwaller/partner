@@ -73,6 +73,7 @@ name_base_file_product="$(basename $path_file_product .txt.gz)"
 path_directory_product_temporary="${path_directory_product}/temporary_${name_base_file_product}" # hopefully unique
 
 # Files.
+path_file_temporary_effects="${path_directory_product_temporary}/${name_base_file_product}.txt"
 path_file_temporary_sscore="${path_directory_product_temporary}/${name_base_file_product}.sscore"
 
 # Initialize directory.
@@ -94,6 +95,9 @@ path_plink2=$(<"./tools_plink2.txt")
 # Call PLINK2 to calculate linear combination of allelic effects across SNPs in
 # target genotypes.
 
+# Decompress the GWAS summary statistics.
+gzip -dcvf $path_file_source_effects > $path_file_temporary_effects
+
 # PLINK2 arguments "center", "variance-standardize", and "dominant" modify the
 # scale of the polygenic scores; however, wait to adjust scale until after
 # combination of scores across separate chromosomes.
@@ -103,7 +107,7 @@ $path_plink2 \
 --threads $threads \
 --vcf $path_file_source_genotypes \
 --xchr-model 2 \
---score $path_file_source_effects 1 4 header no-mean-imputation ignore-dup-ids list-variants \
+--score $path_file_temporary_effects 1 4 header no-mean-imputation ignore-dup-ids list-variants \
 --score-col-nums 7 \
 --out $name_base_file_product
 
