@@ -103,9 +103,9 @@ if [[ "$report" == "true" ]]; then
   echo "path to source SNP effect weights file: " $path_file_source
   echo "path to product SNP effect weights file: " $path_file_product
   echo "table before format translation:"
-  head -10 $path_file_source
+  zcat $path_file_source | head -10
   echo "table after format translation:"
-  head -10 $path_file_temporary_format
+  zcat $path_file_product | head -10
   echo "----------"
   echo "----------"
   echo "----------"
