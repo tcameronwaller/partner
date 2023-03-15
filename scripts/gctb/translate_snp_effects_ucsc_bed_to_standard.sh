@@ -13,9 +13,9 @@
 # Documentation site: https://crossmap.sourceforge.net/#convert-bed-format-files
 # File suffix: ".bed.gz"
 # File type: text
-# File compression: Gzip
+# File compression: GZip
 # Delimiter: Tab
-# Header: No
+# Header: Yes
 # Chromosome base position coordinate system: base 0
 #   Site: https://www.biostars.org/p/84686/
 #   Note: Coordinates designate 0-based integer range flanking base or range of bases
@@ -28,7 +28,7 @@
 # Documentation site: https://cnsgenomics.com/software/gctb/#Tutorial
 # File suffix: ".txt.gz"
 # File type: text
-# File compression: none
+# File compression: GZip
 # Delimiter: white space
 # Header: Yes
 # Chromosome base position coordinate system: base 1

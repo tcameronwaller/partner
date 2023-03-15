@@ -71,8 +71,10 @@ path_file_product_unmap="${path_directory_product}/${name_base_file_product}_unm
 
 # Initialize directory.
 #rm -r $path_directory_product
+rm -r $path_directory_product_temporary
 mkdir -p $path_directory_product
 mkdir -p $path_directory_product_temporary
+cd $path_directory_product_temporary
 
 ################################################################################
 # Execute procedure.
