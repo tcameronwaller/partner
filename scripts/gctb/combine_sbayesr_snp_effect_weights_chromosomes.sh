@@ -80,7 +80,7 @@ fi
 count_lines_cumulative=0
 
 # Collect information.
-echo "Id Name Chrom Position A1 A2 A1Frq A1Effect SE PIP" > $path_file_product
+echo -e "Id\tName\tChrom\tPosition\tA1\tA2\tA1Frq\tA1Effect\tSE\tPIP" > $path_file_product
 # Iterate on relevant chromosomes.
 if [[ "$chromosome_x" == "true" ]]; then
   chromosomes=("1" "2" "3" "4" "5" "6" "7" "8" "9" "10" "11" "12" "13" "14" "15" "16" "17" "18" "19" "20" "21" "22" "X")
@@ -92,7 +92,7 @@ for chromosome in "${chromosomes[@]}"; do
   name_file_source="${name_file_source_prefix}${chromosome}${name_file_source_suffix}"
   path_file_source="${path_directory_source}/${name_file_source}"
   # Collect and combine all lines except for first (header).
-  cat $path_file_source | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+  cat $path_file_source | awk 'BEGIN {FS = " "; OFS ='\t'} NR > 1 {
     # Print the row entirely.
     print $0
   } ' >> $path_file_product
