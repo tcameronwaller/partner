@@ -8,10 +8,36 @@
 ################################################################################
 # Note
 
+# Important reference!!!
+# https://www.biostars.org/p/362960/
+# In this reference an author of PLINK2 reports how to include additional columns
+# in the PLINK2 --score report, including sums ("cols=+scoresums").
+# Plan to include several of the optional columns in order to have access to this
+# information and consider how to handle it in combining chromosomes.
+
+# TODO: TCW; 16 March 2023
+# TODO: I don't understand why it would be a problem to combine across chromosomes
+# TODO: after PLINK2 --score calculates final scores as averages of valid alleles
+# TODO: used in the calculation of the score. We can't I just calculate the sum
+# TODO: of this average across chromosomes?
+# TODO: reference: https://www.biostars.org/p/9508742/
+# TODO: PLINK2 --score does not have the "sum" or "no-sum" modifiers.
+
+# TODO: TCW; 16 March 2023
+# TODO: another option would be to try to run PLINK2 --score on genotypes across
+# TODO: all chromosomes together using the PLINK files instead of VCFs.
+
 # This script calls a method within PLINK2 to calculate a polygenic score as
 # linear combination of allelic effects across SNPs within a genotype.
 # https://www.cog-genomics.org/plink/1.9/score
 # https://www.cog-genomics.org/plink/2.0/score
+
+# The variant identifiers in the target genotypes need to match the format of
+# the variant identifiers in the allelic effects.
+
+# Additional references
+# https://2cjenn.github.io/PRS_Pipeline/
+# https://www.biostars.org/p/9508742/
 
 # SNP effects
 # Description: Format of SNP effects for calculation of polygenic scores
@@ -34,7 +60,6 @@
 # Documentation site: https://www.cog-genomics.org/plink/2.0/formats#sscore
 # File suffix: ".sscore"
 
-# https://2cjenn.github.io/PRS_Pipeline/
 
 ################################################################################
 ################################################################################
@@ -85,14 +110,6 @@ mkdir -p $path_directory_product
 mkdir -p $path_directory_product_temporary
 cd $path_directory_product_temporary
 
-
-################################################################################
-# Activate Virtual Environment.
-# Read private, local file paths.
-#echo "read private file path variables and organize paths..."
-cd ~/paths
-path_plink2=$(<"./tools_plink2.txt")
-
 ################################################################################
 # Call PLINK2 to calculate linear combination of allelic effects across SNPs in
 # target genotypes.
@@ -104,23 +121,22 @@ gzip -dcvf $path_file_source_effects > $path_file_temporary_effects
 # scale of the polygenic scores; however, wait to adjust scale until after
 # combination of scores across separate chromosomes.
 
-$path_plink2 \
---memory 90000 \
---threads $threads \
---vcf $path_file_source_genotypes \
---xchr-model 2 \
---score $path_file_temporary_effects 1 4 7 header no-mean-imputation ignore-dup-ids list-variants \
---out $name_base_file_product
-
-
 #$path_plink2 \
 #--memory 90000 \
 #--threads $threads \
 #--vcf $path_file_source_genotypes \
 #--xchr-model 2 \
-#--score $path_file_temporary_effects 1 4 header no-mean-imputation ignore-dup-ids list-variants \
-#--score-col-nums 7 \
+#--score $path_file_temporary_effects 1 4 7 header no-mean-imputation ignore-dup-ids list-variants \
 #--out $name_base_file_product
+
+$path_plink2 \
+--memory 90000 \
+--threads $threads \
+--vcf $path_file_source_genotypes \
+--xchr-model 2 \
+--score $path_file_temporary_effects 1 4 header no-mean-imputation ignore-dup-ids list-variants \
+--score-col-nums 7 \
+--out $name_base_file_product
 
 # Compress file format.
 gzip -cvf $path_file_temporary_sscore > $path_file_product
