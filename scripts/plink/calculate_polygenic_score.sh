@@ -21,7 +21,7 @@
 # File suffix: ".txt.gz"
 # File type: text
 # File compression: GZip
-# Delimiter: white space
+# Delimiter: Tab
 # Header: Yes
 # Chromosome base position coordinate system: base 1
 #   Site: https://www.biostars.org/p/84686/
@@ -107,9 +107,18 @@ $path_plink2 \
 --threads $threads \
 --vcf $path_file_source_genotypes \
 --xchr-model 2 \
---score $path_file_temporary_effects 1 4 header no-mean-imputation ignore-dup-ids list-variants \
---score-col-nums 7 \
+--score $path_file_temporary_effects 1 4 7 header no-mean-imputation ignore-dup-ids list-variants \
 --out $name_base_file_product
+
+
+#$path_plink2 \
+#--memory 90000 \
+#--threads $threads \
+#--vcf $path_file_source_genotypes \
+#--xchr-model 2 \
+#--score $path_file_temporary_effects 1 4 header no-mean-imputation ignore-dup-ids list-variants \
+#--score-col-nums 7 \
+#--out $name_base_file_product
 
 # Compress file format.
 gzip -cvf $path_file_temporary_sscore > $path_file_product
