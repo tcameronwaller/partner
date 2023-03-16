@@ -85,7 +85,7 @@ rm $path_file_product
 # Translate format of information about genomic features.
 # AWK interprets a single space delimiter (FS=" ") as any white space.
 echo -e "SNP\tCHR\tBP\tA1\tA2\tA1AF\tA1EFFECT\tSE\tP" > $path_file_temporary_format
-zcat $path_file_source | awk 'BEGIN { FS=" "; OFS='\t' } NR > 1 {
+zcat $path_file_source | awk 'BEGIN { FS=" "; OFS="\t" } NR > 1 {
   print $4, $1, $3, toupper($5), toupper($6), $7, $8, $9, $10
 }' >> $path_file_temporary_format
 

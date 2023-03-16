@@ -73,7 +73,7 @@ rm $path_file_product
 # AWK interprets a single space delimiter (FS=" ") as any white space.
 
 echo -e "chrom\tchromStart\tchromEnd\tName\tA1\tA2\tA1Frq\tA1Effect\tSE\tPIP" > $path_file_temporary_format
-cat $path_file_source | awk 'BEGIN { FS=" "; OFS='\t' } NR > 1 {
+cat $path_file_source | awk 'BEGIN { FS=" "; OFS="\t" } NR > 1 {
   print $3, ($4 - 1), ($4), $2, toupper($5), toupper($6), $7, $8, $9, $10
 }' >> $path_file_temporary_format
 

@@ -15,7 +15,7 @@
 # File suffix: ".snpRes"
 # File type: text
 # File compression: none
-# Delimiter: white space
+# Delimiter: Tab
 # Chromosome base position coordinate system: base 1
 #   Site: https://www.biostars.org/p/84686/
 #   Note: Coordinates designate 1-based integer position of each base
@@ -92,7 +92,7 @@ for chromosome in "${chromosomes[@]}"; do
   name_file_source="${name_file_source_prefix}${chromosome}${name_file_source_suffix}"
   path_file_source="${path_directory_source}/${name_file_source}"
   # Collect and combine all lines except for first (header).
-  cat $path_file_source | awk 'BEGIN {FS = " "; OFS ='\t'} NR > 1 {
+  cat $path_file_source | awk 'BEGIN {FS = " "; OFS ="\t"} NR > 1 {
     # Print the row entirely.
     print $0
   } ' >> $path_file_product
