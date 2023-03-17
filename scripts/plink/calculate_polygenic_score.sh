@@ -159,7 +159,7 @@ $path_plink2 \
 --threads $threads \
 --vcf $path_file_source_genotypes \
 --xchr-model 2 \
---score $path_file_temporary_effects 1 4 header no-mean-imputation ignore-dup-ids list-variants cols=+scoresums \
+--score $path_file_temporary_effects 1 4 header no-mean-imputation ignore-dup-ids list-variants cols=+scoresums,+denom \
 --score-col-nums 7 \
 --out $path_file_base_product
 
