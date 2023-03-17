@@ -102,9 +102,10 @@
 # Organize arguments.
 path_file_source_effects=${1} # full path to source file in standard format of allelic effects across SNPs
 path_file_source_genotypes=${2} # full path to source file in Variant Call Format (VCF) of target genotypes
-path_file_product=${3} # full path to product file for polygenic scores of allelic effects across target genotypes
-threads=${4} # count of processing threads to use
-report=${5} # whether to print reports
+path_directory_product=${3} # full path to product directory for polygenic scores of allelic effects across target genotypes
+name_base_file_product=${4} # base file name for product files
+threads=${5} # count of processing threads to use
+report=${6} # whether to print reports
 
 ###########################################################################
 # Organize paths.
@@ -113,13 +114,14 @@ report=${5} # whether to print reports
 cd ~/paths
 path_plink2=$(<"./tools_plink2.txt")
 
-path_directory_product="$(dirname $path_file_product)"
-name_base_file_product="$(basename $path_file_product .txt.gz)"
+#path_directory_product="$(dirname $path_file_product)"
+#name_base_file_product="$(basename $path_file_product .txt.gz)"
 path_directory_product_temporary="${path_directory_product}/temporary_${name_base_file_product}" # hopefully unique
+path_file_base_product="${path_directory_product}/${name_base_file_product}" # hopefully unique
 
 # Files.
 path_file_temporary_effects="${path_directory_product_temporary}/${name_base_file_product}.txt"
-path_file_sscore="${path_directory_product}/${name_base_file_product}.sscore"
+#path_file_sscore="${path_directory_product}/${name_base_file_product}.sscore"
 
 # Initialize directory.
 #rm -r $path_directory_product
@@ -159,13 +161,13 @@ $path_plink2 \
 --xchr-model 2 \
 --score $path_file_temporary_effects 1 4 header no-mean-imputation ignore-dup-ids list-variants cols=+scoresums \
 --score-col-nums 7 \
---out $name_base_file_product
+--out $path_file_base_product
 
 # Compress file format.
-gzip -cvf $path_file_sscore > $path_file_product
+#gzip -cvf $path_file_sscore > $path_file_product
 
 # Remove temporary, intermediate files.
-#rm -r $path_directory_product_temporary
+rm -r $path_directory_product_temporary
 
 
 
