@@ -8,36 +8,29 @@
 ################################################################################
 # Note
 
-# Important reference!!!
-# https://www.biostars.org/p/362960/
-# In this reference an author of PLINK2 reports how to include additional columns
-# in the PLINK2 --score report, including sums ("cols=+scoresums").
-# Plan to include several of the optional columns in order to have access to this
-# information and consider how to handle it in combining chromosomes.
-
-# TODO: TCW; 16 March 2023
-# TODO: I don't understand why it would be a problem to combine across chromosomes
-# TODO: after PLINK2 --score calculates final scores as averages of valid alleles
-# TODO: used in the calculation of the score. We can't I just calculate the sum
-# TODO: of this average across chromosomes?
-# TODO: reference: https://www.biostars.org/p/9508742/
-# TODO: PLINK2 --score does not have the "sum" or "no-sum" modifiers.
-
-# TODO: TCW; 16 March 2023
-# TODO: another option would be to try to run PLINK2 --score on genotypes across
-# TODO: all chromosomes together using the PLINK files instead of VCFs.
-
 # This script calls a method within PLINK2 to calculate a polygenic score as
 # linear combination of allelic effects across SNPs within a genotype.
-# https://www.cog-genomics.org/plink/1.9/score
-# https://www.cog-genomics.org/plink/2.0/score
+# Documentation: https://www.cog-genomics.org/plink/1.9/score
+# Documentation: https://www.cog-genomics.org/plink/2.0/score
 
 # The variant identifiers in the target genotypes need to match the format of
-# the variant identifiers in the allelic effects.
+# the variant identifiers in the allelic effects. It is likely that the
+# identifiers of variants in the target genotypes are not the same as the
+# reference SNP cluster identifier (rsID) that appears often in GWAS summary
+# statistics.
 
-# Additional references
-# https://2cjenn.github.io/PRS_Pipeline/
-# https://www.biostars.org/p/9508742/
+# By default, PLINK2 "--score" method attempts to handle missing genotype SNPs
+# by giving them an imputed value proportional to their cohort-specific allele
+# frequency. I think these allele frequencies need to be specific to the cohort
+# of target genotypes. Use the PLINK2 "--read-freq" method to read a file in
+# ".afreq" format produced by PLINK2 "--freq" method on the target genotypes.
+# Documentation: https://www.cog-genomics.org/plink/2.0/formats#afreq
+
+# For calculation of cumulative allelic effects across all available SNPs in the
+# genome (actually autosome, chromosomes 1-22) it is important to use the sum of
+# allelic effects within each chromosome and not the mean (sum of allelic
+# effects divided by the count of non-missing alleles used to calculate the
+# sum).
 
 # SNP effects
 # Description: Format of SNP effects for calculation of polygenic scores
@@ -59,6 +52,31 @@
 # Description: output file of PLINK2 "score" command is in ".sscore" format
 # Documentation site: https://www.cog-genomics.org/plink/2.0/formats#sscore
 # File suffix: ".sscore"
+
+# Additional references
+# https://2cjenn.github.io/PRS_Pipeline/
+# https://www.biostars.org/p/9508742/
+
+##########
+
+# Important reference!!!
+# https://www.biostars.org/p/362960/
+# In this reference an author of PLINK2 reports how to include additional columns
+# in the PLINK2 --score report, including sums ("cols=+scoresums").
+# Plan to include several of the optional columns in order to have access to this
+# information and consider how to handle it in combining chromosomes.
+
+# TODO: TCW; 16 March 2023
+# TODO: I don't understand why it would be a problem to combine across chromosomes
+# TODO: after PLINK2 --score calculates final scores as averages of valid alleles
+# TODO: used in the calculation of the score. We can't I just calculate the sum
+# TODO: of this average across chromosomes?
+# TODO: reference: https://www.biostars.org/p/9508742/
+# TODO: PLINK2 --score does not have the "sum" or "no-sum" modifiers.
+
+# TODO: TCW; 16 March 2023
+# TODO: another option would be to try to run PLINK2 --score on genotypes across
+# TODO: all chromosomes together using the PLINK files instead of VCFs.
 
 
 ################################################################################
@@ -101,18 +119,22 @@ path_directory_product_temporary="${path_directory_product}/temporary_${name_bas
 
 # Files.
 path_file_temporary_effects="${path_directory_product_temporary}/${name_base_file_product}.txt"
-path_file_temporary_sscore="${path_directory_product_temporary}/${name_base_file_product}.sscore"
+path_file_sscore="${path_directory_product}/${name_base_file_product}.sscore"
 
 # Initialize directory.
 #rm -r $path_directory_product
 rm -r $path_directory_product_temporary
 mkdir -p $path_directory_product
 mkdir -p $path_directory_product_temporary
-cd $path_directory_product_temporary
+cd $path_directory_product
 
 ################################################################################
 # Call PLINK2 to calculate linear combination of allelic effects across SNPs in
 # target genotypes.
+
+# Call PLINK2 help menu for the score method as this menu gives more detail than
+# the documentation online.
+$path_plink2 --help score
 
 # Decompress the GWAS summary statistics.
 gzip -dcvf $path_file_source_effects > $path_file_temporary_effects
@@ -120,6 +142,7 @@ gzip -dcvf $path_file_source_effects > $path_file_temporary_effects
 # PLINK2 arguments "center", "variance-standardize", and "dominant" modify the
 # scale of the polygenic scores; however, wait to adjust scale until after
 # combination of scores across separate chromosomes.
+
 
 #$path_plink2 \
 #--memory 90000 \
@@ -134,12 +157,12 @@ $path_plink2 \
 --threads $threads \
 --vcf $path_file_source_genotypes \
 --xchr-model 2 \
---score $path_file_temporary_effects 1 4 header no-mean-imputation ignore-dup-ids list-variants \
+--score $path_file_temporary_effects 1 4 header no-mean-imputation ignore-dup-ids list-variants cols=+scoresums \
 --score-col-nums 7 \
 --out $name_base_file_product
 
 # Compress file format.
-gzip -cvf $path_file_temporary_sscore > $path_file_product
+gzip -cvf $path_file_sscore > $path_file_product
 
 # Remove temporary, intermediate files.
 #rm -r $path_directory_product_temporary
