@@ -320,17 +320,17 @@ def combine_standardize_polygenic_scores(
     ))
     # Combine columns by sum.
     table["count_allele_total"] = table.apply(
-        lambda row: utility.calculate_sum_row_column_values(
+        lambda row: int(utility.calculate_sum_row_column_values(
             columns=columns_count_allele_total,
             row=row.copy(deep=True),
-        ),
+        )),
         axis="columns", # apply function to each row
     )
     table["count_allele_dosage"] = table.apply(
-        lambda row: utility.calculate_sum_row_column_values(
+        lambda row: int(utility.calculate_sum_row_column_values(
             columns=columns_count_allele_dosage,
             row=row.copy(deep=True),
-        ),
+        )),
         axis="columns", # apply function to each row
     )
     table["score_sum"] = table.apply(
