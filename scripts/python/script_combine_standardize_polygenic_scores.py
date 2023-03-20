@@ -291,6 +291,33 @@ def execute_procedure(
         tables_supplements=tables[1:],
         report=True,
     )
+    # Organize table after merge.
+    table_merge.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
+    table_merge.set_index(
+        "identifier",
+        append=False,
+        drop=True, # move regular column to index; remove original column
+        inplace=True,
+    )
+    # Sort table columns.
+    #columns = copy.deepcopy(table_merge.columns.to_list())
+    #columns_sort = sorted(columns, reverse=False)
+    #table_merge = table_merge[[*columns_sort]]
+    table_merge.sort_index(
+        axis="columns",
+        ascending=True,
+        inplace=True,
+    )
+    print("columns")
+    print(table_merge.columns.to_list())
+    print(table_merge)
+
+
+
 
     pass
 
