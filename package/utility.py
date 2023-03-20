@@ -1076,6 +1076,80 @@ def read_file_text_lines_elements(
     return elements
 
 
+def read_paths_match_child_files_within_parent_directory(
+    path_directory_parent=None,
+    name_file_child_prefix=None,
+    name_file_child_suffix=None,
+    report=None,
+):
+    """
+    Reads all files within parent directory as Pandas data-frame tables and
+    organizes these within a dictionary collection with entry names from the
+    original file names.
+
+    Notice that Pandas does not accommodate missing values within series of
+    integer variable types.
+
+    arguments:
+        path_directory_parent (str): path to parent directory in which to find
+            child files
+        name_file_child_prefix (str): prefix in name by which to recognize
+            relevant child files within parent directory
+        name_file_child_suffix (str): suffix in name by which to recognize
+            relevant child files within parent directory
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (list<str>): list of paths to child files within parent directory that
+            match prefix and suffix
+
+    """
+
+    # Read names of child files from parent directory.
+    contents = os.listdir(path=path_directory_parent)
+    # Filter to names of existant files.
+    names_files = list(filter(
+        lambda content: (os.path.isfile(os.path.join(
+            path_directory_parent, content
+        ))),
+        contents
+    ))
+    # Filter to names of files that match name prefix and suffix.
+    (len(str(collection)) > 0) and (delimiter in str(collection))
+    names_files_match = list(filter(
+        lambda name_file: (
+            (str(name_file_child_prefix) in str(name_file)) and
+            (str(name_file_child_suffix) in str(name_file))
+        ),
+        names_files
+    ))
+    # Iterate on names of child files to assemble paths.
+    # Collect paths to relevant child files.
+    paths = list()
+    for name_file in names_files_match:
+        # Assemble path.
+        path = os.path.join(
+            path_directory_parent,
+            name_file,
+        )
+        # Collect path.
+        paths.append(path)
+        pass
+    # Report.
+    if report:
+        print_terminal_partition(level=5)
+        print("Names of relevant child files within parent directory:")
+        print(names_files_match)
+        print("Count of relevant child files within parent directory:")
+        #print(len(names_files_match))
+        print(len(paths))
+        print_terminal_partition(level=5)
+    # Return information.
+    return paths
+
+
 def read_all_pandas_tables_files_within_parent_directory(
     path_directory_parent=None,
     types_pandas_table_read=None,

@@ -2,7 +2,7 @@
 
 ################################################################################
 # Author: T. Cameron Waller
-# Date, first execution: __ March 2023
+# Date, first execution: 20 March 2023
 # Date, last execution: __ March 2023
 # Review: TCW; ___
 ################################################################################
@@ -34,10 +34,12 @@ cd ~/paths
 path_waller_tools=$(<"./waller_tools.txt")
 path_environment_main="${path_waller_tools}/python/environments/main"
 path_directory_process=$(<"./process_psychiatric_metabolism.txt")
+path_directory_package="${path_directory_process}/psychiatric_metabolism/psychiatric_metabolism"
 path_directory_product="$(dirname $path_file_product)"
 
 # Scripts.
-path_script_combination="${path_directory_process}/promiscuity/package/combine_standardize_polygenic_scores.py"
+path_script_combination_source="${path_directory_process}/promiscuity/package/script_combine_standardize_polygenic_scores.py"
+path_script_combination_product="${path_directory_package}/script_combine_standardize_polygenic_scores.py"
 
 # Initialize directories.
 #rm -r $path_directory_product
@@ -52,12 +54,17 @@ rm $path_file_product
 
 name_file_source_suffix=".sscore"
 name_column_identifier="#IID"
+name_column_allele_total="ALLELE_CT"
+name_column_allele_dosage="NAMED_ALLELE_DOSAGE_SUM"
 name_column_score="SCORE1_SUM"
 threads=2
 report="true"
 
 ################################################################################
 # Execute procedure.
+
+# Copy Python script to package directory.
+cp $path_script_combination_source $path_script_combination_product
 
 # Activate Virtual Environment.
 source "${path_environment_main}/bin/activate"
@@ -71,7 +78,7 @@ export MKL_NUM_THREADS=$threads
 export NUMEXPR_NUM_THREADS=$threads
 export OMP_NUM_THREADS=$threads
 
-python3 $path_script_combination $path_directory_source $name_file_source_prefix $name_file_source_suffix $name_column_identifier $name_column_score $path_file_product
+python3 $path_script_combination_product $path_directory_source $name_file_source_prefix $name_file_source_suffix $name_column_identifier $name_column_allele_total $name_column_allele_dosage $name_column_score $path_file_product
 
 # Deactivate Virtual Environment.
 deactivate
