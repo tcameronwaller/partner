@@ -211,6 +211,166 @@ def read_source_directory_files_polygenic_scores(
     return pail
 
 
+def merge_tables_polygenic_scores(
+    pail_tables=None,
+    report=None,
+):
+    """
+    Reads and organizes source information from file.
+
+    arguments:
+        pail_tables (dict<object>): collection of Pandas data-frame tables with
+            entry names (keys) derived from original names of files
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    # Extract list of tables.
+    #names = list(pail_tables.keys())
+    tables = list(pail_tables.values())
+    # Merge tables.
+    table_merge = utility.merge_columns_tables_supplements_to_main(
+        identifier_main="identifier",
+        identifier_supplement="identifier",
+        table_main=tables[0],
+        tables_supplements=tables[1:],
+        report=True,
+    )
+    # Organize table after merge.
+    table_merge.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
+    table_merge.set_index(
+        "identifier",
+        append=False,
+        drop=True, # move regular column to index; remove original column
+        inplace=True,
+    )
+    # Sort table columns.
+    #columns = copy.deepcopy(table_merge.columns.to_list())
+    #columns_sort = sorted(columns, reverse=False)
+    #table_merge = table_merge[[*columns_sort]]
+    table_merge.sort_index(
+        axis="columns",
+        ascending=True,
+        inplace=True,
+    )
+    # Report.
+    if report:
+        print_terminal_partition(level=3)
+        print("report: ")
+        print("merge_tables_polygenic_scores()")
+        print_terminal_partition(level=4)
+        print("table columns: " + str(int(table_merge.shape[1])))
+        print("table rows: " + str(int(table_merge.shape[0])))
+        print("columns")
+        print(table_merge.columns.to_list())
+        print(table_merge)
+        pass
+    # Return information.
+    return table_merge
+
+
+def combine_standardize_polygenic_scores(
+    table=None,
+    report=None,
+):
+    """
+    Reads and organizes source information from file.
+
+    arguments:
+        pail_tables (dict<object>): collection of Pandas data-frame tables with
+            entry names (keys) derived from original names of files
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+    """
+
+    # Copy information in table.
+    table = table.copy(deep=True)
+
+    # Extract names of columns in table.
+    columns = copy.deepcopy(table.columns.to_list())
+    columns_count_allele_total = list(filter(
+        lambda column: (str("count_allele_total") in str(column)),
+        copy.deepcopy(columns)
+    ))
+    columns_count_allele_dosage = list(filter(
+        lambda column: (str("count_allele_dosage") in str(column)),
+        copy.deepcopy(columns)
+    ))
+    columns_score_sum = list(filter(
+        lambda column: (str("score_sum") in str(column)),
+        copy.deepcopy(columns)
+    ))
+    columns_score_mean = list(filter(
+        lambda column: (str("score_mean") in str(column)),
+        copy.deepcopy(columns)
+    ))
+    # Combine columns by sum.
+    table["count_allele_total"] = table.apply(
+        lambda row: utility.calculate_sum_row_column_values(
+            columns=columns_count_allele_total
+            row=row,
+        ),
+        axis="columns", # apply function to each row
+    )
+    table["count_allele_dosage"] = table.apply(
+        lambda row: utility.calculate_sum_row_column_values(
+            columns=columns_count_allele_dosage,
+            row=row,
+        ),
+        axis="columns", # apply function to each row
+    )
+    table["score_sum"] = table.apply(
+        lambda row: utility.calculate_sum_row_column_values(
+            columns=columns_score_sum,
+            row=row,
+        ),
+        axis="columns", # apply function to each row
+    )
+    table["score_mean"] = table.apply(
+        lambda row: utility.calculate_sum_row_column_values(
+            columns=columns_score_mean,
+            row=row,
+        ),
+        axis="columns", # apply function to each row
+    )
+
+    # Select relevant columns.
+    columns_keep = [
+        "identifier", "count_allele_total", "count_allele_dosage",
+        "score_sum", "score_mean",
+    ]
+    table = table.loc[:, table.columns.isin(columns_keep)]
+    table = table[[*columns_keep]]
+    # Report.
+    if report:
+        print_terminal_partition(level=3)
+        print("report: ")
+        print("combine_standardize_polygenic_scores()")
+        print_terminal_partition(level=4)
+        print("table columns: " + str(int(table.shape[1])))
+        print("table rows: " + str(int(table.shape[0])))
+        print("columns")
+        print(table.columns.to_list())
+        print(table)
+        pass
+    # Return information.
+    return table
+
+
+
 
 ################################################################################
 # Procedure
@@ -271,53 +431,18 @@ def execute_procedure(
         name_column_score_mean=name_column_score_mean,
         report=True,
     )
-    # Extract list of tables.
-    names = list(pail_tables.keys())
-    print(names)
-    tables = list(pail_tables.values())
-    for table in tables:
-        print(table)
-        pass
-
 
     # Merge together tables for polygenic scores.
-    #table_merge = merge_tables_polygenic_scores(
-    #    pail_tables=pail_tables,
-    #)
-    table_merge = utility.merge_columns_tables_supplements_to_main(
-        identifier_main="identifier",
-        identifier_supplement="identifier",
-        table_main=tables[0],
-        tables_supplements=tables[1:],
+    table_merge = merge_tables_polygenic_scores(
+        pail_tables=pail_tables,
         report=True,
     )
-    # Organize table after merge.
-    table_merge.reset_index(
-        level=None,
-        inplace=True,
-        drop=False, # remove index; do not move to regular columns
-    )
-    table_merge.set_index(
-        "identifier",
-        append=False,
-        drop=True, # move regular column to index; remove original column
-        inplace=True,
-    )
-    # Sort table columns.
-    #columns = copy.deepcopy(table_merge.columns.to_list())
-    #columns_sort = sorted(columns, reverse=False)
-    #table_merge = table_merge[[*columns_sort]]
-    table_merge.sort_index(
-        axis="columns",
-        ascending=True,
-        inplace=True,
-    )
-    print("columns")
-    print(table_merge.columns.to_list())
-    print(table_merge)
 
-
-
+    # Calculate combinations and standardizations of polygenic scores.
+    table_combination = combine_standardize_polygenic_scores(
+        table=table_merge,
+        report=True,
+    )
 
     pass
 

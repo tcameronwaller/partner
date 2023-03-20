@@ -1961,6 +1961,33 @@ def combine_unique_elements_pairwise_order(
 # Pandas
 
 
+def calculate_sum_row_column_values(
+    columns=None,
+    row=None,
+):
+    """
+    Calculates the sum of columns' values within a single row from a Pandas
+    data frame table (or a Pandas series).
+
+    arguments:
+        columns (list<str>): names of columns in table for which to calculate
+            sum
+        row (object): Pandas series corresponding to a row within a Pandas data
+            frame table
+
+    raises:
+
+    returns:
+        (float): sum of columns' values for current row
+
+    """
+
+    value = 0
+    for column in columns:
+        value += float(row[column])
+    return value
+
+
 def convert_records_to_dataframe(records=None):
     """
     Converts information from list of dictionaries to Pandas data frame.
@@ -3287,6 +3314,8 @@ def drive_calculate_table_column_pair_correlations(
         pass
     # Return information.
     return table
+
+
 
 
 
