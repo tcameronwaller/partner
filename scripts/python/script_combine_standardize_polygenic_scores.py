@@ -264,10 +264,10 @@ def merge_tables_polygenic_scores(
     )
     # Report.
     if report:
-        print_terminal_partition(level=3)
+        utility.print_terminal_partition(level=3)
         print("report: ")
         print("merge_tables_polygenic_scores()")
-        print_terminal_partition(level=4)
+        utility.print_terminal_partition(level=4)
         print("table columns: " + str(int(table_merge.shape[1])))
         print("table rows: " + str(int(table_merge.shape[0])))
         print("columns")
@@ -356,10 +356,10 @@ def combine_standardize_polygenic_scores(
     table = table[[*columns_keep]]
     # Report.
     if report:
-        print_terminal_partition(level=3)
+        utility.print_terminal_partition(level=3)
         print("report: ")
         print("combine_standardize_polygenic_scores()")
-        print_terminal_partition(level=4)
+        utility.print_terminal_partition(level=4)
         print("table columns: " + str(int(table.shape[1])))
         print("table rows: " + str(int(table.shape[0])))
         print("columns")
