@@ -271,6 +271,11 @@ def execute_procedure(
         name_column_score_mean=name_column_score_mean,
         report=True,
     )
+    # Extract list of tables.
+    names = pail_tables.keys()
+    print(names)
+    tables = pail_tables.values()
+
 
     # Merge together tables for polygenic scores.
     table_merge = merge_tables_polygenic_scores(

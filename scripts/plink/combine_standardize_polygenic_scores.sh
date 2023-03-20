@@ -18,6 +18,8 @@
 # deviation of one, and writes the table as a text table to the product file
 # path.
 
+# It is necessary to call the Python script within a package directory where it
+# has access to appropriate subpackages and modules.
 
 ################################################################################
 # Organize arguments.
@@ -40,7 +42,7 @@ path_directory_package="${path_directory_process}/psychiatric_metabolism/psychia
 path_directory_product="$(dirname $path_file_product)"
 
 # Scripts.
-path_script_combination_source="${path_directory_process}/promiscuity/scripts_python/script_combine_standardize_polygenic_scores.py"
+path_script_combination_source="${path_directory_process}/promiscuity/scripts/python/script_combine_standardize_polygenic_scores.py"
 path_script_combination_product="${path_directory_package}/script_combine_standardize_polygenic_scores.py"
 
 # Initialize directories.
