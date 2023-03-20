@@ -11,6 +11,7 @@
 # Standard.
 import sys
 import os
+import copy
 
 # Relevant.
 import pandas
