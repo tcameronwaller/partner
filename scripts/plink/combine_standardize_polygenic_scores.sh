@@ -57,7 +57,8 @@ name_file_source_not=".vars"
 name_column_identifier="#IID"
 name_column_allele_total="ALLELE_CT"
 name_column_allele_dosage="NAMED_ALLELE_DOSAGE_SUM"
-name_column_score="SCORE1_SUM"
+name_column_score_sum="SCORE1_SUM"
+name_column_score_mean="SCORE1_AVG"
 threads=2
 report="true"
 
@@ -79,7 +80,7 @@ export MKL_NUM_THREADS=$threads
 export NUMEXPR_NUM_THREADS=$threads
 export OMP_NUM_THREADS=$threads
 
-python3 $path_script_combination_product $path_directory_source $name_file_source_prefix $name_file_source_suffix $name_file_source_not $name_column_identifier $name_column_allele_total $name_column_allele_dosage $name_column_score $path_file_product
+python3 $path_script_combination_product $path_directory_source $name_file_source_prefix $name_file_source_suffix $name_file_source_not $name_column_identifier $name_column_allele_total $name_column_allele_dosage $name_column_score_sum $name_column_score_mean $path_file_product
 
 # Deactivate Virtual Environment.
 deactivate

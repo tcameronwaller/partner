@@ -30,7 +30,8 @@ def read_organize_table_polygenic_scores(
     name_column_identifier=None,
     name_column_allele_total=None,
     name_column_allele_dosage=None,
-    name_column_score=None,
+    name_column_score_sum=None,
+    name_column_score_mean=None,
     report=None,
 ):
     """
@@ -44,8 +45,11 @@ def read_organize_table_polygenic_scores(
             count of total non-missing alleles in genotypes
         name_column_allele_dosage (str): name of column in source table for
             count of alleles considered in calculation of polygenic score
-        name_column_score (str): name of column in source table for
-            sum (not average or mean) polygenic score across genotypes
+        name_column_score_sum (str): name of column in source table for
+            polygenic score as sum of allelic effects across genotypes
+        name_column_score_mean (str): name of column in source table for
+            polygenic score as mean of allelic effects (sum divided by count of
+            total nonmissing alleles) across genotypes
         report (bool): whether to print reports
 
     raises:
@@ -62,7 +66,8 @@ def read_organize_table_polygenic_scores(
         print(name_column_identifier)
         print(name_column_allele_total)
         print(name_column_allele_dosage)
-        print(name_column_score)
+        print(name_column_score_sum)
+        print(name_column_score_mean)
         utility.print_terminal_partition(level=4)
 
     # Read information from file.
@@ -70,7 +75,8 @@ def read_organize_table_polygenic_scores(
     types_columns[name_column_identifier] = "string"
     types_columns[name_column_allele_total] = "int"
     types_columns[name_column_allele_dosage] = "int"
-    types_columns[name_column_score] = "float"
+    types_columns[name_column_score_sum] = "float"
+    types_columns[name_column_score_mean] = "float"
     table = pandas.read_csv(
         path_table,
         sep="\t",
@@ -84,12 +90,19 @@ def read_organize_table_polygenic_scores(
         inplace=True,
         drop=True,
     )
+    # Simplify identifiers of genotypes.
+    # PLINK2 combines "IID" and "FID" identifiers.
+    table["identifier"] = table.apply(
+        lambda row: str(str(row[name_column_identifier]).split("_")[0]),
+        axis="columns", # apply function to each row
+    )
     # Translate names of columns.
     translations = dict()
-    translations[name_column_identifier] = "identifier"
+    #translations[name_column_identifier] = "identifier"
     translations[name_column_allele_total] = "count_allele_total"
     translations[name_column_allele_dosage] = "count_allele_dosage"
-    translations[name_column_score] = "score"
+    translations[name_column_score_sum] = "score_sum"
+    translations[name_column_score_mean] = "score_mean"
     table.rename(
         columns=translations,
         inplace=True,
@@ -97,7 +110,8 @@ def read_organize_table_polygenic_scores(
     print(table)
     # Select relevant columns.
     columns = [
-        "identifier", "count_allele_total", "count_allele_dosage", "score",
+        "identifier", "count_allele_total", "count_allele_dosage",
+        "score_sum", "score_mean",
     ]
     table = table.loc[:, table.columns.isin(columns)]
     table = table[[*columns]]
@@ -119,7 +133,8 @@ def read_source_directory_files_polygenic_scores(
     name_column_identifier=None,
     name_column_allele_total=None,
     name_column_allele_dosage=None,
-    name_column_score=None,
+    name_column_score_sum=None,
+    name_column_score_mean=None,
     report=None,
 ):
     """
@@ -138,8 +153,11 @@ def read_source_directory_files_polygenic_scores(
             count of total non-missing alleles in genotypes
         name_column_allele_dosage (str): name of column in source table for
             count of alleles considered in calculation of polygenic score
-        name_column_score (str): name of column in source table for
-            sum (not average or mean) polygenic score across genotypes
+        name_column_score_sum (str): name of column in source table for
+            polygenic score as sum of allelic effects across genotypes
+        name_column_score_mean (str): name of column in source table for
+            polygenic score as mean of allelic effects (sum divided by count of
+            total nonmissing alleles) across genotypes
         report (bool): whether to print reports
 
     raises:
@@ -173,7 +191,8 @@ def read_source_directory_files_polygenic_scores(
             name_column_identifier=name_column_identifier,
             name_column_allele_total=name_column_allele_total,
             name_column_allele_dosage=name_column_allele_dosage,
-            name_column_score=name_column_score,
+            name_column_score_sum=name_column_score_sum,
+            name_column_score_mean=name_column_score_mean,
             report=True,
         )
         # Collect table.
@@ -196,7 +215,8 @@ def execute_procedure(
     name_column_identifier=None,
     name_column_allele_total=None,
     name_column_allele_dosage=None,
-    name_column_score=None,
+    name_column_score_sum=None,
+    name_column_score_mean=None,
     path_file_product=None,
 ):
     """
@@ -215,8 +235,13 @@ def execute_procedure(
             count of total non-missing alleles in genotypes
         name_column_allele_dosage (str): name of column in source table for
             count of alleles considered in calculation of polygenic score
-        name_column_score (str): name of column in source table for
-            sum (not average or mean) polygenic score across genotypes
+        name_column_score_sum (str): name of column in source table for
+            polygenic score as sum of allelic effects across genotypes
+        name_column_score_mean (str): name of column in source table for
+            polygenic score as mean of allelic effects (sum divided by count of
+            total nonmissing alleles) across genotypes
+        path_file_product (str): path to product file after combination and
+            standardization of polygenic scores across chromosomes
 
     raises:
 
@@ -236,7 +261,8 @@ def execute_procedure(
         name_column_identifier=name_column_identifier,
         name_column_allele_total=name_column_allele_total,
         name_column_allele_dosage=name_column_allele_dosage,
-        name_column_score=name_column_score,
+        name_column_score_sum=name_column_score_sum,
+        name_column_score_mean=name_column_score_mean,
         report=True,
     )
 
@@ -253,8 +279,9 @@ if (__name__ == "__main__"):
     name_column_identifier = sys.argv[5]
     name_column_allele_total = sys.argv[6]
     name_column_allele_dosage = sys.argv[7]
-    name_column_score = sys.argv[8]
-    path_file_product = sys.argv[9]
+    name_column_score_sum = sys.argv[8]
+    name_column_score_mean = sys.argv[9]
+    path_file_product = sys.argv[10]
 
     # Call function for procedure.
     execute_procedure(
@@ -265,7 +292,8 @@ if (__name__ == "__main__"):
         name_column_identifier=name_column_identifier,
         name_column_allele_total=name_column_allele_total,
         name_column_allele_dosage=name_column_allele_dosage,
-        name_column_score=name_column_score,
+        name_column_score_sum=name_column_score_sum,
+        name_column_score_mean=name_column_score_mean,
         path_file_product=path_file_product,
     )
 

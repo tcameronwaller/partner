@@ -22,6 +22,10 @@
 # Columns: chrom chromStart chromEnd Name A1 A2 A1Frq A1Effect SE PIP
 #          1     2          3        4    5  6  7     8        9  10
 
+# Within the Variant Call Format (VCF) files, the relevant genotypes use
+# identifiers for variant records with format
+# "chr[chromosome]:[position]:[reference allele]:[alternate allele]".
+
 # Product Format
 # Description: SBayesR SNP effect weights compatible with team standard format for GWAS summary statistics.
 # Description: Both GWAS summary statistics and SNP effect weights are genomic features.

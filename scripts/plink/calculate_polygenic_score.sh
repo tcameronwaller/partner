@@ -59,6 +59,9 @@
 
 ##########
 
+# Note:
+# The average would effectively just be a scaled sum score.
+
 # Important reference!!!
 # https://www.biostars.org/p/362960/
 # In this reference an author of PLINK2 reports how to include additional columns
