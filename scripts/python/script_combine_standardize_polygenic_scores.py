@@ -279,7 +279,7 @@ def merge_tables_polygenic_scores(
     return table_merge
 
 
-def combine_standardize_polygenic_scores(
+def combine_sum_polygenic_scores(
     table=None,
     report=None,
 ):
@@ -359,7 +359,7 @@ def combine_standardize_polygenic_scores(
     if report:
         utility.print_terminal_partition(level=3)
         print("report: ")
-        print("combine_standardize_polygenic_scores()")
+        print("combine_sum_polygenic_scores()")
         utility.print_terminal_partition(level=4)
         print("table columns: " + str(int(table.shape[1])))
         print("table rows: " + str(int(table.shape[0])))
@@ -440,10 +440,19 @@ def execute_procedure(
     )
 
     # Calculate combinations and standardizations of polygenic scores.
-    table_combination = combine_standardize_polygenic_scores(
+    table_combination = combine_sum_polygenic_scores(
         table=table_merge,
         report=True,
     )
+
+    # Compare the polygenic score sum against the mean.
+    utility.calculate_table_column_pair_correlations(
+        column_one="score_sum",
+        column_two="score_mean",
+        table=table_combination,
+        report=True,
+    )
+
 
     pass
 
