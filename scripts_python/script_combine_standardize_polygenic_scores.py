@@ -55,17 +55,27 @@ def read_organize_table_polygenic_scores(
 
     """
 
+    # Report.
+    if report:
+        utility.print_terminal_partition(level=4)
+        print("Parameters:")
+        print(name_column_identifier)
+        print(name_column_allele_total)
+        print(name_column_allele_dosage)
+        print(name_column_score)
+        utility.print_terminal_partition(level=4)
+
     # Read information from file.
+    types_columns = dict()
+    types_columns[name_column_identifier] = "string"
+    types_columns[name_column_allele_total] = "int"
+    types_columns[name_column_allele_dosage] = "int"
+    types_columns[name_column_score] = "float"
     table = pandas.read_csv(
         path_table,
         sep="\t",
         header=0,
-        dtype={
-            [name_column_identifier]: "string",
-            [name_column_allele_total]: "int",
-            [name_column_allele_dosage]: "int",
-            [name_column_score]: "float",
-        },
+        dtype=types_columns,
         na_values=["nan", "na", "NAN", "NA",],
     )
     # Organize information in table.
@@ -171,15 +181,6 @@ def read_source_directory_files_polygenic_scores(
 
 
 
-
-
-
-
-
-
-
-
-
 ################################################################################
 # Procedure
 
@@ -218,6 +219,9 @@ def execute_procedure(
     returns:
 
     """
+
+    # Report.
+
 
     # Read from source files the tables for polygenic scores.
     pail_score_tables = read_source_directory_files_polygenic_scores(
