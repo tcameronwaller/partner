@@ -350,7 +350,7 @@ def combine_standardize_polygenic_scores(
 
     # Select relevant columns.
     columns_keep = [
-        "identifier", "count_allele_total", "count_allele_dosage",
+        "count_allele_total", "count_allele_dosage",
         "score_sum", "score_mean",
     ]
     table = table.loc[:, table.columns.isin(columns_keep)]
