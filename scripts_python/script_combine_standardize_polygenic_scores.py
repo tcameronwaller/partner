@@ -115,6 +115,7 @@ def read_source_directory_files_polygenic_scores(
     path_directory_parent=None,
     name_file_child_prefix=None,
     name_file_child_suffix=None,
+    name_file_child_not=None,
     name_column_identifier=None,
     name_column_allele_total=None,
     name_column_allele_dosage=None,
@@ -155,6 +156,7 @@ def read_source_directory_files_polygenic_scores(
         path_directory_parent=path_directory_parent,
         name_file_child_prefix=name_file_source_prefix,
         name_file_child_suffix=name_file_source_suffix,
+        name_file_child_not=name_file_child_not,
         report=report,
     )
     # Read files as Pandas dataframe tables.
@@ -190,6 +192,7 @@ def execute_procedure(
     path_directory_source=None,
     name_file_source_prefix=None,
     name_file_source_suffix=None,
+    name_file_source_not=None,
     name_column_identifier=None,
     name_column_allele_total=None,
     name_column_allele_dosage=None,
@@ -229,6 +232,7 @@ def execute_procedure(
         path_directory_parent=path_directory_source,
         name_file_child_prefix=name_file_source_prefix,
         name_file_child_suffix=name_file_source_suffix,
+        name_file_child_not=name_file_child_not,
         name_column_identifier=name_column_identifier,
         name_column_allele_total=name_column_allele_total,
         name_column_allele_dosage=name_column_allele_dosage,
@@ -245,17 +249,19 @@ if (__name__ == "__main__"):
     path_directory_source = sys.argv[1]
     name_file_source_prefix = sys.argv[2]
     name_file_source_suffix = sys.argv[3]
-    name_column_identifier = sys.argv[4]
-    name_column_allele_total = sys.argv[5]
-    name_column_allele_dosage = sys.argv[6]
-    name_column_score = sys.argv[7]
-    path_file_product = sys.argv[8]
+    name_file_source_not = sys.argv[4]
+    name_column_identifier = sys.argv[5]
+    name_column_allele_total = sys.argv[6]
+    name_column_allele_dosage = sys.argv[7]
+    name_column_score = sys.argv[8]
+    path_file_product = sys.argv[9]
 
     # Call function for procedure.
     execute_procedure(
         path_directory_source=path_directory_source,
         name_file_source_prefix=name_file_source_prefix,
         name_file_source_suffix=name_file_source_suffix,
+        name_file_source_not=name_file_source_not,
         name_column_identifier=name_column_identifier,
         name_column_allele_total=name_column_allele_total,
         name_column_allele_dosage=name_column_allele_dosage,

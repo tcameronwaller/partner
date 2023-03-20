@@ -53,6 +53,7 @@ rm $path_file_product
 # Organize parameters.
 
 name_file_source_suffix=".sscore"
+name_file_source_not=".vars"
 name_column_identifier="#IID"
 name_column_allele_total="ALLELE_CT"
 name_column_allele_dosage="NAMED_ALLELE_DOSAGE_SUM"
@@ -78,7 +79,7 @@ export MKL_NUM_THREADS=$threads
 export NUMEXPR_NUM_THREADS=$threads
 export OMP_NUM_THREADS=$threads
 
-python3 $path_script_combination_product $path_directory_source $name_file_source_prefix $name_file_source_suffix $name_column_identifier $name_column_allele_total $name_column_allele_dosage $name_column_score $path_file_product
+python3 $path_script_combination_product $path_directory_source $name_file_source_prefix $name_file_source_suffix $name_file_source_not $name_column_identifier $name_column_allele_total $name_column_allele_dosage $name_column_score $path_file_product
 
 # Deactivate Virtual Environment.
 deactivate

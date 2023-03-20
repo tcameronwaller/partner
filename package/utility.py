@@ -1080,6 +1080,7 @@ def read_paths_match_child_files_within_parent_directory(
     path_directory_parent=None,
     name_file_child_prefix=None,
     name_file_child_suffix=None,
+    name_file_child_not=None,
     report=None,
 ):
     """
@@ -1096,6 +1097,8 @@ def read_paths_match_child_files_within_parent_directory(
         name_file_child_prefix (str): prefix in name by which to recognize
             relevant child files within parent directory
         name_file_child_suffix (str): suffix in name by which to recognize
+            relevant child files within parent directory
+        name_file_child_not (str): string not in name by which to recognize
             relevant child files within parent directory
         report (bool): whether to print reports
 
@@ -1120,7 +1123,8 @@ def read_paths_match_child_files_within_parent_directory(
     names_files_match = list(filter(
         lambda name_file: (
             (str(name_file_child_prefix) in str(name_file)) and
-            (str(name_file_child_suffix) in str(name_file))
+            (str(name_file_child_suffix) in str(name_file)) and
+            (str(name_file_child_not) not in str(name_file))
         ),
         names_files
     ))
