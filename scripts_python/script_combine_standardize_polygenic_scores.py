@@ -94,6 +94,7 @@ def read_organize_table_polygenic_scores(
         columns=translations,
         inplace=True,
     )
+    print(table)
     # Select relevant columns.
     columns = [
         "identifier", "count_allele_total", "count_allele_dosage", "score",
