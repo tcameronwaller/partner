@@ -196,6 +196,22 @@ def execute_procedure():
 
     """
 
+    # Read from source files the tables for polygenic scores.
+    pail_score_tables = read_source_directory_files_polygenic_scores(
+        path_directory_parent=path_directory_source,
+        name_file_child_prefix=name_file_source_prefix,
+        name_file_child_suffix=name_file_source_suffix,
+        name_column_identifier=name_column_identifier,
+        name_column_allele_total=name_column_allele_total,
+        name_column_allele_dosage=name_column_allele_dosage,
+        name_column_score=name_column_score,
+        report=True,
+    )
+
+    pass
+
+
+if (__name__ == "__main__"):
     # Parse arguments from terminal.
     name_script = sys.argv[0]
     path_directory_source = sys.argv[1]
@@ -219,11 +235,7 @@ def execute_procedure():
         report=True,
     )
 
-    pass
-
-
-if (__name__ == "__main__"):
-    execute_procedure()
+    #execute_procedure()
 
 
 
