@@ -3446,6 +3446,9 @@ def merge_columns_two_tables(
     supplement tables. This behavior might produce redundant or unnecessary
     columns.
 
+    This function also does not check that columns in both tables have unique
+    names.
+
     arguments:
         identifier_first (str): name of column in first table on which to merge
         identifier_second (str): name of column in second table on which to

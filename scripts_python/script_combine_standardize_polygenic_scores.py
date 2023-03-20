@@ -93,7 +93,7 @@ def read_organize_table_polygenic_scores(
         drop=True,
     )
     # Assign new names to columns.
-    identifier = str("identifier_" + name_table)
+    identifier = str("identifier")
     allele_total = str("count_allele_total_" + name_table)
     allele_dosage = str("count_allele_dosage_" + name_table)
     score_sum = str("score_sum_" + name_table)
@@ -258,11 +258,8 @@ def execute_procedure(
 
     """
 
-    # Report.
-
-
     # Read from source files the tables for polygenic scores.
-    pail_score_tables = read_source_directory_files_polygenic_scores(
+    pail_tables = read_source_directory_files_polygenic_scores(
         path_directory_parent=path_directory_source,
         name_file_child_prefix=name_file_source_prefix,
         name_file_child_suffix=name_file_source_suffix,
@@ -273,6 +270,11 @@ def execute_procedure(
         name_column_score_sum=name_column_score_sum,
         name_column_score_mean=name_column_score_mean,
         report=True,
+    )
+
+    # Merge together tables for polygenic scores.
+    table_merge = merge_tables_polygenic_scores(
+        pail_tables=pail_tables,
     )
 
     pass
