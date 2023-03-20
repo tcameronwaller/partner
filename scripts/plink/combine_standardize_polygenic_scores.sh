@@ -38,7 +38,7 @@ path_directory_package="${path_directory_process}/psychiatric_metabolism/psychia
 path_directory_product="$(dirname $path_file_product)"
 
 # Scripts.
-path_script_combination_source="${path_directory_process}/promiscuity/package/script_combine_standardize_polygenic_scores.py"
+path_script_combination_source="${path_directory_process}/promiscuity/scripts_python/script_combine_standardize_polygenic_scores.py"
 path_script_combination_product="${path_directory_package}/script_combine_standardize_polygenic_scores.py"
 
 # Initialize directories.
