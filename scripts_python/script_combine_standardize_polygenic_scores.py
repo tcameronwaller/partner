@@ -232,7 +232,7 @@ def execute_procedure(
         path_directory_parent=path_directory_source,
         name_file_child_prefix=name_file_source_prefix,
         name_file_child_suffix=name_file_source_suffix,
-        name_file_child_not=name_file_child_not,
+        name_file_child_not=name_file_source_not,
         name_column_identifier=name_column_identifier,
         name_column_allele_total=name_column_allele_total,
         name_column_allele_dosage=name_column_allele_dosage,
