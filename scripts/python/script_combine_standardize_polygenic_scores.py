@@ -284,15 +284,13 @@ def execute_procedure(
     #table_merge = merge_tables_polygenic_scores(
     #    pail_tables=pail_tables,
     #)
-    table_merge merge_columns_tables_supplements_to_main(
+    table_merge = utility.merge_columns_tables_supplements_to_main(
         identifier_main="identifier",
         identifier_supplement="identifier",
         table_main=tables[0],
         tables_supplements=tables[1:],
-        report=None,
+        report=True,
     )
-    print(table_merge.columns.to_list())
-    print(table_merge)
 
     pass
 
