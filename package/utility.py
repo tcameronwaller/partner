@@ -1117,7 +1117,6 @@ def read_paths_match_child_files_within_parent_directory(
         contents
     ))
     # Filter to names of files that match name prefix and suffix.
-    (len(str(collection)) > 0) and (delimiter in str(collection))
     names_files_match = list(filter(
         lambda name_file: (
             (str(name_file_child_prefix) in str(name_file)) and

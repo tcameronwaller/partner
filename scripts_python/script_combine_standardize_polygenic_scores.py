@@ -184,15 +184,38 @@ def read_source_directory_files_polygenic_scores(
 # Procedure
 
 
-def execute_procedure():
+def execute_procedure(
+    path_directory_source=None,
+    name_file_source_prefix=None,
+    name_file_source_suffix=None,
+    name_column_identifier=None,
+    name_column_allele_total=None,
+    name_column_allele_dosage=None,
+    name_column_score=None,
+    path_file_product=None,
+):
     """
     Function to execute module's main behavior.
 
     arguments:
-
-    returns:
+        path_directory_parent (str): path to parent directory in which to find
+            child files
+        name_file_child_prefix (str): prefix in name by which to recognize
+            relevant child files within parent directory
+        name_file_child_suffix (str): suffix in name by which to recognize
+            relevant child files within parent directory
+        name_column_identifier (str): name of column in source table for
+            identifier of genotypes
+        name_column_allele_total (str): name of column in source table for
+            count of total non-missing alleles in genotypes
+        name_column_allele_dosage (str): name of column in source table for
+            count of alleles considered in calculation of polygenic score
+        name_column_score (str): name of column in source table for
+            sum (not average or mean) polygenic score across genotypes
 
     raises:
+
+    returns:
 
     """
 
@@ -223,19 +246,19 @@ if (__name__ == "__main__"):
     name_column_score = sys.argv[7]
     path_file_product = sys.argv[8]
 
-    # Read from source files the tables for polygenic scores.
-    pail_score_tables = read_source_directory_files_polygenic_scores(
-        path_directory_parent=path_directory_source,
-        name_file_child_prefix=name_file_source_prefix,
-        name_file_child_suffix=name_file_source_suffix,
+    # Call function for procedure.
+    execute_procedure(
+        path_directory_source=path_directory_source,
+        name_file_source_prefix=name_file_source_prefix,
+        name_file_source_suffix=name_file_source_suffix,
         name_column_identifier=name_column_identifier,
         name_column_allele_total=name_column_allele_total,
         name_column_allele_dosage=name_column_allele_dosage,
         name_column_score=name_column_score,
-        report=True,
+        path_file_product=path_file_product,
     )
 
-    #execute_procedure()
+    pass
 
 
 
