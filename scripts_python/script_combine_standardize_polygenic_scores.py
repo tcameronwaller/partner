@@ -27,6 +27,7 @@ import promiscuity.utility as utility
 
 def read_organize_table_polygenic_scores(
     path_table=None,
+    name_table=None,
     name_column_identifier=None,
     name_column_allele_total=None,
     name_column_allele_dosage=None,
@@ -39,6 +40,7 @@ def read_organize_table_polygenic_scores(
 
     arguments:
         path_table (str): path to file for table
+        name_table (str): name of table that distinguishes it from all others
         name_column_identifier (str): name of column in source table for
             identifier of genotypes
         name_column_allele_total (str): name of column in source table for
@@ -90,28 +92,33 @@ def read_organize_table_polygenic_scores(
         inplace=True,
         drop=True,
     )
+    # Assign new names to columns.
+    identifier = str("identifier_" + name_table)
+    allele_total = str("count_allele_total_" + name_table)
+    allele_dosage = str("count_allele_dosage_" + name_table)
+    score_sum = str("score_sum_" + name_table)
+    score_mean = str("score_mean_" + name_table)
     # Simplify identifiers of genotypes.
     # PLINK2 combines "IID" and "FID" identifiers.
-    table["identifier"] = table.apply(
+    table[identifier] = table.apply(
         lambda row: str(str(row[name_column_identifier]).split("_")[0]),
         axis="columns", # apply function to each row
     )
     # Translate names of columns.
     translations = dict()
-    #translations[name_column_identifier] = "identifier"
-    translations[name_column_allele_total] = "count_allele_total"
-    translations[name_column_allele_dosage] = "count_allele_dosage"
-    translations[name_column_score_sum] = "score_sum"
-    translations[name_column_score_mean] = "score_mean"
+    #translations[name_column_identifier] = identifier
+    translations[name_column_allele_total] = allele_total
+    translations[name_column_allele_dosage] = allele_dosage
+    translations[name_column_score_sum] = score_sum
+    translations[name_column_score_mean] = score_mean
     table.rename(
         columns=translations,
         inplace=True,
     )
-    print(table)
     # Select relevant columns.
     columns = [
-        "identifier", "count_allele_total", "count_allele_dosage",
-        "score_sum", "score_mean",
+        identifier, allele_total, allele_dosage,
+        score_sum, score_mean,
     ]
     table = table.loc[:, table.columns.isin(columns)]
     table = table[[*columns]]
@@ -182,12 +189,14 @@ def read_source_directory_files_polygenic_scores(
     # Collect tables.
     pail = dict()
     for path in paths:
-        # Extract name of file.
+        # Extract name of file and table that distinguishes it from all others.
         name_file = os.path.basename(path)
-        name_simple = name_file.replace(str(name_file_child_suffix), "")
+        name_table_1 = name_file.replace(str(name_file_child_prefix), "")
+        name_table = name_table_1.replace(str(name_file_child_suffix), "")
         # Read file and organize information in table.
         table = read_organize_table_polygenic_scores(
             path_table=path,
+            name_table=name_table,
             name_column_identifier=name_column_identifier,
             name_column_allele_total=name_column_allele_total,
             name_column_allele_dosage=name_column_allele_dosage,
@@ -196,7 +205,7 @@ def read_source_directory_files_polygenic_scores(
             report=True,
         )
         # Collect table.
-        pail[name_simple] = table.copy(deep=True)
+        pail[name_table] = table.copy(deep=True)
         pass
     # Return information.
     return pail

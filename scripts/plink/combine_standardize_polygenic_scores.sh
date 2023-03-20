@@ -24,7 +24,9 @@
 
 path_directory_source=${1} # full path to source directory in which to find files of polygenic scores across chromosomes
 name_file_source_prefix=${2} # prefix of name of files of polygenic scores from each chromosome
-path_file_product=${3} # full path to product file in UCSC Browser Extensible Data (BED) format
+name_file_source_suffix=${3} # suffix of name of files of polygenic scores from each chromosome
+name_file_source_not=${4} # character string within file names for exclusion
+path_file_product=${5} # full path to product file in UCSC Browser Extensible Data (BED) format
 
 ################################################################################
 # Organize paths.
@@ -52,8 +54,8 @@ rm $path_file_product
 ################################################################################
 # Organize parameters.
 
-name_file_source_suffix=".sscore"
-name_file_source_not=".vars"
+#name_file_source_suffix=".sscore"
+#name_file_source_not=".vars"
 name_column_identifier="#IID"
 name_column_allele_total="ALLELE_CT"
 name_column_allele_dosage="NAMED_ALLELE_DOSAGE_SUM"
