@@ -272,15 +272,27 @@ def execute_procedure(
         report=True,
     )
     # Extract list of tables.
-    names = pail_tables.keys()
+    names = list(pail_tables.keys())
     print(names)
-    tables = pail_tables.values()
+    tables = list(pail_tables.values())
+    for table in tables:
+        print(table)
+        pass
 
 
     # Merge together tables for polygenic scores.
-    table_merge = merge_tables_polygenic_scores(
-        pail_tables=pail_tables,
+    #table_merge = merge_tables_polygenic_scores(
+    #    pail_tables=pail_tables,
+    #)
+    table_merge merge_columns_tables_supplements_to_main(
+        identifier_main="identifier",
+        identifier_supplement="identifier",
+        table_main=tables[0],
+        tables_supplements=tables[1:],
+        report=None,
     )
+    print(table_merge.columns.to_list())
+    print(table_merge)
 
     pass
 
