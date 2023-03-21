@@ -367,6 +367,21 @@ def execute_procedure(
     #    table=table_standardization,
     #    report=True,
     #)
+    columns = copy.deepcopy(table_standardization.columns.to_list())
+    columns_score = list(filter(
+        lambda column: (str("score_") in str(column)),
+        copy.deepcopy(columns)
+    ))
+    table_correlations = utility.organize_feature_signal_correlations(
+        method="pearson",
+        threshold_high=0.0,
+        threshold_low=1.5,
+        count=1,
+        discovery=1.0,
+        features=columns_score,
+        data_signal=table_standardization,
+    )
+    print(table_correlations)
 
     # Write table to file.
     write_product_table_text_tab(
