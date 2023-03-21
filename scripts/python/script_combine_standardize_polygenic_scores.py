@@ -284,7 +284,20 @@ def combine_sum_polygenic_scores(
     report=None,
 ):
     """
-    Reads and organizes source information from file.
+    Combines cumulative polygenic scores across autosomal chromosomes.
+
+    It would be mathematically inaccurate to calculate the cumulative sum of the
+    Mean score values across chromosomes without adjusting for the proportion of
+    total variant (SNP) alleles on each chromosome.
+
+    The options include calculation of a true mean or a weighted average.
+
+    Options:
+    1. Weighted average: Adjust each chromosome's mean score by the proportion
+    of total variant (SNP) alleles on each chromosome.
+    2. True mean: Calculate the sum of each chromosome's cumulative sum score
+    and then calculate the mean by division by the sum of total counts of
+    variant (SNP) alleles on each chromosome.
 
     arguments:
         pail_tables (dict<object>): collection of Pandas data-frame tables with
@@ -314,10 +327,6 @@ def combine_sum_polygenic_scores(
         lambda column: (str("score_sum") in str(column)),
         copy.deepcopy(columns)
     ))
-    columns_score_mean = list(filter(
-        lambda column: (str("score_mean") in str(column)),
-        copy.deepcopy(columns)
-    ))
     # Combine columns by sum.
     table["count_allele_total"] = table.apply(
         lambda row: int(utility.calculate_sum_row_column_values(
@@ -341,10 +350,7 @@ def combine_sum_polygenic_scores(
         axis="columns", # apply function to each row
     )
     table["score_mean"] = table.apply(
-        lambda row: utility.calculate_sum_row_column_values(
-            columns=columns_score_mean,
-            row=row.copy(deep=True),
-        ),
+        lambda row: ((row["score_sum"]) / (row["count_allele_total"])),
         axis="columns", # apply function to each row
     )
 

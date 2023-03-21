@@ -30,7 +30,9 @@
 # genome (actually autosome, chromosomes 1-22) it is important to use the sum of
 # allelic effects within each chromosome and not the mean (sum of allelic
 # effects divided by the count of non-missing alleles used to calculate the
-# sum).
+# sum). It would be mathematically inaccurate to calculate the cumulative sum of
+# the Mean score values across chromosomes without adjusting for the proportion
+# of total variant (SNP) alleles on each chromosome.
 
 # SNP effects
 # Description: Format of SNP effects for calculation of polygenic scores
