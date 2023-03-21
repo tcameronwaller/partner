@@ -2,24 +2,26 @@
 
 ################################################################################
 # Author: T. Cameron Waller
-# Date, first execution: 20 March 2023
+# Date, first execution: 21 March 2023
 # Date, last execution: 21 March 2023
-# Review: TCW; 21 March 2023
+# Review: TCW; __ March 2023
 ################################################################################
 # Note
 
-# This Bash script calls a Python script to read all matching files from a
-# source directory for polygenic scores. These files are probably for polygenic
-# scores of the same trait on separate chromosomes. The Python script reads
-# these files as text tables, assigns unique names to the columns for the
-# polygenic scores, merges the tables together by matching identifiers for
-# genotypes, calculates the sum of all polygenic scores for each identifier,
-# standardizes the sum score as a z-score with mean of zero and standard
-# deviation of one, and writes the table as a text table to the product file
-# path.
+# This Bash script calls a Python script to collect and standardize multiple
+# polygenic scores on the same cohort of genotypes.
 
 # It is necessary to call the Python script within a package directory where it
 # has access to appropriate subpackages and modules.
+
+# Source Format
+# Description: Format polygenic scores standard for collection and standardization.
+# File suffix: ".txt"
+# File type: text
+# File compression: none
+# Delimiter: Tab
+# Columns: identifier   score (TCW; 2023-03-21)
+#          1            2
 
 ################################################################################
 # Organize arguments.
@@ -42,8 +44,8 @@ path_directory_package="${path_directory_process}/psychiatric_metabolism/psychia
 path_directory_product="$(dirname $path_file_product)"
 
 # Scripts.
-path_script_source="${path_directory_process}/promiscuity/scripts/python/script_combine_sum_polygenic_scores.py"
-path_script_product="${path_directory_package}/script_combine_sum_polygenic_scores.py"
+path_script_source="${path_directory_process}/promiscuity/scripts/python/script_collect_standardize_polygenic_scores.py"
+path_script_product="${path_directory_package}/script_collect_standardize_polygenic_scores.py"
 
 # Initialize directories.
 #rm -r $path_directory_product
@@ -56,13 +58,6 @@ rm $path_file_product
 ################################################################################
 # Organize parameters.
 
-#name_file_source_suffix=".sscore"
-#name_file_source_not=".vars"
-name_column_identifier="#IID"
-name_column_allele_total="ALLELE_CT"
-name_column_allele_dosage="NAMED_ALLELE_DOSAGE_SUM"
-name_column_score_sum="SCORE1_SUM"
-name_column_score_mean="SCORE1_AVG"
 threads=2
 report="true"
 
@@ -84,7 +79,7 @@ export MKL_NUM_THREADS=$threads
 export NUMEXPR_NUM_THREADS=$threads
 export OMP_NUM_THREADS=$threads
 
-python3 $path_script_product $path_directory_source $name_file_source_prefix $name_file_source_suffix $name_file_source_not $name_column_identifier $name_column_allele_total $name_column_allele_dosage $name_column_score_sum $name_column_score_mean $path_file_product
+python3 $path_script_product $path_directory_source $name_file_source_prefix $name_file_source_suffix $name_file_source_not $path_file_product
 
 # Deactivate Virtual Environment.
 deactivate
