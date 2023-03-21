@@ -243,7 +243,7 @@ def standardize_polygenic_scores(
     # Extract names of columns in table.
     columns = copy.deepcopy(table.columns.to_list())
     columns_score = list(filter(
-        lambda column: (str("score") in str(column)),
+        lambda column: (str("score_") in str(column)),
         copy.deepcopy(columns)
     ))
     # Standardize scores to z-score scale with mean of zeroa and standard
@@ -254,6 +254,16 @@ def standardize_polygenic_scores(
         columns=columns_score,
         report=report,
     )
+
+    # Select relevant columns.
+    # Extract names of columns in table.
+    columns = copy.deepcopy(table.columns.to_list())
+    columns_keep = list(filter(
+        lambda column: (str("score_") in str(column)),
+        copy.deepcopy(columns)
+    ))
+    table = table.loc[:, table.columns.isin(columns_keep)]
+    table = table[[*columns_keep]]
     # Report.
     if report:
         utility.print_terminal_partition(level=3)
