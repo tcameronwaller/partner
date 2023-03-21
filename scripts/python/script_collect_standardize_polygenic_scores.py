@@ -363,6 +363,24 @@ def execute_procedure(
     # Compare the polygenic score sum against the mean.
     utility.calculate_table_column_pair_correlations(
         column_one="score_bmi_sbayesr_1",
+        column_two="score_bmi_sbayesr_2",
+        table=table_standardization,
+        report=True,
+    )
+    utility.calculate_table_column_pair_correlations(
+        column_one="score_bmi_sbayesr_1",
+        column_two="score_bmi_sbayesr_3",
+        table=table_standardization,
+        report=True,
+    )
+    utility.calculate_table_column_pair_correlations(
+        column_one="score_bmi_sbayesr_2",
+        column_two="score_bmi_sbayesr_3",
+        table=table_standardization,
+        report=True,
+    )
+    utility.calculate_table_column_pair_correlations(
+        column_one="score_bmi_sbayesr_1",
         column_two="score_bmi_ldpred2",
         table=table_standardization,
         report=True,
@@ -382,6 +400,12 @@ def execute_procedure(
     utility.calculate_table_column_pair_correlations(
         column_one="score_bmi_ldpred2",
         column_two="score_bmi_ldpred2_2",
+        table=table_standardization,
+        report=True,
+    )
+    utility.calculate_table_column_pair_correlations(
+        column_one="score_bmi_ldpred2",
+        column_two="score_bmi_prsice2",
         table=table_standardization,
         report=True,
     )

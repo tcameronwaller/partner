@@ -3163,6 +3163,10 @@ def drive_extract_search_strings_from_table_columns_main_strings(
     return table
 
 
+# TODO: TCW; 21 March 2023
+# include standard error or confidence interval in the report...
+# https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.pearsonr.html
+
 def calculate_table_column_pair_correlations(
     column_one=None,
     column_two=None,
