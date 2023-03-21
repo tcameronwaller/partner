@@ -3,8 +3,8 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 20 March 2023
-# Date, last execution: __ March 2023
-# Review: TCW; ___
+# Date, last execution: 21 March 2023
+# Review: TCW; 21 March 2023
 ################################################################################
 # Note
 
@@ -42,8 +42,8 @@ path_directory_package="${path_directory_process}/psychiatric_metabolism/psychia
 path_directory_product="$(dirname $path_file_product)"
 
 # Scripts.
-path_script_combination_source="${path_directory_process}/promiscuity/scripts/python/script_combine_standardize_polygenic_scores.py"
-path_script_combination_product="${path_directory_package}/script_combine_standardize_polygenic_scores.py"
+path_script_combination_source="${path_directory_process}/promiscuity/scripts/python/script_combine_sum_polygenic_scores.py"
+path_script_combination_product="${path_directory_package}/script_combine_sum_polygenic_scores.py"
 
 # Initialize directories.
 #rm -r $path_directory_product
