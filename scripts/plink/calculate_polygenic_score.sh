@@ -143,7 +143,7 @@ cd $path_directory_product
 # the documentation online.
 $path_plink2 --help score
 
-# Decompress the GWAS summary statistics.
+# Decompress the variant (SNP) allelic effects.
 gzip -dcvf $path_file_source_effects > $path_file_temporary_effects
 
 # PLINK2 arguments "center", "variance-standardize", and "dominant" modify the
