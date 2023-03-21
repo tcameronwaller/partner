@@ -203,7 +203,7 @@ def read_source_directory_files_polygenic_scores(
             name_column_allele_dosage=name_column_allele_dosage,
             name_column_score_sum=name_column_score_sum,
             name_column_score_mean=name_column_score_mean,
-            report=True,
+            report=report,
         )
         # Collect table.
         pail[name_table] = table.copy(deep=True)
@@ -377,6 +377,31 @@ def combine_sum_polygenic_scores(
     return table
 
 
+def write_product_table_text_tab(
+    table=None,
+    path_file=None,
+):
+    """
+    Writes product information to file.
+
+    arguments:
+        table (object): table of information to write to file
+        path_file (str): path to which to write file
+
+    raises:
+
+    returns:
+
+    """
+
+    # Write information to file.
+    table.to_csv(
+        path_or_buf=path_file,
+        sep="\t",
+        header=True,
+        index=True,
+    )
+    pass
 
 
 ################################################################################
@@ -436,7 +461,7 @@ def execute_procedure(
         name_column_allele_dosage=name_column_allele_dosage,
         name_column_score_sum=name_column_score_sum,
         name_column_score_mean=name_column_score_mean,
-        report=True,
+        report=False,
     )
 
     # Merge together tables for polygenic scores.
@@ -457,6 +482,12 @@ def execute_procedure(
         column_two="score_mean",
         table=table_combination,
         report=True,
+    )
+
+    # Write table to file.
+    write_product_table_text_tab(
+        table=table_combination,
+        path_file=path_file_product,
     )
 
 
