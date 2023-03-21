@@ -361,27 +361,24 @@ def execute_procedure(
     )
 
     # Compare the polygenic score sum against the mean.
-    #utility.calculate_table_column_pair_correlations(
-    #    column_one="score_sum",
-    #    column_two="score_mean",
-    #    table=table_standardization,
-    #    report=True,
-    #)
-    columns = copy.deepcopy(table_standardization.columns.to_list())
-    columns_score = list(filter(
-        lambda column: (str("score_") in str(column)),
-        copy.deepcopy(columns)
-    ))
-    table_correlations = utility.organize_feature_signal_correlations(
-        method="pearson",
-        threshold_high=0.0,
-        threshold_low=1.5,
-        count=1,
-        discovery=1.0,
-        features=columns_score,
-        data_signal=table_standardization,
+    utility.calculate_table_column_pair_correlations(
+        column_one="score_bmi_sbayesr_1",
+        column_two="score_bmi_ldpred2",
+        table=table_standardization,
+        report=True,
     )
-    print(table_correlations)
+    utility.calculate_table_column_pair_correlations(
+        column_one="score_bmi_sbayesr_1",
+        column_two="score_bmi_ldpred2_2",
+        table=table_standardization,
+        report=True,
+    )
+    utility.calculate_table_column_pair_correlations(
+        column_one="score_bmi_sbayesr_1",
+        column_two="score_bmi_prsice2",
+        table=table_standardization,
+        report=True,
+    )
 
     # Write table to file.
     write_product_table_text_tab(
