@@ -59,10 +59,11 @@
 path_file_batch_instances=${1} # text list of information for each instance in batch
 batch_instances_count=${2} # count of instances in batch
 path_file_gwas=${3} # full path and name to file for source GWAS summary statistics in GCTB and GCTA-COJO ".ma" format without compression
-path_script_run_sbayesr=${4} # full path to directory and file of script for direct run of GCTB SBayesR
-path_gctb=${5} # full path to directory and file for local executable installation of GCTB SBayesR
-threads=${6} # count of concurrent or parallel process threads on node cores
-report=${7} # whether to print reports
+observations_variant=${4} # logical binary indicator of whether counts of observations are reliable and specific to each variant (SNP)
+path_script_run_sbayesr=${5} # full path to directory and file of script for direct run of GCTB SBayesR
+path_gctb=${6} # full path to directory and file for local executable installation of GCTB SBayesR
+threads=${7} # count of concurrent or parallel process threads on node cores
+report=${8} # whether to print reports
 
 
 

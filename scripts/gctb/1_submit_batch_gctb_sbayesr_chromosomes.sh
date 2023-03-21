@@ -14,11 +14,6 @@
 ################################################################################
 
 
-# TODO: TCW; 20 Februayr 2023
-# New argument:
-# observations_variant <-- whether observations are variant-specific
-
-
 
 ################################################################################
 # Organize arguments.
@@ -30,12 +25,13 @@ name_file_ld_matrix_suffix=${4} # suffix of name of file for chromosome-specific
 path_directory_product=${5} # full path to parent directory for product files from GCTB SBayesR
 name_file_product_prefix=${6} # prefix of name of file for product files from GCTB SBayesR
 name_file_product_suffix=${7} # suffix of name of file for product files from GCTB SBayesR
-chromosome_x=${8} # whether to include Chromosome X
-path_script_batch_run_sbayesr=${9} # full path to directory and file of script for execution of batch job for run of GCTB SBayesR
-path_script_run_sbayesr=${10} # full path to directory and file of script for direct run of GCTB SBayesR
-path_gctb=${11} # full path to directory and file for local executable installation of GCTB SBayesR
-threads=${12} # count of concurrent or parallel process threads on node cores
-report=${13} # whether to print reports
+observations_variant=${8} # logical binary indicator of whether counts of observations are reliable and specific to each variant (SNP)
+chromosome_x=${9} # whether to include Chromosome X
+path_script_batch_run_sbayesr=${10} # full path to directory and file of script for execution of batch job for run of GCTB SBayesR
+path_script_run_sbayesr=${11} # full path to directory and file of script for direct run of GCTB SBayesR
+path_gctb=${12} # full path to directory and file for local executable installation of GCTB SBayesR
+threads=${13} # count of concurrent or parallel process threads on node cores
+report=${14} # whether to print reports
 
 
 
@@ -112,6 +108,7 @@ if true; then
   $path_file_batch_instances \
   $batch_instances_count \
   $path_file_gwas \
+  $observations_variant \
   $path_script_run_sbayesr \
   $path_gctb \
   $threads \
