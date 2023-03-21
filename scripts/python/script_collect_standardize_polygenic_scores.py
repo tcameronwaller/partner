@@ -375,7 +375,7 @@ if (__name__ == "__main__"):
     name_file_source_prefix = sys.argv[2]
     name_file_source_suffix = sys.argv[3]
     name_file_source_not = sys.argv[4]
-    path_file_product = sys.argv[10]
+    path_file_product = sys.argv[5]
 
     # Call function for procedure.
     execute_procedure(
