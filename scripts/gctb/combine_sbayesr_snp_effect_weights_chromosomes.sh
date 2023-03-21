@@ -3,6 +3,7 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 10 March 2023
+# Review: TCW; 10 March 2023
 ################################################################################
 # Notes
 
@@ -34,8 +35,6 @@
 # 9. "SE": standard error of LD-adjusted effect
 # 10. "PIP": posterior inclusion probability
 #   - "frequency of the SNP being fitted as a non-zero effect in the model across MCMC samples"
-
-# review: TCW; 10 March 2023
 
 ###########################################################################
 ###########################################################################
