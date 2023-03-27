@@ -46,8 +46,8 @@ do
     echo "field 14, controls: ${array[14]}"
     echo "field 15, prevalence_sample: ${array[15]}"
     echo "field 16, prevalence_population: ${array[16]}"
-    echo "field 15, script: ${array[17]}"
-    echo "field 16, note: ${array[18]}"
+    echo "field 17, script: ${array[17]}"
+    echo "field 18, note: ${array[18]}"
     echo "----------"
   fi
   # Execute procedure for current record's parameters.

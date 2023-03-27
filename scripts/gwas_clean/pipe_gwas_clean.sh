@@ -15,6 +15,18 @@
 # previous test job completed with only 4 or 8 Gigabytes of memory on a single
 # processor thread.
 
+# The procedure in this script assumes that the values in column "N" are the
+# count of total observations (sum of cases and controls) for each variant (SNP)
+# and that the values in column "NCASE" are the count of observations of cases
+# for each variant (SNP).
+# Hence: N = NCASE + NCONT
+# This procedure effectively loses in information in the column "NCONT".
+# A calculation in this procedure also assumes that the count of total
+# observations includes all (100%) of cases and that any discrepancies in count
+# of total observations are indicative of differences in the count of cases.
+# Hence: "NCONT = N - NCASE".
+
+
 # Review: TCW; 17 February 2023
 
 ################################################################################
