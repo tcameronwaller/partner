@@ -2496,7 +2496,7 @@ def plot_scatter_qq_gwas(
     numpy.seterr(invalid='ignore')
 
     # Prepare probability values.
-    probabilities = numpy.array(probabilities)
+    probabilities = numpy.array(probabilities, dtype=float64)
     probabilities = numpy.copy(probabilities)
     probabilities = probabilities[(probabilities > 1.0e-300)]
     probabilities_sort = numpy.sort(
@@ -2507,15 +2507,16 @@ def plot_scatter_qq_gwas(
     probabilities_log = numpy.log10(probabilities_sort)
     probabilities_neglog = numpy.multiply(probabilities_log, -1)
     # Prepare expectation values.
-    expectations = range(
-        1,
-        (int(len(probabilities_neglog)) + 1),
-        1,
+    #count = int(len(probabilities_neglog))
+    count = int(probabilities_neglog.size)
+    offset = 0.5 # value in (0, 1); normally 0.5; 0.375 for small sample size
+    #expectations_range = range(1, (count + 1), 1)
+    expectations_range = numpy.arange(1, (count + 1), 1) # range: 1 to count + 1
+    expectations_offset = numpy.subtract(expectations_range, offset)
+    expectations_ratio = numpy.divide(
+        expectations_offset, ((count + 1) - (2*offset))
     )
-    expectations_div = numpy.divide(
-        expectations, (int(len(expectations)) + 1)
-    )
-    expectations_log = numpy.log10(expectations_div)
+    expectations_log = numpy.log10(expectations_ratio)
     expectations_neglog = numpy.multiply(expectations_log, -1)
     # Organize information for figure.
     values_abscissa = expectations_neglog # abscissa or X axis

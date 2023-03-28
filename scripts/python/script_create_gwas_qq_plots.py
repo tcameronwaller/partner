@@ -53,7 +53,8 @@ def read_organize_table_gwas(
     # Read information from file.
     # Precision of type float64: 2.2E-308 - 1.7E+308
     types_columns = dict()
-    types_columns["CHR"] = "int32"
+    #types_columns["CHR"] = "int32"
+    types_columns["BP"] = "int32"
     #types_columns["BETA"] = "float32"
     #types_columns["SE"] = "float32"
     types_columns["P"] = "float64"
@@ -78,9 +79,7 @@ def read_organize_table_gwas(
         drop=True,
     )
     # Select relevant columns.
-    columns = [
-        "CHR", "P"
-    ]
+    columns = ["BP", "P",]
     table = table.loc[:, table.columns.isin(columns)]
     table = table[[*columns]]
     # Report.
