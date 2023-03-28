@@ -2488,25 +2488,27 @@ def plot_scatter_qq_gwas(
     """
 
     # Prepare probability values.
-    probabilities_log = numpy.log10(probabilities)
     probabilities_sort = numpy.sort(
-        probabilities_log,
+        probabilities,
         axis=0,
         kind="stable",
     )
+    probabilities_log = numpy.log10(probabilities_sort)
+    probabilities_neglog = numpy.multiply(probabilities_log, -1)
     # Prepare expectation values.
     expectations = range(
         1,
-        (int(len(probabilities_sort)) + 1),
+        (int(len(probabilities_log)) + 1),
         1,
     )
-    expectations_log = numpy.log10(
-        numpy.divide(expectations, (int(len(probabilities_sort)) + 1))
+    expectations_div = numpy.divide(
+        expectations, (int(len(probabilities_sort)) + 1)
     )
-
+    expectations_log = numpy.log10(expectations_div)
+    expecations_neglog = numpy.multiply(expectations_log, -1)
     # Organize information for figure.
-    values_abscissa = expectations_log # abscissa or X axis
-    values_ordinate = probabilities_sort # ordinate or Y axis
+    values_abscissa = expectations_neglog # abscissa or X axis
+    values_ordinate = probabilities_neglog # ordinate or Y axis
     title_abscissa = "-log10(expected p-values)"
     title_ordinate = "-log10(observed p-values)"
 
@@ -2524,7 +2526,7 @@ def plot_scatter_qq_gwas(
         alpha=1.0,
         backgroundcolor=colors["white"],
         color=colors["black"],
-        fontproperties=fonts["properties"]["one"]
+        fontproperties=fonts["properties"]["three"]
     )
     axes.set_ylabel(
         ylabel=title_ordinate,
@@ -2532,7 +2534,7 @@ def plot_scatter_qq_gwas(
         alpha=1.0,
         backgroundcolor=colors["white"],
         color=colors["black"],
-        fontproperties=fonts["properties"]["one"]
+        fontproperties=fonts["properties"]["three"]
     )
     axes.tick_params(
         axis="both",
@@ -2542,7 +2544,7 @@ def plot_scatter_qq_gwas(
         width=3.0,
         color=colors["black"],
         pad=5,
-        labelsize=fonts["values"]["one"]["size"],
+        labelsize=fonts["values"]["three"]["size"],
         labelcolor=colors["black"]
     )
     # Plot points for values from each group.
