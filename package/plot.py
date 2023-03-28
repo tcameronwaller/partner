@@ -2459,9 +2459,6 @@ def plot_scatter(
     return figure
 
 
-# TODO: TCW; 28 March 2023
-# TODO: customize this function to clean up plot figure
-
 def plot_scatter_qq_gwas(
     probabilities=None,
     title=None,
@@ -2494,11 +2491,14 @@ def plot_scatter_qq_gwas(
 
     """
 
-    numpy.seterr(divide = 'ignore')
-
+    # Suppress error warnings from NumPy.
+    numpy.seterr(divide='ignore')
+    numpy.seterr(invalid='ignore')
 
     # Prepare probability values.
-    probabilities[(probabilities > 1.0e-10)]
+    probabilities = numpy.array(probabilities)
+    probabilities = numpy.copy(probabilities)
+    probabilities = probabilities[(probabilities > 1.0e-300)]
     probabilities_sort = numpy.sort(
         probabilities,
         axis=0,
@@ -2509,7 +2509,7 @@ def plot_scatter_qq_gwas(
     # Prepare expectation values.
     expectations = range(
         1,
-        (int(len(probabilities_log)) + 1),
+        (int(len(probabilities_neglog)) + 1),
         1,
     )
     expectations_div = numpy.divide(
@@ -3684,7 +3684,7 @@ def write_product_plot_figure(
     write_figure(
         figure=figure,
         format="png",
-        resolution=150, # dots per inch: 150, 300, 600
+        resolution=100, # dots per inch: 100, 150, 300, 600
         path=path_file,
     )
     pass

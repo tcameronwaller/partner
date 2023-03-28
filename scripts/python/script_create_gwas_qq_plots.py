@@ -51,10 +51,12 @@ def read_organize_table_gwas(
     """
 
     # Read information from file.
+    # Precision of type float64: 2.2E-308 - 1.7E+308
     types_columns = dict()
-    types_columns["BETA"] = "float32"
+    types_columns["CHR"] = "int32"
+    #types_columns["BETA"] = "float32"
     #types_columns["SE"] = "float32"
-    types_columns["P"] = "float32"
+    types_columns["P"] = "float64"
     table = pandas.read_csv(
         path_table,
         sep=" ", # white space delimiter
@@ -77,7 +79,7 @@ def read_organize_table_gwas(
     )
     # Select relevant columns.
     columns = [
-        "BETA", "P"
+        "CHR", "P"
     ]
     table = table.loc[:, table.columns.isin(columns)]
     table = table[[*columns]]
@@ -176,10 +178,6 @@ def create_qq_plot(
 
     """
 
-    #table["P"] = table.apply(
-    #    lambda row: (),
-    #    axis="columns", # apply function to each row
-    #)
     # Extract probability values.
     probabilities = table["P"].dropna().to_numpy()
     # Define fonts.
