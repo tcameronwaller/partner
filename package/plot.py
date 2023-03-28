@@ -2476,6 +2476,9 @@ def plot_scatter_qq_gwas(
     genome-wide-association-results"
     "https://www.broadinstitute.org/files/shared/diabetes/scandinavs/qqplot.R
 
+
+    https://stackoverflow.com/questions/21610198/runtimewarning-divide-by-zero-encountered-in-log
+
     arguments:
         probabilities (object): NumPy array of probability values (p-values)
             from summary statistics for a GWAS without missing values
@@ -2491,8 +2494,11 @@ def plot_scatter_qq_gwas(
 
     """
 
+    numpy.seterr(divide = 'ignore')
+
+
     # Prepare probability values.
-    probabilities[(probabilities > 0.0)]
+    probabilities[(probabilities > 1.0e-10)]
     probabilities_sort = numpy.sort(
         probabilities,
         axis=0,
