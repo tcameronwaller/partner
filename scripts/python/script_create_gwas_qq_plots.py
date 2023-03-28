@@ -147,6 +147,7 @@ def read_source_directory_files_gwas(
 # TODO: generate the "expected" values by some distribution
 # https://www.broadinstitute.org/diabetes-genetics-initiative/plotting-genome-wide-association-results
 # https://www.broadinstitute.org/files/shared/diabetes/scandinavs/qqplot.R
+# https://physiology.med.cornell.edu/people/banfelder/qbio/resources_2013/2013_1_Mezey.pdf
 # expectation = range(1, int(len(probabilities_sort), 1))
 
 def create_qq_plot(
@@ -169,12 +170,12 @@ def create_qq_plot(
 
     # Extract and prepare probability values.
     probabilities = table["P"].dropna().to_numpy()
+    probabilities_log = numpy.log10(probabilities)
     probabilities_sort = numpy.sort(
-        probabilities,
+        probabilities_log,
         axis=0,
         kind="stable",
     )
-    probabilities_log = numpy.log10(probabilities_sort)
     # Prepare expectation values.
     expectations = range(
         1,
