@@ -2507,10 +2507,10 @@ def plot_scatter_qq_gwas(
         1,
     )
     expectations_div = numpy.divide(
-        expectations, (int(len(probabilities_sort)) + 1)
+        expectations, (int(len(expectations)) + 1)
     )
     expectations_log = numpy.log10(expectations_div)
-    expecations_neglog = numpy.multiply(expectations_log, -1)
+    expectations_neglog = numpy.multiply(expectations_log, -1)
     # Organize information for figure.
     values_abscissa = expectations_neglog # abscissa or X axis
     values_ordinate = probabilities_neglog # ordinate or Y axis

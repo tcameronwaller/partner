@@ -176,6 +176,10 @@ def create_qq_plot(
 
     """
 
+    #table["P"] = table.apply(
+    #    lambda row: (),
+    #    axis="columns", # apply function to each row
+    #)
     # Extract probability values.
     probabilities = table["P"].dropna().to_numpy()
     # Define fonts.
