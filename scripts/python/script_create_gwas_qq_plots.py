@@ -229,67 +229,6 @@ def drive_create_qq_plots(
     return pail_plots
 
 
-def standardize_polygenic_scores(
-    table=None,
-    report=None,
-):
-    """
-    Standardizes polygenic scores to z-scores with mean of zero and standard
-    deviation of one.
-
-    arguments:
-        table (object): Pandas data-frame table
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (object): Pandas data-frame table
-    """
-
-    # Copy information in table.
-    table = table.copy(deep=True)
-
-    # Extract names of columns in table.
-    columns = copy.deepcopy(table.columns.to_list())
-    columns_score = list(filter(
-        lambda column: (str("score_") in str(column)),
-        copy.deepcopy(columns)
-    ))
-    # Standardize scores to z-score scale with mean of zeroa and standard
-    # deviation of one.
-    # Standardization introduces missing values if standard deviation is zero.
-    table = pscale.drive_transform_variables_distribution_scale_z_score(
-        table=table,
-        columns=columns_score,
-        report=report,
-    )
-
-    # Select relevant columns.
-    # Extract names of columns in table.
-    columns = copy.deepcopy(table.columns.to_list())
-    columns_keep = list(filter(
-        lambda column: (str("score_") in str(column)),
-        copy.deepcopy(columns)
-    ))
-    table = table.loc[:, table.columns.isin(columns_keep)]
-    table = table[[*columns_keep]]
-    # Report.
-    if report:
-        utility.print_terminal_partition(level=3)
-        print("report: ")
-        print("standardize_polygenic_scores()")
-        utility.print_terminal_partition(level=4)
-        print("table columns: " + str(int(table.shape[1])))
-        print("table rows: " + str(int(table.shape[0])))
-        print("columns")
-        print(table.columns.to_list())
-        print(table)
-        pass
-    # Return information.
-    return table
-
-
 def write_product_table_text_tab(
     table=None,
     path_file=None,
@@ -356,19 +295,16 @@ def execute_procedure(
         name_file_child_not=name_file_source_not,
         report=False,
     )
-
     # Create QQ Plots.
     pail_plots = drive_create_qq_plots(
         pail_tables=pail_tables,
         report=True,
     )
-
-    # Write table to file.
-    write_product_table_text_tab(
-        table=table_standardization,
-        path_file=path_file_product,
+    # Write product information to file.
+    write_product_plots_parent_directory(
+        pail_write=pail_plots,
+        path_directory_parent=path_directory_product,
     )
-
 
     pass
 

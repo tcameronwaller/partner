@@ -3677,6 +3677,39 @@ def write_product_plot_figure(
     pass
 
 
+def write_product_plots_parent_directory(
+    pail_write=None,
+    path_directory_parent=None,
+):
+    """
+    Writes product information to file.
+
+    Keys of dictionary entries specify the name of the figure from which to
+    derive the name of the file.
+    Values of dictionary entries contain the figure objects.
+
+    arguments:
+        pail_write (dict<object>): information to write to file
+        path_directory_parent (str): path to parent directory
+
+    raises:
+
+    returns:
+
+    """
+
+    # Iterate across figures.
+    for name_figure in pail_write.keys():
+        # Write figure object to file within parent directory.
+        write_product_plot_figure(
+            name=name_figure,
+            figure=pail_write[name_figure],
+            path_parent=path_directory_parent,
+        )
+        pass
+    pass
+
+
 def write_product_plots_child_directories(
     pail_write=None,
     path_parent=None,
