@@ -4,13 +4,17 @@
 # Author: T. Cameron Waller
 # Date, first execution: 27 March 2023
 # Date, last execution: 27 March 2023
-# Review: TCW; 27 March 2023
+# Review: TCW; 28 March 2023
 ################################################################################
 # Note
 
 # This script calculates the effective sample size (N-effective) for the counts
 # of observations on each variant (SNP) in a logistic GWAS.
-# site: https://nealelab.github.io/UKBB_ldsc/viz_sampsize.html
+# References:
+# 1. Zhou, Nature Neuroscience, 2020 (PubMed:32451486)
+# 2. Walters, Nature Neuroscience, 2018 (PubMed:30482948)
+# 3. Willer, Bioinformatics, 2010 (PubMed:20616382)
+# 4. https://nealelab.github.io/UKBB_ldsc/viz_sampsize.html
 
 # The calculation in this script assumes that the values in column "N" are the
 # count of total observations (sum of cases and controls) for each variant (SNP)
@@ -73,20 +77,27 @@ rm $path_file_product
 
 
 ##########
-# Calculate effective sample size (N-effective).
 # Note that AWK interprets a single space delimiter (FS=" ") as any white space.
+# Calculate effective sample size (N-effective).
+# References:
+# 1. Zhou, Nature Neuroscience, 2020 (PubMed:32451486)
+# 2. Walters, Nature Neuroscience, 2018 (PubMed:30482948)
+# 3. Willer, Bioinformatics, 2010 (PubMed:20616382)
 echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_calculation
 zcat $path_file_source | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
   if (((toupper($10) != "NA") && (($10 + 0) > 0)) && ((toupper($13) != "NA") && (($13 + 0) > 0)))
     # Counts of observations and cases have non-missing values.
+    # Calculate effective sample size of observations.
     # N = NCASE + NCONT
     # NCONT = N - NCASE
-    print $1, $2, $3, $4, $5, $6, $7, $8, $9, (1/((1/$13)+(1/($10-$13)))), $11, $12, $13, $14
+    print $1, $2, $3, $4, $5, $6, $7, $8, $9, (4/((1/$13)+(1/($10-$13)))), $11, $12, $13, $14
   else
-    # Missing values for counts of observations and cases.
+    # Counts of observations and cases have missing values.
     # Print the row entirely without change.
     print $0
 }' >> $path_file_temporary_calculation
+
+
 
 ##########
 
