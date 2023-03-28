@@ -2467,14 +2467,16 @@ def plot_scatter_qq_gwas(
     colors=None,
 ):
     """
-    Creates a figure of a chart of type scatter.
+    Create a figure for a QQ scatter plot.
 
+    The QQ scatter plots observed probabilities from a GWAS against expected
+    probabilities.
+
+    References:
+    "https://github.com/ShujiaHuang/qmplot"
     "https://www.broadinstitute.org/diabetes-genetics-initiative/plotting-
     genome-wide-association-results"
     "https://www.broadinstitute.org/files/shared/diabetes/scandinavs/qqplot.R
-
-
-    https://stackoverflow.com/questions/21610198/runtimewarning-divide-by-zero-encountered-in-log
 
     arguments:
         probabilities (object): NumPy array of probability values (p-values)

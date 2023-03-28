@@ -50,6 +50,12 @@ def read_organize_table_gwas(
 
     """
 
+    # Report.
+    if report:
+        utility.print_terminal_partition(level=4)
+        print("Reading GWAS summary statistics:")
+        print(path_table)
+        utility.print_terminal_partition(level=4)
     # Read information from file.
     # Precision of type float64: 2.2E-308 - 1.7E+308
     types_columns = dict()
@@ -62,6 +68,7 @@ def read_organize_table_gwas(
         path_table,
         sep=" ", # white space delimiter
         header=0,
+        usecols=["P"],
         dtype=types_columns,
         na_values=["nan", "na", "NAN", "NA",],
         compression="infer",
@@ -86,7 +93,6 @@ def read_organize_table_gwas(
     if report:
         utility.print_terminal_partition(level=4)
         print("Table of GWAS summary statistics:")
-        print(path_table)
         print(table)
         utility.print_terminal_partition(level=4)
     # Return information.
