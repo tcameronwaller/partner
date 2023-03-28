@@ -2497,7 +2497,7 @@ def plot_scatter_qq_gwas(
     # Prepare expectation values.
     expectations = range(
         1,
-        (int(len(probabilities_sort)) - 1),
+        (int(len(probabilities_sort)) + 1),
         1,
     )
     expectations_log = numpy.log10(
