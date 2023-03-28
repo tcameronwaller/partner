@@ -63,6 +63,12 @@ def read_organize_table_gwas(
         na_values=["nan", "na", "NAN", "NA",],
         compression="infer",
     )
+    # Report.
+    if report:
+        utility.print_terminal_partition(level=4)
+        print("Table of GWAS summary statistics:")
+        print(table)
+        utility.print_terminal_partition(level=4)
     # Organize information in table.
     table.reset_index(
         level=None,
@@ -127,6 +133,7 @@ def read_source_directory_files_gwas(
     # Collect tables.
     pail = dict()
     for path in paths:
+        print(path)
         # Extract name of file and table that distinguishes it from all others.
         name_file = os.path.basename(path)
         name_table = name_file.replace(str(name_file_child_suffix), "")
@@ -293,7 +300,7 @@ def execute_procedure(
         name_file_child_prefix=name_file_source_prefix,
         name_file_child_suffix=name_file_source_suffix,
         name_file_child_not=name_file_source_not,
-        report=False,
+        report=True,
     )
     # Create QQ Plots.
     pail_plots = drive_create_qq_plots(
