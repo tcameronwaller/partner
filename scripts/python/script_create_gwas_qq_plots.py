@@ -57,7 +57,7 @@ def read_organize_table_gwas(
     types_columns["P"] = "float"
     table = pandas.read_csv(
         path_table,
-        sep="\t",
+        sep=" ", # white space delimiter
         header=0,
         dtype=types_columns,
         na_values=["nan", "na", "NAN", "NA",],
