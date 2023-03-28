@@ -52,9 +52,9 @@ def read_organize_table_gwas(
 
     # Read information from file.
     types_columns = dict()
-    types_columns["BETA"] = "float"
-    types_columns["SE"] = "float"
-    types_columns["P"] = "float"
+    types_columns["BETA"] = "float32"
+    types_columns["SE"] = "float32"
+    types_columns["P"] = "float32"
     table = pandas.read_csv(
         path_table,
         sep=" ", # white space delimiter
