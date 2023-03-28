@@ -2496,7 +2496,7 @@ def plot_scatter_qq_gwas(
     numpy.seterr(invalid='ignore')
 
     # Prepare probability values.
-    probabilities = numpy.array(probabilities, dtype=float64)
+    probabilities = numpy.array(probabilities, dtype=numpy.float64)
     probabilities = numpy.copy(probabilities)
     probabilities = probabilities[(probabilities > 1.0e-300)]
     probabilities_sort = numpy.sort(
