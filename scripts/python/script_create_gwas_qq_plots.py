@@ -85,6 +85,7 @@ def read_organize_table_gwas(
     if report:
         utility.print_terminal_partition(level=4)
         print("Table of GWAS summary statistics:")
+        print(path_table)
         print(table)
         utility.print_terminal_partition(level=4)
     # Return information.
@@ -236,38 +237,81 @@ def drive_create_qq_plots(
     return pail_plots
 
 
-def write_product_table_text_tab(
-    table=None,
-    path_file=None,
+def drive_read_gwas_create_write_qq_plots(
+    path_directory_source=None,
+    name_file_child_prefix=None,
+    name_file_child_suffix=None,
+    name_file_child_not=None,
+    path_directory_product=None,
+    report=None,
 ):
     """
-    Writes product information to file.
+    Reads summary statistics from file, creates QQ Plots, and writes figures to
+    file.
 
     arguments:
-        table (object): table of information to write to file
-        path_file (str): path to which to write file
+        path_directory_source (str): path to parent directory in which to find
+            child files
+        name_file_child_prefix (str): prefix in name by which to recognize
+            relevant child files within parent directory
+        name_file_child_suffix (str): suffix in name by which to recognize
+            relevant child files within parent directory
+        name_file_child_not (str): character string in names of files to exclude
+        path_directory_product (str): path to product directory
+        report (bool): whether to print reports
 
     raises:
 
     returns:
+        (list<str>): list of base names of product files
 
     """
 
-    # Write information to file.
-    table.to_csv(
-        path_or_buf=path_file,
-        sep="\t",
-        header=True,
-        index=True,
+    # Read all matching files within parent directory and organize paths to
+    # these files.
+    paths = utility.read_paths_match_child_files_within_parent_directory(
+        path_directory_parent=path_directory_source,
+        name_file_child_prefix=name_file_source_prefix,
+        name_file_child_suffix=name_file_source_suffix,
+        name_file_child_not=name_file_child_not,
+        report=report,
     )
-    pass
+    # Read files as Pandas dataframe tables.
+    # Iterate on names of files to read and organize tables.
+    # Collect names of product files.
+    names_product = list()
+    for path in paths:
+        # Extract name of file and table that distinguishes it from all others.
+        name_file = os.path.basename(path)
+        name = name_file.replace(str(name_file_child_suffix), "")
+        names_product.append(name)
+        # Read file and organize information in table.
+        table = read_organize_table_gwas(
+            path_table=path,
+            name_table=name,
+            report=report,
+        )
+        # Create plot.
+        figure = create_qq_plot(
+            name=name,
+            table=table,
+        )
+        # Write product information to file.
+        pplot.write_product_plot_figure(
+            name=name,
+            figure=figure,
+            path_parent=path_directory_product,
+        )
+        pass
+    # Return information.
+    return names_product
 
 
 ################################################################################
 # Procedure
 
 
-def execute_procedure(
+def execute_procedure_cumulatively(
     path_directory_source=None,
     name_file_source_prefix=None,
     name_file_source_suffix=None,
@@ -308,11 +352,51 @@ def execute_procedure(
         report=True,
     )
     # Write product information to file.
-    write_product_plots_parent_directory(
+    pplot.write_product_plots_parent_directory(
         pail_write=pail_plots,
         path_directory_parent=path_directory_product,
     )
 
+    pass
+
+
+def execute_procedure(
+    path_directory_source=None,
+    name_file_source_prefix=None,
+    name_file_source_suffix=None,
+    name_file_source_not=None,
+    path_directory_product=None,
+):
+    """
+    Function to execute module's main behavior.
+
+    arguments:
+        path_directory_source (str): path to parent directory in which to find
+            child files
+        name_file_source_prefix (str): prefix in name by which to recognize
+            relevant child files within parent directory
+        name_file_source_suffix (str): suffix in name by which to recognize
+            relevant child files within parent directory
+        name_file_source_not (str): character string in names of files to
+            exclude
+        path_directory_product (str): path to product directory
+
+    raises:
+
+    returns:
+
+    """
+
+    # Drive procedure sequentially.
+    names_product = drive_read_gwas_create_write_qq_plots(
+        path_directory_source=path_directory_source,
+        name_file_child_prefix=name_file_source_prefix,
+        name_file_child_suffix=name_file_source_suffix,
+        name_file_child_not=name_file_source_not,
+        path_directory_product=path_directory_product,
+        report=True,
+    )
+    print(names_product)
     pass
 
 
