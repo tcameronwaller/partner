@@ -2459,6 +2459,107 @@ def plot_scatter(
     return figure
 
 
+# TODO: TCW; 28 March 2023
+# TODO: customize this function to clean up plot figure
+
+def plot_scatter_qq_gwas(
+    probabilities=None,
+    title=None,
+    label=None,
+    fonts=None,
+    colors=None,
+):
+    """
+    Creates a figure of a chart of type scatter.
+
+    arguments:
+        probabilities (object): NumPy array of probability values (p-values)
+            from summary statistics for a GWAS without missing values
+        title (str): title for figure
+        label (str): label or title for plot area on figure
+        fonts (dict<object>): references to definitions of font properties
+        colors (dict<tuple>): references to definitions of color properties
+
+    raises:
+
+    returns:
+        (object): figure object
+
+    """
+
+    # Prepare probability values.
+    probabilities_log = numpy.log10(probabilities)
+    probabilities_sort = numpy.sort(
+        probabilities_log,
+        axis=0,
+        kind="stable",
+    )
+    # Prepare expectation values.
+    expectations = range(
+        1,
+        int(len(probabilities_sort)),
+        1,
+    )
+    expectations_log = numpy.log10(
+        numpy.divide(expectations, (int(len(probabilities_sort)) + 1))
+    )
+
+    # Organize information for figure.
+    values_abscissa = expectations_log # abscissa or X axis
+    values_ordinate = probabilities_sort # ordinate or Y axis
+    title_abscissa = "-log10(expected p-values)"
+    title_ordinate = "-log10(observed p-values)"
+
+    ##########
+    # Create figure.
+    figure = matplotlib.pyplot.figure(
+        figsize=(15.748, 11.811),
+        tight_layout=True
+    )
+    # Create axes.
+    axes = matplotlib.pyplot.axes()
+    axes.set_xlabel(
+        xlabel=title_abscissa,
+        labelpad=20,
+        alpha=1.0,
+        backgroundcolor=colors["white"],
+        color=colors["black"],
+        fontproperties=fonts["properties"]["one"]
+    )
+    axes.set_ylabel(
+        ylabel=title_ordinate,
+        labelpad=20,
+        alpha=1.0,
+        backgroundcolor=colors["white"],
+        color=colors["black"],
+        fontproperties=fonts["properties"]["one"]
+    )
+    axes.tick_params(
+        axis="both",
+        which="both",
+        direction="out",
+        length=5.0,
+        width=3.0,
+        color=colors["black"],
+        pad=5,
+        labelsize=fonts["values"]["one"]["size"],
+        labelcolor=colors["black"]
+    )
+    # Plot points for values from each group.
+    handle = axes.plot(
+        values_abscissa,
+        values_ordinate,
+        linestyle="",
+        marker="o",
+        markersize=5, # 5, 15
+        markeredgecolor=colors["blue_navy"],
+        markerfacecolor=colors["blue_navy"]
+    )
+
+    # Return figure.
+    return figure
+
+
 def plot_scatter_points_forest_category_ordinate_two_groups(
     table=None,
     column_group=None,

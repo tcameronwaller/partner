@@ -168,35 +168,19 @@ def create_qq_plot(
 
     """
 
-    # Extract and prepare probability values.
+    # Extract probability values.
     probabilities = table["P"].dropna().to_numpy()
-    probabilities_log = numpy.log10(probabilities)
-    probabilities_sort = numpy.sort(
-        probabilities_log,
-        axis=0,
-        kind="stable",
-    )
-    # Prepare expectation values.
-    expectations = range(
-        1,
-        int(len(probabilities_sort),
-        1,
-    )
-    expectations_log = numpy.log10(
-        numpy.divide(expectations, (int(len(probabilities_sort)) + 1))
-    )
-
     # Define fonts.
     fonts = pplot.define_font_properties()
     # Define colors.
     colors = pplot.define_color_properties()
     # Create figure.
-    figure = plot.plot_qq_gwas(
-        array=probabilities_sort,
+    figure = pplot.plot_scatter_qq_gwas(
+        probabilities=probabilities,
         title=name,
+        label="",
         fonts=fonts,
         colors=colors,
-        label_title=name, # ""
     )
     # Return information.
     return figure
