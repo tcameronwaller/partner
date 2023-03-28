@@ -26,7 +26,7 @@
 ################################################################################
 # Organize arguments.
 
-path_directory_source=${1} # full path to source directory in which to find files of polygenic scores across chromosomes
+path_directory_source=${1} # full path to source directory from which to read files of polygenic scores across chromosomes
 name_file_source_prefix=${2} # prefix of name of files of polygenic scores from each chromosome
 name_file_source_suffix=${3} # suffix of name of files of polygenic scores from each chromosome
 name_file_source_not=${4} # character string within file names for exclusion
@@ -44,8 +44,8 @@ path_directory_package="${path_directory_process}/psychiatric_metabolism/psychia
 path_directory_product="$(dirname $path_file_product)"
 
 # Scripts.
-path_script_source="${path_directory_process}/promiscuity/scripts/python/script_collect_standardize_polygenic_scores.py"
-path_script_product="${path_directory_package}/script_collect_standardize_polygenic_scores.py"
+path_file_script_source="${path_directory_process}/promiscuity/scripts/python/script_collect_standardize_polygenic_scores.py"
+path_file_script_product="${path_directory_package}/script_collect_standardize_polygenic_scores.py"
 
 # Initialize directories.
 #rm -r $path_directory_product
@@ -65,7 +65,7 @@ report="true"
 # Execute procedure.
 
 # Copy Python script to package directory.
-cp $path_script_source $path_script_product
+cp $path_file_script_source $path_file_script_product
 
 # Activate Virtual Environment.
 source "${path_environment_main}/bin/activate"
@@ -79,7 +79,7 @@ export MKL_NUM_THREADS=$threads
 export NUMEXPR_NUM_THREADS=$threads
 export OMP_NUM_THREADS=$threads
 
-python3 $path_script_product $path_directory_source $name_file_source_prefix $name_file_source_suffix $name_file_source_not $path_file_product
+python3 $path_file_script_product $path_directory_source $name_file_source_prefix $name_file_source_suffix $name_file_source_not $path_file_product
 
 # Deactivate Virtual Environment.
 deactivate

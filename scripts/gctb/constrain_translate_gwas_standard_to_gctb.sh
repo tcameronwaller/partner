@@ -7,6 +7,7 @@
 
 # Source Format (Team Standard)
 # delimiter: white space
+# effect allele: A1
 # columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
 
 # Product Format (SBayesR from GCTB)
