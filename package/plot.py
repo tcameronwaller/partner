@@ -2472,6 +2472,10 @@ def plot_scatter_qq_gwas(
     """
     Creates a figure of a chart of type scatter.
 
+    "https://www.broadinstitute.org/diabetes-genetics-initiative/plotting-
+    genome-wide-association-results"
+    "https://www.broadinstitute.org/files/shared/diabetes/scandinavs/qqplot.R
+
     arguments:
         probabilities (object): NumPy array of probability values (p-values)
             from summary statistics for a GWAS without missing values
@@ -2488,6 +2492,7 @@ def plot_scatter_qq_gwas(
     """
 
     # Prepare probability values.
+    probabilities[(probabilities > 0.0)]
     probabilities_sort = numpy.sort(
         probabilities,
         axis=0,

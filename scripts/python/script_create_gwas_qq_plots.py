@@ -53,7 +53,7 @@ def read_organize_table_gwas(
     # Read information from file.
     types_columns = dict()
     types_columns["BETA"] = "float32"
-    types_columns["SE"] = "float32"
+    #types_columns["SE"] = "float32"
     types_columns["P"] = "float32"
     table = pandas.read_csv(
         path_table,
@@ -77,7 +77,7 @@ def read_organize_table_gwas(
     )
     # Select relevant columns.
     columns = [
-        "BETA", "SE", "P"
+        "BETA", "P"
     ]
     table = table.loc[:, table.columns.isin(columns)]
     table = table[[*columns]]
