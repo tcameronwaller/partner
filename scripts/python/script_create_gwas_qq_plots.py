@@ -91,7 +91,7 @@ def read_organize_probabilities_from_gwas_table(
         path_table,
         sep=" ", # white space delimiter
         header=0,
-        usecols=["P"],
+        usecols=["P_NEG_LOG_10"],
         dtype=types_columns,
         na_values=["nan", "na", "NAN", "NA",],
         compression="infer",
