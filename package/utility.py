@@ -218,6 +218,7 @@ def remove_file(path=None):
 
     if os.path.exists(path):
         os.remove(path)
+    pass
 
 
 def remove_directory(path=None):
@@ -293,7 +294,39 @@ def compress_file_gzip(path=None):
     pass
 
 
-def decompress_file_gzip(path=None):
+def count_file_text_lines(
+    path_file=None,
+):
+    """
+    Counts lines in a text file without storing the contents of the file in
+    memory.
+
+    arguments:
+        path_file (str): path to directory and file
+
+    returns:
+        (int): count of lines in file
+
+    raises:
+
+    """
+
+    # Read lines from text file, incrementing counter for each.
+    lines = list()
+    with open(path_file, "r") as file_source:
+        line = file_source.readline()
+        count = 0
+        while line:
+            line = file_source.readline()
+            count += 1
+    # Return information.
+    return count
+
+
+def decompress_file_gzip(
+    path_file_source=None,
+    path_file_product=None,
+):
     """
     Copies and decompresses a file by gzip.
 
@@ -308,13 +341,13 @@ def decompress_file_gzip(path=None):
 
     """
 
-    split_strings = path.split(".")
-    if split_strings[-1] == "gz":
-        path_novel = ".".join(split_strings[0:-1])
-    else:
-        path_novel = path
-    with gzip.open(path, "rb") as file_source:
-        with open(path_novel, "wb") as file_product:
+    #split_strings = path.split(".")
+    #if split_strings[-1] == "gz":
+    #    path_file_product = ".".join(split_strings[0:-1])
+    #else:
+    #    path_file_product = path_file_source
+    with gzip.open(path_file_source, "rb") as file_source:
+        with open(path_file_product, "wb") as file_product:
             shutil.copyfileobj(file_source, file_product)
     pass
 
@@ -1031,6 +1064,35 @@ def read_file_text_lines(
             count += 1
     # Return information.
     return lines
+
+
+def count_file_text_lines(
+    path_file=None,
+):
+    """
+    Counts lines in a text file without storing the contents of the file in
+    memory.
+
+    arguments:
+        path_file (str): path to directory and file
+
+    returns:
+        (int): count of lines in file
+
+    raises:
+
+    """
+
+    # Read lines from text file, incrementing counter for each.
+    lines = list()
+    with open(path_file, "r") as file_source:
+        line = file_source.readline()
+        count = 0
+        while line:
+            line = file_source.readline()
+            count += 1
+    # Return information.
+    return count
 
 
 def read_file_text_lines_elements(

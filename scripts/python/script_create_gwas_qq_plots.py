@@ -61,14 +61,25 @@ def read_organize_probabilities_from_gwas_table(
         print("Reading GWAS summary statistics:")
         print(path_table)
         utility.print_terminal_partition(level=4)
-    # Read information from file.
-    # Precision of type float64: 2.2E-308 - 1.7E+308
+    # Count lines in text file.
+    path_table_temporary = str(path_table + ".temporary")
+    utility.decompress_file_gzip(
+        path_file_source=path_table,
+        path_file_product=path_table_temporary,
+    )
+    count_lines = utility.count_file_text_lines(
+        path_file=path_table_temporary,
+    )
+    utility.remove_file(path=path_table_temporary)
+    # Determine extent of precision.
     types_columns = dict()
-    #types_columns["CHR"] = "int32"
-    #types_columns["BP"] = "int32"
-    #types_columns["BETA"] = "float32"
-    #types_columns["SE"] = "float32"
-    types_columns["P"] = "float64"
+    if (count_lines > 1.3E7):
+        # Precision of type float64: 2.2E-308 - 1.7E+308
+        types_columns["P"] = "float32"
+    else:
+        types_columns["P"] = "float64"
+
+    # Read information from file.
     probabilities = pandas.read_csv(
         path_table,
         sep=" ", # white space delimiter
@@ -81,6 +92,8 @@ def read_organize_probabilities_from_gwas_table(
     # Report.
     if report:
         utility.print_terminal_partition(level=4)
+        print("Count of lines in table:")
+        print(count_lines)
         print("Count of probabilities from GWAS summary statistics:")
         print(probabilities.size)
         utility.print_terminal_partition(level=4)
