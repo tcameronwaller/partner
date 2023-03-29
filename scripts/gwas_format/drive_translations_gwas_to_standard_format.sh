@@ -58,7 +58,7 @@ do
     suffix_file_source="${array[6]}"
     name_base_file_source=$(echo $name_file_source | sed "s/$suffix_file_source//")
     path_file_source="${path_directory_child_source}/${name_file_source}"
-    path_directory_temporary="${path_directory_product}/temporary_tcw_73216"
+    path_directory_temporary="${path_directory_product}/temporary_drive_${name_base_file_source}" # hopefully unique
     path_file_source_standard="${path_directory_temporary}/${name_base_file_source}.txt.gz"
     path_file_script="${path_directory_script}/${array[17]}"
     path_file_product="${path_directory_product}/${array[2]}.txt.gz"
@@ -82,11 +82,11 @@ do
     /usr/bin/bash $path_file_script \
     $path_file_source_standard \
     $path_file_product \
-    ${array[10]} \
-    ${array[11]} \
-    ${array[12]} \
-    ${array[13]} \
-    ${array[14]} \
+    "${array[10]}" \
+    "${array[11]}" \
+    "${array[12]}" \
+    "${array[13]}" \
+    "${array[14]}" \
     $report
     # Remove temporary directory and files.
     rm -r $path_directory_temporary
