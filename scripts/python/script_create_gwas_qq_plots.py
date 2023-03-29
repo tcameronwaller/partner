@@ -61,24 +61,31 @@ def read_organize_probabilities_from_gwas_table(
         print("Reading GWAS summary statistics:")
         print(path_table)
         utility.print_terminal_partition(level=4)
-    # Count lines in text file.
-    path_table_temporary = str(path_table + ".temporary")
-    utility.decompress_file_gzip(
-        path_file_source=path_table,
-        path_file_product=path_table_temporary,
-    )
-    count_lines = utility.count_file_text_lines(
-        path_file=path_table_temporary,
-    )
-    utility.remove_file(path=path_table_temporary)
-    # Determine extent of precision.
-    types_columns = dict()
-    if (count_lines > 1.3E7):
-        # Precision of type float64: 2.2E-308 - 1.7E+308
-        types_columns["P"] = "float32"
-    else:
-        types_columns["P"] = "float64"
 
+    # Set floating-point precision according to count of lines.
+    # Count lines in text file.
+    #path_table_temporary = str(path_table + ".temporary")
+    #utility.decompress_file_gzip(
+    #    path_file_source=path_table,
+    #    path_file_product=path_table_temporary,
+    #)
+    #count_lines = utility.count_file_text_lines(
+    #    path_file=path_table_temporary,
+    #)
+    #utility.remove_file(path=path_table_temporary)
+    # Determine extent of precision.
+    #types_columns = dict()
+    #if (count_lines > 1.3E7):
+    #    # Precision of type float64: 2.2E-308 - 1.7E+308
+    #    types_columns["P"] = "float32"
+    #else:
+    #    # Precision of type float64: 2.2E-308 - 1.7E+308
+    #    types_columns["P"] = "float64"
+
+    # Determine extent of precision.
+    # Precision of type float32: 1.2E-38 - 3.4E+38
+    types_columns = dict()
+    types_columns["P_NEG_LOG_10"] = "float32"
     # Read information from file.
     probabilities = pandas.read_csv(
         path_table,
@@ -88,7 +95,7 @@ def read_organize_probabilities_from_gwas_table(
         dtype=types_columns,
         na_values=["nan", "na", "NAN", "NA",],
         compression="infer",
-    )["P"].dropna().to_numpy()
+    )["P_NEG_LOG_10"].dropna().to_numpy()
     # Report.
     if report:
         utility.print_terminal_partition(level=4)
