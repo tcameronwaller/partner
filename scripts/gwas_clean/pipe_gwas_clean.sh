@@ -26,6 +26,7 @@
 # of total observations are indicative of differences in the count of cases.
 # Hence: "NCONT = N - NCASE".
 
+# https://mrcieu.github.io/gwasvcf/articles/guide.html
 
 # Review: TCW; 17 February 2023
 

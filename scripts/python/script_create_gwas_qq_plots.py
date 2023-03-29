@@ -30,13 +30,17 @@ import promiscuity.plot as pplot
 # Functionality
 
 
-def read_organize_table_gwas(
+def read_organize_probabilities_from_gwas_table(
     path_table=None,
     name_table=None,
     report=None,
 ):
     """
     Reads and organizes source information from file.
+
+    Use a variable of type "float64" to store probabilities in order to preserve
+    very small values.
+    Do not read in other columns in order to reduce use of memory.
 
     arguments:
         path_table (str): path to file for table
@@ -46,7 +50,8 @@ def read_organize_table_gwas(
     raises:
 
     returns:
-        (object): Pandas data-frame table of polygenic scores across genotypes
+        (object): NumPy array of probability values (p-values) from summary
+            statistics for a GWAS
 
     """
 
@@ -64,7 +69,7 @@ def read_organize_table_gwas(
     #types_columns["BETA"] = "float32"
     #types_columns["SE"] = "float32"
     types_columns["P"] = "float64"
-    table = pandas.read_csv(
+    probabilities = pandas.read_csv(
         path_table,
         sep=" ", # white space delimiter
         header=0,
@@ -72,109 +77,28 @@ def read_organize_table_gwas(
         dtype=types_columns,
         na_values=["nan", "na", "NAN", "NA",],
         compression="infer",
-    )
+    )["P"].dropna().to_numpy()
     # Report.
     if report:
         utility.print_terminal_partition(level=4)
-        print("Table of GWAS summary statistics:")
-        print(table)
-        utility.print_terminal_partition(level=4)
-    # Organize information in table.
-    table.reset_index(
-        level=None,
-        inplace=True,
-        drop=True,
-    )
-    # Select relevant columns.
-    columns = ["P",]
-    table = table.loc[:, table.columns.isin(columns)]
-    table = table[[*columns]]
-    # Report.
-    if report:
-        utility.print_terminal_partition(level=4)
-        print("Table of GWAS summary statistics:")
-        print(table)
+        print("Count of probabilities from GWAS summary statistics:")
+        print(probabilities.size)
         utility.print_terminal_partition(level=4)
     # Return information.
-    return table
+    return probabilities
 
-
-def read_source_directory_files_gwas(
-    path_directory_parent=None,
-    name_file_child_prefix=None,
-    name_file_child_suffix=None,
-    name_file_child_not=None,
-    report=None,
-):
-    """
-    Reads and organizes source information from file.
-
-    arguments:
-        path_directory_parent (str): path to parent directory in which to find
-            child files
-        name_file_child_prefix (str): prefix in name by which to recognize
-            relevant child files within parent directory
-        name_file_child_suffix (str): suffix in name by which to recognize
-            relevant child files within parent directory
-        name_file_child_not (str): character string in names of files to exclude
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (dict<object>): collection of Pandas data-frame tables with entry names
-            (keys) derived from original names of files
-
-    """
-
-    # Read all matching files within parent directory and organize paths to
-    # these files.
-    paths = utility.read_paths_match_child_files_within_parent_directory(
-        path_directory_parent=path_directory_parent,
-        name_file_child_prefix=name_file_source_prefix,
-        name_file_child_suffix=name_file_source_suffix,
-        name_file_child_not=name_file_child_not,
-        report=report,
-    )
-    # Read files as Pandas dataframe tables.
-    # Iterate on names of files to read and organize tables.
-    # Collect tables.
-    pail = dict()
-    for path in paths:
-        print(path)
-        # Extract name of file and table that distinguishes it from all others.
-        name_file = os.path.basename(path)
-        name_table = name_file.replace(str(name_file_child_suffix), "")
-        # Read file and organize information in table.
-        table = read_organize_table_gwas(
-            path_table=path,
-            name_table=name_table,
-            report=report,
-        )
-        # Collect table.
-        pail[name_table] = table.copy(deep=True)
-        pass
-    # Return information.
-    return pail
-
-
-# TODO: TCW; 27 March 2023
-# TODO: generate the "expected" values by some distribution
-# https://www.broadinstitute.org/diabetes-genetics-initiative/plotting-genome-wide-association-results
-# https://www.broadinstitute.org/files/shared/diabetes/scandinavs/qqplot.R
-# https://physiology.med.cornell.edu/people/banfelder/qbio/resources_2013/2013_1_Mezey.pdf
-# expectation = range(1, int(len(probabilities_sort), 1))
 
 def create_qq_plot(
     name=None,
-    table=None,
+    probabilities=None,
 ):
     """
     Creates a QQ Plot for a table of GWAS summary statistics.
 
     arguments:
         name (str): name of table and plot
-        table (object): Pandas data-frame table
+        probabilities (object): NumPy array of probability values (p-values)
+            from summary statistics for a GWAS
 
     raises:
 
@@ -183,8 +107,6 @@ def create_qq_plot(
 
     """
 
-    # Extract probability values.
-    probabilities = table["P"].dropna().to_numpy()
     # Define fonts.
     fonts = pplot.define_font_properties()
     # Define colors.
@@ -199,49 +121,6 @@ def create_qq_plot(
     )
     # Return information.
     return figure
-
-
-def drive_create_qq_plots(
-    pail_tables=None,
-    report=None,
-):
-    """
-    Reads and organizes source information from file.
-
-    arguments:
-        pail_tables (dict<object>): collection of Pandas data-frame tables with
-            entry names (keys) derived from original names of files
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (dict<object>): collection of plot objects
-
-    """
-
-    # Collect information for plots.
-    pail_plots = dict()
-    # Iterate on tables.
-    for name in pail_tables.keys():
-        table = pail_tables[name].copy(deep=True)
-        # Create plot.
-        pail_plots[name] = create_qq_plot(
-            name=name,
-            table=table,
-        )
-        pass
-    # Report.
-    if report:
-        utility.print_terminal_partition(level=3)
-        print("report: ")
-        print("drive_create_qq_plots()")
-        utility.print_terminal_partition(level=4)
-        print("count of tables: " + str(len(pail_tables.keys())))
-        print("count of plots: " + str(len(pail_plots.keys())))
-        pass
-    # Return information.
-    return pail_plots
 
 
 def drive_read_gwas_create_write_qq_plots(
@@ -293,7 +172,7 @@ def drive_read_gwas_create_write_qq_plots(
         name = name_file.replace(str(name_file_child_suffix), "")
         names_product.append(name)
         # Read file and organize information in table.
-        table = read_organize_table_gwas(
+        probabilities = read_organize_probabilities_from_table_gwas(
             path_table=path,
             name_table=name,
             report=report,
@@ -301,7 +180,7 @@ def drive_read_gwas_create_write_qq_plots(
         # Create plot.
         figure = create_qq_plot(
             name=name,
-            table=table,
+            probabilities=probabilities,
         )
         # Write product information to file.
         pplot.write_product_plot_figure(
@@ -316,55 +195,6 @@ def drive_read_gwas_create_write_qq_plots(
 
 ################################################################################
 # Procedure
-
-
-def execute_procedure_cumulatively(
-    path_directory_source=None,
-    name_file_source_prefix=None,
-    name_file_source_suffix=None,
-    name_file_source_not=None,
-    path_directory_product=None,
-):
-    """
-    Function to execute module's main behavior.
-
-    arguments:
-        path_directory_source (str): path to parent directory in which to find
-            child files
-        name_file_source_prefix (str): prefix in name by which to recognize
-            relevant child files within parent directory
-        name_file_source_suffix (str): suffix in name by which to recognize
-            relevant child files within parent directory
-        name_file_source_not (str): character string in names of files to
-            exclude
-        path_directory_product (str): path to product directory
-
-    raises:
-
-    returns:
-
-    """
-
-    # Read from source files the tables for polygenic scores.
-    pail_tables = read_source_directory_files_gwas(
-        path_directory_parent=path_directory_source,
-        name_file_child_prefix=name_file_source_prefix,
-        name_file_child_suffix=name_file_source_suffix,
-        name_file_child_not=name_file_source_not,
-        report=True,
-    )
-    # Create QQ Plots.
-    pail_plots = drive_create_qq_plots(
-        pail_tables=pail_tables,
-        report=True,
-    )
-    # Write product information to file.
-    pplot.write_product_plots_parent_directory(
-        pail_write=pail_plots,
-        path_directory_parent=path_directory_product,
-    )
-
-    pass
 
 
 def execute_procedure(
@@ -403,6 +233,9 @@ def execute_procedure(
         path_directory_product=path_directory_product,
         report=True,
     )
+    # Report.
+    utility.print_terminal_partition(level=4)
+    print("Base names of product files:")
     print(names_product)
     pass
 

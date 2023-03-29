@@ -2480,7 +2480,7 @@ def plot_scatter_qq_gwas(
 
     arguments:
         probabilities (object): NumPy array of probability values (p-values)
-            from summary statistics for a GWAS without missing values
+            from summary statistics for a GWAS
         title (str): title for figure
         label (str): label or title for plot area on figure
         fonts (dict<object>): references to definitions of font properties
@@ -2500,6 +2500,7 @@ def plot_scatter_qq_gwas(
     # Prepare probability values.
     probabilities = numpy.array(probabilities, dtype=numpy.float64)
     probabilities = numpy.copy(probabilities)
+    probabilities = probabilities[~numpy.isnan(probabilities)]
     probabilities = probabilities[(probabilities > 1.0e-300)]
     probabilities_sort = numpy.sort(
         probabilities,
