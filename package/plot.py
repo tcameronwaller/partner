@@ -2480,7 +2480,8 @@ def plot_scatter_qq_gwas(
 
     arguments:
         probabilities (object): NumPy array of probability values (p-values)
-            from summary statistics for a GWAS
+            from summary statistics for a GWAS already on negative, base-ten
+            logarithm (-log10) scale
         title (str): title for figure
         label (str): label or title for plot area on figure
         fonts (dict<object>): references to definitions of font properties
@@ -2498,20 +2499,21 @@ def plot_scatter_qq_gwas(
     numpy.seterr(invalid='ignore')
 
     # Prepare probability values.
-    probabilities = numpy.array(probabilities, dtype=numpy.float64)
+    #probabilities_log = numpy.log10(probabilities_sort)
+    #probabilities_neglog = numpy.multiply(probabilities_log, -1)
+    probabilities = numpy.array(probabilities, dtype=numpy.float32)
     probabilities = numpy.copy(probabilities)
     probabilities = probabilities[~numpy.isnan(probabilities)]
-    probabilities = probabilities[(probabilities > 1.0e-300)]
-    probabilities_sort = numpy.sort(
+    #probabilities = probabilities[(probabilities > 1.0e-37)]
+    probabilities_sort_up = numpy.sort(
         probabilities,
         axis=0,
         kind="stable",
     )
-    probabilities_log = numpy.log10(probabilities_sort)
-    probabilities_neglog = numpy.multiply(probabilities_log, -1)
+    probabilities_sort_down = probabilities_sort_up[::-1]
     # Prepare expectation values.
     #count = int(len(probabilities_neglog))
-    count = int(probabilities_neglog.size)
+    count = int(probabilities_sort_down.size)
     offset = 0.5 # value in (0, 1); normally 0.5; 0.375 for small sample size
     #expectations_range = range(1, (count + 1), 1)
     expectations_range = numpy.arange(1, (count + 1), 1) # range: 1 to count + 1
@@ -2523,7 +2525,7 @@ def plot_scatter_qq_gwas(
     expectations_neglog = numpy.multiply(expectations_log, -1)
     # Organize information for figure.
     values_abscissa = expectations_neglog # abscissa or X axis
-    values_ordinate = probabilities_neglog # ordinate or Y axis
+    values_ordinate = probabilities_sort_down # ordinate or Y axis
     title_abscissa = "-log10(expected p-values)"
     title_ordinate = "-log10(observed p-values)"
 
