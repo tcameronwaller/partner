@@ -172,7 +172,7 @@ def drive_read_gwas_create_write_qq_plots(
         name = name_file.replace(str(name_file_child_suffix), "")
         names_product.append(name)
         # Read file and organize information in table.
-        probabilities = read_organize_probabilities_from_table_gwas(
+        probabilities = read_organize_probabilities_from_gwas_table(
             path_table=path,
             name_table=name,
             report=report,
