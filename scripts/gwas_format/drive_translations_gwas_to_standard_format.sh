@@ -26,6 +26,14 @@ report=${6} # whether to print reports
 input=$path_file_translation
 while IFS=$' \t\n' read -r -a array
 do
+  # TODO: TCW; 29 March 2023
+  # To avoid problems and inconsistent behavior, assign the array fields to
+  # variables before doing anything else.
+  #inclusion="${array[0]}"
+  #directory="${array[1]}"
+  #name="${array[2]}"
+  #phenotype="${array[3]}"
+  # etc ...
   # Report.
   if [[ "$report" == "true" ]]; then
     echo "----------"
