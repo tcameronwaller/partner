@@ -99,8 +99,8 @@ def read_organize_probabilities_from_gwas_table(
     # Report.
     if report:
         utility.print_terminal_partition(level=4)
-        print("Count of lines in table:")
-        print(count_lines)
+        #print("Count of lines in table:")
+        #print(count_lines)
         print("Count of probabilities from GWAS summary statistics:")
         print(probabilities.size)
         utility.print_terminal_partition(level=4)
