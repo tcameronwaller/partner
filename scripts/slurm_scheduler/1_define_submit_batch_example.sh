@@ -9,9 +9,8 @@
 # Note
 
 # This script initiates a sequence of scripts that execute a batch array of
-# example jobs on the Oracle Sun Grid Engine Scheduler.
-# documentation: "https://docs.oracle.com/cd/E19279-01/820-3257-12/n1ge.html"
-# documentation: "http://gridscheduler.sourceforge.net/htmlman/htmlman1/qsub.html"
+# example jobs on the SLURM grid scheduler.
+# documentation: "https://slurm.schedmd.com/quickstart.html"
 
 ################################################################################
 
