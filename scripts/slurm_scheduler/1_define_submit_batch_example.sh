@@ -90,6 +90,9 @@ fi
 # Submit to Oracle Sun Grid Engine.
 # Indices in array of batch jobs start at one, not zero.
 
+# TODO: TCW; 4 April 2023
+# TODO: Confirm that the indices are correct and do not miss any instances from the array.
+
 if true; then
   sbatch \
   --array 0-${batch_instances_count}:1 \

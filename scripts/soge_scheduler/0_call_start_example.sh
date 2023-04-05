@@ -39,7 +39,7 @@ rm $path_file_batch_error
 
 name_file_prefix="test_test_test_chr_"
 name_file_suffix=".txt"
-message_common="Hello World!"
+message_common="Hello_World!" # Any white space disrupts the handling of arguments.
 threads=1
 report="true"
 
