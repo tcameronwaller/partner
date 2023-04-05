@@ -21,7 +21,7 @@ cd ~/paths
 path_directory_process=$(<"./process_psychiatric_metabolism.txt")
 path_directory_dock="${path_directory_process}/dock"
 path_directory_promiscuity="${path_directory_process}/promiscuity"
-path_directory_product="${path_directory_dock}/test_soge_scheduler"
+path_directory_product="${path_directory_dock}/test_slurm_scheduler"
 
 # Scripts.
 path_script_define_submit="${path_directory_promiscuity}/scripts/slurm_scheduler/1_define_submit_batch_example.sh"
