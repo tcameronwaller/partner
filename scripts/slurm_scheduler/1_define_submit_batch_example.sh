@@ -11,6 +11,7 @@
 # This script initiates a sequence of scripts that execute a batch array of
 # example jobs on the SLURM grid scheduler.
 # documentation: "https://slurm.schedmd.com/quickstart.html"
+# documentation: "https://wiki.hpc.rug.nl/peregrine/advanced_job_management/passing_parameters_to_a_job_script"
 
 ################################################################################
 
@@ -93,10 +94,8 @@ fi
 # TODO: TCW; 4 April 2023
 # TODO: Confirm that the indices are correct and do not miss any instances from the array.
 
-if true; then
-  sbatch \
-  --array 0-${batch_instances_count}:1 \
-  --chdir $path_directory_product \
+if false; then
+  sbatch --array 0-${batch_instances_count}:1 --chdir $path_directory_product \
   $path_script_run_batch_job \
   $path_file_batch_instances \
   $batch_instances_count \
@@ -107,6 +106,17 @@ if true; then
   $report
 fi
 
+if false; then
+  sbatch --array 0-${batch_instances_count}:1 --chdir $path_directory_product \
+  --export=path_file_batch_instances=$path_file_batch_instances \
+  --export=batch_instances_count=$batch_instances_count \
+  --export=message_common=$message_common \
+  --export=path_directory_product=$path_directory_product \
+  --export=path_script_execute_procedure=$path_script_execute_procedure \
+  --export=threads=$threads \
+  --export=report=$report \
+  $path_script_run_batch_job
+fi
 
 
 #

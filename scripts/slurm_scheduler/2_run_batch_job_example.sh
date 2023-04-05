@@ -31,13 +31,13 @@
 ################################################################################
 # Organize arguments.
 
-path_file_batch_instances=${1} # text list of information for each instance in batch
-batch_instances_count=${2} # count of instances in batch
-message_common=${3} # message parameter common to all jobs
-path_directory_product=${4} # full path to parent directory for product files
-path_script_execute_procedure=${5} # full path fo file of script for execution of job procedure
-threads=${6} # count of concurrent or parallel process threads on node cores
-report=${7} # whether to print reports
+#path_file_batch_instances=${1} # text list of information for each instance in batch
+#batch_instances_count=${2} # count of instances in batch
+#message_common=${3} # message parameter common to all jobs
+#path_directory_product=${4} # full path to parent directory for product files
+#path_script_execute_procedure=${5} # full path fo file of script for execution of job procedure
+#threads=${6} # count of concurrent or parallel process threads on node cores
+#report=${7} # whether to print reports
 
 
 
