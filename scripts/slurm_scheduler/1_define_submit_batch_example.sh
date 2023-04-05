@@ -41,8 +41,8 @@ path_file_batch_out="${path_directory_product}/batch_out.txt"
 path_file_batch_error="${path_directory_product}/batch_error.txt"
 
 # Scripts.
-path_script_run_batch_job="${path_directory_promiscuity}/scripts/soge_scheduler/2_run_batch_job_example.sh"
-path_script_execute_procedure="${path_directory_promiscuity}/scripts/soge_scheduler/3_execute_example.sh"
+path_script_run_batch_job="${path_directory_promiscuity}/scripts/slurm_scheduler/2_run_batch_job_example.sh"
+path_script_execute_procedure="${path_directory_promiscuity}/scripts/slurm_scheduler/3_execute_example.sh"
 
 # Initialize directories.
 mkdir -p $path_directory_product

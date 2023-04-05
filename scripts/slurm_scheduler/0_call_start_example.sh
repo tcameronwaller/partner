@@ -24,7 +24,7 @@ path_directory_promiscuity="${path_directory_process}/promiscuity"
 path_directory_product="${path_directory_dock}/test_soge_scheduler"
 
 # Scripts.
-path_script_define_submit="${path_directory_promiscuity}/scripts/soge_scheduler/1_define_submit_batch_example.sh"
+path_script_define_submit="${path_directory_promiscuity}/scripts/slurm_scheduler/1_define_submit_batch_example.sh"
 
 # Initialize directories.
 mkdir -p $path_directory_product
