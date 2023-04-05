@@ -94,7 +94,7 @@ fi
 # TODO: TCW; 4 April 2023
 # TODO: Confirm that the indices are correct and do not miss any instances from the array.
 
-if false; then
+if true; then
   sbatch --array 0-${batch_instances_count}:1 --chdir $path_directory_product \
   $path_script_run_batch_job \
   $path_file_batch_instances \
