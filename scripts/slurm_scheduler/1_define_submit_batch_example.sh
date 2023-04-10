@@ -16,6 +16,11 @@
 ################################################################################
 
 
+# TODO: TCW; 4 April 2023
+# TODO: Confirm that the indices are correct and do not miss any instances from the array.
+# TODO: I'm having difficulty pass the arguments to the run script...
+# See reference "https://wiki.hpc.rug.nl/peregrine/advanced_job_management/passing_parameters_to_a_job_script"
+
 
 ################################################################################
 # Organize arguments.
@@ -89,10 +94,7 @@ fi
 ################################################################################
 # Submit batch of jobs to grid cluster scheduler for processing.
 # Submit to Oracle Sun Grid Engine.
-# Indices in array of batch jobs start at one, not zero.
-
-# TODO: TCW; 4 April 2023
-# TODO: Confirm that the indices are correct and do not miss any instances from the array.
+# Indices in array of batch jobs start at zero.
 
 if true; then
   sbatch --array 0-${batch_instances_count}:1 --chdir $path_directory_product \
