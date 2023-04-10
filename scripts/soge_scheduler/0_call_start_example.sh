@@ -29,11 +29,6 @@ path_script_define_submit="${path_directory_promiscuity}/scripts/soge_scheduler/
 # Initialize directories.
 mkdir -p $path_directory_product
 
-# Initialize files.
-rm $path_file_batch_instances
-rm $path_file_batch_out
-rm $path_file_batch_error
-
 ################################################################################
 # Organize parameters.
 
