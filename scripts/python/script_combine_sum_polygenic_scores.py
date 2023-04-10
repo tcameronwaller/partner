@@ -85,7 +85,7 @@ def read_organize_table_polygenic_scores(
         sep="\t",
         header=0,
         dtype=types_columns,
-        na_values=["nan", "na", "NAN", "NA",],
+        na_values=["nan", "na", "NAN", "NA", "<nan>", "<na>", "<NAN>", "<NA>",],
     )
     # Organize information in table.
     table.reset_index(

@@ -108,6 +108,8 @@ if true; then
   $report
 fi
 
+# TCW attempted to pass arguments with the "--export" argument, but this attempt
+# was unsuccessful.
 if false; then
   sbatch --array 0-${batch_instances_count}:1 --chdir $path_directory_product \
   --export=path_file_batch_instances=$path_file_batch_instances \
