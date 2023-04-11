@@ -385,30 +385,33 @@ def execute_procedure(
         table=table_standardization,
         report=True,
     )
-    utility.calculate_table_column_pair_correlations(
-        column_one="score_bmi_sbayesr_1",
-        column_two="score_bmi_ldpred2_2",
-        table=table_standardization,
-        report=True,
-    )
-    utility.calculate_table_column_pair_correlations(
-        column_one="score_bmi_sbayesr_1",
-        column_two="score_bmi_prsice2",
-        table=table_standardization,
-        report=True,
-    )
-    utility.calculate_table_column_pair_correlations(
-        column_one="score_bmi_ldpred2",
-        column_two="score_bmi_ldpred2_2",
-        table=table_standardization,
-        report=True,
-    )
-    utility.calculate_table_column_pair_correlations(
-        column_one="score_bmi_ldpred2",
-        column_two="score_bmi_prsice2",
-        table=table_standardization,
-        report=True,
-    )
+
+    if False:
+        utility.calculate_table_column_pair_correlations(
+            column_one="score_bmi_sbayesr_1",
+            column_two="score_bmi_ldpred2_2",
+            table=table_standardization,
+            report=True,
+        )
+        utility.calculate_table_column_pair_correlations(
+            column_one="score_bmi_sbayesr_1",
+            column_two="score_bmi_prsice2",
+            table=table_standardization,
+            report=True,
+        )
+        utility.calculate_table_column_pair_correlations(
+            column_one="score_bmi_ldpred2",
+            column_two="score_bmi_ldpred2_2",
+            table=table_standardization,
+            report=True,
+        )
+        utility.calculate_table_column_pair_correlations(
+            column_one="score_bmi_ldpred2",
+            column_two="score_bmi_prsice2",
+            table=table_standardization,
+            report=True,
+        )
+        pass
 
     # Write table to file.
     write_product_table_text_tab(
