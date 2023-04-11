@@ -391,6 +391,18 @@ def execute_procedure(
         table=table_standardization,
         report=True,
     )
+    utility.calculate_table_column_pair_correlations(
+        column_one="score_bmi_sbayesr_2",
+        column_two="score_bmi_ldpred2",
+        table=table_standardization,
+        report=True,
+    )
+    utility.calculate_table_column_pair_correlations(
+        column_one="score_bmi_sbayesr_3",
+        column_two="score_bmi_ldpred2",
+        table=table_standardization,
+        report=True,
+    )
 
     utility.calculate_table_column_pair_correlations(
         column_one="score_bmi_sbayesr_1",
