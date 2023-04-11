@@ -3520,11 +3520,12 @@ def simplify_translate_table_columns_organize_identifier(
     # Copy information in table.
     table = table.copy(deep=True)
     # Reduce, rename, and copy columns.
-    table = reduce_table_columns(
-        columns_keep=columns_keep,
-        table=table,
-        report=report,
-    )
+    if (len(columns_keep) > 0):
+        table = reduce_table_columns(
+            columns_keep=columns_keep,
+            table=table,
+            report=report,
+        )
     table.rename(
         columns=columns_translations,
         inplace=True,
