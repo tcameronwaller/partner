@@ -3449,12 +3449,12 @@ def organize_table_column_identifier(
     ).copy(
         deep=True,
     )
-    # Remove columns.
-    #table.drop(
-    #    labels=["bib_id"],
-    #    axis="columns",
-    #    inplace=True
-    #)
+    # Remove source columns after copy.
+    table.drop(
+        labels=[column_source],
+        axis="columns",
+        inplace=True
+    )
     # Return information.
     return table
 
