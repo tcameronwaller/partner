@@ -18,7 +18,7 @@
 
 # TODO: TCW; 4 April 2023
 # TODO: Confirm that the indices are correct and do not miss any instances from the array.
-# TODO: I'm having difficulty pass the arguments to the run script...
+# TODO: I'm having difficulty passing the positional arguments to the SLURM Job Script ("2_run_batch_job_example.sh")
 # See reference "https://wiki.hpc.rug.nl/peregrine/advanced_job_management/passing_parameters_to_a_job_script"
 
 
