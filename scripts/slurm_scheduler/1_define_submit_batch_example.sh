@@ -40,6 +40,7 @@ cd ~/paths
 path_directory_process=$(<"./process_psychiatric_metabolism.txt")
 path_directory_dock="${path_directory_process}/dock"
 path_directory_promiscuity="${path_directory_process}/promiscuity"
+path_directory_logs="${path_directory_product}/logs"
 
 # Files.
 path_file_batch_instances="${path_directory_product}/batch_instances.txt"
@@ -52,6 +53,7 @@ path_script_execute_procedure="${path_directory_promiscuity}/scripts/slurm_sched
 
 # Initialize directories.
 mkdir -p $path_directory_product
+mkdir -p $path_directory_logs
 
 # Initialize files.
 rm $path_file_batch_instances
