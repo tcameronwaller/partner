@@ -82,6 +82,8 @@ if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "----------"
   echo "----------"
+  echo "Script complete:"
+  echo $0
   echo "Translate format of GWAS summary statistics."
   echo "path to source GWAS file: " $path_file_source
   echo "path to product GWAS file: " $path_file_product
