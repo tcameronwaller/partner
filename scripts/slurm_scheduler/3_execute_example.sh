@@ -38,6 +38,7 @@ echo "$message_common" > $path_file_product
 if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "Script complete:"
+  echo $0 # Print full file path to script.
   echo "3_execute_example.sh"
   echo "----------"
 fi

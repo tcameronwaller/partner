@@ -83,6 +83,7 @@ batch_instances_count=${#batch_instances[@]}
 if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "Script:"
+  echo $0 # Print full file path to script.
   echo "1_define_submit_batch_example.sh"
   echo "----------"
   echo "count of batch instances: " $batch_instances_count

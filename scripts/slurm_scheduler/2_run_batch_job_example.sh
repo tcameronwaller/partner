@@ -19,9 +19,22 @@
 # a: Slurm array task ID
 # N: Node name
 
+# Slurm is not able to create the "logs" child directory within the current
+# working parent directory. It is necessary to create this "logs" child
+# directory before executing the job script.
+
 # It is also possible to pass any of the parameters above when calling the
 # SLURM run script.
 # Especially consider calling "--array" and "--chdir" when calling SLURM script.
+
+# squeue -u [User LANID]
+# scontrol show job [job identifier] # Only lasts for 5 minutes.
+# sacct -j [job identifier] --format=[names of variables "sacct -e"] # "%25" allows to expand a specific column
+# sacct -j [job identifier] --format=User,JobID%15,Jobname%25,partition,nodelist,SystemComment,reason$20,exitCode
+# seff -f [job identifier] # Efficiency of job utilization of allocated resources.
+
+# salloc # Request an allocation of a single node for interactive use.
+# srun # In some ways similar to "salloc".
 
 ################################################################################
 # Note.
@@ -62,6 +75,7 @@ name_file_suffix="${array[2]}"
 if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "Script:"
+  echo $0 # Print full file path to script.
   echo "2_run_batch_job_example.sh"
   echo "----------"
   echo "Common message: " $message_common
