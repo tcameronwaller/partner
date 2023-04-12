@@ -9,6 +9,10 @@
 # Note
 
 # squeue
+# scontrol show job [job identifier] # Only lasts for 5 minutes.
+# sacct -j [job identifier] --format=[names of variables "sacct -e"] # "%25" allows to expand a specific column
+
+# echo $0
 
 ################################################################################
 
