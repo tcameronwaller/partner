@@ -41,15 +41,6 @@ cases=${6} # count of cases
 controls=${7} # count of controls
 report=${8} # whether to print reports
 
-echo "----------"
-echo $fill_observations
-echo $observations
-echo $fill_case_control
-echo $cases
-echo $controls
-echo $report
-zcat $path_file_source | head -10
-
 ################################################################################
 # Organize paths.
 
