@@ -48,7 +48,7 @@ echo $fill_case_control
 echo $cases
 echo $controls
 echo $report
-
+zcat $path_file_source | head -10
 
 ################################################################################
 # Organize paths.
@@ -76,9 +76,9 @@ echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_tempora
 # For conciseness, only support the conditions that are relevant.
 if [ "$fill_observations" != "1" ] && [ "$fill_case_control" != "1" ]; then
   zcat $path_file_source | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-    if ($6 == $5 && $6 != $4)
+    if (toupper($6) == toupper($5) && toupper($6) != toupper($4))
       print $3, $1, $2, toupper($6), toupper($4), $7, $10, $11, $13, $9, "NA", (1.0), "NA", "NA"
-    else if ($6 == $4 && $6 != $5)
+    else if (toupper($6) == toupper($4) && toupper($6) != toupper($5))
       print $3, $1, $2, toupper($6), toupper($5), $7, $10, $11, $13, $9, "NA", (1.0), "NA", "NA"
     else
       next
