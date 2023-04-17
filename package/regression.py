@@ -986,7 +986,7 @@ def organize_check_table_information_for_regression(
         independence=independence,
         standard_scale=standard_scale,
         table=table,
-        report=False,
+        report=True,
     )
 
     # Determine whether the table includes sufficient information for
@@ -1067,7 +1067,7 @@ def organize_check_table_drive_regression(
         dependence=dependence,
         independence=independence,
         standard_scale=True,
-        threshold_samples=50,
+        threshold_samples=10,
         table=table,
         type=type,
         report=report,
