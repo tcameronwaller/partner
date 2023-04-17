@@ -986,7 +986,7 @@ def organize_check_table_information_for_regression(
         independence=independence,
         standard_scale=standard_scale,
         table=table,
-        report=True,
+        report=False,
     )
 
     # Determine whether the table includes sufficient information for
