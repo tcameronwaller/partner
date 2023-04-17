@@ -1479,6 +1479,101 @@ def drive_linear_logistic_regressions_cohorts_models(
 
 
 
+##########
+# Write
+
+
+def write_product_table(
+    name=None,
+    table=None,
+    path_directory=None,
+):
+    """
+    Writes product information to file.
+
+    arguments:
+        name (str): base name for file
+        table (object): Pandas data-frame table to write to file
+        path_directory (str): path to parent directory
+
+    raises:
+
+    returns:
+
+    """
+
+    # Reset index.
+    table.reset_index(
+        level=None,
+        inplace=True,
+        drop=True,
+    )
+    # Specify directories and files.
+    path_table = os.path.join(
+        path_directory, str(name + ".tsv")
+    )
+    # Write information to file.
+    table.to_csv(
+        path_or_buf=path_table,
+        sep="\t",
+        header=True,
+        index=False,
+    )
+    pass
+
+
+def write_product_tables(
+    pail_write=None,
+    path_directory=None,
+):
+    """
+    Writes product information to file.
+
+    arguments:
+        pail_write (dict<object>): collection of information to write to file
+        path_directory (str): path to parent directory
+
+    raises:
+
+    returns:
+
+    """
+
+    for name in pail_write.keys():
+        write_product_table(
+            name=name,
+            table=pail_write[name],
+            path_directory=path_directory,
+        )
+    pass
+
+
+def write_product(
+    pail_write=None,
+    path_directory=None,
+):
+    """
+    Writes product information to file.
+
+    arguments:
+        pail_write (dict<dict<object>>): collection of information to write to
+            file
+        path_directory (str): path to parent directory
+
+    raises:
+
+    returns:
+
+    """
+
+    # Export information.
+    write_product_tables(
+        pail_write=pail_write["tables"],
+        path_directory=path_directory,
+    )
+    pass
+
+
 
 
 #
