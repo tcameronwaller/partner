@@ -142,7 +142,7 @@ def organize_table_cohort_model_variables_for_regression(
     # An unnecessary column is any column with minimal non-missing values or
     # with minimal variance across those values.
     table = utility.filter_table_columns_by_nonmissing_variance(
-        threshold_valid_proportion_per_column=0.05,
+        threshold_valid_proportion_per_column=0.001,
         threshold_column_variance=0.001,
         type_variance="standard_deviation",
         table=table,
