@@ -113,6 +113,8 @@ name_base_file_product=${4} # base file name for product files
 threads=${5} # count of processing threads to use
 report=${6} # whether to print reports
 
+
+
 ###########################################################################
 # Organize paths.
 
@@ -151,6 +153,7 @@ gzip -dcvf $path_file_source_effects > $path_file_temporary_effects
 # scale of the polygenic scores; however, wait to adjust scale until after
 # combination of scores across separate chromosomes.
 
+# --memory 10000 # units of Mebibyte, which is approximately 10 Gigabytes
 
 #$path_plink2 \
 #--memory 90000 \
@@ -161,7 +164,7 @@ gzip -dcvf $path_file_source_effects > $path_file_temporary_effects
 #--out $name_base_file_product
 
 $path_plink2 \
---memory 90000 \
+--memory 10000 \
 --threads $threads \
 --vcf $path_file_source_genotypes \
 --xchr-model 2 \
