@@ -74,7 +74,7 @@ done
 # Read batch instances.
 readarray -t batch_instances < $path_file_batch_instances
 batch_instances_count=${#batch_instances[@]}
-
+index_array_maximum=$(batch_instances_count - 1)
 
 
 ################################################################################
@@ -88,7 +88,7 @@ if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "count of batch instances: " $batch_instances_count
   echo "first batch instance: " ${batch_instances[0]} # notice base-zero indexing
-  echo "last batch instance: " ${batch_instances[$batch_instances_count - 1]}
+  echo "last batch instance: " ${batch_instances[$index_array_maximum]}
   echo "----------"
 fi
 
@@ -100,7 +100,7 @@ fi
 # Indices in array of batch jobs start at zero.
 
 if true; then
-  sbatch --array 0-${batch_instances_count}:1 --chdir $path_directory_product \
+  sbatch --array 0-${index_array_maximum}:1 --chdir $path_directory_product \
   $path_script_run_batch_job \
   $path_file_batch_instances \
   $batch_instances_count \
