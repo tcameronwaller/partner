@@ -1002,12 +1002,14 @@ def organize_check_table_information_for_regression(
         # Report.
         if report:
             print("Sufficient information for regression.")
+            utility.print_terminal_partition(level=5)
     else:
         # There is insufficient information for regression.
         pail_organization["validity"] = False
         # Report.
         if report:
             print("Insufficient information for regression.")
+            utility.print_terminal_partition(level=5)
             # Determine and report whether there is insufficient information.
             if (
                 (len(pail_organization["dependence"]) == 0) or
