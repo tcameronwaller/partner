@@ -14,9 +14,8 @@
 # these files as text tables, assigns unique names to the columns for the
 # polygenic scores, merges the tables together by matching identifiers for
 # genotypes, calculates the sum of all polygenic scores for each identifier,
-# standardizes the sum score as a z-score with mean of zero and standard
-# deviation of one, and writes the table as a text table to the product file
-# path.
+# calculates the mean of polygenic scores by division by count of variants, and
+# writes the table as a text table to the product file path.
 
 # It is necessary to call the Python script within a package directory where it
 # has access to appropriate subpackages and modules.

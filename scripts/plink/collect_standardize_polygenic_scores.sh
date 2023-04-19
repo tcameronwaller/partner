@@ -9,7 +9,9 @@
 # Note
 
 # This Bash script calls a Python script to collect and standardize multiple
-# polygenic scores on the same cohort of genotypes.
+# polygenic scores on the same cohort of genotypes. The procedure standardizes
+# the values of polygenic scores as a z-score with mean of zero and standard
+# deviation of one.
 
 # It is necessary to call the Python script within a package directory where it
 # has access to appropriate subpackages and modules.
