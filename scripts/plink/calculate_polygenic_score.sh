@@ -3,7 +3,7 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 15 March 2023
-# Date, last execution: 20 March 2023
+# Date, last execution: 18 April 2023
 # Review: TCW; ___
 ################################################################################
 # Note
@@ -105,6 +105,7 @@
 
 ################################################################################
 # Organize arguments.
+
 path_file_source_effects=${1} # full path to source file in standard format of allelic effects across SNPs
 path_file_source_genotypes=${2} # full path to source file in Variant Call Format (VCF) of target genotypes
 path_directory_product=${3} # full path to product directory for polygenic scores of allelic effects across target genotypes
