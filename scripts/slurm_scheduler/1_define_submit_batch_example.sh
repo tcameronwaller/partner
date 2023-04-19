@@ -74,7 +74,7 @@ done
 # Read batch instances.
 readarray -t batch_instances < $path_file_batch_instances
 batch_instances_count=${#batch_instances[@]}
-index_array_maximum=($batch_instances_count - 1)
+index_array_maximum=$(($batch_instances_count - 1))
 
 
 ################################################################################
