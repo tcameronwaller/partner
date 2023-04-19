@@ -7,7 +7,7 @@
 #SBATCH --nodes=1                            # count of cluster nodes (CPUs)
 #SBATCH --tasks=4                            # count of cores or threads on node
 #SBATCH --time=0-07:00:00                    # time allocation request (days-hours:minutes:seconds)
-#SBATCH --mem=8G                             # memory per node (per CPU)
+#SBATCH --mem=16G                            # memory per node (per CPU)
 #SBATCH --output logs/%x.%A.%N.%j.%a.stdout
 #SBATCH --output logs/%x.%A.%N.%j.%a.stderr
 #SBATCH --signal=USR1@60
