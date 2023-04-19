@@ -3,7 +3,7 @@
 #SBATCH --job-name=tcw_score                 # name of job
 #SBATCH --mail-user=waller.tcameron@mayo.edu # email address
 #SBATCH --mail-type=END,FAIL,TIME_LIMIT_50   # situations in which to send email
-#SBATCH --partition=cpu-short                # queue
+#SBATCH --partition=cpu-med                  # queue: cpu-short, cpu-med, cpu-long
 #SBATCH --nodes=1                            # count of cluster nodes (CPUs)
 #SBATCH --tasks=4                            # count of cores or threads on node
 #SBATCH --time=0-07:00:00                    # time allocation request (days-hours:minutes:seconds)
