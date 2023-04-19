@@ -3,14 +3,17 @@
 #SBATCH --job-name=tcw_score                 # name of job
 #SBATCH --mail-user=waller.tcameron@mayo.edu # email address
 #SBATCH --mail-type=END,FAIL,TIME_LIMIT_50   # situations in which to send email
-#SBATCH --partition=cpu-med                  # queue: cpu-short, cpu-med, cpu-long
+#SBATCH --partition=cpu-short                # queue: cpu-short, cpu-med, cpu-long
 #SBATCH --nodes=1                            # count of cluster nodes (CPUs)
 #SBATCH --tasks=4                            # count of cores or threads on node
-#SBATCH --time=0-10:00:00                    # time allocation request (days-hours:minutes:seconds)
-#SBATCH --mem=32G                            # memory per node (per CPU)
+#SBATCH --time=1-00:00:00                    # time allocation request (days-hours:minutes:seconds)
+#SBATCH --mem-per-cpu=16G                    # memory per task (per core or thread on CPU node)
 #SBATCH --output logs/%x.%A.%N.%j.%a.stdout
 #SBATCH --output logs/%x.%A.%N.%j.%a.stderr
 #SBATCH --signal=USR1@60
+
+# --mem-per-cpu=1G                     # memory per task (per core or thread on CPU node)
+# --mem=1G                             # total memory per node (per CPU)
 
 # Slurm shortcut variables.
 # x: Job name
@@ -18,6 +21,8 @@
 # j: Slurm job number
 # a: Slurm array task ID
 # N: Node name
+
+# sinfo --format "%.10P %.10l %.6D %.6m %N" # report partitions, nodes, memory on nodes
 
 # Slurm is not able to create the "logs" child directory within the current
 # working parent directory. It is necessary to create this "logs" child

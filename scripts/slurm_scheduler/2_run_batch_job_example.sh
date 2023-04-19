@@ -12,6 +12,9 @@
 #SBATCH --output logs/%x.%A.%N.%j.%a.stderr
 #SBATCH --signal=USR1@60
 
+# --mem-per-cpu=1G                     # memory per task (per core or thread on CPU node)
+# --mem=1G                             # total memory per node (per CPU)
+
 # Slurm shortcut variables.
 # x: Job name
 # A: Slurm array Job identifier
@@ -35,6 +38,9 @@
 
 # salloc # Request an allocation of a single node for interactive use.
 # srun # In some ways similar to "salloc".
+
+# https://slurm.schedmd.com/sbatch.html
+# https://researchcomputing.princeton.edu/support/knowledge-base/memory
 
 ################################################################################
 # Note.

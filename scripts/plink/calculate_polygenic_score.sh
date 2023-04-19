@@ -154,6 +154,7 @@ gzip -dcvf $path_file_source_effects > $path_file_temporary_effects
 # combination of scores across separate chromosomes.
 
 # --memory 10000 # units of Mebibyte, which is approximately 10 Gigabytes
+# I think this memory allocation is for each thread.
 
 #$path_plink2 \
 #--memory 90000 \
