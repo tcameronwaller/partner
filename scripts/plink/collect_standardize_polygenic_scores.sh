@@ -69,7 +69,7 @@ report="true"
 # Copy Python script to package directory.
 cp $path_file_script_source $path_file_script_product
 
-# Activate Virtual Environment.
+# Activate Python Virtual Environment.
 source "${path_environment_main}/bin/activate"
 echo "confirm Python Virtual Environment path..."
 which python3
@@ -83,7 +83,7 @@ export OMP_NUM_THREADS=$threads
 
 python3 $path_file_script_product $path_directory_source $name_file_source_prefix $name_file_source_suffix $name_file_source_not $path_file_product
 
-# Deactivate Virtual Environment.
+# Deactivate Python Virtual Environment.
 deactivate
 which python3
 
