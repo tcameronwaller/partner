@@ -136,9 +136,17 @@ def define_font_properties():
         "variant": "normal",
         "stretch": 900,
         "weight": 900,
-        "size": 30,
+        "size": 35,
     }
     values_7 = {
+        "family": "sans-serif",
+        "style": "normal",
+        "variant": "normal",
+        "stretch": 900,
+        "weight": 900,
+        "size": 30,
+    }
+    values_8 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
@@ -146,7 +154,7 @@ def define_font_properties():
         "weight": 750,
         "size": 20,
     }
-    values_8 = {
+    values_9 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
@@ -154,7 +162,7 @@ def define_font_properties():
         "weight": 500,
         "size": 17,
     }
-    values_9 = {
+    values_10 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
@@ -162,7 +170,7 @@ def define_font_properties():
         "weight": 400,
         "size": 15,
     }
-    values_10 = {
+    values_11 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
@@ -170,7 +178,7 @@ def define_font_properties():
         "weight": 300,
         "size": 13,
     }
-    values_11 = {
+    values_12 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
@@ -178,7 +186,7 @@ def define_font_properties():
         "weight": 300,
         "size": 10,
     }
-    values_12 = {
+    values_13 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
@@ -186,7 +194,7 @@ def define_font_properties():
         "weight": 200,
         "size": 7,
     }
-    values_13 = {
+    values_14 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
@@ -194,7 +202,7 @@ def define_font_properties():
         "weight": 150,
         "size": 5,
     }
-    values_14 = {
+    values_15 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
@@ -315,6 +323,14 @@ def define_font_properties():
         weight=values_14["weight"],
         size=values_14["size"]
     )
+    properties_15 = matplotlib.font_manager.FontProperties(
+        family=values_15["family"],
+        style=values_15["style"],
+        variant=values_15["variant"],
+        stretch=values_15["stretch"],
+        weight=values_15["weight"],
+        size=values_15["size"]
+    )
     # Compile and return references.
     return {
         "values": {
@@ -332,6 +348,7 @@ def define_font_properties():
             "twelve": values_12,
             "thirteen": values_13,
             "fourteen": values_14,
+            "fifteen": values_15,
         },
         "properties": {
             "one": properties_1,
@@ -348,6 +365,7 @@ def define_font_properties():
             "twelve": properties_12,
             "thirteen": properties_13,
             "fourteen": properties_14,
+            "fifteen": properties_15,
         }
     }
 
@@ -400,6 +418,9 @@ def define_color_properties():
     magenta = (0.784, 0.275, 0.784, 1.0) # (red: 200; green: 70; blue: 200)
 
     red_brick = (0.667, 0.196, 0.039, 1.0) # (red: 170; green: 50; blue: 10)
+    red_burgundy = (0.510, 0.039, 0.118, 1.0) # (red: 130; green: 10; blue: 30)
+    red_crimson = (0.784, 0.118, 0.196, 1.0) # (red: 200; green: 30; blue: 50)
+
 
     orange = (1.0, 0.588, 0.039, 1.0) # (red: 255; green: 150; blue: 10)
     orange_faint = (1.0, 0.588, 0.039, 0.75)
@@ -1800,6 +1821,11 @@ def plot_bar_stack(
             edgecolor=colors["black"]
         )
     return figure
+
+
+# Dot plot
+# set minima and maxima definitively... refer to the Forest plots...
+
 
 
 # https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.violinplot.html#matplotlib.pyplot.violinplot
@@ -3668,7 +3694,7 @@ def write_figure(
 def write_product_plot_figure(
     name=None,
     figure=None,
-    path_parent=None,
+    path_directory=None,
 ):
     """
     Writes product information to file.
@@ -3725,7 +3751,7 @@ def write_product_plots_parent_directory(
         write_product_plot_figure(
             name=name_figure,
             figure=pail_write[name_figure],
-            path_parent=path_directory_parent,
+            path_directory=path_directory_parent,
         )
         pass
     pass
@@ -3770,7 +3796,7 @@ def write_product_plots_child_directories(
             write_product_plot_figure(
                 name=name_file,
                 figure=pail_write[name_directory][name_file],
-                path_parent=path_child,
+                path_directory=path_child,
             )
             pass
         pass
