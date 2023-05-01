@@ -3712,7 +3712,7 @@ def write_product_plot_figure(
 
     # Specify directories and files.
     path_file = os.path.join(
-        path_parent, str(name + ".png")
+        path_directory, str(name + ".png")
     )
     # Write information to file.
     write_figure(
