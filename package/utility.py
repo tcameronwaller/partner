@@ -3941,6 +3941,69 @@ def template_split_apply_table_groups(
     pass
 
 
+def template_constrain_fill_missing_values_matrix(
+    matrix=None,
+    fill_missing=None,
+    value_missing_fill=None,
+    constrain_values=None,
+    value_minimum=None,
+    value_maximum=None,
+    report=None,
+):
+    """
+    Reads and organizes source information from file.
+
+    Notice that Pandas does not accommodate missing values within series of
+    integer variable types.
+
+    arguments:
+        matrix (object): Numpy two-dimensional matrix of float values
+        fill_missing (bool): whether to fill any missing values in every element
+            of matrix
+        value_missing_fill (float): value with which to fill any missing values
+        constrain_values (bool): whether to constrain all values in matrix
+        value_minimum (float): minimal value for constraint
+        value_maximum (float): maximal value for constraint
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Numpy two-dimenstional matrix of float values
+
+    """
+
+    # Copy information in matrix.
+    matrix = numpy.copy(matrix)
+    # Fill missing values.
+    if fill_missing:
+        matrix = numpy.nan_to_num(
+            matrix,
+            copy=True,
+            nan=value_missing_fill,
+            posinf=1.0,
+            neginf=-1.0,
+        )
+        pass
+    # Constrain values.
+    if constrain_values:
+        matrix[matrix < value_minimum] = value_minimum
+        matrix[matrix > value_maximum] = value_maximum
+        pass
+
+    # Report.
+    if report:
+        putility.print_terminal_partition(level=4)
+        print("Matrix:")
+        print(matrix)
+        putility.print_terminal_partition(level=4)
+        count_rows = copy.deepcopy(matrix.shape[0])
+        count_columns = copy.deepcopy(matrix.shape[1])
+        print("Matrix rows (dimension 0): " + str(count_rows))
+        print("Matrix columns (dimension 1): " + str(count_columns))
+        putility.print_terminal_partition(level=4)
+    # Return information.
+    return matrix
 
 
 

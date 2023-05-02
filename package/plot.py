@@ -452,6 +452,49 @@ def define_color_properties():
     }
 
 
+def initialize_matplotlib_figure_aspect(
+    aspect=None,
+):
+    """
+    Initialize a MatPlotLib figure with a specific aspect ratio.
+
+    arguments:
+        aspect (str): aspect ratio for MatPlotLib figure
+
+    raises:
+
+    returns:
+        (object): MatPlotLib figure object
+
+    """
+
+    ##########
+    # Create figure.
+    if aspect == "portrait":
+        figure = matplotlib.pyplot.figure(
+            figsize=(11.811, 15.748), # aspect 3 X 4; 15.748 inches = 39.999 cm
+            tight_layout=True
+        )
+    elif aspect == "portrait_half_width":
+        figure = matplotlib.pyplot.figure(
+            figsize=(5.906, 15.748), # aspect 1.5 X 4; 5.906 inches = 15.001 cm
+            tight_layout=True
+        )
+    elif aspect == "landscape":
+        figure = matplotlib.pyplot.figure(
+            figsize=(15.748, 11.811), # aspect 4 X 3; 11.811 inches = 29.999 cm
+            tight_layout=True
+        )
+    elif aspect == "landscape_half_height":
+        figure = matplotlib.pyplot.figure(
+            figsize=(15.748, 5.906), # aspect 4 X 1.5; 5.906 inches = 15.001 cm
+            tight_layout=True
+        )
+    # Return information.
+    return figure
+
+
+
 # TODO: pass variable for label on scale bar...
 
 def plot_heatmap_symmetric_diverge(
@@ -1882,27 +1925,11 @@ def plot_boxes_groups(
 
     #colors_groups = list(seaborn.color_palette("hls", n_colors=color_count))
 
+    ##########
     # Create figure.
-    if aspect == "portrait":
-        figure = matplotlib.pyplot.figure(
-            figsize=(11.811, 15.748), # aspect 3 X 4; 15.748 inches = 39.999 cm
-            tight_layout=True
-        )
-    elif aspect == "portrait_half_width":
-        figure = matplotlib.pyplot.figure(
-            figsize=(5.906, 15.748), # aspect 1.5 X 4; 5.906 inches = 15.001 cm
-            tight_layout=True
-        )
-    elif aspect == "landscape":
-        figure = matplotlib.pyplot.figure(
-            figsize=(15.748, 11.811), # aspect 4 X 3; 11.811 inches = 29.999 cm
-            tight_layout=True
-        )
-    elif aspect == "landscape_half_height":
-        figure = matplotlib.pyplot.figure(
-            figsize=(15.748, 5.906), # aspect 4 X 1.5; 5.906 inches = 15.001 cm
-            tight_layout=True
-        )
+    figure = initialize_matplotlib_figure_aspect(
+        aspect=aspect,
+    )
     # Create axes.
     axes = matplotlib.pyplot.axes()
     # Create boxes.
