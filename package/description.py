@@ -445,7 +445,8 @@ def drive_assemble_quantitation_table(
     #    "cohort_exclusions",
     record_cohort_example = copy.deepcopy(records_cohorts[0])
     del record_cohort_example["table"]
-    columns.insert(0, list(record_cohort_example.keys()))
+    #columns.insert(0, list(record_cohort_example.keys()))
+    columns.extend(list(record_cohort_example.keys()))
     table = table.loc[
         :, table.columns.isin(columns)
     ]
