@@ -4126,6 +4126,62 @@ def filter_records_by_name(
     return records_filter
 
 
+def filter_records_by_multiple_keys(
+    entry_pairs=None,
+    records=None,
+    report=None,
+):
+    """
+    Filters records by multiple pairs of keys and values.
+
+    In "entry_pairs", keys are strings, and values are lists of strings.
+    In "records", filterable keys are strings, and filterable values are
+    strings.
+
+    The intent of this function is to make it more convenient to manage
+    moderately large collections of tables for stratification cohorts and
+    similar tasks.
+
+    arguments:
+        entry_pairs (dict<list<str>>): pairs of keys and values to keep
+        records (list<dict>): records
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (list<dict>): records
+
+    """
+
+    # Copy information.
+    records_filter = copy.deepcopy(records)
+    # Filter records by multiple keys.
+    for key in entry_pairs.keys():
+        records_filter = list(filter(
+            lambda record: (str(record[key]) in entry_pairs[key]),
+            records_filter
+        ))
+    # Report.
+    if report:
+        print_terminal_partition(level=2)
+        print("report: ")
+        name_function = (
+            "filter_records_by_multiple_keys()"
+        )
+        print(name_function)
+        print_terminal_partition(level=3)
+        count_records = int(len(records))
+        count_records_filter = int(len(records_filter))
+        print("count of original records: " + str(count_records))
+        print("count of novel records: " + str(count_records_filter))
+        pass
+    # Return information
+    return records_filter
+
+
+
+
 # Stratifications by continuous variables
 
 
