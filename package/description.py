@@ -443,7 +443,9 @@ def drive_assemble_quantitation_table(
     #    "cohort_ancestry",
     #    "cohort_life_stage",
     #    "cohort_exclusions",
-    columns.insert(0, list(records_cohorts[0].keys()))
+    record_cohort_example = copy.deepcopy(records_cohorts[0])
+    del record_cohort_example["table"]
+    columns.insert(0, list(record_cohort_example.keys()))
     table = table.loc[
         :, table.columns.isin(columns)
     ]
