@@ -400,6 +400,7 @@ def drive_assemble_quantitation_table(
             )
             # Preserve information from stratification cohort record.
             record_description.update(record_cohort)
+            del record_description["table"]
             # Collect records.
             records_description.append(record_description)
             pass
@@ -434,6 +435,14 @@ def drive_assemble_quantitation_table(
         "range_99_low",
         "range_99_high",
     ]
+    #    "cohort_name",
+    #    "cohort_phenotypes",
+    #    "cohort_genotypes",
+    #    "cohort_sex",
+    #    "cohort_race",
+    #    "cohort_ancestry",
+    #    "cohort_life_stage",
+    #    "cohort_exclusions",
     columns.insert(0, list(records_cohorts[0].keys()))
     table = table.loc[
         :, table.columns.isin(columns)
