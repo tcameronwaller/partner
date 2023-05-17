@@ -780,7 +780,7 @@ def prioritize_combination_values_string(
     value_spare=None,
 ):
     """
-    Determines the combination or consensus value between a clear priority and
+    Determines the combination or supplement value between a clear priority and
     spare.
 
     arguments:
@@ -795,12 +795,15 @@ def prioritize_combination_values_string(
 
     """
 
-    # Determine identifier of priority genotype.
+    # Clean character string values.
+    value_priority = str(value_priority).strip()
+    value_spare = str(value_spare).strip()
+    # Determine combination value.
     if (
         (not pandas.isna(value_priority)) and
         (len(str(value_priority)) > 0)
     ):
-        # Priority value is not missing.
+        # Priority value is neither empty nor missing.
         choice = str(copy.deepcopy(value_priority))
     elif (
         (not pandas.isna(value_spare)) and
@@ -823,7 +826,7 @@ def prioritize_combination_values_float(
     value_spare=None,
 ):
     """
-    Determines the combination or consensus value between a clear priority and
+    Determines the combination or supplement value between a clear priority and
     spare.
 
     arguments:
@@ -838,7 +841,7 @@ def prioritize_combination_values_float(
 
     """
 
-    # Determine identifier of priority genotype.
+    # Determine combination value.
     if (
         (not pandas.isna(value_priority))
     ):
@@ -857,6 +860,146 @@ def prioritize_combination_values_float(
         choice = float("nan")
     # Return information.
     return choice
+
+
+def interpret_character_to_float_one_match_zero_any_other(
+    value=None,
+    matches_one=None,
+):
+    """
+    Interprets a character string value and returns float one for match and
+    float zero for any other nonmissing, empty, or missing value.
+
+    The reason to return floats instead of integers is to accommodate missing
+    values in subsequent interpretation functions.
+
+    arguments:
+        value (str): character string value
+        matches_one (list<str>): character string values for which to return
+            float one
+
+    raises:
+
+    returns:
+        (float): interpretation value of float one for match and float zero
+            for any other situation
+
+    """
+
+    # Clean and interpret character string value.
+    value = str(value).strip()
+    # Determine interpretation value.
+    if (
+        (not pandas.isna(value)) and
+        (len(str(value)) > 0)
+    ):
+        # The value is non-missing and not empty.
+        # Determine whether the value matches any strings.
+        if (value in matches_one):
+            # 1: "match"
+            match = 1
+        else:
+            # 0: "not match, empty, or missing"
+            match = 0
+    else:
+        # 0: "not match, empty, or missing"
+        match = 0
+    # Return.
+    return match
+
+
+def interpret_character_to_float_one_zero_match_missing_any_other(
+    value=None,
+    matches_zero=None,
+    matches_one=None,
+):
+    """
+    Interprets a character string value and returns float one or float zero for
+    respective match and float missing for any other empty or missing value.
+
+    The reason to return floats instead of integers is to accommodate missing
+    values in subsequent interpretation functions.
+
+    arguments:
+        value (float): float value
+        matches_zero (list<str>): float values for which to return float zero
+        matches_one (list<str>): float values for which to return float one
+
+    raises:
+
+    returns:
+        (float): interpretation value
+
+    """
+
+    # Clean and interpret character string value.
+    value = str(value).strip()
+    # Determine interpretation value.
+    if (
+        (not pandas.isna(value)) and
+        (len(str(value)) > 0)
+    ):
+        # The value is non-missing and not empty.
+        # Determine whether the value matches any strings.
+        if (value in matches_one):
+            # 1
+            match = 1
+        elif (value in matches_zero):
+            # 0
+            match = 0
+        else:
+            # nan
+            match = float("nan")
+    else:
+        # nan
+        match = float("nan")
+    # Return.
+    return match
+
+
+
+
+def interpret_float_to_one_match_zero_any_other(
+    value=None,
+    matches_one=None,
+):
+    """
+    Interprets a float value and returns float one for match and float zero for
+    any other nonmissing, empty, or missing value.
+
+    The reason to return floats instead of integers is to accommodate missing
+    values in subsequent interpretation functions.
+
+    arguments:
+        value (float): float value
+        matches_one (list<float>): float values for which to return float one
+
+    raises:
+
+    returns:
+        (float): interpretation value of float one for match and float zero
+            for any other situation
+
+    """
+
+    # Determine interpretation value.
+    if (
+        (not pandas.isna(value))
+    ):
+        # The value is non-missing and not empty.
+        # Determine whether the value matches any strings.
+        if (value in matches_one):
+            # 1: "match"
+            match = 1
+        else:
+            # 0: "not match, empty, or missing"
+            match = 0
+    else:
+        # 0: "not match, empty, or missing"
+        match = 0
+    # Return.
+    return match
+
 
 
 ##########
