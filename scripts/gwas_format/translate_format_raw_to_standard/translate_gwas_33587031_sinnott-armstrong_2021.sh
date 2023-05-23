@@ -1,46 +1,14 @@
 #!/bin/bash
 
-###########################################################################
-###########################################################################
-###########################################################################
+################################################################################
 # Notes
 
-# This script translates the format of GWAS summary statistics from
-# Teumer et al, Nature Communications, 2018 (PubMed:30367059).
-# Host: https://transfer.sysepi.medizin.uni-greifswald.de/thyroidomics/datasets/
-
-# Source Format
-# Human Genome Assembly: GRCh37 (TCW; 24 January 2023)
-# Effect allele: "Allele1" ("coding allele") (TCW; 24 January 2023)
-# Delimiter: comma
-# Columns: MarkerName Allele1 Allele2 Freq1 Effect StdErr P.value N I2
-#          1          2       3       4     5      6      7       8 9 (TCW; 15 February 2023)
-# Note:
-# The source format is the same for linear and logistic GWAS in collection (TCW; 24 January 2023).
-# Format of "MarkerName" is "[chromosome]:[position]:[type such as SNP]" (TCW; 24 January 2023).
-
-# Format Translation
-# Identifiers of SNP variants is [chromosome]:[position]:"SNP".
-# Extract the chromosome and position.
-# Define a temporary identifier [chromosome]:[position]:"SNP".
-
-# TODO: TCW; 20 January 2023
-
-# columns: $1, [extract], [extract], toupper($2), toupper($3), $4, $5, $6, $7, $8, "NA", (1), "NA", "NA"
-
-# Product Format (Team Standard)
-# effect allele: "A1"
-# delimiter: white space
-# columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
+# This script translates the format of GWAS summary statistics.
 
 # Review: TCW; 23 May 2023
 
 
-###########################################################################
-###########################################################################
-###########################################################################
-
-
+################################################################################
 
 ################################################################################
 # Organize arguments.
@@ -73,20 +41,14 @@ rm $path_file_product
 ###########################################################################
 # Execute procedure.
 
-
-
 ##########
 # Translate format of GWAS summary statistics.
 # Note that AWK interprets a single space delimiter (FS=" ") as any white space.
 echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format
 # For conciseness, only support the conditions that are relevant.
 if [ "$fill_observations" != "1" ] && [ "$fill_case_control" != "1" ]; then
-  zcat $path_file_source | awk 'BEGIN {FS = ","; OFS = " "} NR > 1 {
-    (a = $1); split(a, b, ":"); print a, b[1], b[2], toupper($2), toupper($3), $4, $5, $6, $7, $8, "NA", (1.0), "NA", "NA"
-  }' >> $path_file_temporary_format
-elif [ "$fill_observations" != "1" ] && [ "$fill_case_control" == "1" ]; then
-  zcat $path_file_source | awk -v cases=$cases -v controls=$controls 'BEGIN {FS = ","; OFS = " "} NR > 1 {
-    (a = $1); split(a, b, ":"); print a, b[1], b[2], toupper($2), toupper($3), $4, $5, $6, $7, $8, "NA", (1.0), (cases), (controls)
+  zcat $path_file_source | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+    print $3, $1, $2, toupper($7), toupper($8), $11, $15, $16, $18, $14, "NA", (1.0), "NA", "NA"
   }' >> $path_file_temporary_format
 fi
 
