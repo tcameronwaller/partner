@@ -3,7 +3,7 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 24 May 2023
-# Date, last execution: __ May 2023
+# Date, last execution: 24 May 2023
 # Review: TCW; 24 May 2023
 ################################################################################
 # Note
@@ -103,6 +103,7 @@ path_file_temporary_map_product="${path_directory_product_temporary}/${name_base
 path_file_temporary_map_product_header="${path_directory_product_temporary}/${name_base_file_product}_product_header.bed"
 path_file_temporary_merge_product="${path_directory_product_temporary}/${name_base_file_product}_product_before_merge.txt"
 path_file_temporary_product_after_merge="${path_directory_product_temporary}/${name_base_file_product}_product_after_merge.txt"
+path_file_temporary_product_filter="${path_directory_product_temporary}/${name_base_file_product}_product_filter.txt"
 path_file_temporary_product_format="${path_directory_product_temporary}/${name_base_file_product}_product_format.txt"
 path_file_product_unmap="${path_directory_product}/${name_base_file_product}_unmap.txt"
 
@@ -237,20 +238,34 @@ awk 'FNR==NR{a[$1]=$2FS$3FS$4; next} {
   if(a[$1]==""){a[$1]="NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"}; print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, a[$1]
 }' $path_file_temporary_merge_product $path_file_temporary_merge_source > $path_file_temporary_product_after_merge
 
-# Report.
-if [ "$verbosity" == "true" ] && [ "$report" == "true" ]; then
-  echo "----------"
-  echo "Progress Step 5: Merge."
-  cat $path_file_temporary_product_after_merge | head -5
-  echo "----------"
-fi
+cat $path_file_temporary_product_after_merge | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_file_temporary_product_filter
+cat $path_file_temporary_product_after_merge | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
+  if ( NF != 18)
+    # Skip any rows with incorrect count of column fields.
+    next
+  else if (($1 == "") || ($1 == "NA"))
+    # Skip any rows for which an empty or missing identifier indicates that
+    # record in second table did not match first table.
+    next
+  else
+    # Keep record from merge of first table and second table.
+    print $0
+  }' >> $path_file_temporary_product_filter
+
+  # Report.
+  if [ "$verbosity" == "true" ] && [ "$report" == "true" ]; then
+    echo "----------"
+    echo "Progress Step 5: Merge."
+    cat $path_file_temporary_product_filter | head -5
+    echo "----------"
+  fi
 
 
 
 ##########
 # 6. Organize format of product table of GWAS summary statistics.
 echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_product_format
-cat $path_file_temporary_product_after_merge | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+cat $path_file_temporary_product_filter | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
   print $2, $16, $18, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
 }' >> $path_file_temporary_product_format
 
