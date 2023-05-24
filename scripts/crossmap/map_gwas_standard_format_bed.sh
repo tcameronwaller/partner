@@ -101,7 +101,9 @@ path_file_temporary_merge_source="${path_directory_product_temporary}/${name_bas
 path_file_temporary_map_source="${path_directory_product_temporary}/${name_base_file_product}_source.bed"
 path_file_temporary_map_product="${path_directory_product_temporary}/${name_base_file_product}_product.bed"
 path_file_temporary_map_product_header="${path_directory_product_temporary}/${name_base_file_product}_product_header.bed"
-path_file_temporary_merge_product="${path_directory_product_temporary}/${name_base_file_product}_product.txt"
+path_file_temporary_merge_product="${path_directory_product_temporary}/${name_base_file_product}_product_before_merge.txt"
+path_file_temporary_product_after_merge="${path_directory_product_temporary}/${name_base_file_product}_product_after_merge.txt"
+path_file_temporary_product_format="${path_directory_product_temporary}/${name_base_file_product}_product_format.txt"
 path_file_product_unmap="${path_directory_product}/${name_base_file_product}_unmap.txt"
 
 # Initialize directory.
@@ -113,6 +115,8 @@ cd $path_directory_product_temporary
 
 ################################################################################
 # Execute procedure.
+
+
 
 ##########
 # 1. Introduce sequential identifier to rows in source table of GWAS summary
@@ -130,6 +134,8 @@ if [[ "$report" == "true" ]]; then
   echo "----------"
 fi
 
+
+
 ##########
 # 2. Extract original genomic coordinates and sequential identifier from source
 #     table and organize format in Browser Extensible Data (BED) format for
@@ -146,6 +152,8 @@ if [[ "$report" == "true" ]]; then
   cat $path_file_temporary_map_source | head -5
   echo "----------"
 fi
+
+
 
 ##########
 # 3. Translate genomic coordinates between assemblies of the human genome in
@@ -178,7 +186,7 @@ deactivate
 which python3
 # Introduce the same header from the source file to the product file.
 # CrossMap does not transfer the original header.
-cat $path_file_temporary_map_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_file_temporary_map_product_header
+cat $path_file_temporary_map_source | awk 'BEGIN { FS="\t"; OFS="\t" } NR == 1' > $path_file_temporary_map_product_header
 cat $path_file_temporary_map_product >> $path_file_temporary_map_product_header
 
 # Report.
@@ -190,10 +198,48 @@ if [[ "$report" == "true" ]]; then
 fi
 
 
+##########
+# 4. Organize the table of final genomic coordinates.
+echo "SEQUENTIAL_IDENTIFIER chrom chromStart chromEnd" > $path_file_temporary_merge_product
+cat $path_file_temporary_map_product_header | awk 'BEGIN {FS = "\t"; OFS = " "} NR > 1 {
+  print $4, $1, $2, $3
+}' >> $path_file_temporary_merge_product
+
+# Report.
+if [[ "$report" == "true" ]]; then
+  echo "----------"
+  echo "Temporary: after translating format of final genomic coordinates."
+  cat $path_file_temporary_merge_product | head -5
+  echo "----------"
+fi
+
 
 ##########
-# 4. Use common sequential identifier to merge final genomic coordinates to
+# 5. Use common sequential identifier to merge final genomic coordinates to
 #     information from the source table.
+# Merge text tables by a common identifier in "awk".
+# Bash command "join" might also be capable of this type of merge or join, but
+# it might require the same identifiers in sort order.
+# For computational efficiency, the first file ought to be the subset of the
+# second file.
+# Table 1: 4 total columns with merge identifier in column 1.
+# Table 2: 15 total columns with merge identifier in column 1.
+# Delimiter: Space
+# It is not necessary to print the header row separately.
+#echo "SEQUENTIAL_IDENTIFIER SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT chrom chromStart chromEnd" > $path_file_temporary_product_after_merge
+awk 'FNR==NR{a[$1]=$2FS$3FS$4; next} {
+  if(a[$1]==""){a[$1]="NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"}; print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, a[$1]
+}' $path_file_temporary_merge_product $path_file_temporary_merge_source > $path_file_temporary_product_after_merge
+
+# Report.
+if [[ "$report" == "true" ]]; then
+  echo "----------"
+  echo "Temporary: after merge."
+  cat $path_file_temporary_product_after_merge | head -5
+  echo "----------"
+fi
+
+
 
 ##########
 # 5. Organize format of product table of GWAS summary statistics.

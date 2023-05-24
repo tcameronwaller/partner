@@ -134,13 +134,15 @@ fi
 
 ##########
 # 3. Introduce allelic frequencies to GWAS summary statistics.
-# Bash command "join" might be capable of this type of merge or join, but it
-# might require the same identifiers in sort order.
-
+# Merge text tables by a common identifier in "awk".
+# Bash command "join" might also be capable of this type of merge or join, but
+# it might require the same identifiers in sort order.
 # For computational efficiency, the first file ought to be the subset of the
 # second file.
+# Table 1: 15 total columns with merge identifier in column 1.
+# Table 2: 7 total columns with merge identifier in column 1.
+# Delimiter: Space
 # It is not necessary to print the header row separately.
-
 #echo "identifier_merge ID CHROM POS ALT REF AF_EUR SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_ftemp_frequency_gwas_merge
 awk 'FNR==NR{a[$1]=$2FS$3FS$4FS$5FS$6FS$7FS$8FS$9FS$10FS$11FS$12FS$13FS$14FS$15; next} {
   if(a[$1]==""){a[$1]="NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"}; print $1, $2, $3, $4, $5, $6, $7, a[$1]}
