@@ -229,8 +229,8 @@ fi
 # it might require the same identifiers in sort order.
 # For computational efficiency, the first file ought to be the subset of the
 # second file.
-# Table 1: 4 total columns with merge identifier in column 1.
-# Table 2: 15 total columns with merge identifier in column 1.
+# Table 1 (subset): 4 total columns with merge identifier in column 1.
+# Table 2 (complete): 15 total columns with merge identifier in column 1.
 # Delimiter: Space
 # It is not necessary to print the header row separately.
 #echo "IDENTIFIER_MERGE SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT chrom chromStart chromEnd" > $path_file_temporary_product_after_merge
