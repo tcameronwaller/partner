@@ -3,8 +3,8 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 24 May 2022
-# Date, last execution: 15 March 2023
-# Review: TCW; 12 March 2023
+# Date, last execution: 24 May 2023
+# Review: TCW; 24 May 2023
 ################################################################################
 # Note
 
@@ -60,6 +60,18 @@ mkdir -p $path_directory_ensembl
 ##########
 # Assembly chain files from UCSC.
 # http://hgdownload.soe.ucsc.edu/goldenPath/
+# Source human genome assembly: NCBI36 (hg18)
+# Target human genome assembly: GRCh37 (hg19)
+# File date: 26 July 2010
+# File size: 137 kilobytes
+# Host: UCSC
+wget --directory-prefix $path_directory_ucsc --content-disposition --no-check-certificate "https://hgdownload.soe.ucsc.edu/goldenPath/hg18/liftOver/hg18ToHg19.over.chain.gz"
+# Source human genome assembly: NCBI36 (hg18)
+# Target human genome assembly: GRCh38 (hg38)
+# File date: 19 February 2014
+# File size: 336 kilobytes
+# Host: UCSC
+wget --directory-prefix $path_directory_ucsc --content-disposition --no-check-certificate "https://hgdownload.soe.ucsc.edu/goldenPath/hg18/liftOver/hg18ToHg38.over.chain.gz"
 # Source human genome assembly: GRCh37 (hg19)
 # Target human genome assembly: GRCh38 (hg38)
 # File date: 31 December 2013
@@ -78,6 +90,18 @@ wget --directory-prefix $path_directory_ucsc --content-disposition --no-check-ce
 ##########
 # Assembly chain files from Ensembl.
 # http://ftp.ensembl.org/pub/assembly_mapping/homo_sapiens/
+# Source human genome assembly: NCBI36 (hg18)
+# Target human genome assembly: GRCh37 (hg19)
+# File date: 28 July 2014
+# File size: 30 kilobytes
+# Host: Ensembl
+wget --directory-prefix $path_directory_ensembl --content-disposition --no-check-certificate "http://ftp.ensembl.org/pub/assembly_mapping/homo_sapiens/NCBI36_to_GRCh37.chain.gz"
+# Source human genome assembly: NCBI36 (hg18)
+# Target human genome assembly: GRCh38 (hg38)
+# File date: 25 July 2014
+# File size: 174 kilobytes
+# Host: Ensembl
+wget --directory-prefix $path_directory_ensembl --content-disposition --no-check-certificate "http://ftp.ensembl.org/pub/assembly_mapping/homo_sapiens/NCBI36_to_GRCh38.chain.gz"
 # Source human genome assembly: GRCh37
 # Target human genome assembly: GRCh38
 # File date: 25 July 2014
