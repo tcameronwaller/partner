@@ -73,10 +73,11 @@
 # Columns: chrom chromStart chromEnd SEQUENTIAL_IDENTIFIER
 #          1     2          3        4
 
-################################################################################
+
 
 ################################################################################
 # Organize arguments.
+
 path_file_source=${1} # full path to source file in UCSC Browser Extensible Data (BED) format
 path_file_product=${2} # full path to product file in UCSC Browser Extensible Data (BED) format
 path_file_chain=${3} # full path to chain file for assembly translation
@@ -92,16 +93,19 @@ path_waller_tools=$(<"./waller_tools.txt")
 path_environment_crossmap="${path_waller_tools}/python/environments/crossmap"
 
 path_directory_product="$(dirname $path_file_product)"
-name_base_file_product="$(basename $path_file_product .bed.gz)"
+name_base_file_product="$(basename $path_file_product .txt.gz)"
 path_directory_product_temporary="${path_directory_product}/temporary_${name_base_file_product}" # hopefully unique
 
 # Files.
-path_file_temporary_map="${path_directory_product_temporary}/${name_base_file_product}_map.bed"
-path_file_temporary_map_header="${path_directory_product_temporary}/${name_base_file_product}_map_header.bed"
+path_file_temporary_merge_source="${path_directory_product_temporary}/${name_base_file_product}_source.txt"
+path_file_temporary_map_source="${path_directory_product_temporary}/${name_base_file_product}_source.bed"
+path_file_temporary_map_product="${path_directory_product_temporary}/${name_base_file_product}_product.bed"
+path_file_temporary_map_product_header="${path_directory_product_temporary}/${name_base_file_product}_product_header.bed"
+path_file_temporary_merge_product="${path_directory_product_temporary}/${name_base_file_product}_product.txt"
 path_file_product_unmap="${path_directory_product}/${name_base_file_product}_unmap.txt"
 
 # Initialize directory.
-#rm -r $path_directory_product
+#rm -r $path_directory_product # caution
 rm -r $path_directory_product_temporary
 mkdir -p $path_directory_product
 mkdir -p $path_directory_product_temporary
@@ -110,11 +114,45 @@ cd $path_directory_product_temporary
 ################################################################################
 # Execute procedure.
 
+##########
+# 1. Introduce sequential identifier to rows in source table of GWAS summary
+#     statistics.
+echo "SEQUENTIAL_IDENTIFIER SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_merge_source
+zcat $path_file_source | awk 'BEGIN {FS = " "; OFS = " "; i = 1} NR > 1 {
+  print i, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14; i++
+}' >> $path_file_temporary_merge_source
+
+# Report.
+if [[ "$report" == "true" ]]; then
+  echo "----------"
+  echo "Temporary: after addition of sequential identifier."
+  cat $path_file_temporary_merge_source | head -5
+  echo "----------"
+fi
+
+
+##########
+# 2. Extract original genomic coordinates and sequential identifier from source
+#     table and organize format in Browser Extensible Data (BED) format for
+#     CrossMap.
+
+##########
+# 3. Translate genomic coordinates between assemblies of the human genome in
+#     CrossMap. Introduce header to table for clarity.
+
+##########
+# 4. Use common sequential identifier to merge final genomic coordinates to
+#     information from the source table.
+
+##########
+# 5. Organize format of product table of GWAS summary statistics.
+
+
 # Activate Virtual Environment.
-source "${path_environment_crossmap}/bin/activate"
-echo "confirm Python Virtual Environment path..."
-which python3
-sleep 5s
+#source "${path_environment_crossmap}/bin/activate"
+#echo "confirm Python Virtual Environment path..."
+#which python3
+#sleep 5s
 # Regulate concurrent or parallel process threads on node cores.
 # Force Python program (especially SciPy) not to use all available cores on a
 # cluster computation node.
@@ -126,49 +164,49 @@ export OMP_NUM_THREADS=$threads
 # between human genome assemblies.
 # CrossMap uses GZip compression ("--compress" command).
 # I think that CrossMap by default does not compress product BED files.
-CrossMap.py \
-bed \
---chromid a \
---unmap-file $path_file_product_unmap \
-$path_file_chain \
-$path_file_source \
-$path_file_temporary_map
+#CrossMap.py \
+#bed \
+#--chromid a \
+#--unmap-file $path_file_product_unmap \
+#$path_file_chain \
+#$path_file_temporary_map_source \
+#$path_file_temporary_map_product
 # Deactivate Virtual Environment.
-deactivate
-which python3
+#deactivate
+#which python3
 
 # Introduce the same header from the source file to the product file.
 # CrossMap does not transfer the original header.
-zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_file_temporary_map_header
-cat $path_file_temporary_map >> $path_file_temporary_map_header
+#zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_file_temporary_map_header
+#cat $path_file_temporary_map >> $path_file_temporary_map_header
 
 # Compress file format.
-gzip -cvf $path_file_temporary_map_header > $path_file_product
+#gzip -cvf $path_file_temporary_map_header > $path_file_product
 
 # Report.
-if [[ "$report" == "true" ]]; then
-  echo "----------"
-  echo "----------"
-  echo "----------"
-  echo "Translate genomic features from human genome assembly"
-  echo "GRCh37 to GRCh38 in CrossMap."
-  echo "path to source file: " $path_file_source
-  echo "path to chain file: " $path_file_chain
-  echo "path to product file: " $path_file_product
-  echo "----------"
-  echo "table before translation:"
-  echo "Count lines: "
-  zcat $path_file_source | wc -l
-  zcat $path_file_source | head -10
-  echo "----------"
-  echo "table after translation:"
-  echo "Count lines: "
-  zcat $path_file_product | wc -l
-  zcat $path_file_product | head -10
-  echo "----------"
-  echo "----------"
-  echo "----------"
-fi
+#if [[ "$report" == "true" ]]; then
+#  echo "----------"
+#  echo "----------"
+#  echo "----------"
+#  echo "Translate genomic features from human genome assembly"
+#  echo "GRCh37 to GRCh38 in CrossMap."
+#  echo "path to source file: " $path_file_source
+#  echo "path to chain file: " $path_file_chain
+#  echo "path to product file: " $path_file_product
+#  echo "----------"
+#  echo "table before translation:"
+#  echo "Count lines: "
+#  zcat $path_file_source | wc -l
+#  zcat $path_file_source | head -10
+#  echo "----------"
+#  echo "table after translation:"
+#  echo "Count lines: "
+#  zcat $path_file_product | wc -l
+#  zcat $path_file_product | head -10
+#  echo "----------"
+#  echo "----------"
+#  echo "----------"
+#fi
 
 
 
