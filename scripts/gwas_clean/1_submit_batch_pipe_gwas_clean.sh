@@ -27,7 +27,7 @@ path_file_batch_instances="${path_directory_product}/batch_instances.txt"
 
 # Scripts.
 path_file_script_run_batch="${path_directory_process}/promiscuity/scripts/gwas_clean/2_run_batch_pipe_gwas_clean.sh"
-path_file_script_pipe_gwas_clean="${path_directory_process}/promiscuity/scripts/gwas_clean/pipe_gwas_clean.sh"
+path_file_script_pipe_gwas_clean="${path_directory_process}/promiscuity/scripts/gwas_clean/process_gwas_gwas2vcf.sh"
 
 # Initialize files.
 rm $path_file_batch_instances

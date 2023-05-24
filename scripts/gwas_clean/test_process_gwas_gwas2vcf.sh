@@ -78,7 +78,7 @@ path_ftemp_gwas_source_decomp="${path_directory_temporary}/${identifier_gwas}_so
 path_ftemp_gwas_source="${path_directory_temporary}/${identifier_gwas}_source.txt.gz"
 
 # Scripts.
-path_file_script_pipe_gwas_clean="${path_directory_process}/promiscuity/scripts/gwas_clean/pipe_gwas_clean.sh"
+path_file_script_pipe_gwas_clean="${path_directory_process}/promiscuity/scripts/gwas_clean/process_gwas_gwas2vcf.sh"
 
 # Initialize directories.
 rm -r $path_directory_product
@@ -100,7 +100,7 @@ report="true"
 # Execute procedure.
 
 # Keep only the first 10,000 records.
-zcat $path_file_gwas_source | awk 'NR < 10002 {
+zcat $path_file_gwas_source | awk 'NR < 100002 {
   print $0
 }' >> $path_ftemp_gwas_source_decomp
 

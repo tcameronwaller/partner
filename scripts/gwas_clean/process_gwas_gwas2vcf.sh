@@ -3,6 +3,7 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 17 February 2023
+# Date, last execution: 24 May 2023
 ################################################################################
 # Notes:
 
@@ -20,20 +21,22 @@
 # and that the values in column "NCASE" are the count of observations of cases
 # for each variant (SNP).
 # Hence: N = NCASE + NCONT
-# This procedure effectively loses in information in the column "NCONT".
+# This procedure effectively loses any information in the column "NCONT".
 # A calculation in this procedure also assumes that the count of total
 # observations includes all (100%) of cases and that any discrepancies in count
 # of total observations are indicative of differences in the count of cases.
 # Hence: "NCONT = N - NCASE".
+
+# In a test on 24 May 2023, GWAS2VCF discarded all variants when using a
+# standard reference file from Gencode for the genomic sequence of human genome
+# assembly GRCh37. It might be that GWAS2VCF requires the standard reference
+# file "human_g1k_v37.fasta.gz".
 
 # https://mrcieu.github.io/gwasvcf/articles/guide.html
 
 # Review: TCW; 17 February 2023
 
 ################################################################################
-
-# TODO: TCW; 10 March 2023
-# TODO: switch to NCBI standard genomic reference sequence for human genome assembly GRCh37.
 
 
 
@@ -56,7 +59,7 @@ path_environment_gwas2vcf="${path_directory_tools}/python/environments/gwas2vcf"
 path_gwas2vcf="${path_directory_tools}/gwas2vcf/gwas2vcf/main.py"
 path_bcftools=$(<"./tools_bcftools.txt")
 path_directory_reference=$(<"./reference_tcw.txt")
-path_directory_reference_gwas2vcf="${path_directory_reference}/gwas2vcf" # GWAS2VCF default; accession: TCW; 2023-02-17
+path_directory_reference_gwas2vcf="${path_directory_reference}/gwas2vcf" # GWAS2VCF default; accession: TCW; 17 February 2023
 #path_directory_reference_genome_sequence="${path_directory_reference}/genome_sequence/grch37" # GRCh37.p13; GWAS2VCF did not recognize. (TCW; 24 May 2023)
 path_directory_reference_dbsnp="${path_directory_reference}/dbsnp/grch37_chromosome" # dbSNP build 155; accession: TCW; 2023-02-06; chromosome translation: TCW; 2023-02-15
 path_directory_process=$(<"./process_psychiatric_metabolism.txt")
@@ -74,7 +77,7 @@ path_file_gwas_product_gwas2vcf="${path_file_gwas_product_gwas2vcf_base}.gz"
 path_file_gwas_product_gwas2vcf_index="${path_file_gwas_product_gwas2vcf_base}.gz.tbi"
 path_file_gwas2vcf_parameter_linear="${path_directory_process}/promiscuity/scripts/gwas_clean/parameter_gwas_standard_to_gwas2vcf_linear.json"
 path_file_gwas2vcf_parameter_logistic="${path_directory_process}/promiscuity/scripts/gwas_clean/parameter_gwas_standard_to_gwas2vcf_logistic.json"
-path_file_reference_genome_sequence="${path_directory_reference_gwas2vcf}/genome_sequence/human_g1k_v37.fasta.gz" # GWAS2VCF default; accession: TCW; 2023-02-17
+path_file_reference_genome_sequence="${path_directory_reference_gwas2vcf}/genome_sequence/human_g1k_v37.fasta.gz" # GWAS2VCF default; accession: TCW; 17 February 2023
 #path_file_reference_genome_sequence="${path_directory_reference_genome_sequence}/GRCh37.p13.genome.fa.gz" # GWAS2VCF did not recognize. (TCW; 24 May 2023)
 #path_file_reference_dbsnp="${path_directory_reference_gwas2vcf}/dbsnp/dbsnp.v153.b37.vcf.gz" # GWAS2VCF default
 path_file_reference_dbsnp="${path_directory_reference_dbsnp}/GCF_000001405.25.gz" # dbSNP build 155; accession: TCW; 2023-02-06; chromosome translation: TCW; 2023-02-15
