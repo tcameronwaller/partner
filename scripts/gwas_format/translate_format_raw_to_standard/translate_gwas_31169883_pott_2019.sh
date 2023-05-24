@@ -87,11 +87,18 @@ if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "----------"
   echo "----------"
+  echo "Script:"
+  echo $0 # Print full file path to script.
   echo "Translate format of GWAS summary statistics."
+  echo "----------"
   echo "path to source GWAS file: " $path_file_source
   echo "path to product GWAS file: " $path_file_product
-  echo "table after format:"
-  head -10 $path_file_temporary_format
+  echo "----------"
+  echo "table before format translation:"
+  zcat $path_file_source | head -5
+  echo "----------"
+  echo "table after format translation:"
+  zcat $path_file_product | head -5
   echo "----------"
   echo "----------"
   echo "----------"
