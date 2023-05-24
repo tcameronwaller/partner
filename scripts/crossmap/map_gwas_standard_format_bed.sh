@@ -147,25 +147,14 @@ if [[ "$report" == "true" ]]; then
   echo "----------"
 fi
 
-
-
 ##########
 # 3. Translate genomic coordinates between assemblies of the human genome in
 #     CrossMap. Introduce header to table for clarity.
-
-##########
-# 4. Use common sequential identifier to merge final genomic coordinates to
-#     information from the source table.
-
-##########
-# 5. Organize format of product table of GWAS summary statistics.
-
-
 # Activate Virtual Environment.
-#source "${path_environment_crossmap}/bin/activate"
-#echo "confirm Python Virtual Environment path..."
-#which python3
-#sleep 5s
+source "${path_environment_crossmap}/bin/activate"
+echo "confirm Python Virtual Environment path..."
+which python3
+sleep 5s
 # Regulate concurrent or parallel process threads on node cores.
 # Force Python program (especially SciPy) not to use all available cores on a
 # cluster computation node.
@@ -177,21 +166,38 @@ export OMP_NUM_THREADS=$threads
 # between human genome assemblies.
 # CrossMap uses GZip compression ("--compress" command).
 # I think that CrossMap by default does not compress product BED files.
-#CrossMap.py \
-#bed \
-#--chromid a \
-#--unmap-file $path_file_product_unmap \
-#$path_file_chain \
-#$path_file_temporary_map_source \
-#$path_file_temporary_map_product
+CrossMap.py \
+bed \
+--chromid a \
+--unmap-file $path_file_product_unmap \
+$path_file_chain \
+$path_file_temporary_map_source \
+$path_file_temporary_map_product
 # Deactivate Virtual Environment.
-#deactivate
-#which python3
-
+deactivate
+which python3
 # Introduce the same header from the source file to the product file.
 # CrossMap does not transfer the original header.
-#zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_file_temporary_map_header
-#cat $path_file_temporary_map >> $path_file_temporary_map_header
+cat $path_file_temporary_map_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_file_temporary_map_product_header
+cat $path_file_temporary_map_product >> $path_file_temporary_map_product_header
+
+# Report.
+if [[ "$report" == "true" ]]; then
+  echo "----------"
+  echo "Temporary: after CrossMap."
+  cat $path_file_temporary_map_product_header | head -5
+  echo "----------"
+fi
+
+
+
+##########
+# 4. Use common sequential identifier to merge final genomic coordinates to
+#     information from the source table.
+
+##########
+# 5. Organize format of product table of GWAS summary statistics.
+
 
 # Compress file format.
 #gzip -cvf $path_file_temporary_map_header > $path_file_product
