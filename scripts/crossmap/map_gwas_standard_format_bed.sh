@@ -117,7 +117,7 @@ cd $path_directory_product_temporary
 ################################################################################
 # Organize parameters.
 
-verbosity="true"
+verbosity="false"
 
 ################################################################################
 # Execute procedure.
