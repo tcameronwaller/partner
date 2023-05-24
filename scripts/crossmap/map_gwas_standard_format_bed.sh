@@ -56,7 +56,7 @@
 # Chromosome base position coordinate system: base 1
 #   Site: https://www.biostars.org/p/84686/
 #   Note: Coordinates designate 1-based integer position of each base
-# Columns: SEQUENTIAL_IDENTIFIER SNP CHR_OLD BP_OLD A1 A2 A1AF BETA SE P   N   Z   INFO NCASE NCONT
+# Columns: IDENTIFIER_MERGE SNP CHR_OLD BP_OLD A1 A2 A1AF BETA SE P   N   Z   INFO NCASE NCONT
 #          1                     2   3       4      5  6  7    8    9  10  11  12  13   14    15
 
 # Format of intermediate, temporary genomic coordinates for translation.
@@ -70,7 +70,7 @@
 # Chromosome base position coordinate system: base 0
 #   Site: https://www.biostars.org/p/84686/
 #   Note: Coordinates designate 0-based integer range flanking base or range of bases
-# Columns: chrom chromStart chromEnd SEQUENTIAL_IDENTIFIER
+# Columns: chrom chromStart chromEnd IDENTIFIER_MERGE
 #          1     2          3        4
 
 
@@ -121,7 +121,7 @@ cd $path_directory_product_temporary
 ##########
 # 1. Introduce sequential identifier to rows in source table of GWAS summary
 #     statistics.
-echo "SEQUENTIAL_IDENTIFIER SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_merge_source
+echo "IDENTIFIER_MERGE SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_merge_source
 zcat $path_file_source | awk 'BEGIN {FS = " "; OFS = " "; i = 1} NR > 1 {
   print i, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14; i++
 }' >> $path_file_temporary_merge_source
@@ -140,7 +140,7 @@ fi
 # 2. Extract original genomic coordinates and sequential identifier from source
 #     table and organize format in Browser Extensible Data (BED) format for
 #     CrossMap.
-echo -e "chrom\tchromStart\tchromEnd\tSEQUENTIAL_IDENTIFIER" > $path_file_temporary_map_source
+echo -e "chrom\tchromStart\tchromEnd\tIDENTIFIER_MERGE" > $path_file_temporary_map_source
 cat $path_file_temporary_merge_source | awk 'BEGIN {FS = " "; OFS = "\t"} NR > 1 {
   print $3, ($4 - 1), ($4), $1
 }' >> $path_file_temporary_map_source
@@ -198,9 +198,10 @@ if [[ "$report" == "true" ]]; then
 fi
 
 
+
 ##########
 # 4. Organize the table of final genomic coordinates.
-echo "SEQUENTIAL_IDENTIFIER chrom chromStart chromEnd" > $path_file_temporary_merge_product
+echo "IDENTIFIER_MERGE chrom chromStart chromEnd" > $path_file_temporary_merge_product
 cat $path_file_temporary_map_product_header | awk 'BEGIN {FS = "\t"; OFS = " "} NR > 1 {
   print $4, $1, $2, $3
 }' >> $path_file_temporary_merge_product
@@ -226,7 +227,7 @@ fi
 # Table 2: 15 total columns with merge identifier in column 1.
 # Delimiter: Space
 # It is not necessary to print the header row separately.
-#echo "SEQUENTIAL_IDENTIFIER SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT chrom chromStart chromEnd" > $path_file_temporary_product_after_merge
+#echo "IDENTIFIER_MERGE SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT chrom chromStart chromEnd" > $path_file_temporary_product_after_merge
 awk 'FNR==NR{a[$1]=$2FS$3FS$4; next} {
   if(a[$1]==""){a[$1]="NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"}; print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, a[$1]
 }' $path_file_temporary_merge_product $path_file_temporary_merge_source > $path_file_temporary_product_after_merge
@@ -242,38 +243,42 @@ fi
 
 
 ##########
-# 5. Organize format of product table of GWAS summary statistics.
-
+# 6. Organize format of product table of GWAS summary statistics.
+echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_product_format
+cat $path_file_temporary_product_after_merge | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+  print $2, $16, $18, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+}' >> $path_file_temporary_product_format
 
 # Compress file format.
-#gzip -cvf $path_file_temporary_map_header > $path_file_product
+gzip -cvf $path_file_temporary_product_format > $path_file_product
 
 # Report.
-#if [[ "$report" == "true" ]]; then
-#  echo "----------"
-#  echo "----------"
-#  echo "----------"
-#  echo "Translate genomic features from human genome assembly"
-#  echo "GRCh37 to GRCh38 in CrossMap."
-#  echo "path to source file: " $path_file_source
-#  echo "path to chain file: " $path_file_chain
-#  echo "path to product file: " $path_file_product
-#  echo "----------"
-#  echo "table before translation:"
-#  echo "Count lines: "
-#  zcat $path_file_source | wc -l
-#  zcat $path_file_source | head -10
-#  echo "----------"
-#  echo "table after translation:"
-#  echo "Count lines: "
-#  zcat $path_file_product | wc -l
-#  zcat $path_file_product | head -10
-#  echo "----------"
-#  echo "----------"
-#  echo "----------"
-#fi
-
-
+if [[ "$report" == "true" ]]; then
+  echo "----------"
+  echo "----------"
+  echo "----------"
+  echo "Script:"
+  echo $0 # Print full file path to script.
+  echo "Translate genomic coordinates in CrossMap between assemblies of the "
+  echo "human genome."
+  echo "----------"
+  echo "path to source file: " $path_file_source
+  echo "path to chain file: " $path_file_chain
+  echo "path to product file: " $path_file_product
+  echo "----------"
+  echo "Source Table before translation:"
+  echo "Count lines: "
+  zcat $path_file_source | wc -l
+  zcat $path_file_source | head -5
+  echo "----------"
+  echo "Product Table after translation:"
+  echo "Count lines: "
+  zcat $path_file_product | wc -l
+  zcat $path_file_product | head -5
+  echo "----------"
+  echo "----------"
+  echo "----------"
+fi
 
 # Remove temporary, intermediate files.
 rm -r $path_directory_product_temporary
