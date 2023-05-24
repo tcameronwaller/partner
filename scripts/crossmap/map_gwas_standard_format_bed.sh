@@ -4,7 +4,7 @@
 # Author: T. Cameron Waller
 # Date, first execution: 24 May 2023
 # Date, last execution: __ May 2023
-# Review: TCW; __ May 2023
+# Review: TCW; 24 May 2023
 ################################################################################
 # Note
 
@@ -114,6 +114,11 @@ mkdir -p $path_directory_product_temporary
 cd $path_directory_product_temporary
 
 ################################################################################
+# Organize parameters.
+
+verbosity="true"
+
+################################################################################
 # Execute procedure.
 
 
@@ -127,9 +132,9 @@ zcat $path_file_source | awk 'BEGIN {FS = " "; OFS = " "; i = 1} NR > 1 {
 }' >> $path_file_temporary_merge_source
 
 # Report.
-if [[ "$report" == "true" ]]; then
+if [ "$verbosity" == "true" ] && [ "$report" == "true" ]; then
   echo "----------"
-  echo "Temporary: after addition of sequential identifier."
+  echo "Progress Step 1: Introduction of sequential identifier for merge."
   cat $path_file_temporary_merge_source | head -5
   echo "----------"
 fi
@@ -146,9 +151,9 @@ cat $path_file_temporary_merge_source | awk 'BEGIN {FS = " "; OFS = "\t"} NR > 1
 }' >> $path_file_temporary_map_source
 
 # Report.
-if [[ "$report" == "true" ]]; then
+if [ "$verbosity" == "true" ] && [ "$report" == "true" ]; then
   echo "----------"
-  echo "Temporary: after translation to BED format."
+  echo "Progress Step 2: Translation to BED format for CrossMap."
   cat $path_file_temporary_map_source | head -5
   echo "----------"
 fi
@@ -190,9 +195,9 @@ cat $path_file_temporary_map_source | awk 'BEGIN { FS="\t"; OFS="\t" } NR == 1' 
 cat $path_file_temporary_map_product >> $path_file_temporary_map_product_header
 
 # Report.
-if [[ "$report" == "true" ]]; then
+if [ "$verbosity" == "true" ] && [ "$report" == "true" ]; then
   echo "----------"
-  echo "Temporary: after CrossMap."
+  echo "Progress Step 3: Map between genomic assemblies in CrossMap."
   cat $path_file_temporary_map_product_header | head -5
   echo "----------"
 fi
@@ -207,9 +212,9 @@ cat $path_file_temporary_map_product_header | awk 'BEGIN {FS = "\t"; OFS = " "} 
 }' >> $path_file_temporary_merge_product
 
 # Report.
-if [[ "$report" == "true" ]]; then
+if [ "$verbosity" == "true" ] && [ "$report" == "true" ]; then
   echo "----------"
-  echo "Temporary: after translating format of final genomic coordinates."
+  echo "Progress Step 4: Translation of format for merge."
   cat $path_file_temporary_merge_product | head -5
   echo "----------"
 fi
@@ -233,9 +238,9 @@ awk 'FNR==NR{a[$1]=$2FS$3FS$4; next} {
 }' $path_file_temporary_merge_product $path_file_temporary_merge_source > $path_file_temporary_product_after_merge
 
 # Report.
-if [[ "$report" == "true" ]]; then
+if [ "$verbosity" == "true" ] && [ "$report" == "true" ]; then
   echo "----------"
-  echo "Temporary: after merge."
+  echo "Progress Step 5: Merge."
   cat $path_file_temporary_product_after_merge | head -5
   echo "----------"
 fi
