@@ -250,7 +250,7 @@ cat $path_file_temporary_product_after_merge | awk 'BEGIN { FS=" "; OFS=" " } NR
   else
     # Keep record from merge of first table and second table.
     print $0
-  }' >> $path_file_temporary_product_filter
+}' >> $path_file_temporary_product_filter
 
   # Report.
   if [ "$verbosity" == "true" ] && [ "$report" == "true" ]; then
