@@ -130,11 +130,24 @@ if [[ "$report" == "true" ]]; then
   echo "----------"
 fi
 
-
 ##########
 # 2. Extract original genomic coordinates and sequential identifier from source
 #     table and organize format in Browser Extensible Data (BED) format for
 #     CrossMap.
+echo -e "chrom\tchromStart\tchromEnd\tSEQUENTIAL_IDENTIFIER" > $path_file_temporary_map_source
+cat $path_file_temporary_merge_source | awk 'BEGIN {FS = " "; OFS = "\t"} NR > 1 {
+  print $3, ($4 - 1), ($4), $1
+}' >> $path_file_temporary_map_source
+
+# Report.
+if [[ "$report" == "true" ]]; then
+  echo "----------"
+  echo "Temporary: after translation to BED format."
+  cat $path_file_temporary_map_source | head -5
+  echo "----------"
+fi
+
+
 
 ##########
 # 3. Translate genomic coordinates between assemblies of the human genome in
