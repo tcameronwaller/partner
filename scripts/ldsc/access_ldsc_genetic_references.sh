@@ -1,6 +1,18 @@
 #!/bin/bash
 
 ################################################################################
+# Note.
+
+# On 31 March 2023, the authors of the LDSC project announced that the reference
+# data for LDSC would become available from Google Cloud with a requirement of
+# payment for access.
+
+# https://alkesgroup.broadinstitute.org/LDSCORE/
+
+# TCW accessed LDSC reference data on 2 March 2023 and kept these reference
+# data.
+
+################################################################################
 # Organize arguments.
 path_genetic_reference=${1} # full path to directory for genetic references
 
@@ -43,6 +55,7 @@ fi
 # Access references for LDSC.
 
 # View repository files.
+# https://data.broadinstitute.org/alkesgroup/LDSCORE/
 # https://alkesgroup.broadinstitute.org/LDSCORE/
 
 cd $path_genetic_reference
