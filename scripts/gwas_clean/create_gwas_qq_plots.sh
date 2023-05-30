@@ -4,7 +4,7 @@
 # Author: T. Cameron Waller
 # Date, first execution: 27 March 2023
 # Date, last execution: 27 March 2023
-# Review: TCW; __ March 2023
+# Review: TCW; 30 May 2023
 ################################################################################
 # Note
 
@@ -33,8 +33,8 @@
 # Organize arguments.
 
 path_directory_source=${1} # full path to source directory from which to read files of GWAS summary statistics
-name_file_source_prefix=${2} # prefix of name of files of polygenic scores from each chromosome
-name_file_source_suffix=${3} # suffix of name of files of polygenic scores from each chromosome
+name_file_source_prefix=${2} # prefix of name of files of GWAS summary statistics
+name_file_source_suffix=${3} # suffix of name of files of GWAS summary statistics
 name_file_source_not=${4} # character string within file names for exclusion
 path_directory_product=${5} # full path to product directory in which to write files for plots
 
