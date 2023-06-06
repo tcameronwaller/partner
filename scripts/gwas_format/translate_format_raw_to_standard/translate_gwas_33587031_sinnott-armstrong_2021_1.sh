@@ -5,7 +5,7 @@
 
 # This script translates the format of GWAS summary statistics.
 
-# Review: TCW; 23 May 2023
+# Review: TCW; 6 June 2023
 
 
 ################################################################################
