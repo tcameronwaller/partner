@@ -340,6 +340,7 @@ which python3
 "${path_python_2718}/bin/python2" -m virtualenv --version # virtualenv 20.4.7, TCW, 7 July 2021
 # Virtual Environment: "ldsc"
 # Satisfy dependencies for ldsc package.
+# https://github.com/bulik/ldsc/blob/master/requirements.txt
 # https://github.com/bulik/ldsc/blob/master/environment.yml
 "${path_python_2718}/bin/python2" -m virtualenv --python="${path_python_2718}/bin/python2" $path_environment_ldsc
 source "${path_environment_ldsc}/bin/activate"

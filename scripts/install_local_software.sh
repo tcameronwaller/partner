@@ -261,6 +261,10 @@ unzip "./gctb_2.04.3_Linux.zip"
 # LDSC is a Python package, and it is necessary to run this program within a
 # special Python environment.
 # Refer to the script "install_python_virtual_environments_packages.sh".
+# Navigate to the directory in which to install program.
+cd ./ldsc/
+# Copy GitHub repository.
+git clone https://github.com/bulik/ldsc.git
 
 ##########
 # PRS-CSX
