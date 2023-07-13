@@ -1,23 +1,31 @@
 #!/bin/bash
 
 ################################################################################
+# Author: T. Cameron Waller
+# Date, first execution: 17 August 2022
+# Date, last execution:
+# Review: TCW; 13 July 2023
 ################################################################################
-################################################################################
-# Notes...
+# Note
 
 # This script calls PRS-CS to generate posterior effects across SNP alleles.
 
 # PRS-CSX documentation
 # https://github.com/getian107/PRScsx
 
+# Install PRS-CS and PRS-CSX.
+#cd ./prs_cs/ # Navigate to the directory in which to install program.
+#git clone https://github.com/getian107/PRScs.git
+#git clone https://github.com/getian107/PRScsx.git
 
-################################################################################
-################################################################################
-################################################################################
-
-# After PRS-CS, there is some post-processing...
+# After PRS-CS, there is some post-processing similar to SBayesR.
 # 1. concatenate PRS-CS reports for each chromosome
 # 2. use PLINK "--score" command
+# 3. refer to pipeline for SBayesR
+
+################################################################################
+
+
 
 ################################################################################
 # Organize arguments.
@@ -31,7 +39,7 @@ path_directory_allele_effect=${6} # full path to directory for product reports o
 name_file_allele_effect=${7} # name of product report file without file suffix
 chromosome=${8} # chromosome
 threads=${9} # count of processing threads to use
-path_environment_prscs=${10} # full path to Python 3 environment with installation of CrossMap
+path_environment_prscs=${10} # full path to Python 3 environment with installation of dependencies
 path_prscsx=${11} # full path to installation executable file of PRS-CSX
 report=${12} # whether to print reports
 
