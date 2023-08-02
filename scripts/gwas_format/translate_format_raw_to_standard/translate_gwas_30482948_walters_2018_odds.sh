@@ -1,9 +1,12 @@
 #!/bin/bash
 
-###########################################################################
-###########################################################################
-###########################################################################
-# Notes
+################################################################################
+# Author: T. Cameron Waller
+# Date, first execution: 1 March 2023
+# Date, last execution: __ August 2023
+# Review: TCW; __ August 2023
+################################################################################
+# Note
 
 # This script translates the format of GWAS summary statistics from
 # Walters et al, Nature Neuroscience, 2018
@@ -11,24 +14,7 @@
 # Host: https://pgc.unc.edu/
 # Host: https://figshare.com/articles/dataset/sud2018-alc/14672187
 
-# Source Format
-# Human Genome Assembly: GRCh37 (hg19; UK Biobank)
-# Effect allele: "A1"
-# Delimiter: white space
-# Columns: CHR SNP BP A1 A2 INFO OR SE P   Neff
-#          1   2   3  4  5  6    7  8  9   10   (TCW; 1 March 2023)
-# Note: It seems that the authors already converted the standard error of the odds ratio to the standard error for a beta coefficient.
-
-# Product Format (Team Standard)
-# effect allele: "A1"
-# delimiter: white space
-# columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
-
-# Review: TCW; __ March 2023
-
-###########################################################################
-###########################################################################
-###########################################################################
+################################################################################
 
 
 
@@ -60,7 +46,7 @@ mkdir -p $path_directory_product_temporary
 # Remove any previous version of the product file.
 rm $path_file_product
 
-###########################################################################
+################################################################################
 # Execute procedure.
 
 # Note: TCW; 17 February 2023
@@ -80,33 +66,6 @@ if [ "$fill_observations" != "1" ] && [ "$fill_case_control" == "1" ]; then
   }' >> $path_file_temporary_format
 fi
 
-# Compress file format.
-gzip -cvf $path_file_temporary_format > $path_file_product
-
-# Report.
-if [[ "$report" == "true" ]]; then
-  echo "----------"
-  echo "----------"
-  echo "----------"
-  echo "Script:"
-  echo $0 # Print full file path to script.
-  echo "Translate format of GWAS summary statistics."
-  echo "----------"
-  echo "path to source GWAS file: " $path_file_source
-  echo "path to product GWAS file: " $path_file_product
-  echo "----------"
-  echo "table before format translation:"
-  zcat $path_file_source | head -5
-  echo "----------"
-  echo "table after format translation:"
-  zcat $path_file_product | head -5
-  echo "----------"
-  echo "----------"
-  echo "----------"
-fi
-
-# Remove temporary, intermediate files.
-rm -r $path_directory_product_temporary
 
 
 

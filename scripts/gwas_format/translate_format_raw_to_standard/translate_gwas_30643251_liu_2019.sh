@@ -1,9 +1,12 @@
 #!/bin/bash
 
-###########################################################################
-###########################################################################
-###########################################################################
-# Notes
+################################################################################
+# Author: T. Cameron Waller
+# Date, first execution: 1 March 2023
+# Date, last execution: __ August 2023
+# Review: TCW; __ August 2023
+################################################################################
+# Note
 
 # This script translates the format of GWAS summary statistics from
 # Liu et al, Nature Genetics, 2019
@@ -11,23 +14,7 @@
 # Host: https://genome.psych.umn.edu/index.php/GSCAN
 # Host: https://conservancy.umn.edu/handle/11299/201564
 
-# Source Format
-# Human Genome Assembly: GRCh37 (hg19; UK Biobank)
-# Effect allele: "ALT" ("Beta based on the alternate allele")
-# Delimiter: white space
-# Columns: CHROM POS RSID REF ALT AF STAT PVALUE BETA SE   N   EFFECTIVE_N Number_of_Studies ANNO ANNOFULL
-#          1     2   3    4   5   6  7    8      9    10   11  12          13                14   15       (TCW; 1 March 2023)
-
-# Product Format (Team Standard)
-# effect allele: "A1"
-# delimiter: white space
-# columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
-
-# Review: TCW; __ March 2023
-
-###########################################################################
-###########################################################################
-###########################################################################
+################################################################################
 
 
 
@@ -58,6 +45,13 @@ mkdir -p $path_directory_product_temporary
 
 # Remove any previous version of the product file.
 rm $path_file_product
+
+
+
+
+
+
+
 
 ###########################################################################
 # Execute procedure.

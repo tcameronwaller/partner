@@ -1,36 +1,14 @@
 #!/bin/bash
 
-###########################################################################
-###########################################################################
-###########################################################################
-# Notes
+################################################################################
+# Author: T. Cameron Waller
+# Date, first execution: __ August 2023
+# Date, last execution: __ August 2023
+# Review: TCW; 2 August 2023
+################################################################################
+# Note
 
-# This script translates the format of GWAS summary statistics from
-# Schmitz et al, Journal of Clinical Endocrinology and Metabolism, 2021
-# (PubMed:34255042).
-# Host: https://zenodo.org/record/4926701
-
-# Source Format
-# Human Genome Assembly: GRCh37 (UK Biobank)
-# Effect allele: "A1"
-# Delimiter: white space
-# Columns: CHR POS ID REF ALT A1 AX A1_FREQ TEST OBS_CT OR LOG(OR)_SE L95 U95 Z_STAT P
-#          1   2   3  4   5   6  7  8       9    10     11 12         13  14  15     16 (TCW; 15 February 2023)
-# Note: It seems that the authors already converted the standard error of the odds ratio to the standard error for a beta coefficient.
-
-# Format Translation
-# columns: $3, $1, $2, toupper($6), toupper($7), $8, log($11), $12, $16, $10, $15, (1), "NA", "NA"
-
-# Product Format (Team Standard)
-# effect allele: "A1"
-# delimiter: white space
-# columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
-
-# Review: TCW; 17 February 2023
-
-###########################################################################
-###########################################################################
-###########################################################################
+################################################################################
 
 
 
@@ -73,12 +51,12 @@ rm $path_file_product
 # Note that AWK interprets a single space delimiter (FS=" ") as any white space.
 echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format
 # For conciseness, only support the conditions that are relevant.
-if [ "$fill_observations" != "1" ] && [ "$fill_case_control" == "1" ]; then
-  zcat $path_file_source | awk -v cases=$cases -v controls=$controls 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-    if ((toupper($11) != "NA") && (($11 + 0) > 0))
-      print $3, $1, $2, toupper($6), toupper($7), $8, log($11), $12, $16, $10, $15, (1.0), (cases), (controls)
+if [ "$fill_observations" != "1" ] && [ "$fill_case_control" != "1" ]; then
+  zcat $path_file_source | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+    if ((toupper($9) != "NA") && (($9 + 0) > 0))
+      print $2, $1, $3, toupper($4), toupper($5), (($6*0.114)+($7*0.886)), log($9), $10, $11, ($17 + $18), "NA", $8, $17, $18
     else
-      print $3, $1, $2, toupper($6), toupper($7), $8, "NA", $12, $16, $10, $15, (1.0), (cases), (controls)
+      print $2, $1, $3, toupper($4), toupper($5), (($6*0.114)+($7*0.886)), "NA", $10, $11, ($17 + $18), "NA", $8, $17, $18
   }' >> $path_file_temporary_format
 fi
 
