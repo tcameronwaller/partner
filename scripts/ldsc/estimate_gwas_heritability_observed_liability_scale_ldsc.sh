@@ -7,6 +7,12 @@
 
 # Review: TCW; 22 November 2022
 
+# TODO: TCW; 19 July 2023
+# TODO: attempt to decrease standard error by constraining the LDSC intercept to
+# 1.
+# https://github.com/bulik/ldsc/wiki/Heritability-and-Genetic-Correlation
+
+
 ################################################################################
 ################################################################################
 ################################################################################

@@ -5,6 +5,10 @@
 ################################################################################
 # Notes
 
+# TODO: TCW; 17 July 2023
+# TODO: Need to change the name of the column(s) for the genotype identifier.
+
+
 ################################################################################
 # Installation and importation
 

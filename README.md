@@ -1,2 +1,2 @@
-# promiscuity
-collection of supplemental code and tools that dabble in multiple projects
+# Partner
+A collection of supplemental code and tools that cooperate in multiple other projects.

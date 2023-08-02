@@ -3,7 +3,7 @@ Supply basic plotting functionality.
 
 This module is not directly executable.
 
-This subpackage 'promiscuity' provides executable functionality under the
+This subpackage 'partner' provides executable functionality under the
 management of a higher level package. Importation paths represent this
 hierarchy.
 
@@ -11,29 +11,29 @@ Author:
 
     T. Cameron Waller
     tcameronwaller@gmail.com
-    Rochester, Minnesota 55904
+    Monroe, North Carolina 28110
     United States of America
 
 License:
 
-    This file is part of Promiscuity
-    (https://github.com/tcameronwaller/promiscuity/).
+    This file is part of Partner
+    (https://github.com/tcameronwaller/partner/).
 
-    Promiscuity supports data analysis in multiple other projects.
-    Copyright (C) 2022 Thomas Cameron Waller
+    Partner supports data analysis in multiple other projects.
+    Copyright (C) 2023 Thomas Cameron Waller
 
-    Promiscuity is free software: you can redistribute it and/or modify it
+    Partner is free software: you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by the Free
     Software Foundation, either version 3 of the License, or (at your option)
     any later version.
 
-    Promiscuity is distributed in the hope that it will be useful, but WITHOUT
+    Partner is distributed in the hope that it will be useful, but WITHOUT
     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
     FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
     more details.
 
     You should have received a copy of the GNU General Public License along
-    with Promiscuity. If not, see <http://www.gnu.org/licenses/>.
+    with Partner. If not, see <http://www.gnu.org/licenses/>.
 """
 
 ###############################################################################
