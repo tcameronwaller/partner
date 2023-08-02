@@ -4,7 +4,7 @@
 # Author: T. Cameron Waller
 # Date, first execution: 1 March 2023
 # Date, last execution: __ August 2023
-# Review: TCW; __ August 2023
+# Review: TCW; 2 August 2023
 ################################################################################
 # Note
 
@@ -66,6 +66,33 @@ if [ "$fill_observations" != "1" ] && [ "$fill_case_control" == "1" ]; then
   }' >> $path_file_temporary_format
 fi
 
+# Compress file format.
+gzip -cvf $path_file_temporary_format > $path_file_product
+
+# Report.
+if [[ "$report" == "true" ]]; then
+  echo "----------"
+  echo "----------"
+  echo "----------"
+  echo "Script:"
+  echo $0 # Print full file path to script.
+  echo "Translate format of GWAS summary statistics."
+  echo "----------"
+  echo "path to source GWAS file: " $path_file_source
+  echo "path to product GWAS file: " $path_file_product
+  echo "----------"
+  echo "table before format translation:"
+  zcat $path_file_source | head -5
+  echo "----------"
+  echo "table after format translation:"
+  zcat $path_file_product | head -5
+  echo "----------"
+  echo "----------"
+  echo "----------"
+fi
+
+# Remove temporary, intermediate files.
+rm -r $path_directory_product_temporary
 
 
 
