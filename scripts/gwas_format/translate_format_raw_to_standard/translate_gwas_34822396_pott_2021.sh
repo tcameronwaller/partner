@@ -63,7 +63,7 @@ mkdir -p $path_directory_product_temporary
 # Remove any previous version of the product file.
 rm $path_file_product
 
-###########################################################################
+################################################################################
 # Execute procedure.
 
 ##########

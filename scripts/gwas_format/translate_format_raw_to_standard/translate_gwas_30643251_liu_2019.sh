@@ -4,7 +4,7 @@
 # Author: T. Cameron Waller
 # Date, first execution: 1 March 2023
 # Date, last execution: __ August 2023
-# Review: TCW; __ August 2023
+# Review: TCW; 2 August 2023
 ################################################################################
 # Note
 
@@ -46,18 +46,8 @@ mkdir -p $path_directory_product_temporary
 # Remove any previous version of the product file.
 rm $path_file_product
 
-
-
-
-
-
-
-
-###########################################################################
+################################################################################
 # Execute procedure.
-
-# Note: TCW; 17 February 2023
-# The logarithm of a negative number or zero is undefined.
 
 ##########
 # Translate format of GWAS summary statistics.
