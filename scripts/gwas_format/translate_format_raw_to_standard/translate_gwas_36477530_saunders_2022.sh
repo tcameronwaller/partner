@@ -4,7 +4,7 @@
 # Author: T. Cameron Waller
 # Date, first execution: __ August 2023
 # Date, last execution: __ August 2023
-# Review: TCW; __ August 2023
+# Review: TCW; 2 August 2023
 ################################################################################
 # Note
 
@@ -39,3 +39,49 @@ mkdir -p $path_directory_product_temporary
 
 # Remove any previous version of the product file.
 rm $path_file_product
+
+################################################################################
+# Execute procedure.
+
+##########
+# Translate format of GWAS summary statistics.
+# Note that AWK interprets a single space delimiter (FS=" ") as any white space.
+echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format
+# For conciseness, only support the conditions that are relevant.
+if [ "$fill_observations" != "1" ] && [ "$fill_case_control" != "1" ]; then
+  zcat $path_file_source | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+    print $3, $1, $2, toupper($4), toupper($5), $6, $7, $8, $9, $10, "NA", (1.0), "NA", "NA"
+  }' >> $path_file_temporary_format
+fi
+
+# Compress file format.
+gzip -cvf $path_file_temporary_format > $path_file_product
+
+# Report.
+if [[ "$report" == "true" ]]; then
+  echo "----------"
+  echo "----------"
+  echo "----------"
+  echo "Script:"
+  echo $0 # Print full file path to script.
+  echo "Translate format of GWAS summary statistics."
+  echo "----------"
+  echo "path to source GWAS file: " $path_file_source
+  echo "path to product GWAS file: " $path_file_product
+  echo "----------"
+  echo "table before format translation:"
+  zcat $path_file_source | head -5
+  echo "----------"
+  echo "table after format translation:"
+  zcat $path_file_product | head -5
+  echo "----------"
+  echo "----------"
+  echo "----------"
+fi
+
+# Remove temporary, intermediate files.
+rm -r $path_directory_product_temporary
+
+
+
+#
