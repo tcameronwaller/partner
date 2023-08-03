@@ -53,7 +53,7 @@ do
   raw_note="${array[18]}"
 
   # Report.
-  if [[ "$report" == "true" ]]; then
+  if [ $raw_inclusion == "1" ] && [ "$report" == "true" ]; then
     echo "----------"
     echo "field 0, inclusion: ${array[0]}"
     echo "field 1, directory: ${array[1]}"
