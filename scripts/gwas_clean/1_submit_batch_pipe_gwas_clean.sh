@@ -3,8 +3,8 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 9 February 2023
-# Date, last execution: 25 May 2023
-# Date, review: 24 May 2023
+# Date, last execution: 2 August 2023
+# Review: TCW; 2 August 2023
 ################################################################################
 # Note
 
@@ -28,8 +28,8 @@ path_directory_dock="${path_directory_process}/dock" # parent directory for proc
 path_file_batch_instances="${path_directory_product}/batch_instances.txt"
 
 # Scripts.
-path_file_script_run_batch="${path_directory_process}/promiscuity/scripts/gwas_clean/2_run_batch_pipe_gwas_clean.sh"
-path_file_script_pipe_gwas_clean="${path_directory_process}/promiscuity/scripts/gwas_clean/process_gwas_gwas2vcf.sh"
+path_file_script_run_batch="${path_directory_process}/partner/scripts/gwas_clean/2_run_batch_pipe_gwas_clean.sh"
+path_file_script_pipe_gwas_clean="${path_directory_process}/partner/scripts/gwas_clean/process_gwas_gwas2vcf.sh"
 
 # Initialize files.
 rm $path_file_batch_instances
@@ -48,13 +48,35 @@ threads=1
 ################################################################################
 # Execute procedure.
 
-# 5. pass the "type" variable on to the "run_batch" script.
+# 5. pass the "raw_type" variable on to the "run_batch" script.
 
 
 # Read lines from file and split fields within each line by space, tab, or new-line delimiters.
 input=$path_file_translation
 while IFS=$' \t\n' read -r -a array
 do
+
+  # Extract values from individual columns within table's row.
+  raw_inclusion="${array[0]}"
+  raw_directory="${array[1]}"
+  raw_name_study="${array[2]}"
+  raw_phenotype="${array[3]}"
+  raw_sex="${array[4]}"
+  raw_name_file_source="${array[5]}"
+  raw_suffix_file_source="${array[6]}"
+  raw_bgzip="${array[7]}"
+  raw_gzip="${array[8]}"
+  raw_type="${array[9]}"
+  raw_fill_observations="${array[10]}"
+  raw_observations="${array[11]}"
+  raw_fill_case_control="${array[12]}"
+  raw_cases="${array[13]}"
+  raw_controls="${array[14]}"
+  raw_prevalence_sample="${array[15]}"
+  raw_prevalence_population="${array[16]}"
+  raw_script="${array[17]}"
+  raw_note="${array[18]}"
+
   # Report.
   if [[ "$report" == "true" ]]; then
     echo "----------"
@@ -80,16 +102,12 @@ do
     echo "----------"
   fi
   # Execute procedure for current record's parameters.
-  if [[ "${array[0]}" == "1" ]]; then
-    # Define variables.
-    name="${array[2]}"
-    type="${array[9]}"
-    #count_cases="${array[13]}"
+  if [[ $raw_inclusion == "1" ]]; then
     # Organize paths.
-    path_file_gwas_source="${path_directory_source}/${name}.txt.gz"
-    path_file_gwas_product="${path_directory_product}/${name}.txt.gz"
+    path_file_gwas_source="${path_directory_source}/${raw_name_study}.txt.gz"
+    path_file_gwas_product="${path_directory_product}/${raw_name_study}.txt.gz"
     # Define and append a new batch instance.
-    instance="${path_file_gwas_source};${path_file_gwas_product};${type}"
+    instance="${path_file_gwas_source};${path_file_gwas_product};${raw_type}"
     echo $instance >> $path_file_batch_instances
   fi
 done < "${input}"
@@ -129,6 +147,7 @@ fi
 if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "Script complete:"
+  echo $0 # Print full file path to script.
   echo "1_submit_batch_pipe_gwas_clean.sh"
   echo "----------"
 fi

@@ -3,8 +3,8 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 17 February 2023
-# Date, last execution: 24 May 2023
-# Date, review: 24 May 2023
+# Date, last execution: 2 August 2023
+# Review: 2 August 2023
 ################################################################################
 # Notes:
 
@@ -76,8 +76,8 @@ path_file_gwas2vcf_report="${path_directory_product}/${name_base_file_gwas_produ
 path_file_gwas_product_gwas2vcf_base="${path_directory_product}/${name_base_file_gwas_product}_gwas2vcf.vcf"
 path_file_gwas_product_gwas2vcf="${path_file_gwas_product_gwas2vcf_base}.gz"
 path_file_gwas_product_gwas2vcf_index="${path_file_gwas_product_gwas2vcf_base}.gz.tbi"
-path_file_gwas2vcf_parameter_linear="${path_directory_process}/promiscuity/scripts/gwas_clean/parameter_gwas_standard_to_gwas2vcf_linear.json"
-path_file_gwas2vcf_parameter_logistic="${path_directory_process}/promiscuity/scripts/gwas_clean/parameter_gwas_standard_to_gwas2vcf_logistic.json"
+path_file_gwas2vcf_parameter_linear="${path_directory_process}/partner/scripts/gwas_clean/parameter_gwas_standard_to_gwas2vcf_linear.json"
+path_file_gwas2vcf_parameter_logistic="${path_directory_process}/partner/scripts/gwas_clean/parameter_gwas_standard_to_gwas2vcf_logistic.json"
 path_file_reference_genome_sequence="${path_directory_reference_gwas2vcf}/genome_sequence/human_g1k_v37.fasta.gz" # GWAS2VCF default; accession: TCW; 17 February 2023
 #path_file_reference_genome_sequence="${path_directory_reference_genome_sequence}/GRCh37.p13.genome.fa.gz" # GWAS2VCF did not recognize. (TCW; 24 May 2023)
 #path_file_reference_dbsnp="${path_directory_reference_gwas2vcf}/dbsnp/dbsnp.v153.b37.vcf.gz" # GWAS2VCF default
