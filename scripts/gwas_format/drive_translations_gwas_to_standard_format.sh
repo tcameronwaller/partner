@@ -2,11 +2,15 @@
 
 ################################################################################
 # Author: T. Cameron Waller
-# Date: 22 December 2022
+# Date, first execution: 22 December 2022
+# Date, last execution: 2 August 2023
+# Review: TCW; 2 August 2023
 ################################################################################
 # Note
 
-# Format of parameter table:
+################################################################################
+
+
 
 ################################################################################
 # Organize arguments.
@@ -26,14 +30,28 @@ report=${6} # whether to print reports
 input=$path_file_translation
 while IFS=$' \t\n' read -r -a array
 do
-  # TODO: TCW; 29 March 2023
-  # To avoid problems and inconsistent behavior, assign the array fields to
-  # variables before doing anything else.
-  #inclusion="${array[0]}"
-  #directory="${array[1]}"
-  #name="${array[2]}"
-  #phenotype="${array[3]}"
-  # etc ...
+
+  # Extract values from individual columns within table's row.
+  raw_inclusion="${array[0]}"
+  raw_directory="${array[1]}"
+  raw_name_study="${array[2]}"
+  raw_phenotype="${array[3]}"
+  raw_sex="${array[4]}"
+  raw_name_file_source="${array[5]}"
+  raw_suffix_file_source="${array[6]}"
+  raw_bgzip="${array[7]}"
+  raw_gzip="${array[8]}"
+  raw_type="${array[9]}"
+  raw_fill_observations="${array[10]}"
+  raw_observations="${array[11]}"
+  raw_fill_case_control="${array[12]}"
+  raw_cases="${array[13]}"
+  raw_controls="${array[14]}"
+  raw_prevalence_sample="${array[15]}"
+  raw_prevalence_population="${array[16]}"
+  raw_script="${array[17]}"
+  raw_note="${array[18]}"
+
   # Report.
   if [[ "$report" == "true" ]]; then
     echo "----------"
@@ -59,30 +77,28 @@ do
     echo "----------"
   fi
   # Execute procedure for current record's parameters.
-  if [[ "${array[0]}" == "1" ]]; then
+  if [[ $raw_inclusion == "1" ]]; then
     # Organize paths.
-    path_directory_child_source="${path_directory_parent_source}/${array[1]}"
-    name_file_source="${array[5]}"
-    suffix_file_source="${array[6]}"
-    name_base_file_source=$(echo $name_file_source | sed "s/$suffix_file_source//")
-    path_file_source="${path_directory_child_source}/${name_file_source}"
-    path_directory_temporary="${path_directory_product}/temporary_drive_${name_base_file_source}" # hopefully unique
+    path_directory_child_source="${path_directory_parent_source}/$raw_directory"
+    name_base_file_source=$(echo $raw_name_file_source | sed "s/$raw_suffix_file_source//")
+    path_file_source="${path_directory_child_source}/${raw_name_file_source}"
+    path_directory_temporary="${path_directory_product}/temporary_${name_base_file_source}_${raw_name_study}" # hopefully unique
     path_file_source_standard="${path_directory_temporary}/${name_base_file_source}.txt.gz"
-    path_file_script="${path_directory_script}/${array[17]}"
-    path_file_product="${path_directory_product}/${array[2]}.txt.gz"
+    path_file_script="${path_directory_script}/$raw_script"
+    path_file_product="${path_directory_product}/$raw_name_study.txt.gz"
     mkdir -p $path_directory_temporary
     # Manage compression formats and file suffices.
-    if [ "${array[7]}" == "1" ] && [ "${array[8]}" == "1" ]; then
+    if [ $raw_bgzip == "1" ] && [ $raw_gzip == "1" ]; then
       # 1. Decompress from BGZip format (http://www.htslib.org/doc/bgzip.html).
       $path_bgzip --decompress "$path_file_source" --stdout > "${path_directory_temporary}/${name_base_file_source}.txt"
       # 2. Compress to GZip format.
       gzip -cvf "${path_directory_temporary}/${name_base_file_source}.txt" > $path_file_source_standard
     fi
-    if [ "${array[7]}" != "1" ] && [ "${array[8]}" == "1" ]; then
+    if [ $raw_bgzip != "1" ] && [ $raw_gzip == "1" ]; then
       # 1. Compress to Gzip format
       gzip -cvf "$path_file_source" > $path_file_source_standard
     fi
-    if [ "${array[7]}" != "1" ] && [ "${array[8]}" != "1" ]; then
+    if [ $raw_bgzip != "1" ] && [ $raw_gzip != "1" ]; then
       # Manage suffix.
       cp "$path_file_source" $path_file_source_standard
     fi
@@ -90,11 +106,11 @@ do
     /usr/bin/bash $path_file_script \
     $path_file_source_standard \
     $path_file_product \
-    "${array[10]}" \
-    "${array[11]}" \
-    "${array[12]}" \
-    "${array[13]}" \
-    "${array[14]}" \
+    $raw_fill_observations \
+    $raw_observations \
+    $raw_fill_case_control \
+    $raw_cases \
+    $raw_controls \
     $report
     # Remove temporary directory and files.
     rm -r $path_directory_temporary
@@ -106,6 +122,7 @@ done < "${input}"
 if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "Script complete:"
+  echo $0 # Print full file path to script.
   echo "drive_translations_gwas_to_standard_format.sh"
   echo "----------"
 fi
