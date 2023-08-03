@@ -50,7 +50,7 @@ echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_tempora
 # For conciseness, only support the conditions that are relevant.
 if [ "$fill_observations" != "1" ] && [ "$fill_case_control" != "1" ]; then
   zcat $path_file_source | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-    print $3, $1, $2, toupper($4), toupper($5), $6, $7, $8, $9, $10, "NA", (1.0), "NA", "NA"
+    (a = $1); sub(/chr/,"", a); print $3, a, $2, toupper($4), toupper($5), $6, $7, $8, $9, $10, "NA", (1.0), "NA", "NA"
   }' >> $path_file_temporary_format
 fi
 
