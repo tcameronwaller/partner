@@ -39,8 +39,8 @@ report=${6} # whether to print reports
 cd ~/paths
 path_directory_process=$(<"./process_psychiatric_metabolism.txt")
 path_directory_dock="${path_directory_process}/dock"
-path_directory_promiscuity="${path_directory_process}/promiscuity"
-path_directory_logs="${path_directory_product}/logs"
+path_directory_partner="${path_directory_process}/partner"
+path_directory_batch_logs="${path_directory_product}/logs"
 
 # Files.
 path_file_batch_instances="${path_directory_product}/batch_instances.txt"
@@ -48,12 +48,12 @@ path_file_batch_out="${path_directory_product}/batch_out.txt"
 path_file_batch_error="${path_directory_product}/batch_error.txt"
 
 # Scripts.
-path_script_run_batch_job="${path_directory_promiscuity}/scripts/slurm_scheduler/2_run_batch_job_example.sh"
-path_script_execute_procedure="${path_directory_promiscuity}/scripts/slurm_scheduler/3_execute_example.sh"
+path_script_run_batch_job="${path_directory_partner}/scripts/slurm_scheduler/2_run_batch_job_example.sh"
+path_script_execute_procedure="${path_directory_partner}/scripts/slurm_scheduler/3_execute_example.sh"
 
 # Initialize directories.
 mkdir -p $path_directory_product
-mkdir -p $path_directory_logs
+mkdir -p $path_directory_batch_logs
 
 # Initialize files.
 rm $path_file_batch_instances
