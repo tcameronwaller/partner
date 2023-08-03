@@ -36,7 +36,9 @@ report=${8} # whether to print reports
 name_base_file_product="$(basename $path_file_product .txt.gz)"
 path_directory_product="$(dirname $path_file_product)"
 path_directory_product_temporary="${path_directory_product}/temporary_format_${name_base_file_product}" # hopefully unique
-path_file_temporary_format="${path_directory_product_temporary}/${name_base_file_product}_format.txt"
+path_file_temporary_format_1="${path_directory_product_temporary}/${name_base_file_product}_format_1.txt"
+path_file_temporary_format_2="${path_directory_product_temporary}/${name_base_file_product}_format_2.txt"
+
 
 # Initialize directory.
 mkdir -p $path_directory_product
@@ -58,22 +60,30 @@ rm $path_file_product
 ##########
 # Translate format of GWAS summary statistics.
 # Note that AWK interprets a single space delimiter (FS=" ") as any white space.
-echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format
 # For conciseness, only support the conditions that are relevant.
+
+# 1. Translate column format while simplifying identifier.
+echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format_1
 if [ "$fill_observations" != "1" ] && [ "$fill_case_control" == "1" ]; then
   zcat $path_file_source | awk -v cases=$cases -v controls=$controls 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-    if ((toupper($6) != "NA") && (toupper($7) != "NA") && (($7 + 0) > 0))
-      # Calculate estimate of standard error of effect from the effect and its
-      # probability (p-value).
-      (a = $2); split(a, b, ":"); print b[1], $1, $3, toupper($4), toupper($5), "NA", $6, (($6) / (-0.862 + sqrt(0.743 - (2.404 * log($7))))), $7, int($8), "NA", (1.0), (cases), (controls)
-    else
-      # Print missing value for standard error.
-      (a = $2); split(a, b, ":"); print b[1], $1, $3, toupper($4), toupper($5), "NA", $6, "NA", $7, int($8), "NA", (1.0), (cases), (controls)
-  }' >> $path_file_temporary_format
+    (a = $2); split(a, b, ":"); print b[1], $1, $3, toupper($4), toupper($5), "NA", $6, "NA", $7, int($8), "NA", (1.0), (cases), (controls)
+  }' >> $path_file_temporary_format_1
 fi
 
+# 2. Estimate standard error.
+echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format_2
+cat $path_file_temporary_format_1 | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+  if ((toupper($7) != "NA") && (toupper($9) != "NA") && (($9 + 0) > 0))
+    # Calculate estimate of standard error of effect from the effect and its
+    # probability (p-value).
+    print $1, $2, $3, toupper($4), toupper($5), $6, $7, (($7) / (-0.862 + sqrt(0.743 - (2.404 * log($9))))), $9, $10, $11, $12, $13, $14
+  else
+    # Print missing value for standard error.
+    print $1, $2, $3, toupper($4), toupper($5), $6, $7, "NA", $9, $10, $11, $12, $13, $14
+}' >> $path_file_temporary_format_2
+
 # Compress file format.
-gzip -cvf $path_file_temporary_format > $path_file_product
+gzip -cvf $path_file_temporary_format_2 > $path_file_product
 
 # Report.
 if [[ "$report" == "true" ]]; then
