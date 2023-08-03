@@ -1,12 +1,12 @@
 #!/bin/bash
 
 ################################################################################
+# Author: T. Cameron Waller
+# Date, first execution: 1 August 2022
+# Date, last execution: 3 August 2023
+# Review: TCW; 3 August 2023
 ################################################################################
-################################################################################
-# Notes...
-# ...
-
-# Review: TCW; 22 November 2022
+# Note
 
 # TODO: TCW; 19 July 2023
 # TODO: attempt to decrease standard error by constraining the LDSC intercept to
@@ -14,8 +14,8 @@
 # https://github.com/bulik/ldsc/wiki/Heritability-and-Genetic-Correlation
 
 ################################################################################
-################################################################################
-################################################################################
+
+
 
 ################################################################################
 # Organize arguments.
@@ -74,6 +74,10 @@ which python2
 if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "----------"
+  echo "----------"
+  echo "Script complete:"
+  echo $0 # Print full file path to script.
+  echo "estimate_gwas_genetic_correlation_ldsc.sh"
   echo "----------"
   echo "LDSC estimate of Genetic Correlation between GWAS summary statistics."
   echo "path to primary source GWAS file: " $path_file_source_primary

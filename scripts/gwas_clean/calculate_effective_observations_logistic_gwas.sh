@@ -3,8 +3,8 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 27 March 2023
-# Date, last execution: 27 March 2023
-# Review: TCW; 28 March 2023
+# Date, last execution: 3 August 2023
+# Review: TCW; 3 August 2023
 ################################################################################
 # Note
 
@@ -108,6 +108,10 @@ gzip -cvf $path_file_temporary_calculation > $path_file_product
 if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "----------"
+  echo "----------"
+  echo "Script complete:"
+  echo $0 # Print full file path to script.
+  echo "calculate_effective_observations_logistic_gwas.sh"
   echo "----------"
   echo "Calculate effective sample size (N-effective)"
   echo "for summary statistics of logistic GWAS."
