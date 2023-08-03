@@ -1,7 +1,12 @@
 #!/bin/bash
 
 ################################################################################
-# Notes:
+# Author: T. Cameron Waller
+# Date, first execution: 22 February 2023
+# Date, last execution: 2 August 2023
+# Review: TCW; 2 August 2023
+################################################################################
+# Note
 
 # This script extracts from genomic variation (Variant Call Format; VCF) in
 # Phase 3 of the 1000 Genomes Project frequencies of alternate alleles for the
@@ -14,13 +19,10 @@
 # Delimiter: white space
 # Columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
 
-# Author: T. Cameron Waller
-
-# Date, review: TCW; 22 February 2023
-# Date, first execution: TCW; 22 February 2023
-# Date, last execution: TCW; 22 February 2023
-
 ################################################################################
+
+
+
 
 ################################################################################
 # Organize arguments.
