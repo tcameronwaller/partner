@@ -35,8 +35,8 @@ path_directory_batch_logs="${path_directory_product}/logs"
 
 # Files.
 #path_file_batch_instances="${path_directory_product}/batch_instances.txt"
-path_file_batch_out="${path_directory_product}/batch_out.txt"
-path_file_batch_error="${path_directory_product}/batch_error.txt"
+#path_file_batch_out="${path_directory_product}/batch_out.txt"
+#path_file_batch_error="${path_directory_product}/batch_error.txt"
 
 # Scripts.
 path_script_batch_2="${path_directory_partner}/scripts/ldsc/ldsc_correlation_batch_2.sh"
@@ -49,8 +49,8 @@ mkdir -p $path_directory_batch_logs
 
 # Initialize files.
 #rm $path_file_batch_instances
-rm $path_file_batch_out
-rm $path_file_batch_error
+#rm $path_file_batch_out
+#rm $path_file_batch_error
 
 ################################################################################
 # Organize batch job instances.
