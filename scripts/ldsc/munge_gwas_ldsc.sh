@@ -28,7 +28,6 @@ report=${6} # whether to print reports
 
 # Read private, local file paths.
 cd ~/paths
-cd ~/paths
 path_tools=$(<"./waller_tools.txt")
 path_ldsc=$(<"./tools_ldsc.txt")
 
