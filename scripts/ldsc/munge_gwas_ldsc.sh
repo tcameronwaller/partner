@@ -29,8 +29,8 @@ report=${6} # whether to print reports
 # Read private, local file paths.
 cd ~/paths
 path_tools=$(<"./waller_tools.txt")
-path_ldsc=$(<"./tools_ldsc.txt")
-#path_ldsc=$(<"./tools_ldsc_biotools.txt")
+#path_ldsc=$(<"./tools_ldsc.txt")
+path_ldsc=$(<"./tools_ldsc_biotools.txt")
 
 path_environment_ldsc="${path_tools}/python/environments/ldsc"
 path_file_product_suffix="${path_file_base_product}.sumstats.gz"
@@ -46,7 +46,7 @@ rm $path_file_product_log
 source "${path_environment_ldsc}/bin/activate"
 echo "confirm Python Virtual Environment path..."
 which python2
-sleep 5s
+sleep 1s
 
 # Force SciPy not to use all available cores on a cluster computation node.
 export MKL_NUM_THREADS=$threads
