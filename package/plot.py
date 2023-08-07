@@ -66,7 +66,7 @@ import matplotlib.lines
 #import sklearn
 
 # Custom
-import promiscuity.utility as utility
+import partner.utility as utility
 
 #dir()
 #importlib.reload()
