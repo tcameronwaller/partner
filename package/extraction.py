@@ -506,12 +506,22 @@ def read_extract_from_all_ldsc_files_in_directory(
     for name_file in names_files:
         # Define full path to file.
         path_file = os.path.join(path_directory, name_file,)
+
+        print("--------------------")
+        print("TEST TEST TEST TEST 1")
+        print("--------------------")
+
         # Extract information from LDSC analysis.
         if (str(analysis).strip() == "heritability"):
             pail = read_extract_ldsc_heritability(
                 path_file=path_file,
             )
         elif (str(analysis).strip() == "correlation"):
+
+            print("--------------------")
+            print("TEST TEST TEST TEST 1")
+            print("--------------------")
+
             pail = read_extract_ldsc_correlation(
                 path_file=path_file,
             )
