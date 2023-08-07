@@ -88,7 +88,7 @@ if true; then
   $path_file_batch_instances \
   $batch_instances_count \
   $path_directory_product \
-  $path_directory_disequilibrium
+  $path_directory_disequilibrium \
   $threads \
   $report \
   $path_script_batch_3
