@@ -3,8 +3,8 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 1 August 2022
-# Date, last execution: 4 August 2023
-# Review: TCW; 4 August 2023
+# Date, last execution: 6 August 2023
+# Review: TCW; 6 August 2023
 ################################################################################
 # Note
 
@@ -33,7 +33,8 @@ report=${6} # whether to print reports
 # Read private, local file paths.
 cd ~/paths
 path_tools=$(<"./waller_tools.txt")
-path_ldsc=$(<"./tools_ldsc.txt")
+#path_ldsc=$(<"./tools_ldsc.txt")
+path_ldsc=$(<"./tools_ldsc_biotools.txt")
 
 path_environment_ldsc="${path_tools}/python/environments/ldsc"
 path_file_product_suffix="${path_file_base_product}.log"
