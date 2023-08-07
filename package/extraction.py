@@ -302,7 +302,7 @@ def read_extract_ldsc_correlation(
     correlation_ci95_not_one = float("nan")
     correlation_absolute = float("nan")
     z_score = float("nan")
-    p_greater_zero = float("nan")
+    p_not_zero = float("nan")
 
     # Read relevant lines of character strings from file.
     lines = utility.read_file_text_lines(
@@ -362,7 +362,7 @@ def read_extract_ldsc_correlation(
             (not math.isnan(correlation)) and
             (prefix_p in line)
         ):
-            p_greater_zero = float(line.replace(prefix_p, ""))
+            p_not_zero = float(line.replace(prefix_p, ""))
             pass
         pass
 
@@ -419,7 +419,7 @@ def read_extract_ldsc_correlation(
     record["covariance"] = correlation
     record["covariance_error"] = correlation_error
     record["z_score"] = z_score
-    record["p_greater_zero"] = p_greater_zero
+    record["p_not_zero"] = p_not_zero
     record["correlation_ci95_not_zero"] = correlation_ci95_not_zero
     record["correlation_ci95_not_one"] = correlation_ci95_not_one
     record["correlation_absolute"] = correlation_absolute
@@ -439,7 +439,7 @@ def read_extract_ldsc_correlation(
         "covariance",
         "covariance_error",
         "z_score",
-        "p_greater_zero",
+        "p_not_zero",
         "correlation_ci95_not_zero",
         "correlation_ci95_not_one",
         "correlation_absolute",
