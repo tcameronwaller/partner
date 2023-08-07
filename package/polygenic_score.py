@@ -43,7 +43,7 @@ License:
 # TODO: TCW; 10 April 2023
 # TODO: I think that this module is now obsolete.
 # TODO: Please compare to the Python script at the path below.
-# promiscuity/scripts/python/script_collect_standardize_polygenic_scores.py
+# partner/scripts/python/script_collect_standardize_polygenic_scores.py
 
 
 ###############################################################################
@@ -70,7 +70,7 @@ import numpy
 import statsmodels.api
 
 # Custom
-import promiscuity.utility as utility
+import partner.utility as utility
 
 
 #dir()

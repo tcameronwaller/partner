@@ -63,9 +63,9 @@ import statsmodels.api
 import statsmodels.stats.outliers_influence
 
 # Custom
-import promiscuity.utility as utility # this import path for subpackage
-import promiscuity.scale as pscale
-import promiscuity.description as pdesc
+import partner.utility as utility # this import path for subpackage
+import partner.scale as pscale
+import partner.description as pdesc
 
 #dir()
 #importlib.reload()

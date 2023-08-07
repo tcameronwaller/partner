@@ -67,7 +67,7 @@ import numpy
 import statsmodels.api
 
 # Custom
-import promiscuity.utility as utility # this import path for subpackage
+import partner.utility as utility # this import path for subpackage
 
 
 #dir()
