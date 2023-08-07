@@ -74,7 +74,7 @@ import partner.utility as utility # this import path for subpackage
 # Functionality
 
 
-# TODO: TCW; 12 December 2022
+# TODO: TCW; 12 December 2022; 7 August 2023
 # Use the new utility function to calculate and organize 95% and 99% confidence intervals and ranges.
 
 def read_extract_ldsc_heritability(
