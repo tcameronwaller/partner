@@ -262,6 +262,10 @@ def read_extract_ldsc_correlation(
 
     """
 
+    print("--------------------")
+    print("TEST TEST TEST TEST from correlation extraction function")
+    print("--------------------")
+
     # Determine whether report has a summary table.
     # Keep index of prefix title.
     # Read relevant lines from file.
