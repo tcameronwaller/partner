@@ -250,7 +250,7 @@ def standardize_polygenic_scores(
         lambda column: (str("score_") in str(column)),
         copy.deepcopy(columns)
     ))
-    # Standardize scores to z-score scale with mean of zeroa and standard
+    # Standardize scores to z-score scale with mean of zero and standard
     # deviation of one.
     # Standardization introduces missing values if standard deviation is zero.
     table = pscale.drive_transform_variables_distribution_scale_z_score(

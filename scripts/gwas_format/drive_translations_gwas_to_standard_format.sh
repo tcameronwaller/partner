@@ -87,7 +87,7 @@ do
     path_file_script="${path_directory_script}/$raw_script"
     path_file_product="${path_directory_product}/$raw_name_study.txt.gz"
     mkdir -p $path_directory_temporary
-    # Manage compression formats and file suffices.
+    # Manage compression formats and file suffixes.
     if [ $raw_bgzip == "1" ] && [ $raw_gzip == "1" ]; then
       # 1. Decompress from BGZip format (http://www.htslib.org/doc/bgzip.html).
       $path_bgzip --decompress "$path_file_source" --stdout > "${path_directory_temporary}/${name_base_file_source}.txt"

@@ -5,7 +5,7 @@
 #SBATCH --mail-type=END,FAIL,TIME_LIMIT_50   # situations in which to send email
 #SBATCH --partition=cpu-short                  # queue: cpu-short, cpu-med, cpu-long
 #SBATCH --nodes=1                            # count of cluster nodes (CPUs)
-#SBATCH --tasks=4                            # count of cores or threads on node
+#SBATCH --ntasks=4                            # count of cores or threads on node
 #SBATCH --time=0-00:30:00                    # time allocation request (days-hours:minutes:seconds)
 #SBATCH --mem=4G                             # memory per node (per CPU)
 #SBATCH --output logs/%x.%A.%N.%j.%a.stdout

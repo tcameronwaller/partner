@@ -5,15 +5,26 @@
 #SBATCH --mail-type=END,FAIL,TIME_LIMIT_50   # situations in which to send email
 #SBATCH --partition=cpu-short                # queue: cpu-short, cpu-med, cpu-long
 #SBATCH --nodes=1                            # count of cluster nodes (CPUs)
-#SBATCH --tasks=1                            # count of cores or threads on node
+#SBATCH --ntasks=1                            # count of cores or threads on node ("--tasks-per-node", "ntasks")
 #SBATCH --time=0-00:01:00                    # time allocation request (days-hours:minutes:seconds)
 #SBATCH --mem=1G                             # memory per node (per CPU)
 #SBATCH --output logs/%x.%A.%N.%j.%a.stdout
 #SBATCH --output logs/%x.%A.%N.%j.%a.stderr
 #SBATCH --signal=USR1@60
 
+# Use "sbatch --help" to see descriptions of parameters.
+# Use syntax "--<option>=<value>" for full name of parameter.
+# Use syntax "-<option> <value>" for abbreviations of parameter.
+
 # --mem-per-cpu=1G                     # memory per task (per core or thread on CPU node)
 # --mem=1G                             # total memory per node (per CPU)
+# Is the "mem" parameter requesting memory for each machine (CPU; node) or per
+# tasks (thread).
+
+
+# cpu-short default time 2 minutes and default max is 4 days (must set time parameter)
+# cpu-med default time 2 minutes and default max is 4 days (must set time parameter)
+# cpu-long default time 2 minutes and default max is 4 days (must set time parameter)
 
 # Slurm shortcut variables.
 # x: Job name
