@@ -4,14 +4,14 @@
 # Author: T. Cameron Waller
 # Date, first execution: 29 August 2023
 # Date, last execution: 29 August 2023
-# Review: TCW; __ August 2023
+# Review: TCW; 30 August 2023
 ################################################################################
 # Note
 
-# Count of cases: 59,851
-# Count of controls: 113,154
-# Proportion of cases: 0.346
-# Proportion of controls: 0.654
+# Count of cases: 83,836
+# Count of controls: 177,093
+# Proportion of cases: 0.321
+# Proportion of controls: 0.679
 
 ################################################################################
 
@@ -59,9 +59,9 @@ echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_tempora
 if [ "$fill_observations" != "1" ] && [ "$fill_case_control" != "1" ]; then
   zcat $path_file_source | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
     if ((toupper($9) != "NA") && (($9 + 0) > 0))
-      print $2, $1, $3, toupper($4), toupper($5), (($6*0.346)+($7*0.654)), log($9), $10, $11, ($17 + $18), "NA", $8, $17, $18
+      print $2, $1, $3, toupper($4), toupper($5), (($6*0.321)+($7*0.679)), log($9), $10, $11, ($17 + $18), "NA", $8, $17, $18
     else
-      print $2, $1, $3, toupper($4), toupper($5), (($6*0.346)+($7*0.654)), "NA", $10, $11, ($17 + $18), "NA", $8, $17, $18
+      print $2, $1, $3, toupper($4), toupper($5), (($6*0.321)+($7*0.679)), "NA", $10, $11, ($17 + $18), "NA", $8, $17, $18
   }' >> $path_file_temporary_format
 fi
 
