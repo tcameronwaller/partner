@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=tcw_example               # name of job
+#SBATCH --job-name=tcw_ldsc                  # name of job
 #SBATCH --mail-user=waller.tcameron@mayo.edu # email address
 #SBATCH --mail-type=END,FAIL,TIME_LIMIT_50   # situations in which to send email
 #SBATCH --partition=cpu-short                # queue: cpu-short, cpu-med, cpu-long
