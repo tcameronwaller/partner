@@ -1,21 +1,17 @@
 #!/bin/bash
 
 ################################################################################
+# Author: T. Cameron Waller
+# Date, first execution: 22 November 2022
+# Date, last execution: 7 September 2023
+# Date, review: 7 September 2023
 ################################################################################
-################################################################################
-# Notes...
-
-# Review: TCW; 22 November 2022
+# Note
 
 # TODO: TCW; 19 July 2023
 # TODO: attempt to decrease standard error by constraining the LDSC intercept to
 # 1.
 # https://github.com/bulik/ldsc/wiki/Heritability-and-Genetic-Correlation
-
-
-################################################################################
-################################################################################
-################################################################################
 
 ################################################################################
 # Organize arguments.
@@ -35,7 +31,8 @@ report=${8} # whether to print reports
 # Read private, local file paths.
 cd ~/paths
 path_tools=$(<"./waller_tools.txt")
-path_ldsc=$(<"./tools_ldsc.txt")
+#path_ldsc=$(<"./tools_ldsc.txt")
+path_ldsc=$(<"./tools_ldsc_biotools.txt")
 
 path_environment_ldsc="${path_tools}/python/environments/ldsc"
 path_file_product_suffix="${path_file_base_product}.log"
