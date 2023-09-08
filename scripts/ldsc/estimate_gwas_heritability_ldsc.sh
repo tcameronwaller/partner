@@ -1,15 +1,15 @@
 #!/bin/bash
 
 ################################################################################
+# Author: T. Cameron Waller
+# Date, first execution: 22 November 2022
+# Date, last execution: 8 September 2023
+# Date, review: 8 September 2023
 ################################################################################
-################################################################################
-# Notes...
+# Note
 
-# Review: TCW; 22 November 2022
-
-################################################################################
-################################################################################
-################################################################################
+# This script calls LDSC to estimate SNP heritability on the observed scale
+# only, not the liability scale.
 
 ################################################################################
 # Organize arguments.
@@ -26,7 +26,8 @@ report=${5} # whether to print reports
 # Read private, local file paths.
 cd ~/paths
 path_tools=$(<"./waller_tools.txt")
-path_ldsc=$(<"./tools_ldsc.txt")
+#path_ldsc=$(<"./tools_ldsc.txt")
+path_ldsc=$(<"./tools_ldsc_biotools.txt")
 
 path_environment_ldsc="${path_tools}/python/environments/ldsc"
 path_file_product_suffix="${path_file_base_product}.log"

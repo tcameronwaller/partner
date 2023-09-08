@@ -7,6 +7,9 @@
 
 # Review: TCW; 22 November 2022
 
+# Review: TCW; 8 September 2023
+# This script does not yet call the liability-scale functionality of LDSC!!!
+
 ################################################################################
 ################################################################################
 ################################################################################
@@ -26,7 +29,8 @@ report=${5} # whether to print reports
 # Read private, local file paths.
 cd ~/paths
 path_tools=$(<"./waller_tools.txt")
-path_ldsc=$(<"./tools_ldsc.txt")
+#path_ldsc=$(<"./tools_ldsc.txt")
+path_ldsc=$(<"./tools_ldsc_biotools.txt")
 
 path_environment_ldsc="${path_tools}/python/environments/ldsc"
 path_file_product_suffix="${path_file_base_product}.log"
