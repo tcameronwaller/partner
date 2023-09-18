@@ -2,22 +2,22 @@
 
 ################################################################################
 # Author: T. Cameron Waller
-# Date, first execution: 23 May 2023
+# Date, first execution: 15 February 2023
 # Date, last execution: 19 September 2023
 # Review: TCW; 18 September 2023
 ################################################################################
 # Note
 
 # This script translates the format of GWAS summary statistics from
-# Mathieu et al, iScience, 2022 (PubMed:36093044).
-# Host: https://www.ebi.ac.uk/gwas/publications/36093044
+# Sakaue et al, Nature Genetics, 2021 (PubMed:34594039).
+# Host: https://www.ebi.ac.uk/gwas/publications/34594039
 
 # Source Format
 # Human Genome Assembly: GRCh37 (UK Biobank)
 # Effect Allele: "effect_allele"
 # Delimiter: white space
-# Columns: variant_id chromosome base_pair_location effect_allele other_allele beta standard_error p_value
-#          1          2          3                  4             5            6    7              8       (TCW; 15 February 2023)
+# Columns: chromosome base_pair_location effect_allele other_allele effect_allele_frequency beta standard_error p_value variant_id
+#          1          2                  3             4            5                       6    7              8       9          (TCW; 15 February 2023)
 
 # Product Format (Team Standard)
 # delimiter: white space
@@ -63,7 +63,7 @@ echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_tempora
 # For conciseness, only support the conditions that are relevant.
 if [ "$fill_observations" == "1" ] && [ "$fill_case_control" == "1" ]; then
   zcat $path_file_source | awk -v observations=$observations -v cases=$cases -v controls=$controls 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-    print $1, $2, $3, toupper($4), toupper($5), "NA", $6, $7, $8, (observations), "NA", (1.0), (cases), (controls)
+    print $9, $1, $2, toupper($3), toupper($4), $5, $6, $7, $8, (observations), "NA", (1.0), (cases), (controls)
   }' >> $path_file_temporary_format
 fi
 

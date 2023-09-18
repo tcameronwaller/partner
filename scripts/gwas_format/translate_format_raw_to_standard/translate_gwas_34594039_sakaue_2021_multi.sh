@@ -2,28 +2,16 @@
 
 ################################################################################
 # Author: T. Cameron Waller
-# Date, first execution: 23 May 2023
+# Date, first execution: 19 September 2023
 # Date, last execution: 19 September 2023
 # Review: TCW; 18 September 2023
 ################################################################################
 # Note
 
-# This script translates the format of GWAS summary statistics from
-# Mathieu et al, iScience, 2022 (PubMed:36093044).
-# Host: https://www.ebi.ac.uk/gwas/publications/36093044
 
-# Source Format
-# Human Genome Assembly: GRCh37 (UK Biobank)
-# Effect Allele: "effect_allele"
-# Delimiter: white space
-# Columns: variant_id chromosome base_pair_location effect_allele other_allele beta standard_error p_value
-#          1          2          3                  4             5            6    7              8       (TCW; 15 February 2023)
-
-# Product Format (Team Standard)
-# delimiter: white space
-# columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
 
 ################################################################################
+
 
 ################################################################################
 # Organize arguments.
@@ -63,7 +51,19 @@ echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_tempora
 # For conciseness, only support the conditions that are relevant.
 if [ "$fill_observations" == "1" ] && [ "$fill_case_control" == "1" ]; then
   zcat $path_file_source | awk -v observations=$observations -v cases=$cases -v controls=$controls 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-    print $1, $2, $3, toupper($4), toupper($5), "NA", $6, $7, $8, (observations), "NA", (1.0), (cases), (controls)
+    if ((toupper($6) != "NA") && (($6 + 0) > 0) && (toupper($7) != "NA") && (($7 + 0) > 0) && (toupper($8) != "NA") && (($8 + 0) > 0))
+      print $1, $2, $3, toupper($5), toupper($4), (($6*0.217)+($7*0.570)+($8*0.214)), $10, $11, $12, (observations), "NA", (1.0), (cases), (controls)
+    else if ((toupper($7) != "NA") && (($7 + 0) > 0))
+      # Prioritize allele frequency from UK Biobank.
+      print $1, $2, $3, toupper($5), toupper($4), ($7), $10, $11, $12, (observations), "NA", (1.0), (cases), (controls)
+    else if ((toupper($6) != "NA") && (($6 + 0) > 0))
+      # Prioritize allele frequency from BBJ.
+      print $1, $2, $3, toupper($5), toupper($4), ($6), $10, $11, $12, (observations), "NA", (1.0), (cases), (controls)
+    else if ((toupper($8) != "NA") && (($8 + 0) > 0))
+      # Prioritize allele frequency from FinnGen.
+      print $1, $2, $3, toupper($5), toupper($4), ($8), $10, $11, $12, (observations), "NA", (1.0), (cases), (controls)
+    else
+      print $1, $2, $3, toupper($5), toupper($4), "NA", $10, $11, $12, (observations), "NA", (1.0), (cases), (controls)
   }' >> $path_file_temporary_format
 fi
 

@@ -1,12 +1,12 @@
 #!/bin/bash
 
 ################################################################################
-# Notes
-
-# This script translates the format of GWAS summary statistics.
-
-# Review: TCW; 23 May 2023
-
+# Author: T. Cameron Waller
+# Date, first execution: 23 May 2023
+# Date, last execution: 19 September 2023
+# Review: TCW; 18 September 2023
+################################################################################
+# Note
 
 ################################################################################
 
