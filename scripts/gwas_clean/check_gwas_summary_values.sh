@@ -59,13 +59,13 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   if ( NF != 14)
     # Check for any rows with incorrect count of column fields, indicating empty cells.
     print $0
-  else if ( (toupper($4) == "NA") )
+  else if ( (toupper($4) == "NA") || (toupper($4) == "NAN") || ($4 == "na") || ($4 == "nan") )
     # Check effect allele.
     print $0
   else if ( (toupper($4) !~ /T/) && (toupper($4) !~ /C/) && (toupper($4) !~ /G/) && (toupper($4) !~ /A/) )
     # Check effect allele.
     print $0
-  else if ( (toupper($5) == "NA") )
+  else if ( (toupper($5) == "NA") || (toupper($5) == "NAN") || ($5 == "na") || ($5 == "nan") )
     # Check other allele.
     print $0
   else if ( (toupper($5) !~ /T/) && (toupper($5) !~ /C/) && (toupper($5) !~ /G/) && (toupper($5) !~ /A/) )
@@ -102,6 +102,9 @@ if [[ "$report" == "true" ]]; then
   zcat $path_file_source | wc -l
   echo "- - Count of lines in product GWAS summary statistics:"
   cat $path_file_temporary_check | wc -l
+  echo "----------"
+  echo "first 25 lines of product GWAS summary statistics:"
+  cat $path_file_temporary_check | head -25
   echo "----------"
   echo "----------"
   echo "----------"
