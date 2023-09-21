@@ -3,8 +3,8 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 22 February 2023
-# Date, last execution: 19 September 2023
-# Review: TCW; 18 September 2023
+# Date, last execution: 21 September 2023
+# Review: TCW; 21 September 2023
 ################################################################################
 # Note
 
@@ -58,6 +58,7 @@ path_directory_product_temporary="${path_directory_product}/temporary_format_${n
 path_file_temporary_format_1="${path_directory_product_temporary}/${name_base_file_product}_format_1.txt"
 path_file_temporary_format_2="${path_directory_product_temporary}/${name_base_file_product}_format_2.txt"
 path_file_temporary_format_3="${path_directory_product_temporary}/${name_base_file_product}_format_3.txt"
+path_file_temporary_format_4="${path_directory_product_temporary}/${name_base_file_product}_format_4.txt"
 
 # Initialize directory.
 mkdir -p $path_directory_product
@@ -118,14 +119,25 @@ cat $path_file_temporary_format_1 | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
   (a = $2); sub(/chr/,"", a); print $1, a, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
 } ' >> $path_file_temporary_format_2
 
-# 3. Calculate the estimate of effect as the natural logarithm of the odds
+# 3. Convert any allele frequencies that are percentages to proportions.
+echo "SNP CHR BP A1 A2 A1AF OR SE P N Z INFO NCASE NCONT" > $path_file_temporary_format_3
+cat $path_file_temporary_format_2 | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+  if ((toupper($6) != "NA") && (($6 + 0) > 1.0))
+    # Convert any allele frequencies from percentages (relative to 100%) to proportions (relative to 1.0).
+    print $1, $2, $3, $4, $5, ($6 / 100), $7, $8, $9, $10, $11, $12, $13, $14
+  else
+    # Print the row as it is.
+    print $0
+}' >> $path_file_temporary_format_3
+
+# 4. Calculate the estimate of effect as the natural logarithm of the odds
 #    ratio, and calculate an estimate of the standard error of the effect from
 #    the natural logarithm of the odds ratio and the probability (p-value).
 # Reference:
 # PubMed:21824904
 # Title: "How to obtain the confidence interval from a P value"
-echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format_3
-cat $path_file_temporary_format_2 | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format_4
+cat $path_file_temporary_format_3 | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
   if ((toupper($7) != "NA") && (($7 + 0) > 0) && (toupper($9) != "NA") && (($9 + 0) > 0))
     # Calculate estimate of effect as natural logarithm of odds ratio.
     # Calculate estimate of standard error of effect from natural logarithm of
@@ -134,12 +146,12 @@ cat $path_file_temporary_format_2 | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
   else
     # Print missing values for effect, standard error, and probability (p-value).
     print $1, $2, $3, $4, $5, $6, "NA", "NA", "NA", $10, $11, $12, $13, $14
-}' >> $path_file_temporary_format_3
+}' >> $path_file_temporary_format_4
 
 ##########
 
 # Compress file format.
-gzip -cvf $path_file_temporary_format_3 > $path_file_product
+gzip -cvf $path_file_temporary_format_4 > $path_file_product
 
 # Report.
 if [[ "$report" == "true" ]]; then
