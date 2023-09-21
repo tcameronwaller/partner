@@ -45,7 +45,7 @@ rm $path_file_temporary_check
 #echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_check
 zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_file_temporary_check
 zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
-  if ( NF == 14)
+  if ( NF != 14)
     # Check for any rows with incorrect count of column fields, indicating empty cells.
     print $0
   else if ( (toupper($4) != "T") && (toupper($4) != "C") && (toupper($4) != "G") && (toupper($4) != "A") )
