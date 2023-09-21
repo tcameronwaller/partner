@@ -60,7 +60,7 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   else if ( (toupper($5) !~ /^[TCGA]+$/) )
     # Check other allele.
     print $0
-  else if ( (toupper($7) == "NA") || ( ($7 + 0) < 1.0E-307 ) )
+  else if ( (toupper($7) == "NA") )
     # Check effect parameter value for missingness or out of range.
     print $0
   else if ( (toupper($8) == "NA") || ( ($8 + 0) < 1.0E-307 ) )
