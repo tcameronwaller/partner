@@ -59,6 +59,9 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   if ( NF != 14)
     # Check for any rows with incorrect count of column fields, indicating empty cells.
     print $0
+  else if ( (toupper($3) == "NA") || ( ($3 + 0) < 1.0 ) )
+    # Check base position coordinate for missingness.
+    print $0
   else if ( (toupper($4) == "NA") || (toupper($4) == "NAN") || ($4 == "na") || ($4 == "nan") )
     # Check effect allele.
     print $0
@@ -70,6 +73,9 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
     print $0
   else if ( (toupper($5) !~ /T/) && (toupper($5) !~ /C/) && (toupper($5) !~ /G/) && (toupper($5) !~ /A/) )
     # Check other allele.
+    print $0
+  else if ( (toupper($6) == "NA") || ( ($6 + 0) < 1.0E-307 ) || ( ($6 + 0) > 1.0 ) )
+    # Check allele frequency value for missingness or out of range.
     print $0
   else if ( (toupper($7) == "NA") )
     # Check effect parameter value for missingness.
