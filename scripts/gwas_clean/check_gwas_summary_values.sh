@@ -90,6 +90,10 @@ if [[ "$report" == "true" ]]; then
   echo "Check values in GWAS summary statistics."
   echo "path to source GWAS file: " $path_file_source
   echo "path to product GWAS file: " $path_file_temporary_check
+  echo "- - Count of lines in source GWAS summary statistics:"
+  zcat $path_file_source | wc -l
+  echo "- - Count of lines in product GWAS summary statistics:"
+  cat $path_file_temporary_check | wc -l
   echo "----------"
   echo "----------"
   echo "----------"
