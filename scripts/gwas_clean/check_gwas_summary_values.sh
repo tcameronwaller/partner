@@ -61,10 +61,10 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
     # Check other allele.
     print $0
   else if ( (toupper($7) == "NA") )
-    # Check effect parameter value for missingness or out of range.
+    # Check effect parameter value for missingness.
     print $0
-  else if ( (toupper($8) == "NA") || ( ($8 + 0) < 1.0E-307 ) )
-    # Check standard error value for missingness or out of range.
+  else if ( (toupper($8) == "NA") )
+    # Check standard error value for missingness.
     print $0
   else if ( (toupper($9) == "NA") || ( ($9 + 0) < 1.0E-307 ) || ( ($9 + 0) > 1.0 ) )
     # Check probability value for missingness or out of range.
