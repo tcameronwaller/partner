@@ -3,7 +3,7 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 21 September 2023
-# Date, last execution: ___ 2023
+# Date, last execution: 21 September 2023
 # Date, review: ___ 2023
 ################################################################################
 # Note
@@ -42,6 +42,15 @@ rm $path_file_temporary_check
 # The 64-bit floating point precision (double precision) can represent values
 # from +/- 2.23E-308 to +/- 1.80E308 (https://github.com/bulik/ldsc/issues/144).
 
+#else if ( (toupper($4) !~ /^[TCGA]+$/) )
+#  # Check effect allele.
+#  print $0
+
+#else if ( (toupper($5) !~ /^[TCGA]+$/) )
+#  # Check other allele.
+#  print $0
+
+
 #echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_check
 zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_file_temporary_check
 zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
@@ -51,13 +60,7 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   else if ( (toupper($4) != "T") && (toupper($4) != "C") && (toupper($4) != "G") && (toupper($4) != "A") )
     # Check effect allele.
     print $0
-  else if ( (toupper($4) !~ /^[TCGA]+$/) )
-    # Check effect allele.
-    print $0
   else if ( (toupper($5) != "T") && (toupper($5) != "C") && (toupper($5) != "G") && (toupper($5) != "A") )
-    # Check other allele.
-    print $0
-  else if ( (toupper($5) !~ /^[TCGA]+$/) )
     # Check other allele.
     print $0
   else if ( (toupper($7) == "NA") )
