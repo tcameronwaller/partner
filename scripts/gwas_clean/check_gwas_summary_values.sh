@@ -74,7 +74,10 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   else if ( (toupper($5) !~ /T/) && (toupper($5) !~ /C/) && (toupper($5) !~ /G/) && (toupper($5) !~ /A/) )
     # Check other allele.
     print $0
-  else if ( (toupper($6) == "NA") || (toupper($6) == "NAN") || ( ($6 + 0) < 1.0E-307 ) || ( ($6 + 0) > 1.0 ) )
+  else if ( (toupper($6) == "NA") || (toupper($6) == "NAN") || ( ($6 + 0) < 0 ) || ( ($6 + 0) > 1.0 ) )
+    # Check allele frequency value for missingness or out of range.
+    print $0
+  else if ( ( ($6 + 0) > 0 ) && ( ($6 + 0) < 1.0E-307 ) )
     # Check allele frequency value for missingness or out of range.
     print $0
   else if ( (toupper($7) == "NA") || (toupper($7) == "NAN") )
