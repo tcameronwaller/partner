@@ -3,12 +3,12 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 21 September 2023
-# Date, last execution: 21 September 2023
-# Date, review: ___ 2023
+# Date, last execution: 26 September 2023
+# Date, review: 26 September 2023
 ################################################################################
 # Note
 
-
+# This script accompanies script file "filter_constrain_gwas_summary_values.sh".
 
 ################################################################################
 # Organize arguments.
@@ -59,34 +59,34 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   if ( NF != 14)
     # Check for any rows with incorrect count of column fields, indicating empty cells.
     print $0
-  else if ( (toupper($3) == "NA") || ( ($3 + 0) < 1.0 ) )
+  else if ( (toupper($3) == "NA") || (toupper($3) == "NAN") || ( ($3 + 0) < 1.0 ) )
     # Check base position coordinate for missingness.
     print $0
-  else if ( (toupper($4) == "NA") || (toupper($4) == "NAN") || ($4 == "na") || ($4 == "nan") )
+  else if ( (toupper($4) == "NA") || (toupper($4) == "NAN") )
     # Check effect allele.
     print $0
   else if ( (toupper($4) !~ /T/) && (toupper($4) !~ /C/) && (toupper($4) !~ /G/) && (toupper($4) !~ /A/) )
     # Check effect allele.
     print $0
-  else if ( (toupper($5) == "NA") || (toupper($5) == "NAN") || ($5 == "na") || ($5 == "nan") )
+  else if ( (toupper($5) == "NA") || (toupper($5) == "NAN") )
     # Check other allele.
     print $0
   else if ( (toupper($5) !~ /T/) && (toupper($5) !~ /C/) && (toupper($5) !~ /G/) && (toupper($5) !~ /A/) )
     # Check other allele.
     print $0
-  else if ( (toupper($6) == "NA") || ( ($6 + 0) < 1.0E-307 ) || ( ($6 + 0) > 1.0 ) )
+  else if ( (toupper($6) == "NA") || (toupper($6) == "NAN") || ( ($6 + 0) < 1.0E-307 ) || ( ($6 + 0) > 1.0 ) )
     # Check allele frequency value for missingness or out of range.
     print $0
-  else if ( (toupper($7) == "NA") )
+  else if ( (toupper($7) == "NA") || (toupper($7) == "NAN") )
     # Check effect parameter value for missingness.
     print $0
-  else if ( (toupper($8) == "NA") )
+  else if ( (toupper($8) == "NA") || (toupper($8) == "NAN") )
     # Check standard error value for missingness.
     print $0
-  else if ( (toupper($9) == "NA") || ( ($9 + 0) < 1.0E-307 ) || ( ($9 + 0) > 1.0 ) )
+  else if ( (toupper($9) == "NA") || (toupper($9) == "NAN") || ( ($9 + 0) < 1.0E-307 ) || ( ($9 + 0) > 1.0 ) )
     # Check probability value for missingness or out of range.
     print $0
-  else if ( (toupper($10) == "NA") || ( ($10 + 0) < 1.0 ) )
+  else if ( (toupper($10) == "NA") || (toupper($10) == "NAN") || ( ($10 + 0) < 1.0 ) )
     # Check count of observations (sample size) for missingness.
     print $0
   else
@@ -101,6 +101,8 @@ if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "----------"
   echo "----------"
+  echo "Script:"
+  echo $0 # Print full file path to script.
   echo "Check values in GWAS summary statistics."
   echo "path to source GWAS file: " $path_file_source
   echo "path to product GWAS file: " $path_file_temporary_check
