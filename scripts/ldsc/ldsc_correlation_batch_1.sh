@@ -79,7 +79,7 @@ fi
 
 ################################################################################
 # Submit batch of jobs to grid cluster scheduler for processing.
-# Submit to Oracle Sun Grid Engine.
+# Submit to Slurm Scheduler.
 # Indices in array of batch jobs start at zero.
 
 if true; then

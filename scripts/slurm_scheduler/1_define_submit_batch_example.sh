@@ -60,6 +60,11 @@ rm $path_file_batch_instances
 rm $path_file_batch_out
 rm $path_file_batch_error
 
+# TODO: Need to change working directory to the batch directory!!!
+# TODO: whichever directory from which you call sbatch needs to correspond to the designations
+# of "--output" and "--error" in next script.
+
+
 ################################################################################
 # Organize batch job instances.
 
@@ -96,7 +101,7 @@ fi
 
 ################################################################################
 # Submit batch of jobs to grid cluster scheduler for processing.
-# Submit to Oracle Sun Grid Engine.
+# Submit to Slurm Scheduler.
 # Indices in array of batch jobs start at zero.
 
 if true; then

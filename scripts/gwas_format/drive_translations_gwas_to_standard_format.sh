@@ -77,7 +77,7 @@ do
     echo "----------"
   fi
   # Execute procedure for current record's parameters.
-  if [[ $raw_inclusion == "1" ]]; then
+  if [ $raw_inclusion == "1" ]; then
     # Organize paths.
     path_directory_child_source="${path_directory_parent_source}/$raw_directory"
     name_base_file_source=$(echo $raw_name_file_source | sed "s/$raw_suffix_file_source//")

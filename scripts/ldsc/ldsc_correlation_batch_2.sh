@@ -12,8 +12,8 @@
 #SBATCH --output logs/%x.%A.%N.%j.%a.stderr
 #SBATCH --signal=USR1@60
 
-# --mem-per-cpu=1G                     # memory per task (per core or thread on CPU node)
 # --mem=1G                             # total memory per node (per CPU)
+# --mem-per-cpu=1G                     # memory per task (per core or thread on CPU node)
 
 # Slurm shortcut variables.
 # x: Job name
@@ -60,7 +60,7 @@ path_script_batch_3=${7} # full path fo file of script for execution of job proc
 
 
 
-###########################################################################
+################################################################################
 # Organize parameters.
 
 # Determine batch instance.
