@@ -22,6 +22,15 @@
 # See reference "https://wiki.hpc.rug.nl/peregrine/advanced_job_management/passing_parameters_to_a_job_script"
 
 
+# TODO: TCW; 27 September 2023
+# TODO: Need to change working directory to the batch directory!!!
+# TODO: whichever directory from which you call sbatch needs to correspond to the designations
+# of "--output" and "--error" in next script.
+# TODO: see "/.../gwas_clean/gwas2vcf_gwas_clean_batch_1.sh" for an example.
+#
+
+
+
 ################################################################################
 # Organize arguments.
 
@@ -59,10 +68,6 @@ mkdir -p $path_directory_batch_logs
 rm $path_file_batch_instances
 rm $path_file_batch_out
 rm $path_file_batch_error
-
-# TODO: Need to change working directory to the batch directory!!!
-# TODO: whichever directory from which you call sbatch needs to correspond to the designations
-# of "--output" and "--error" in next script.
 
 
 ################################################################################

@@ -26,7 +26,7 @@ path_file_script_batch_2="${path_directory_process}/partner/scripts/gwas_clean/g
 path_file_script_batch_3="${path_directory_process}/partner/scripts/gwas_clean/process_gwas_gwas2vcf.sh"
 
 # Initialize directories.
-cd $path_directory_batch # it is important to execute batch from within directory
+cd $path_directory_batch # execute batch from within this directory
 
 
 ################################################################################
