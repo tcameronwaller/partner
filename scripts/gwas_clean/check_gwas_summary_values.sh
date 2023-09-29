@@ -52,6 +52,17 @@ rm $path_file_temporary_check
 #  # Check other allele.
 #  print $0
 
+# TCW; 29 September 2023
+#else if ( (toupper($4) ~ /[^T]/) && (toupper($4) ~ /[^C]/) && (toupper($4) ~ /[^G]/) && (toupper($4) ~ /[^A]/) )
+#  # Check effect allele for any characters other than "T", "C", "G", or "A".
+#  # This condition is too inclusive because it checks for each character individually.
+#  # Example match: TCATC (effect allele)
+#  print $0
+#else if ( (toupper($5) ~ /[^T]/) && (toupper($5) ~ /[^C]/) && (toupper($5) ~ /[^G]/) && (toupper($5) ~ /[^A]/) )
+#  # Check other allele for any characters other than "T", "C", "G", or "A".
+#  # This condition is too inclusive because it checks for each character individually.
+#  # Example match: TATATGTGT (other allele)
+#  print $0
 
 
 
@@ -71,7 +82,7 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
     # Check effect allele for any characters other than "T", "C", "G", or "A".
     # This might actually check for "TCGA" as a whole string.
     print $0
-  else if ( (toupper($4) ~ /[^T]/) && (toupper($4) ~ /[^C]/) && (toupper($4) ~ /[^G]/) && (toupper($4) ~ /[^A]/) )
+  else if ( (toupper($4) ~ /[^T][^C][^G][^A]/) )
     # Check effect allele for any characters other than "T", "C", "G", or "A".
     print $0
   else if ( (toupper($4) !~ /T/) && (toupper($4) !~ /C/) && (toupper($4) !~ /G/) && (toupper($4) !~ /A/) )
@@ -81,10 +92,10 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
     # Check other allele.
     print $0
   else if ( (toupper($5) ~ /[^TCGA]/) )
-    # Check effect allele for any characters other than "T", "C", "G", or "A".
+    # Check other allele for any characters other than "T", "C", "G", or "A".
     # This might actually check for "TCGA" as a whole string.
     print $0
-  else if ( (toupper($5) ~ /[^T]/) && (toupper($5) ~ /[^C]/) && (toupper($5) ~ /[^G]/) && (toupper($5) ~ /[^A]/) )
+  else if ( (toupper($5) ~ /[^T][^C][^G][^A]/) )
     # Check other allele for any characters other than "T", "C", "G", or "A".
     print $0
   else if ( (toupper($5) !~ /T/) && (toupper($5) !~ /C/) && (toupper($5) !~ /G/) && (toupper($5) !~ /A/) )
