@@ -1,7 +1,12 @@
 #!/bin/bash
 
 ################################################################################
-# Notes
+# Author: T. Cameron Waller
+# Date, first execution: 23 May 2023
+# Date, last execution: 29 September 2023
+# Review: TCW; 29 September 2023
+################################################################################
+# Note
 
 # This script translates the format of GWAS summary statistics.
 
@@ -48,7 +53,7 @@ echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_tempora
 # For conciseness, only support the conditions that are relevant.
 if [ "$fill_observations" == "1" ] && [ "$fill_case_control" != "1" ]; then
   zcat $path_file_source | awk -v observations=$observations 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-    print $1, $2, $3, toupper($4), toupper($5), $6, $7, $8, $10, (observations), 9, (1.0), "NA", "NA"
+    (a = $10); sub(/^M/,"", a); print $1, $2, $3, toupper($4), toupper($5), $6, $7, $8, a, (observations), $9, (1.0), "NA", "NA"
   }' >> $path_file_temporary_format
 fi
 
