@@ -119,8 +119,14 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   else if ( (toupper($8) == "NA") || (toupper($8) == "NAN") )
     # Check standard error value for missingness.
     print $0
-  else if ( (toupper($9) == "NA") || (toupper($9) == "NAN") || ( ($9 + 0) < 1.0E-307 ) || ( ($9 + 0) > 1.0 ) )
-    # Check probability value for missingness or out of range.
+  else if ( (toupper($9) == "NA") || (toupper($9) == "NAN") || ( ($9 + 0) < 0 ) )
+    # Check probability value for missingness or nonsense value.
+    print $0
+  else if ( ( ($9 + 0) > 0 ) && ( ($9 + 0) < 1.0E-307 ) )
+    # Check probability value for out of range.
+    print $0
+  else if ( ( ($9 + 0) > 1.0 ) )
+    # Check probability value for out of range.
     print $0
   else if ( (toupper($10) == "NA") || (toupper($10) == "NAN") || ( ($10 + 0) < 1.0 ) )
     # Check count of observations (sample size) for missingness.
