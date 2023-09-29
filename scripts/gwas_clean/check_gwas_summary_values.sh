@@ -69,6 +69,10 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
     print $0
   else if ( (toupper($4) ~ /[^TCGA]/) )
     # Check effect allele for any characters other than "T", "C", "G", or "A".
+    # This might actually check for "TCGA" as a whole string.
+    print $0
+  else if ( (toupper($4) ~ /[^T]/) && (toupper($4) ~ /[^C]/) && (toupper($4) ~ /[^G]/) && (toupper($4) ~ /[^A]/) )
+    # Check effect allele for any characters other than "T", "C", "G", or "A".
     print $0
   else if ( (toupper($4) !~ /T/) && (toupper($4) !~ /C/) && (toupper($4) !~ /G/) && (toupper($4) !~ /A/) )
     # Check effect allele.
@@ -77,6 +81,10 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
     # Check other allele.
     print $0
   else if ( (toupper($5) ~ /[^TCGA]/) )
+    # Check effect allele for any characters other than "T", "C", "G", or "A".
+    # This might actually check for "TCGA" as a whole string.
+    print $0
+  else if ( (toupper($5) ~ /[^T]/) && (toupper($5) ~ /[^C]/) && (toupper($5) ~ /[^G]/) && (toupper($5) ~ /[^A]/) )
     # Check other allele for any characters other than "T", "C", "G", or "A".
     print $0
   else if ( (toupper($5) !~ /T/) && (toupper($5) !~ /C/) && (toupper($5) !~ /G/) && (toupper($5) !~ /A/) )
