@@ -90,17 +90,18 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
     # Check base position coordinate for missingness.
     print $0
   else if ( ($4 == "") || (toupper($4) == "NA") || (toupper($4) == "NAN") )
-    # Check effect allele.
+    # Check effect allele for missing values.
     print $0
   else if ( (toupper($4) !~ /[TCGAtcga]*/) )
     # Check effect allele for any characters other than "T", "C", "G", or "A".
     # This condition matches a string that consists of any characters other than "T", "C", "G", or "A".
+    # The "toupper" transformation is unnecessary.
     # Without the asterisk, this condition would only perform properly on strings with a single character.
     # Example matches: "D", "DEX", "TAD", "TATDCA"
     # Example not matches: "T", "TAT", "TATGCA"
     print $0
   else if ( ($5 == "") || (toupper($5) == "NA") || (toupper($5) == "NAN") )
-    # Check other allele.
+    # Check other allele for missing values.
     print $0
   else if ( (toupper($5) !~ /[TCGAtcga]*/) )
     # Check other allele for any characters other than "T", "C", "G", or "A".

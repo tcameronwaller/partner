@@ -63,16 +63,16 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   else if ( (toupper($3) == "NA") || (toupper($3) == "NAN") || ( ($3 + 0) < 1.0 ) )
     # Skip any rows with missing base position coordinate.
     next
-  else if ( (toupper($4) == "NA") || (toupper($4) == "NAN") )
+  else if ( ($4 == "") || (toupper($4) == "NA") || (toupper($4) == "NAN") )
     # Skip any rows with missing effect allele.
     next
-  else if ( (toupper($4) !~ /T/) && (toupper($4) !~ /C/) && (toupper($4) !~ /G/) && (toupper($4) !~ /A/) )
+  else if ( (toupper($4) !~ /[TCGAtcga]*/) )
     # Skip any rows with nonsense effect allele.
     next
-  else if ( (toupper($5) == "NA") || (toupper($5) == "NAN") )
+  else if ( ($5 == "") || (toupper($5) == "NA") || (toupper($5) == "NAN") )
     # Skip any rows with missing other allele.
     next
-  else if ( (toupper($5) !~ /T/) && (toupper($5) !~ /C/) && (toupper($5) !~ /G/) && (toupper($5) !~ /A/) )
+  else if ( (toupper($5) !~ /[TCGAtcga]*/) )
     # Skip any rows with nonsense other allele.
     next
   else if ( (toupper($6) == "NA") || (toupper($6) == "NAN") || ( ($6 + 0) < 0 ) || ( ($6 + 0) > 1.0 ) )
