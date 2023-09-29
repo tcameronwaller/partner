@@ -12,6 +12,10 @@
 
 # Review: TCW; 23 May 2023
 
+# For this set of GWAS summary statistics, it was necessary to specify the
+# newline delimiter to avoid the introduction of "^M" characters at the end of
+# the probability values.
+
 
 ################################################################################
 
@@ -53,7 +57,7 @@ echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_tempora
 # For conciseness, only support the conditions that are relevant.
 if [ "$fill_observations" == "1" ] && [ "$fill_case_control" != "1" ]; then
   zcat $path_file_source | awk -v observations=$observations 'BEGIN {RS="\r\n"; FS=" "; OFS=" "} NR > 1 {
-    (a = $10); sub(/^M/,"", a); print $1, $2, $3, toupper($4), toupper($5), $6, $7, $8, a, (observations), $9, (1.0), "NA", "NA"
+    print $1, $2, $3, toupper($4), toupper($5), $6, $7, $8, $10, (observations), $9, (1.0), "NA", "NA"
   }' >> $path_file_temporary_format
 fi
 
