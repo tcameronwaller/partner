@@ -53,6 +53,7 @@ rm $path_file_temporary_check
 #  print $0
 
 # TCW; 29 September 2023
+# Test regular expressions with an online tool (https://chortle.ccsu.edu/finiteautomata/Section07/sect07_12.html).
 #else if ( (toupper($4) ~ /[^T]/) && (toupper($4) ~ /[^C]/) && (toupper($4) ~ /[^G]/) && (toupper($4) ~ /[^A]/) )
 #  # Check effect allele for any characters other than "T", "C", "G", or "A".
 #  # This condition is too inclusive because it checks for each character individually.
@@ -62,6 +63,19 @@ rm $path_file_temporary_check
 #  # Check other allele for any characters other than "T", "C", "G", or "A".
 #  # This condition is too inclusive because it checks for each character individually.
 #  # Example match: TATATGTGT (other allele)
+#  print $0
+#else if ( (toupper($4) ~ /[^T][^C][^G][^A]/) )
+#  # Check effect allele for any characters other than "T", "C", "G", or "A".
+#  # I do not know for sure what this is doing.
+#  print $0
+#else if ( (toupper($4) !~ /T*/) || (toupper($4) !~ /C*/) || (toupper($4) !~ /G*/) || (toupper($4) !~ /A*/) )
+#  # This condition would only match strings that consisted entirely of one or more "T", "C", "G", or "A".
+#  print $0
+#else if ( (toupper($4) ~ /[^TCGAtcga]*/) )
+#  # This condition will only match strings that do not have any of the characters "T", "C", "G", "A", etc.
+#  # Without the asterisk, this condition would only perform properly on strings with a single character.
+#  # Example matches: "D", "E", "DEX"
+#  # Example not matches: "TAT", "TAD", "DAT", "DEXT"
 #  print $0
 
 
@@ -78,28 +92,18 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   else if ( ($4 == "") || (toupper($4) == "NA") || (toupper($4) == "NAN") )
     # Check effect allele.
     print $0
-  else if ( (toupper($4) ~ /[^TCGA]/) )
+  else if ( (toupper($4) !~ /[TCGAtcga]*/) )
     # Check effect allele for any characters other than "T", "C", "G", or "A".
-    # This might actually check for "TCGA" as a whole string.
-    print $0
-  else if ( (toupper($4) ~ /[^T][^C][^G][^A]/) )
-    # Check effect allele for any characters other than "T", "C", "G", or "A".
-    print $0
-  else if ( (toupper($4) !~ /T/) && (toupper($4) !~ /C/) && (toupper($4) !~ /G/) && (toupper($4) !~ /A/) )
-    # Check effect allele.
+    # This condition matches a string that consists of any characters other than "T", "C", "G", or "A".
+    # Without the asterisk, this condition would only perform properly on strings with a single character.
+    # Example matches: "D", "DEX", "TAD", "TATDCA"
+    # Example not matches: "T", "TAT", "TATGCA"
     print $0
   else if ( ($5 == "") || (toupper($5) == "NA") || (toupper($5) == "NAN") )
     # Check other allele.
     print $0
-  else if ( (toupper($5) ~ /[^TCGA]/) )
+  else if ( (toupper($5) !~ /[TCGAtcga]*/) )
     # Check other allele for any characters other than "T", "C", "G", or "A".
-    # This might actually check for "TCGA" as a whole string.
-    print $0
-  else if ( (toupper($5) ~ /[^T][^C][^G][^A]/) )
-    # Check other allele for any characters other than "T", "C", "G", or "A".
-    print $0
-  else if ( (toupper($5) !~ /T/) && (toupper($5) !~ /C/) && (toupper($5) !~ /G/) && (toupper($5) !~ /A/) )
-    # Check other allele.
     print $0
   else if ( (toupper($6) == "NA") || (toupper($6) == "NAN") || ( ($6 + 0) < 0 ) || ( ($6 + 0) > 1.0 ) )
     # Check allele frequency value for missingness or out of range.
