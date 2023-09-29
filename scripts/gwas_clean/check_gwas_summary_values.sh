@@ -53,6 +53,8 @@ rm $path_file_temporary_check
 #  print $0
 
 
+
+
 #echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_check
 zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_file_temporary_check
 zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
@@ -62,14 +64,20 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   else if ( (toupper($3) == "NA") || (toupper($3) == "NAN") || ( ($3 + 0) < 1.0 ) )
     # Check base position coordinate for missingness.
     print $0
-  else if ( (toupper($4) == "NA") || (toupper($4) == "NAN") )
+  else if ( ($4 == "") || (toupper($4) == "NA") || (toupper($4) == "NAN") )
     # Check effect allele.
+    print $0
+  else if ( (toupper($4) ~ /[^TCGA]/) )
+    # Check effect allele for any characters other than "T", "C", "G", or "A".
     print $0
   else if ( (toupper($4) !~ /T/) && (toupper($4) !~ /C/) && (toupper($4) !~ /G/) && (toupper($4) !~ /A/) )
     # Check effect allele.
     print $0
-  else if ( (toupper($5) == "NA") || (toupper($5) == "NAN") )
+  else if ( ($5 == "") || (toupper($5) == "NA") || (toupper($5) == "NAN") )
     # Check other allele.
+    print $0
+  else if ( (toupper($5) ~ /[^TCGA]/) )
+    # Check other allele for any characters other than "T", "C", "G", or "A".
     print $0
   else if ( (toupper($5) !~ /T/) && (toupper($5) !~ /C/) && (toupper($5) !~ /G/) && (toupper($5) !~ /A/) )
     # Check other allele.
