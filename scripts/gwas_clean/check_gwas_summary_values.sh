@@ -3,8 +3,8 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 21 September 2023
-# Date, last execution: 26 September 2023
-# Date, review: 26 September 2023
+# Date, last execution: 29 September 2023
+# Date, review: 29 September 2023
 ################################################################################
 # Note
 
@@ -52,6 +52,7 @@ rm $path_file_temporary_check
 #  # Check other allele.
 #  print $0
 
+##########
 # TCW; 29 September 2023
 # Test regular expressions with an online tool (https://chortle.ccsu.edu/finiteautomata/Section07/sect07_12.html).
 #else if ( (toupper($4) ~ /[^T]/) && (toupper($4) ~ /[^C]/) && (toupper($4) ~ /[^G]/) && (toupper($4) ~ /[^A]/) )
@@ -78,7 +79,7 @@ rm $path_file_temporary_check
 #  # Example not matches: "TAT", "TAD", "DAT", "DEXT"
 #  print $0
 
-
+##########
 
 #echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_check
 zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_file_temporary_check
