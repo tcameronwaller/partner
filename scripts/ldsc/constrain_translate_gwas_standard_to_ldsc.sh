@@ -3,8 +3,8 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 23 December 2022
-# Date, last execution: 4 August 2023
-# Review: TCW; 4 August 2023
+# Date, last execution: 3 October 2023
+# Review: TCW; 3 October 2023
 ################################################################################
 # Note
 
@@ -64,15 +64,19 @@ rm $path_file_product
 zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_file_temporary_constraint
 zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   if ( NF != 14)
-    # Skip any rows with incorrect count of column fields.
+    # Skip any of table rows with incorrect count of column fields, indicating empty cells.
     next
-  else if ( ( $9 != "NA" ) && ( ($9 + 0) < 1.0E-305 ) )
-    # Constrain probability value.
-    print $1, $2, $3, $4, $5, $6, $7, $8, (1.0E-305), $10, $11, $12, $13, $14
-  else if ( ( $9 != "NA" ) && ( ($9 + 0) > 1.0 ) )
-    # Constrain probability value.
+  else if ( (toupper($9) == "NA") || (toupper($9) == "NAN") || ( ($9 + 0) < 0 ) )
+    # Skip any rows with missing or nonsense probability.
+    next
+  else if ( ( ($9 + 0) > 0 ) && ( ($9 + 0) < 1.0E-307 ) )
+    # Constrain probability.
+    print $1, $2, $3, $4, $5, $6, $7, $8, (1.0E-307), $10, $11, $12, $13, $14
+  else if ( ( ($9 + 0) > 1.0 ) )
+    # Constrain probability.
     print $1, $2, $3, $4, $5, $6, $7, $8, (1.0), $10, $11, $12, $13, $14
   else
+    # Row passes all checks, filters, and constraints.
     # Print the row entirely.
     print $0
   }' >> $path_file_temporary_constraint
