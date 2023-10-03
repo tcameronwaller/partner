@@ -1,46 +1,16 @@
 #!/bin/bash
 
-#SBATCH --job-name=tcw_ldsc                  # name of job
+#SBATCH --job-name=ldsc_rg                   # name of job
 #SBATCH --mail-user=waller.tcameron@mayo.edu # email address
 #SBATCH --mail-type=END,FAIL,TIME_LIMIT_50   # situations in which to send email
 #SBATCH --partition=cpu-short                # queue: cpu-short, cpu-med, cpu-long
 #SBATCH --nodes=1                            # count of cluster nodes (CPUs)
-#SBATCH --tasks-per-node=4                   # count of cores or threads on node
-#SBATCH --time=0-00:30:00                    # time allocation request (days-hours:minutes:seconds)
+#SBATCH --ntasks-per-node=2                  # count of cores or threads on node
 #SBATCH --mem=4G                             # memory per node (per CPU)
-#SBATCH --output logs/%x.%A.%N.%j.%a.stdout
-#SBATCH --output logs/%x.%A.%N.%j.%a.stderr
+#SBATCH --time=0-01:00:00                    # time allocation request (days-hours:minutes:seconds)
+#SBATCH --output ./%x.%A.%N.%j.%a.stdout
+#SBATCH --error ./%x.%A.%N.%j.%a.stderr
 #SBATCH --signal=USR1@60
-
-# --mem=1G                             # total memory per node (per CPU)
-# --mem-per-cpu=1G                     # memory per task (per core or thread on CPU node)
-
-# Slurm shortcut variables.
-# x: Job name
-# A: Slurm array Job identifier
-# j: Slurm job number
-# a: Slurm array task ID
-# N: Node name
-
-# Slurm is not able to create the "logs" child directory within the current
-# working parent directory. It is necessary to create this "logs" child
-# directory before executing the job script.
-
-# It is also possible to pass any of the parameters above when calling the
-# SLURM run script.
-# Especially consider calling "--array" and "--chdir" when calling SLURM script.
-
-# squeue -u [User LANID]
-# scontrol show job [job identifier] # Only lasts for 5 minutes.
-# sacct -j [job identifier] --format=[names of variables "sacct -e"] # "%25" allows to expand a specific column
-# sacct -j [job identifier] --format=User,JobID%15,Jobname%25,partition,nodelist,SystemComment,reason$20,exitCode
-# seff -f [job identifier] # Efficiency of job utilization of allocated resources.
-
-# salloc # Request an allocation of a single node for interactive use.
-# srun # In some ways similar to "salloc".
-
-# https://slurm.schedmd.com/sbatch.html
-# https://researchcomputing.princeton.edu/support/knowledge-base/memory
 
 ################################################################################
 # Note.
