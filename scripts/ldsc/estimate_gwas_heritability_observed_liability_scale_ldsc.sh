@@ -3,7 +3,7 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 22 November 2022
-# Date, last execution: 7 September 2023
+# Date, last execution: 5 October 2023
 # Date, review: 8 September 2023
 ################################################################################
 # Note
@@ -12,6 +12,7 @@
 # TODO: attempt to decrease standard error by constraining the LDSC intercept to
 # 1.
 # https://github.com/bulik/ldsc/wiki/Heritability-and-Genetic-Correlation
+
 
 ################################################################################
 # Organize arguments.
