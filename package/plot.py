@@ -1893,6 +1893,18 @@ def plot_boxes_groups(
     Creates a figure of a chart of type box plot to represent the distribution
     of multiple series of values.
 
+         Q1-1.5IQR   Q1   median  Q3   Q3+1.5IQR
+                      |-----:-----|
+      o      |--------|     :     |--------|    o  o
+                      |-----:-----|
+    flier             <----------->            fliers
+                           IQR
+
+    lines in boxes: median
+    diamond on boxes: mean
+    box length: quartile 1 (Q1) to quartile 3 (Q3)
+    whiskers: 1.5 * interquartile range (Q3 - Q1)
+
     https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.boxplot.html
     https://towardsdatascience.com/understanding-boxplots-5e2df7bcbd51
 
