@@ -22,11 +22,12 @@
 
 path_file_batch_instances=${1} # text list of information for each instance in batch
 batch_instances_count=${2} # count of instances in batch
-path_directory_product=${3} # full path to parent directory within which to write product directories and files
-path_directory_disequilibrium=${4} # full directory path to directory for LDSC reference on linkage disequilibrium
-threads=${5} # count of concurrent or parallel process threads on node cores
-report=${6} # whether to print reports
-path_script_batch_3=${7} # full path fo file of script for execution of job procedure
+shift_index=${3} # shift index
+path_directory_product=${4} # full path to parent directory within which to write product directories and files
+path_directory_disequilibrium=${5} # full directory path to directory for LDSC reference on linkage disequilibrium
+threads=${6} # count of concurrent or parallel process threads on node cores
+report=${7} # whether to print reports
+path_script_batch_3=${8} # full path fo file of script for execution of job procedure
 
 
 
@@ -34,7 +35,7 @@ path_script_batch_3=${7} # full path fo file of script for execution of job proc
 # Organize parameters.
 
 # Determine batch instance.
-batch_index=$SLURM_ARRAY_TASK_ID # Indices in array of batch jobs start at zero.
+batch_index=$((SLURM_ARRAY_TASK_ID + shift_index)) # Indices in array of batch jobs start at zero.
 readarray -t batch_instances < $path_file_batch_instances
 instance=${batch_instances[$batch_index]}
 

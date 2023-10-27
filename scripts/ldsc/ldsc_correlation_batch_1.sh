@@ -32,6 +32,8 @@ cd ~/paths
 #path_directory_process=$(<"./process_psychiatric_metabolism.txt")
 #path_directory_dock="${path_directory_process}/dock"
 path_directory_partner="${path_directory_process}/partner"
+path_directory_batch_1="${path_directory_batch}/batch_1"
+path_directory_batch_2="${path_directory_batch}/batch_2"
 
 # Files.
 #path_file_batch_instances="${path_directory_product}/batch_instances.txt"
@@ -44,6 +46,8 @@ path_script_batch_3="${path_directory_partner}/scripts/ldsc/estimate_gwas_geneti
 
 # Initialize directories.
 cd $path_directory_batch # execute batch from within this directory
+mkdir -p $path_directory_batch_1
+mkdir -p $path_directory_batch_2
 
 ################################################################################
 # Organize batch job instances.
@@ -63,6 +67,8 @@ if [[ "$report" == "true" ]]; then
   echo "ldsc_correlation_batch_1.sh"
   echo "----------"
   echo "count of batch instances: " $batch_instances_count
+  echo "maximum array index: " $index_array_maximum
+  echo "----------"
   echo "first batch instance: " ${batch_instances[0]} # notice base-zero indexing
   echo "last batch instance: " ${batch_instances[$index_array_maximum]}
   echo "----------"
@@ -75,17 +81,37 @@ fi
 # Submit to Slurm Scheduler.
 # Indices in array of batch jobs start at zero.
 
+# NCSA implementation of SLURM has value of "MaxArraySize" of 4,000.
+# Find the value of "MaxArraySize" within the text file at path "/etc/slurm/slurm.conf".
+# SLURM will not allow an array index greater than "MaxArraySize".
+# It is necessary to split larger jobs.
+
 if true; then
-  sbatch --array 0-${index_array_maximum}:1 --chdir $path_directory_batch \
+  sbatch --array 0-3000:1 --chdir $path_directory_batch_1 \
   $path_script_batch_2 \
   $path_file_batch_instances \
   $batch_instances_count \
+  0 \
   $path_directory_product \
   $path_directory_disequilibrium \
   $threads \
   $report \
   $path_script_batch_3
 fi
+
+if true; then
+  sbatch --array 0-$((index_array_maximum - 3000)):1 --chdir $path_directory_batch_2 \
+  $path_script_batch_2 \
+  $path_file_batch_instances \
+  $batch_instances_count \
+  3000 \
+  $path_directory_product \
+  $path_directory_disequilibrium \
+  $threads \
+  $report \
+  $path_script_batch_3
+fi
+
 
 
 
