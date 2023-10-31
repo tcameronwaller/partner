@@ -25,7 +25,8 @@
 # This procedure effectively loses any information in the column "NCONT".
 # A calculation in this procedure also assumes that the count of total
 # observations includes all (100%) of cases and that any discrepancies in count
-# of total observations are indicative of differences in the count of cases.
+# of total observations are instead indicative of differences in the count of
+# controls.
 # Hence: "NCONT = N - NCASE".
 
 # In a test on 24 May 2023, GWAS2VCF discarded all variants when using a

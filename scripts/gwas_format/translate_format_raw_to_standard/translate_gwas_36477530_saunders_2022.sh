@@ -4,7 +4,7 @@
 # Author: T. Cameron Waller
 # Date, first execution: 2 August 2023
 # Date, last execution: 2 August 2023
-# Review: TCW; 30 August 2023
+# Review: TCW; 30 October 2023
 ################################################################################
 # Note
 
@@ -51,6 +51,10 @@ echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_tempora
 if [ "$fill_observations" != "1" ] && [ "$fill_case_control" != "1" ]; then
   zcat $path_file_source | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
     (a = $1); sub(/chr/,"", a); print $3, a, $2, toupper($4), toupper($5), $6, $7, $8, $9, $10, "NA", (1.0), "NA", "NA"
+  }' >> $path_file_temporary_format
+elif [ "$fill_observations" != "1" ] && [ "$fill_case_control" == "1" ]; then
+  zcat $path_file_source | awk -v cases=$cases -v controls=$controls 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+    (a = $1); sub(/chr/,"", a); print $3, a, $2, toupper($4), toupper($5), $6, $7, $8, $9, $10, "NA", (1.0), (cases), (controls)
   }' >> $path_file_temporary_format
 fi
 
