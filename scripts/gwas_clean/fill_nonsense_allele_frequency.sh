@@ -70,12 +70,12 @@ if [[ "$report" == "true" ]]; then
   echo "path to source GWAS file: " $path_file_source
   echo "path to product GWAS file: " $path_file_product
   echo "----------"
-  echo "table before format translation:"
+  echo "table before transformation:"
   zcat $path_file_source | head -5
   echo "- - Count of lines in source GWAS summary statistics:"
   zcat $path_file_source | wc -l
   echo "----------"
-  echo "table after format translation:"
+  echo "table after transformation:"
   zcat $path_file_product | head -5
   echo "- - Count of lines in product GWAS summary statistics:"
   zcat $path_file_product | wc -l
