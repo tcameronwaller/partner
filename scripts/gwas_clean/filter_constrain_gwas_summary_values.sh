@@ -3,8 +3,8 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 21 September 2023
-# Date, last execution: 29 September 2023
-# Date, review: 29 September 2023
+# Date, last execution: 15 November 2023
+# Date, review: 15 November 2023
 ################################################################################
 # Note
 
@@ -60,7 +60,7 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   if ( NF != 14)
     # Skip any of table rows with incorrect count of column fields, indicating empty cells.
     next
-  else if ( (toupper($3) == "NA") || (toupper($3) == "NAN") || ( ($3 + 0) < 1.0 ) )
+  else if ( ($3 == "") || (toupper($3) == "NA") || (toupper($3) == "NAN") || ( ($3 + 0) < 1.0 ) )
     # Skip any rows with missing base position coordinate.
     next
   else if ( ($4 == "") || (toupper($4) == "NA") || (toupper($4) == "NAN") )
@@ -75,19 +75,19 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   else if ( (toupper($5) !~ /[TCGAtcga]*/) )
     # Skip any rows with nonsense other allele.
     next
-  else if ( (toupper($6) == "NA") || (toupper($6) == "NAN") || ( ($6 + 0) < 0 ) || ( ($6 + 0) > 1.0 ) )
+  else if ( ($6 == "") || (toupper($6) == "NA") || (toupper($6) == "NAN") || ( ($6 + 0) < 0 ) || ( ($6 + 0) > 1.0 ) )
     # Skip any rows with missing or nonsense allele frequency.
     next
   else if ( ( ($6 + 0) > 0 ) && ( ($6 + 0) < 1.0E-307 ) )
     # Constrain allele frequency.
     print $1, $2, $3, $4, $5, (1.0E-307), $7, $8, $9, $10, $11, $12, $13, $14
-  else if ( (toupper($7) == "NA") || (toupper($7) == "NAN") )
+  else if ( ($7 == "") || (toupper($7) == "NA") || (toupper($7) == "NAN") || ( ($7 + 0) < 0 ) )
     # Skip any rows with missing effect parameter.
     next
-  else if ( (toupper($8) == "NA") || (toupper($8) == "NAN") )
+  else if ( ($8 == "") || (toupper($8) == "NA") || (toupper($8) == "NAN") || ( ($8 + 0) < 0 ) )
     # Skip any rows with missing standard error.
     next
-  else if ( (toupper($9) == "NA") || (toupper($9) == "NAN") || ( ($9 + 0) < 0 ) )
+  else if ( ($9 == "") || (toupper($9) == "NA") || (toupper($9) == "NAN") || ( ($9 + 0) < 0 ) )
     # Skip any rows with missing or nonsense probability.
     next
   else if ( ( ($9 + 0) > 0 ) && ( ($9 + 0) < 1.0E-307 ) )

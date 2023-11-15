@@ -310,8 +310,17 @@ which python3
 ################################################################################
 
 
-
 ##########
+
+# repository and documentation: https://github.com/getian107/PRScs/tree/master
+
+# Python3 virtual environment: "prs_cs"
+# path_python_396: full file path to installation of Python 3.9.6 or alternative.
+# path_environment_prs_cs: full file path for installation of virtual environment.
+
+# Probably best to specify versions of packages to install using syntax below.
+#python3 -m pip install numpy==1.22.3 # Or more recent version that works.
+
 # Python3 virtual environment: "prs_cs"
 "${path_python_396}/bin/python3" -m venv --help # TCW; 28 April 2022
 # ./python/python_3.9.6/bin/python3 -m venv ./python/environments/prs_cs # TCW; 28 April 2022
