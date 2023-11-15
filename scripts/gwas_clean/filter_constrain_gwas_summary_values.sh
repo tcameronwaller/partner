@@ -9,6 +9,8 @@
 # Note
 
 # This script accompanies script file "check_gwas_summary_values.sh".
+# This script ("filter_constrain_gwas_summary_values.sh") has the most
+# up-to-date implementation of the conditionals.
 
 ################################################################################
 # Organize arguments.
