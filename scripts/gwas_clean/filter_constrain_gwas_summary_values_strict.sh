@@ -91,8 +91,9 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   else if ( ($6 + 0) > 1.0 )
     # Constrain allele frequency.
     print $1, $2, $3, $4, $5, (1.0), $7, $8, $9, $10, $11, $12, $13, $14
-  else if ( ($7 == "") || (toupper($7) == "NA") || (toupper($7) == "NAN") || ( ($7 + 0) < 0 ) )
+  else if ( ($7 == "") || (toupper($7) == "NA") || (toupper($7) == "NAN") )
     # Skip any rows with missing effect parameter.
+    # Remember that the effect parameter (beta) can be less than zero.
     next
   else if ( ($8 == "") || (toupper($8) == "NA") || (toupper($8) == "NAN") || ( ($8 + 0) < 0 ) )
     # Skip any rows with missing standard error.

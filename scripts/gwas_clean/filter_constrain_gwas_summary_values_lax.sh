@@ -12,9 +12,10 @@
 # This script ("filter_constrain_gwas_summary_values.sh") has the most
 # up-to-date implementation of the conditionals.
 
-# The filters in this script are stringent. It is probably unnecessary to filter
-# on the letter designations of alleles (TCGA), as GWAS2VCF might fill these in
-# from SNP rsIDs, and LDSC does not use this information.
+# The purpose of the "lax" version of these filters is to avoid removing SNPs
+# unnecessarily. Some SNPs might be usable in LDSC even with some missing
+# information.
+
 
 
 ################################################################################
@@ -65,6 +66,13 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   else if ( ($6 + 0) > 1.0 )
     # Constrain allele frequency.
     print $1, $2, $3, $4, $5, (1.0), $7, $8, $9, $10, $11, $12, $13, $14
+  else if ( ($7 == "") || (toupper($7) == "NA") || (toupper($7) == "NAN") )
+    # Skip any rows with missing effect parameter.
+    # Remember that the effect parameter (beta) can be less than zero.
+    next
+  else if ( ($8 == "") || (toupper($8) == "NA") || (toupper($8) == "NAN") || ( ($8 + 0) < 0 ) )
+    # Skip any rows with missing standard error.
+    next
   else if ( ($9 == "") || (toupper($9) == "NA") || (toupper($9) == "NAN") || ( ($9 + 0) < 0 ) )
     # Skip any rows with missing or nonsense probability.
     next
