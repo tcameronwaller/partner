@@ -12,10 +12,9 @@
 # This script ("filter_constrain_gwas_summary_values.sh") has the most
 # up-to-date implementation of the conditionals.
 
-# The purpose of the "lax" version of these filters is to avoid removing SNPs
-# unnecessarily. Some SNPs might be usable in LDSC even with some missing
-# information.
-
+# The filters in this script are stringent. It is probably unnecessary to filter
+# on the letter designations of alleles (TCGA), as GWAS2VCF might fill these in
+# from SNP rsIDs, and LDSC does not use this information.
 
 
 ################################################################################
@@ -51,11 +50,37 @@ rm $path_file_product
 # The 64-bit floating point precision (double precision) can represent values
 # from +/- 2.23E-308 to +/- 1.80E308 (https://github.com/bulik/ldsc/issues/144).
 
+# ( (toupper($4) != "T") && (toupper($4) != "C") && (toupper($4) != "G") && (toupper($4) != "A") )
+
+#else if ( (toupper($4) !~ /^[TCGA]+$/) )
+#  # Check effect allele.
+#  print $0
+
+#else if ( (toupper($5) !~ /^[TCGA]+$/) )
+#  # Check other allele.
+#  print $0
+
+
 #echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_check
 zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_file_temporary
 zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   if ( NF != 14)
     # Skip any of table rows with incorrect count of column fields, indicating empty cells.
+    next
+  else if ( ($3 == "") || (toupper($3) == "NA") || (toupper($3) == "NAN") || ( ($3 + 0) < 1.0 ) )
+    # Skip any rows with missing base position coordinate.
+    next
+  else if ( ($4 == "") || (toupper($4) == "NA") || (toupper($4) == "NAN") )
+    # Skip any rows with missing effect allele.
+    next
+  else if ( (toupper($4) !~ /[TCGAtcga]*/) )
+    # Skip any rows with nonsense effect allele.
+    next
+  else if ( ($5 == "") || (toupper($5) == "NA") || (toupper($5) == "NAN") )
+    # Skip any rows with missing other allele.
+    next
+  else if ( (toupper($5) !~ /[TCGAtcga]*/) )
+    # Skip any rows with nonsense other allele.
     next
   else if ( ($6 == "") || (toupper($6) == "NA") || (toupper($6) == "NAN") || ( ($6 + 0) < 0 ) )
     # Skip any rows with missing or nonsense allele frequency.
@@ -71,7 +96,7 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
     # Remember that the effect parameter (beta) can be less than zero.
     next
   else if ( ($8 == "") || (toupper($8) == "NA") || (toupper($8) == "NAN") || ( ($8 + 0) < 0 ) )
-    # Skip any rows with missing standard error.
+    # Skip any rows with missing or nonsense less than zero standard error.
     next
   else if ( ($9 == "") || (toupper($9) == "NA") || (toupper($9) == "NAN") || ( ($9 + 0) < 0 ) )
     # Skip any rows with missing or nonsense probability.
