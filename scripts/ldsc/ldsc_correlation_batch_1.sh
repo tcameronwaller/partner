@@ -3,8 +3,8 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 6 August 2022
-# Date, last execution: 3 October 2023
-# Review: TCW; 3 October 2023
+# Date, last execution: 16 November 2023
+# Review: TCW; 16 November 2023
 ################################################################################
 # Note
 
@@ -81,13 +81,8 @@ fi
 # Submit to Slurm Scheduler.
 # Indices in array of batch jobs start at zero.
 
-# NCSA implementation of SLURM has value of "MaxArraySize" of 4,000.
-# Find the value of "MaxArraySize" within the text file at path "/etc/slurm/slurm.conf".
-# SLURM will not allow an array index greater than "MaxArraySize".
-# It is necessary to split larger jobs.
-
 if true; then
-  sbatch --array 0-3000:1 --chdir $path_directory_batch_1 \
+  sbatch --array 0-${index_array_maximum}:1 --chdir $path_directory_batch_1 \
   $path_script_batch_2 \
   $path_file_batch_instances \
   $batch_instances_count \
@@ -99,7 +94,24 @@ if true; then
   $path_script_batch_3
 fi
 
-if true; then
+
+# NCSA implementation of SLURM has value of "MaxArraySize" of 4,000.
+# Find the value of "MaxArraySize" within the text file at path "/etc/slurm/slurm.conf".
+# SLURM will not allow an array index greater than "MaxArraySize".
+# It is necessary to split larger jobs.
+
+if false; then
+  sbatch --array 0-3000:1 --chdir $path_directory_batch_1 \
+  $path_script_batch_2 \
+  $path_file_batch_instances \
+  $batch_instances_count \
+  0 \
+  $path_directory_product \
+  $path_directory_disequilibrium \
+  $threads \
+  $report \
+  $path_script_batch_3
+
   sbatch --array 0-$((index_array_maximum - 3000)):1 --chdir $path_directory_batch_2 \
   $path_script_batch_2 \
   $path_file_batch_instances \

@@ -42,6 +42,7 @@
 # Especially consider calling "--array" and "--chdir" when calling SLURM script.
 
 # squeue -u [User LANID]
+# scancel {job identifier}
 # scontrol show job [job identifier] # Only lasts for 5 minutes.
 # sacct -j [job identifier] --format=[names of variables "sacct -e"] # "%25" allows to expand a specific column
 # sacct -j [job identifier] --format=User,JobID%15,Jobname%25,partition,nodelist,SystemComment,reason$20,exitCode
