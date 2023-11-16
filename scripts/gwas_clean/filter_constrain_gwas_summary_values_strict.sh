@@ -82,12 +82,15 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   else if ( (toupper($5) !~ /[TCGAtcga]*/) )
     # Skip any rows with nonsense other allele.
     next
-  else if ( ($6 == "") || (toupper($6) == "NA") || (toupper($6) == "NAN") || ( ($6 + 0) < 0 ) || ( ($6 + 0) > 1.0 ) )
+  else if ( ($6 == "") || (toupper($6) == "NA") || (toupper($6) == "NAN") || ( ($6 + 0) < 0 ) )
     # Skip any rows with missing or nonsense allele frequency.
     next
   else if ( ( ($6 + 0) > 0 ) && ( ($6 + 0) < 1.0E-307 ) )
     # Constrain allele frequency.
     print $1, $2, $3, $4, $5, (1.0E-307), $7, $8, $9, $10, $11, $12, $13, $14
+  else if ( ($6 + 0) > 1.0 )
+    # Constrain allele frequency.
+    print $1, $2, $3, $4, $5, (1.0), $7, $8, $9, $10, $11, $12, $13, $14
   else if ( ($7 == "") || (toupper($7) == "NA") || (toupper($7) == "NAN") || ( ($7 + 0) < 0 ) )
     # Skip any rows with missing effect parameter.
     next
@@ -100,10 +103,10 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   else if ( ( ($9 + 0) > 0 ) && ( ($9 + 0) < 1.0E-307 ) )
     # Constrain probability.
     print $1, $2, $3, $4, $5, $6, $7, $8, (1.0E-307), $10, $11, $12, $13, $14
-  else if ( ( ($9 + 0) > 1.0 ) )
+  else if ( ($9 + 0) > 1.0 )
     # Constrain probability.
     print $1, $2, $3, $4, $5, $6, $7, $8, (1.0), $10, $11, $12, $13, $14
-  else if ( (toupper($10) == "NA") || (toupper($10) == "NAN") || ( ($10 + 0) < 1.0 ) )
+  else if ( ($10 == "") || (toupper($10) == "NA") || (toupper($10) == "NAN") || ( ($10 + 0) < 1.0 ) )
     # Skip any rows with missing count of observations (sample size).
     next
   else

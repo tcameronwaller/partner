@@ -56,6 +56,24 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   if ( NF != 14)
     # Skip any of table rows with incorrect count of column fields, indicating empty cells.
     next
+  else if ( ($6 == "") || (toupper($6) == "NA") || (toupper($6) == "NAN") || ( ($6 + 0) < 0 ) )
+    # Skip any rows with missing or nonsense allele frequency.
+    next
+  else if ( ( ($6 + 0) > 0 ) && ( ($6 + 0) < 1.0E-307 ) )
+    # Constrain allele frequency.
+    print $1, $2, $3, $4, $5, (1.0E-307), $7, $8, $9, $10, $11, $12, $13, $14
+  else if ( ($6 + 0) > 1.0 )
+    # Constrain allele frequency.
+    print $1, $2, $3, $4, $5, (1.0), $7, $8, $9, $10, $11, $12, $13, $14
+  else if ( ($9 == "") || (toupper($9) == "NA") || (toupper($9) == "NAN") || ( ($9 + 0) < 0 ) )
+    # Skip any rows with missing or nonsense probability.
+    next
+  else if ( ( ($9 + 0) > 0 ) && ( ($9 + 0) < 1.0E-307 ) )
+    # Constrain probability.
+    print $1, $2, $3, $4, $5, $6, $7, $8, (1.0E-307), $10, $11, $12, $13, $14
+  else if ( ($9 + 0) > 1.0 )
+    # Constrain probability.
+    print $1, $2, $3, $4, $5, $6, $7, $8, (1.0), $10, $11, $12, $13, $14
   else if ( ($10 == "") || (toupper($10) == "NA") || (toupper($10) == "NAN") || ( ($10 + 0) < 1.0 ) )
     # Skip any rows with missing count of observations (sample size).
     next
