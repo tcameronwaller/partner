@@ -39,6 +39,10 @@ rm $path_file_product
 ###########################################################################
 # Execute procedure.
 
+#else if ( ( ($6 + 0) > 0 ) && ( ($6 + 0) < 1.0E-307 ) )
+#  # Constrain allele frequency.
+#  print $1, $2, $3, $4, $5, (1.0E-307), $7, $8, $9, $10, $11, $12, $13, $14
+
 #echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_check
 zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_file_temporary
 zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
@@ -46,9 +50,6 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
     # Current row has missing or nonsense allele frequency.
     # Fill with nonsense allele frequency that will not trip filters.
     print $1, $2, $3, $4, $5, (0.5), $7, $8, $9, $10, $11, $12, $13, $14
-  else if ( ( ($6 + 0) > 0 ) && ( ($6 + 0) < 1.0E-307 ) )
-    # Constrain allele frequency.
-    print $1, $2, $3, $4, $5, (1.0E-307), $7, $8, $9, $10, $11, $12, $13, $14
   else
     # Row passes all checks, filters, and constraints.
     # Print the row entirely as it is.
