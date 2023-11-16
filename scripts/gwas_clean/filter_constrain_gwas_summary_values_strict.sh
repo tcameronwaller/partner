@@ -12,6 +12,11 @@
 # This script ("filter_constrain_gwas_summary_values.sh") has the most
 # up-to-date implementation of the conditionals.
 
+# The filters in this script are stringent. It is probably unnecessary to filter
+# on the letter designations of alleles (TCGA), as GWAS2VCF might fill these in
+# from SNP rsIDs, and LDSC does not use this information.
+
+
 ################################################################################
 # Organize arguments.
 
