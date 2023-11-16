@@ -3,8 +3,8 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 23 December 2022
-# Date, last execution: 3 October 2023
-# Review: TCW; 3 October 2023
+# Date, last execution: 16 November 2023
+# Review: TCW; 16 November 2023
 ################################################################################
 # Note
 
@@ -66,7 +66,7 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   if ( NF != 14)
     # Skip any of table rows with incorrect count of column fields, indicating empty cells.
     next
-  else if ( (toupper($9) == "NA") || (toupper($9) == "NAN") || ( ($9 + 0) < 0 ) )
+  else if ( ($9 == "") || (toupper($9) == "NA") || (toupper($9) == "NAN") || ( ($9 + 0) < 0 ) )
     # Skip any rows with missing or nonsense probability.
     next
   else if ( ( ($9 + 0) > 0 ) && ( ($9 + 0) < 1.0E-307 ) )
