@@ -1,37 +1,20 @@
 #!/bin/bash
 
-###########################################################################
-###########################################################################
-###########################################################################
-# Notes
+################################################################################
+# Author: T. Cameron Waller
+# Date, first execution: 20 November 2023
+# Date, last execution: 20 November 2023
+# Review: TCW; 20 November 2023
+################################################################################
+# Note
 
-# This script translates the format of GWAS summary statistics from
-# Pott et al, Metabolites, 2021 (PubMed:34822396).
-# Host: https://zenodo.org/record/5644896
+# Count of cases: 38,691
+# Count of controls: 186,843
+# Count of total observations: 225,534
+# Proportion of cases: 0.172
+# Proportion of controls: 0.828
 
-# Source Format
-# Human Genome Assembly: GRCh37 (hg19)
-# Effect allele: "ea"
-# Delimiter: white space
-# Columns: markername chr bp_hg19 ea oa eaf info nSamples nStudies beta se  p  I2  phenotype
-#          1          2   3       4  5  6   7    8        9        10   11  12 13  14        (TCW; 15 February 2023)
-
-# Format Translation
-# Identifiers of SNP variants is [rsID]:[position]:[other allele]:[effect allele].
-# LDSC Munge might or might not be able to interpret this original identifier format.
-# Split the SNP variant identifier and extract the rs identifier.
-# columns: $1, $2, $3, toupper($4), toupper($5), $6, $10, $11, $12, $8, "NA", $7, "NA", "NA"
-
-# Product Format (Team Standard)
-# effect allele: "A1"
-# delimiter: white space
-# columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
-
-# Review: TCW; 15 February 2023
-
-###########################################################################
-###########################################################################
-###########################################################################
+################################################################################
 
 
 
@@ -66,7 +49,11 @@ rm $path_file_product
 ################################################################################
 # Execute procedure.
 
-# https://www.gnu.org/software/gawk/manual/html_node/String-Functions.html
+# Note: TCW; 21 November 2023
+# The odds ratio always has a value greater than or equal to zero.
+
+# Note: TCW; 17 February 2023
+# The logarithm of a negative number or zero is undefined.
 
 ##########
 # Translate format of GWAS summary statistics.
@@ -75,7 +62,10 @@ echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_tempora
 # For conciseness, only support the conditions that are relevant.
 if [ "$fill_observations" != "1" ] && [ "$fill_case_control" != "1" ]; then
   zcat $path_file_source | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-    (a = $1); split(a, b, ":"); print b[1], $2, $3, toupper($4), toupper($5), $6, $10, $11, $12, $8, "NA", $7, "NA", "NA"
+    if ((toupper($9) != "NA") && (($9 + 0) > 0))
+      print $2, $1, $3, toupper($4), toupper($5), (($6*0.172)+($7*0.828)), log($9), $10, $11, ($13 + $14), "NA", $8, $13, $14
+    else
+      print $2, $1, $3, toupper($4), toupper($5), (($6*0.172)+($7*0.828)), "NA", $10, $11, ($13 + $14), "NA", $8, $13, $14
   }' >> $path_file_temporary_format
 fi
 

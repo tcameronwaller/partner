@@ -2,17 +2,11 @@
 
 ################################################################################
 # Author: T. Cameron Waller
-# Date, first execution: 2 August 2023
-# Date, last execution: 2 August 2023
+# Date, first execution: 22 November 2023
+# Date, last execution: 22 November 2023
 # Review: TCW; 22 November 2023
 ################################################################################
 # Note
-
-# This script translates the format of GWAS summary statistics from
-# Walters et al, Nature Neuroscience, 2018
-# (PubMed:30482948).
-# Host: https://pgc.unc.edu/
-# Host: https://figshare.com/articles/dataset/sud2018-alc/14672187
 
 # Note: TCW; 22 November 2023
 
@@ -26,6 +20,11 @@
 # If we assume that across all betas the mean is approximately zero and the
 # standard deviation is approximately one, then the z-score is an adequate
 # approximation of the beta effect.
+
+# Determine maximal counts of total observations (samples), cases, and controls.
+# $ zcat <file name> | awk 'BEGIN{FS=" "; OFS=" "; a=0} NR>1{if ((toupper($11) != "NA") && (($11+0)>(a+0))) a=$11} END{print a}'
+# $ zcat <file name> | awk 'BEGIN{FS=" "; OFS=" "; a=0} NR>1{if ((toupper($12) != "NA") && (($12+0)>(a+0))) a=$12} END{print a}'
+# $ zcat <file name> | awk 'BEGIN{FS=" "; OFS=" "; a=0} NR>1{if ((toupper($13) != "NA") && (($13+0)>(a+0))) a=$13} END{print a}'
 
 ################################################################################
 
@@ -77,9 +76,9 @@ rm $path_file_product
 
 # 1. Translate column format while simplifying identifier.
 echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format_1
-if [ "$fill_observations" != "1" ] && [ "$fill_case_control" == "1" ]; then
-  zcat $path_file_source | awk -v cases=$cases -v controls=$controls 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-    (a = $2); split(a, b, ":"); print b[1], $1, $3, toupper($4), toupper($5), "NA", $6, "NA", $7, int($8), "NA", (1.0), (cases), (controls)
+if [ "$fill_observations" != "1" ] && [ "$fill_case_control" != "1" ]; then
+  zcat $path_file_source | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+    print $1, "NA", "NA", toupper($2), toupper($3), "NA", $5, "NA", $6, $11, "NA", (1.0), $12, $13
   }' >> $path_file_temporary_format_1
 fi
 

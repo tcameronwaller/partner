@@ -4,7 +4,7 @@
 # Author: T. Cameron Waller
 # Date, first execution: 22 February 2023
 # Date, last execution: 21 September 2023
-# Review: TCW; 21 September 2023
+# Review: TCW; 22 November 2023
 ################################################################################
 # Note
 
@@ -142,7 +142,8 @@ cat $path_file_temporary_format_3 | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
     # Calculate estimate of effect as natural logarithm of odds ratio.
     # Calculate estimate of standard error of effect from natural logarithm of
     # odds ratio and probability (p-value).
-    print $1, $2, $3, $4, $5, $6, log($7), (log($7) / (-0.862 + sqrt(0.743 - (2.404 * log($9))))), $9, $10, $11, $12, $13, $14
+    # Use the square root of the square to take absolute value.
+    print $1, $2, $3, $4, $5, $6, log($7), sqrt((log($7) / (-0.862 + sqrt(0.743 - (2.404 * log($9)))))^2), $9, $10, $11, $12, $13, $14
   else
     # Print missing values for effect, standard error, and probability (p-value).
     print $1, $2, $3, $4, $5, $6, "NA", "NA", "NA", $10, $11, $12, $13, $14
