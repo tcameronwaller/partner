@@ -117,7 +117,7 @@ count_instances=${#instances[@]}
 
 for instance in "${instances[@]}"; do
   # Define parameters in array instance for batch job.
-  echo $instances >> $path_file_batch_instances
+  echo $instance >> $path_file_batch_instances
 done
 
 # Read batch instances.
@@ -136,7 +136,7 @@ if [[ "$report" == "true" ]]; then
   echo "Product directory:"
   echo $path_directory_product
   echo "count of instances: " $count_instances
-  echo "first instance: " ${comparisons[0]} # notice base-zero indexing
+  echo "first instance: " ${instances[0]} # notice base-zero indexing
   echo "last instance: " ${instances[$count_instances - 1]}
   echo "----------"
   echo "----------"
