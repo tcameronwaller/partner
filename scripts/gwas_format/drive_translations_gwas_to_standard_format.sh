@@ -3,31 +3,54 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 22 December 2022
-# Date, last execution: 13 November 2023
-# Review: TCW; 2 August 2023
+# Date, last execution: 26 November 2023
+# Review: TCW; 26 November 2023
 ################################################################################
 # Note
 
 ################################################################################
 
-
-
 ################################################################################
 # Organize arguments.
 
-path_file_translation=${1} # full path to file of parameter table in text format with information about translations
+path_file_table_parameter=${1} # full path to file of parameter table in text format with information about translations
 path_directory_parent_source=${2} # full path to parent directory within which to find child directories and files of source GWAS summary statistics
-path_directory_script=${3} # full path to directory within which to find scripts for format translations
-path_directory_product=${4} # full path to directory within which to save files of product GWAS summary statistics
+path_directory_product=${3} # full path to directory within which to save files of product GWAS summary statistics
+path_directory_partner_scripts=${4} # full path to directory within which to find scripts
 path_bgzip=${5} # full path to installation executable file of BGZip
 report=${6} # whether to print reports
 
 ################################################################################
+# Organize paths.
+
+# Directories.
+path_directory_batch="${path_directory_product}/batch"
+
+# Files.
+path_file_batch_instances="${path_directory_batch}/batch_instances.txt"
+
+# Scripts.
+path_directory_parent_scripts_format="${path_directory_partner_scripts}/gwas_format/translate_format_raw_to_standard"
+path_file_script_batch_instance="${path_directory_partner_scripts}/gwas_format/translate_format_batch_instance.sh"
+
+# Initialize directories.
+rm -r $path_directory_batch # caution
+mkdir -p $path_directory_batch
+cd $path_directory_batch # execute batch from within this directory
+
+# Initialize files.
+rm $path_file_batch_instances
+
+################################################################################
 # Procedure.
 
+##########
+# Initialize array of instance parameters.
+instances=()
 
+##########
 # Read lines from file and split fields within each line by space, tab, or new-line delimiters.
-input=$path_file_translation
+input=$path_file_table_parameter
 while IFS=$' \t\n' read -r -a array
 do
 
@@ -78,44 +101,72 @@ do
   fi
   # Execute procedure for current record's parameters.
   if [ $raw_inclusion == "1" ]; then
-    # Organize paths.
-    path_directory_child_source="${path_directory_parent_source}/$raw_directory"
-    name_base_file_source=$(echo $raw_name_file_source | sed "s/$raw_suffix_file_source//")
-    path_file_source="${path_directory_child_source}/${raw_name_file_source}"
-    path_directory_temporary="${path_directory_product}/temporary_${name_base_file_source}_${raw_name_study}" # hopefully unique
-    path_file_source_standard="${path_directory_temporary}/${name_base_file_source}.txt.gz"
-    path_file_script="${path_directory_script}/$raw_script"
-    path_file_product="${path_directory_product}/$raw_name_study.txt.gz"
-    mkdir -p $path_directory_temporary
-    # Manage compression formats and file suffixes.
-    if [ $raw_bgzip == "1" ] && [ $raw_gzip == "1" ]; then
-      # 1. Decompress from BGZip format (http://www.htslib.org/doc/bgzip.html).
-      $path_bgzip --decompress "$path_file_source" --stdout > "${path_directory_temporary}/${name_base_file_source}.txt"
-      # 2. Compress to GZip format.
-      gzip -cvf "${path_directory_temporary}/${name_base_file_source}.txt" > $path_file_source_standard
-    fi
-    if [ $raw_bgzip != "1" ] && [ $raw_gzip == "1" ]; then
-      # 1. Compress to Gzip format
-      gzip -cvf "$path_file_source" > $path_file_source_standard
-    fi
-    if [ $raw_bgzip != "1" ] && [ $raw_gzip != "1" ]; then
-      # Manage suffix.
-      cp "$path_file_source" $path_file_source_standard
-    fi
-    # Call script for translation.
-    /usr/bin/bash $path_file_script \
-    $path_file_source_standard \
-    $path_file_product \
-    $raw_fill_observations \
-    $raw_observations \
-    $raw_fill_case_control \
-    $raw_cases \
-    $raw_controls \
-    $report
-    # Remove temporary directory and files.
-    rm -r $path_directory_temporary
+    # Assemble parameters for instance.
+    part_one="${raw_directory};${raw_name_file_source};${raw_suffix_file_source};${raw_name_study}"
+    part_two="${raw_fill_observations};${raw_fill_case_control}"
+    part_three="${raw_observations};${raw_cases};${raw_controls}"
+    part_four="${raw_bgzip};${raw_gzip};${raw_script}"
+    instances+=("${part_one};${part_two};${part_three};${part_four}")
   fi
 done < "${input}"
+
+##########
+# Organize batch instances.
+
+count_instances=${#instances[@]}
+
+for instance in "${instances[@]}"; do
+  # Define parameters in array instance for batch job.
+  echo $instances >> $path_file_batch_instances
+done
+
+# Read batch instances.
+readarray -t batch_instances < $path_file_batch_instances
+batch_instances_count=${#batch_instances[@]}
+index_array_maximum=$(($batch_instances_count - 1))
+
+################################################################################
+# Report.
+
+# Report.
+if [[ "$report" == "true" ]]; then
+  echo "----------"
+  echo "Source directory:"
+  echo $path_directory_parent_source
+  echo "Product directory:"
+  echo $path_directory_product
+  echo "count of instances: " $count_instances
+  echo "first instance: " ${comparisons[0]} # notice base-zero indexing
+  echo "last instance: " ${instances[$count_instances - 1]}
+  echo "----------"
+  echo "----------"
+  echo "count of batch instances: " $batch_instances_count
+  echo "maximum array index: " $index_array_maximum
+  echo "----------"
+  echo "first batch instance: " ${batch_instances[0]} # notice base-zero indexing
+  echo "last batch instance: " ${batch_instances[$index_array_maximum]}
+  echo "----------"
+
+fi
+
+sleep 5s
+
+################################################################################
+# Submit batch of jobs to grid cluster scheduler for processing.
+# Submit to Slurm Scheduler.
+# Indices in array of batch jobs start at zero.
+
+if true; then
+  sbatch --array 0-${index_array_maximum}:1 --chdir $path_directory_batch \
+  $path_file_script_batch_instance \
+  $path_file_batch_instances \
+  $batch_instances_count \
+  $path_directory_parent_source \
+  $path_directory_product \
+  $path_directory_parent_scripts_format \
+  $path_bgzip \
+  $report
+fi
 
 ################################################################################
 # Report.

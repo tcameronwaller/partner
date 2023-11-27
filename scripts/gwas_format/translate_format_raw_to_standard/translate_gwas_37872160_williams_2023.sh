@@ -2,40 +2,14 @@
 
 ################################################################################
 # Author: T. Cameron Waller
-# Date, first execution: 23 May 2023
-# Date, last execution: 19 September 2023
-# Review: TCW; 18 September 2023
+# Date, first execution: 24 November 2023
+# Date, last execution: 24 November 2023
+# Review: TCW; 24 November 2023
 ################################################################################
 # Note
 
-# This script translates the format of GWAS summary statistics from
-# Teumer et al, Nature Communications, 2018 (PubMed:30367059).
-# Host: https://transfer.sysepi.medizin.uni-greifswald.de/thyroidomics/datasets/
-
-# Source Format
-# Human Genome Assembly: GRCh37 (TCW; 24 January 2023)
-# Effect allele: "Allele1" ("coding allele") (TCW; 24 January 2023)
-# Delimiter: comma
-# Columns: MarkerName Allele1 Allele2 Freq1 Effect StdErr P.value N I2
-#          1          2       3       4     5      6      7       8 9 (TCW; 15 February 2023)
-# Note:
-# The source format is the same for linear and logistic GWAS in collection (TCW; 24 January 2023).
-# Format of "MarkerName" is "[chromosome]:[position]:[type such as SNP]" (TCW; 24 January 2023).
-
-# Format Translation
-# Identifiers of SNP variants is [chromosome]:[position]:"SNP".
-# Extract the chromosome and position.
-# Define a temporary identifier [chromosome]:[position]:"SNP".
-
-# TODO: TCW; 20 January 2023
-
-# columns: $1, [extract], [extract], toupper($2), toupper($3), $4, $5, $6, $7, $8, "NA", (1), "NA", "NA"
-
-# Product Format (Team Standard)
-# effect allele: "A1"
-# delimiter: white space
-# columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
-
+# Determine maximal counts of total observations (samples), cases, and controls.
+# $ zcat <file name> | awk 'BEGIN{FS=" "; OFS=" "; a=0} NR>1{if ((toupper($12) != "NA") && (($12+0)>(a+0))) a=$12} END{print a}'
 
 ################################################################################
 
@@ -69,10 +43,8 @@ mkdir -p $path_directory_product_temporary
 # Remove any previous version of the product file.
 rm $path_file_product
 
-###########################################################################
+################################################################################
 # Execute procedure.
-
-
 
 ##########
 # Translate format of GWAS summary statistics.
@@ -80,12 +52,8 @@ rm $path_file_product
 echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format
 # For conciseness, only support the conditions that are relevant.
 if [ "$fill_observations" != "1" ] && [ "$fill_case_control" != "1" ]; then
-  zcat $path_file_source | awk 'BEGIN {FS = ","; OFS = " "} NR > 1 {
-    (a = $1); split(a, b, ":"); print a, b[1], b[2], toupper($2), toupper($3), $4, $5, $6, $7, $8, "NA", (1.0), "NA", "NA"
-  }' >> $path_file_temporary_format
-elif [ "$fill_observations" != "1" ] && [ "$fill_case_control" == "1" ]; then
-  zcat $path_file_source | awk -v cases=$cases -v controls=$controls 'BEGIN {FS = ","; OFS = " "} NR > 1 {
-    (a = $1); split(a, b, ":"); print a, b[1], b[2], toupper($2), toupper($3), $4, $5, $6, $7, $8, "NA", (1.0), (cases), (controls)
+  zcat $path_file_source | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+    print $11, $1, $2, toupper($3), toupper($4), $7, $5, $6, $8, $12, "NA", (1.0), "NA", "NA"
   }' >> $path_file_temporary_format
 fi
 
