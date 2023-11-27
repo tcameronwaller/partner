@@ -66,7 +66,7 @@ rm $path_file_product
 #  next
 
 
-
+##########
 #echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_check
 zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_file_temporary
 zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
@@ -124,7 +124,13 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
 # Compress file format.
 gzip -cvf $path_file_temporary > $path_file_product
 
+##########
 # Report.
+
+count_source=$((zcat $path_file_source | wc -l))
+count_product=$((zcat $path_file_product | wc -l))
+count_difference=$(($count_source - $count_product))
+proportion_difference=$(echo "scale=10; $count_difference / $count_source" | bc)
 
 if [ "$report" == "true" ]; then
   echo "----------"
@@ -140,21 +146,20 @@ if [ "$report" == "true" ]; then
   echo "table before transformation:"
   zcat $path_file_source | head -5
   echo "- - Count of lines in source GWAS summary statistics:"
-  zcat $path_file_source | wc -l
+  echo $count_source
   echo "----------"
   echo "table after transformation:"
   zcat $path_file_product | head -5
   echo "- - Count of lines in product GWAS summary statistics:"
-  zcat $path_file_product | wc -l
+  echo $count_product
+  echo "----------"
+  echo "loss count (difference): " $count_difference
+  echo "loss proportion: " $proportion_difference
   echo "----------"
   echo "----------"
   echo "----------"
 fi
 
-count_source=$((zcat $path_file_source | wc -l))
-count_product=$((zcat $path_file_product | wc -l))
-count_difference=$(($count_source - $count_product))
-proportion_difference=$(($count_difference / $count_source))
 if [ "$report" == "true" ] && [ $proportion_difference > 0.001 ]; then
   echo "**************************************************"
   echo "**************************************************"
