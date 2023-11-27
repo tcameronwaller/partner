@@ -160,12 +160,12 @@ if [ "$report" == "true" ]; then
   echo "----------"
 fi
 
-if [ "$report" == "true" ] && [ $proportion_difference > 0.001 ]; then
+if [ "$report" == "true" ] && (( $(echo "$proportion_difference >= 0.001" | bc -l) )); then
   echo "**************************************************"
   echo "**************************************************"
   echo "**************************************************"
   echo "WARNING:"
-  echo "Current GWAS summary statistics lost more than 0.1% of SNPs to filters!"
+  echo "Current GWAS summary statistics lost 0.1% or more of SNPs to filters!"
   echo "path to source GWAS file: " $path_file_source
   echo "path to product GWAS file: " $path_file_product
   echo "**************************************************"
