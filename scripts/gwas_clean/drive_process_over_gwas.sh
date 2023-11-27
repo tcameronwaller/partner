@@ -80,7 +80,6 @@ do
     #path_directory_temporary="${path_directory_product}/temporary_${name_base_file_source}_${raw_name_study}" # hopefully unique
     path_file_gwas_source="${path_directory_source}/${raw_name_study}.txt.gz"
     path_file_gwas_product="${path_directory_product}/${raw_name_study}.txt.gz"
-    mkdir -p $path_directory_temporary
     # Call script for translation.
     /usr/bin/bash $path_script_process \
     $path_file_gwas_source \
