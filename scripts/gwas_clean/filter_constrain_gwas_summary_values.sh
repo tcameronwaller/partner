@@ -3,8 +3,8 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 21 September 2023
-# Date, last execution: 16 November 2023
-# Date, review: 16 November 2023
+# Date, last execution: 27 November 2023
+# Date, review: 27 November 2023
 ################################################################################
 # Note
 
@@ -60,15 +60,18 @@ rm $path_file_product
 #  # Check other allele.
 #  print $0
 
+#else if ( ($3 == "") || (toupper($3) == "NA") || (toupper($3) == "NAN") || ( ($3 + 0) < 1.0 ) )
+#  # Skip any rows with missing base position coordinate.
+#  # Some subsequent analyses do not require this information.
+#  next
+
+
 
 #echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_check
 zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_file_temporary
 zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   if ( NF != 14)
     # Skip any of table rows with incorrect count of column fields, indicating empty cells.
-    next
-  else if ( ($3 == "") || (toupper($3) == "NA") || (toupper($3) == "NAN") || ( ($3 + 0) < 1.0 ) )
-    # Skip any rows with missing base position coordinate.
     next
   else if ( ($4 == "") || (toupper($4) == "NA") || (toupper($4) == "NAN") )
     # Skip any rows with missing effect allele.
@@ -84,6 +87,8 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
     next
   else if ( ($6 == "") || (toupper($6) == "NA") || (toupper($6) == "NAN") || ( ($6 + 0) < 0 ) )
     # Skip any rows with missing or nonsense allele frequency.
+    # Some subsequent analyses do not require this information, but in that case
+    # it is possible to fill missing allele frequency with value 0.5.
     next
   else if ( ( ($6 + 0) > 0 ) && ( ($6 + 0) < 1.0E-307 ) )
     # Constrain allele frequency.
@@ -120,7 +125,8 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
 gzip -cvf $path_file_temporary > $path_file_product
 
 # Report.
-if [[ "$report" == "true" ]]; then
+
+if [ "$report" == "true" ]; then
   echo "----------"
   echo "----------"
   echo "----------"
@@ -144,6 +150,25 @@ if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "----------"
 fi
+
+count_source=$((zcat $path_file_source | wc -l))
+count_product=$((zcat $path_file_product | wc -l))
+count_difference=$(($count_source - $count_product))
+proportion_difference=$(($count_difference / $count_source))
+if [ "$report" == "true" ] && [ $proportion_difference > 0.001 ]; then
+  echo "**************************************************"
+  echo "**************************************************"
+  echo "**************************************************"
+  echo "WARNING:"
+  echo "Current GWAS summary statistics lost more than 0.1% of SNPs to filters!"
+  echo "path to source GWAS file: " $path_file_source
+  echo "path to product GWAS file: " $path_file_product
+  echo "**************************************************"
+  echo "**************************************************"
+  echo "**************************************************"
+fi
+
+
 
 # Remove temporary, intermediate files.
 rm -r $path_directory_product_temporary

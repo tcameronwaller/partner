@@ -14,7 +14,7 @@
 ################################################################################
 # Organize arguments.
 
-path_file_translation=${1} # full path to file of parameter table in text format with information about translations
+path_file_table_parameter=${1} # full path to file of parameter table in text format with information about translations
 path_directory_source=${2} # full path to source directory within which to find files of source GWAS summary statistics
 path_directory_product=${3} # full path to product directory within which to save files of product GWAS summary statistics
 path_script_process=${4} # full path to file of script to apply to each file of GWAS summary statistics in the parameter table
@@ -25,7 +25,7 @@ report=${5} # whether to print reports
 
 
 # Read lines from file and split fields within each line by space, tab, or new-line delimiters.
-input=$path_file_translation
+input=$path_file_table_parameter
 while IFS=$' \t\n' read -r -a array
 do
 
