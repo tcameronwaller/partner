@@ -127,8 +127,8 @@ gzip -cvf $path_file_temporary > $path_file_product
 ##########
 # Report.
 
-count_source=$((zcat $path_file_source | wc -l))
-count_product=$((zcat $path_file_product | wc -l))
+count_source=$(zcat $path_file_source | wc -l)
+count_product=$(zcat $path_file_product | wc -l)
 count_difference=$(($count_source - $count_product))
 proportion_difference=$(echo "scale=10; $count_difference / $count_source" | bc)
 
