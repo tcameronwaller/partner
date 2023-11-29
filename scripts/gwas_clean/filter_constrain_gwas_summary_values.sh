@@ -195,6 +195,21 @@ if [ "$report" == "true" ] && (( $(echo "$count_difference > 0.0" | bc -l) )); t
   echo "----------"
   echo "----------"
   echo "----------"
+elif [ "$report" == "true" ]; then
+  echo "----------"
+  echo "----------"
+  echo "----------"
+  echo "Script:"
+  echo $0 # Print full file path to script.
+  echo "Filter and constrain values in GWAS summary statistics."
+  echo "----------"
+  echo "path to source GWAS file: " $path_file_source
+  echo "path to product GWAS file: " $path_file_product
+  echo "----------"
+  echo "No change in count of SNPs."
+  echo "----------"
+  echo "----------"
+  echo "----------"
 fi
 
 if [ "$report" == "true" ] && (( $(echo "$proportion_difference >= 0.0001" | bc -l) )); then
