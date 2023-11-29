@@ -169,7 +169,7 @@ count_product=$(zcat $path_file_product | wc -l)
 count_difference=$(($count_source - $count_product))
 proportion_difference=$(echo "scale=10; $count_difference / $count_source" | bc)
 
-if [ "$report" == "true" ]; then
+if [ "$report" == "true" ] && (( $(echo "$count_difference > 0.0" | bc -l) )); then
   echo "----------"
   echo "----------"
   echo "----------"
