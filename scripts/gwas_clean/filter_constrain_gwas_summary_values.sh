@@ -169,7 +169,7 @@ count_product=$(zcat $path_file_product | wc -l)
 count_difference=$(($count_source - $count_product))
 proportion_difference=$(echo "scale=10; $count_difference / $count_source" | bc)
 
-if [ "$report" == "true" ] && (( $(echo "$count_difference > 0.0" | bc -l) )); then
+if [ "$report" == "true" ]; then
   echo "----------"
   echo "----------"
   echo "----------"
@@ -179,6 +179,12 @@ if [ "$report" == "true" ] && (( $(echo "$count_difference > 0.0" | bc -l) )); t
   echo "----------"
   echo "path to source GWAS file: " $path_file_source
   echo "path to product GWAS file: " $path_file_product
+  echo "----------"
+fi
+
+if [ "$report" == "true" ] && (( $(echo "$count_difference > 0.0" | bc -l) )); then
+  echo "----------"
+  echo "There are differences in source and product after filters."
   echo "----------"
   echo "table before transformation:"
   zcat $path_file_source | head -5
@@ -192,21 +198,6 @@ if [ "$report" == "true" ] && (( $(echo "$count_difference > 0.0" | bc -l) )); t
   echo "----------"
   echo "loss count (difference): " $count_difference
   echo "loss proportion: " $proportion_difference
-  echo "----------"
-  echo "----------"
-  echo "----------"
-elif [ "$report" == "true" ]; then
-  echo "----------"
-  echo "----------"
-  echo "----------"
-  echo "Script:"
-  echo $0 # Print full file path to script.
-  echo "Filter and constrain values in GWAS summary statistics."
-  echo "----------"
-  echo "path to source GWAS file: " $path_file_source
-  echo "path to product GWAS file: " $path_file_product
-  echo "----------"
-  echo "No change in count of SNPs."
   echo "----------"
   echo "----------"
   echo "----------"
