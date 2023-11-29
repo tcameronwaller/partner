@@ -51,7 +51,6 @@ path_directory_product_temporary="${path_directory_product}/temporary_format_${n
 path_file_temporary_format_1="${path_directory_product_temporary}/${name_base_file_product}_format_1.txt"
 path_file_temporary_format_2="${path_directory_product_temporary}/${name_base_file_product}_format_2.txt"
 
-
 # Initialize directory.
 mkdir -p $path_directory_product
 rm -r $path_directory_product_temporary

@@ -3,8 +3,8 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 21 September 2023
-# Date, last execution: 27 November 2023
-# Date, review: 27 November 2023
+# Date, last execution: 29 November 2023
+# Date, review: 29 November 2023
 ################################################################################
 # Note
 
@@ -30,7 +30,9 @@ report=${3} # whether to print reports
 name_base_file_product="$(basename $path_file_product .txt.gz)"
 path_directory_product="$(dirname $path_file_product)"
 path_directory_product_temporary="${path_directory_product}/temporary_${name_base_file_product}" # hopefully unique
-path_file_temporary="${path_directory_product_temporary}/${name_base_file_product}_temporary.txt"
+path_file_temporary_1="${path_directory_product_temporary}/${name_base_file_product}_temporary_1.txt"
+path_file_temporary_2="${path_directory_product_temporary}/${name_base_file_product}_temporary_2.txt"
+path_file_temporary_3="${path_directory_product_temporary}/${name_base_file_product}_temporary_3.txt"
 
 # Initialize directory.
 mkdir -p $path_directory_product
@@ -43,10 +45,12 @@ rm $path_file_product
 ###########################################################################
 # Execute procedure.
 
+##########
+# Notes
+
 # Here are some useful regular expressions to evaluate values in "awk".
 # ( $12 ~ /^[0-9]+$/ ); ( $12 ~ /^[[:alpha:]]+$/ ); ( $12 ~ /^[[:punct:]]+$/ )
 
-##########
 # The 64-bit floating point precision (double precision) can represent values
 # from +/- 2.23E-308 to +/- 1.80E308 (https://github.com/bulik/ldsc/issues/144).
 
@@ -66,9 +70,12 @@ rm $path_file_product
 #  next
 
 
+
 ##########
+# 1. Filter records in GWAS summary statistics.
+
 #echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_check
-zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_file_temporary
+zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_file_temporary_1
 zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   if ( NF != 14)
     # Skip any of table rows with incorrect count of column fields, indicating empty cells.
@@ -90,12 +97,6 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
     # Some subsequent analyses do not require this information, but in that case
     # it is possible to fill missing allele frequency with value 0.5.
     next
-  else if ( ( ($6 + 0) > 0 ) && ( ($6 + 0) < 1.0E-307 ) )
-    # Constrain allele frequency.
-    print $1, $2, $3, $4, $5, (1.0E-307), $7, $8, $9, $10, $11, $12, $13, $14
-  else if ( ($6 + 0) > 1.0 )
-    # Constrain allele frequency.
-    print $1, $2, $3, $4, $5, (1.0), $7, $8, $9, $10, $11, $12, $13, $14
   else if ( ($7 == "") || (toupper($7) == "NA") || (toupper($7) == "NAN") )
     # Skip any rows with missing effect parameter.
     # Remember that the effect parameter (beta) can be less than zero.
@@ -106,12 +107,6 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   else if ( ($9 == "") || (toupper($9) == "NA") || (toupper($9) == "NAN") || ( ($9 + 0) < 0 ) )
     # Skip any rows with missing or nonsense probability.
     next
-  else if ( ( ($9 + 0) > 0 ) && ( ($9 + 0) < 1.0E-307 ) )
-    # Constrain probability.
-    print $1, $2, $3, $4, $5, $6, $7, $8, (1.0E-307), $10, $11, $12, $13, $14
-  else if ( ($9 + 0) > 1.0 )
-    # Constrain probability.
-    print $1, $2, $3, $4, $5, $6, $7, $8, (1.0), $10, $11, $12, $13, $14
   else if ( ($10 == "") || (toupper($10) == "NA") || (toupper($10) == "NAN") || ( ($10 + 0) < 1.0 ) )
     # Skip any rows with missing count of observations (sample size).
     next
@@ -119,10 +114,52 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
     # Row passes all checks, filters, and constraints.
     # Print the row entirely.
     print $0
-  }' >> $path_file_temporary
+  }' >> $path_file_temporary_1
+
+
+
+##########
+# 2. Constrain values in GWAS summary statistics.
+
+#echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_check
+cat $path_file_temporary_1 | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_file_temporary_2
+cat $path_file_temporary_1 | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
+  if ( ( ($6 + 0) > 0 ) && ( ($6 + 0) < 1.0E-307 ) )
+    # Constrain allele frequency.
+    print $1, $2, $3, $4, $5, (1.0E-307), $7, $8, $9, $10, $11, $12, $13, $14
+  else if ( ($6 + 0) > 1.0 )
+    # Constrain allele frequency.
+    print $1, $2, $3, $4, $5, (1.0), $7, $8, $9, $10, $11, $12, $13, $14
+  else
+    # Row passes all checks, filters, and constraints.
+    # Print the row entirely.
+    print $0
+  }' >> $path_file_temporary_2
+
+#echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_check
+cat $path_file_temporary_2 | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_file_temporary_3
+cat $path_file_temporary_2 | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
+  if ( ( ($9 + 0) > 0 ) && ( ($9 + 0) < 1.0E-307 ) )
+    # Constrain probability.
+    print $1, $2, $3, $4, $5, $6, $7, $8, (1.0E-307), $10, $11, $12, $13, $14
+  else if ( ($9 + 0) > 1.0 )
+    # Constrain probability.
+    print $1, $2, $3, $4, $5, $6, $7, $8, (1.0), $10, $11, $12, $13, $14
+  else
+    # Row passes all checks, filters, and constraints.
+    # Print the row entirely.
+    print $0
+  }' >> $path_file_temporary_3
+
+
+
+##########
+# Compression
 
 # Compress file format.
-gzip -cvf $path_file_temporary > $path_file_product
+gzip -cvf $path_file_temporary_3 > $path_file_product
+
+
 
 ##########
 # Report.
@@ -160,12 +197,12 @@ if [ "$report" == "true" ]; then
   echo "----------"
 fi
 
-if [ "$report" == "true" ] && (( $(echo "$proportion_difference >= 0.001" | bc -l) )); then
+if [ "$report" == "true" ] && (( $(echo "$proportion_difference >= 0.0001" | bc -l) )); then
   echo "**************************************************"
   echo "**************************************************"
   echo "**************************************************"
   echo "WARNING:"
-  echo "Current GWAS summary statistics lost 0.1% or more of SNPs to filters!"
+  echo "Current GWAS summary statistics lost 0.01% or more of SNPs to filters!"
   echo "path to source GWAS file: " $path_file_source
   echo "path to product GWAS file: " $path_file_product
   echo "**************************************************"
