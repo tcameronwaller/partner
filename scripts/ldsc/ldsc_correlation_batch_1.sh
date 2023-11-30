@@ -105,6 +105,8 @@ fi
 # It is necessary to split larger jobs.
 
 if true; then
+
+  # instances: 0 - 3,000
   sbatch --array 0-3000:1 --chdir $path_directory_batch_1 \
   $path_script_batch_2 \
   $path_file_batch_instances \
@@ -116,22 +118,24 @@ if true; then
   $report \
   $path_script_batch_3
 
-  sbatch --array 0-$((index_array_maximum - 3000)):1 --chdir $path_directory_batch_2 \
+  # instances: 3,001 - 6,001
+  sbatch --array 0-3000:1 --chdir $path_directory_batch_2 \
   $path_script_batch_2 \
   $path_file_batch_instances \
   $batch_instances_count \
-  3000 \
+  3001 \
   $path_directory_product \
   $path_directory_disequilibrium \
   $threads \
   $report \
   $path_script_batch_3
 
-  sbatch --array 0-$((index_array_maximum - 6000)):1 --chdir $path_directory_batch_3 \
+  # instances: 6,002 - maximum
+  sbatch --array 0-$((index_array_maximum - 6002)):1 --chdir $path_directory_batch_3 \
   $path_script_batch_2 \
   $path_file_batch_instances \
   $batch_instances_count \
-  6000 \
+  6002 \
   $path_directory_product \
   $path_directory_disequilibrium \
   $threads \
