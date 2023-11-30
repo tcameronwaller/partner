@@ -34,6 +34,8 @@ cd ~/paths
 path_directory_partner="${path_directory_process}/partner"
 path_directory_batch_1="${path_directory_batch}/batch_1"
 path_directory_batch_2="${path_directory_batch}/batch_2"
+path_directory_batch_3="${path_directory_batch}/batch_3"
+path_directory_batch_4="${path_directory_batch}/batch_4"
 
 # Files.
 #path_file_batch_instances="${path_directory_product}/batch_instances.txt"
@@ -48,6 +50,8 @@ path_script_batch_3="${path_directory_partner}/scripts/ldsc/estimate_gwas_geneti
 cd $path_directory_batch # execute batch from within this directory
 mkdir -p $path_directory_batch_1
 mkdir -p $path_directory_batch_2
+mkdir -p $path_directory_batch_3
+mkdir -p $path_directory_batch_4
 
 ################################################################################
 # Organize batch job instances.
@@ -122,6 +126,18 @@ if true; then
   $threads \
   $report \
   $path_script_batch_3
+
+  sbatch --array 0-$((index_array_maximum - 6000)):1 --chdir $path_directory_batch_3 \
+  $path_script_batch_2 \
+  $path_file_batch_instances \
+  $batch_instances_count \
+  6000 \
+  $path_directory_product \
+  $path_directory_disequilibrium \
+  $threads \
+  $report \
+  $path_script_batch_3
+
 fi
 
 
