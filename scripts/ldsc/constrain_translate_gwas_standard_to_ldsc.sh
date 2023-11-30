@@ -3,8 +3,8 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 23 December 2022
-# Date, last execution: 16 November 2023
-# Review: TCW; 16 November 2023
+# Date, last execution: 29 November 2023
+# Review: TCW; 29 November 2023
 ################################################################################
 # Note
 
@@ -89,6 +89,7 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
 # Polymorphisms that include "rsIDs" or unique identifiers composed of the
 # chromosome, base pair position, and allele (such as
 # "chromosome_position_allele").
+# effect allele: "A1"
 # https://github.com/bulik/ldsc/wiki/Heritability-and-Genetic-Correlation
 # https://github.com/bulik/ldsc/blob/master/munge_sumstats.py
 # https://github.com/bulik/ldsc/wiki/Summary-Statistics-File-Format
