@@ -3,8 +3,8 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 6 August 2022
-# Date, last execution: 16 November 2023
-# Review: TCW; 16 November 2023
+# Date, last execution: 30 November 2023
+# Review: TCW; 30 November 2023
 ################################################################################
 # Note
 
@@ -81,7 +81,7 @@ fi
 # Submit to Slurm Scheduler.
 # Indices in array of batch jobs start at zero.
 
-if true; then
+if false; then
   sbatch --array 0-${index_array_maximum}:1 --chdir $path_directory_batch_1 \
   $path_script_batch_2 \
   $path_file_batch_instances \
@@ -100,7 +100,7 @@ fi
 # SLURM will not allow an array index greater than "MaxArraySize".
 # It is necessary to split larger jobs.
 
-if false; then
+if true; then
   sbatch --array 0-3000:1 --chdir $path_directory_batch_1 \
   $path_script_batch_2 \
   $path_file_batch_instances \
