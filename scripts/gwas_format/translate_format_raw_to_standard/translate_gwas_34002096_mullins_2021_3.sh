@@ -4,12 +4,23 @@
 # Author: T. Cameron Waller
 # Date, first execution: 2 August 2023
 # Date, last execution: 2 August 2023
-# Review: TCW; 30 August 2023
+# Review: TCW; 5 December 2023
 ################################################################################
 # Note
 
 ################################################################################
 
+# Maximal value in column "$14" (cases): 25,207
+# Maximal value in column "$15" (controls): 515,930
+# Maximal value in column "$13" (half effective sample size): 32,694.69
+
+# Determine how many lines to skip.
+# $ zcat ./pgc-bip2021-BDI.vcf.tsv.gz | awk 'BEGIN{FS=" "; OFS=" "} NR>72{print $0}' | head -10
+
+# Determine maximal counts of observations (samples) for cases and controls.
+# $ zcat pgc-bip2021-BDI.vcf.tsv.gz | awk 'BEGIN{FS=" "; OFS=" "; a=0} NR>73{if ((toupper($13) != "NA") && (($13+0)>(a+0))) a=$13} END{print a}'
+# $ zcat pgc-bip2021-BDI.vcf.tsv.gz | awk 'BEGIN{FS=" "; OFS=" "; a=0} NR>73{if ((toupper($14) != "NA") && (($14+0)>(a+0))) a=$14} END{print a}'
+# $ zcat pgc-bip2021-BDI.vcf.tsv.gz | awk 'BEGIN{FS=" "; OFS=" "; a=0} NR>73{if ((toupper($15) != "NA") && (($15+0)>(a+0))) a=$15} END{print a}'
 
 
 ################################################################################
