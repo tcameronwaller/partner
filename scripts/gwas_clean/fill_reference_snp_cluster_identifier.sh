@@ -192,7 +192,7 @@ fi
 # It is not necessary to print the header row separately.
 #echo "identifier_merge ID CHROM POS ALT REF RS_ID SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_ftemp_merge_alt_ref
 awk 'FNR==NR{a[$1]=$2FS$3FS$4FS$5FS$6FS$7FS$8FS$9FS$10FS$11FS$12FS$13FS$14FS$15; next} {
-  if(a[$1]==""){a[$1]="NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"}; print $1, $2, $3, $4, $5, $6, $7, a[$1]}
+  if(a[$1]==""){a[$1]="NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"}; print $1, $2, $3, $4, $5, $6, $7, a[$1]}
 ' $path_ftemp_gwas_identifier_a1_a2 $path_ftemp_dbsnp_extraction_alt_ref > $path_ftemp_merge_alt_ref
 
 ##########
@@ -243,7 +243,7 @@ cat $path_ftemp_merge_alt_ref | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
 # It is not necessary to print the header row separately.
 #echo "identifier_merge ID CHROM POS ALT REF RS_ID ID_ar SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_ftemp_merge_ref_alt
 awk 'FNR==NR{a[$1]=$2FS$3FS$4FS$5FS$6FS$7FS$8FS$9FS$10FS$11FS$12FS$13FS$14FS$15FS$16FS$17FS$18; next} {
-  if(a[$1]==""){a[$1]="NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"}; print $1, $2, $3, $4, $5, $6, $7, a[$1]}
+  if(a[$1]==""){a[$1]="NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"}; print $1, $2, $3, $4, $5, $6, $7, a[$1]}
 ' $path_ftemp_merge_alt_ref_clean $path_ftemp_dbsnp_extraction_ref_alt > $path_ftemp_merge_ref_alt
 
 ##########
