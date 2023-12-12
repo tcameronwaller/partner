@@ -89,6 +89,10 @@ def calculate_heritability_observed_liability(
     Calculate the conversion of the SNP heritability and its standard error from
     the observed scale to the liability scale.
 
+    Consider implementing this conversion using a different distribution other
+    than the normal distribution. Consider the Gamma or log-normal
+    distributions.
+
     continuous normal random distribution: "scipy.stats.norm()" in Python SciPy
     probability density function (PDF): "dnorm()" in R; "pdf()" in Python SciPy
     cumulative density function (CDF): "pnorm()" in R; "cdf()" in Python SciPy
