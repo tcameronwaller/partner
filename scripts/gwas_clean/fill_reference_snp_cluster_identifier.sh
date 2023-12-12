@@ -181,6 +181,11 @@ fi
 # it might require the same identifiers in sort order.
 # For computational efficiency, the first file ought to be the subset of the
 # second file.
+# These merges print each row of Table 2 regardless of whether there is a record
+# with matching identifier in Table 1.
+# Table 2 ought to be the larger, more inclusive of the two tables.
+# After merges, be very careful not to filter and remove records from the
+# smaller, less inclusive, priority table, Table 1.
 
 # Merge 1.
 # Table 1: GWAS summary statistics
@@ -201,7 +206,8 @@ if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "----------"
   echo "----------"
-  echo "Table after Merge 1:"
+  echo "This is your chance to check merge accuracy!"
+  echo "Table immediately after Merge 1:"
   head -10 $path_ftemp_merge_alt_ref
   echo "----------"
   echo "----------"
@@ -218,13 +224,16 @@ cat $path_ftemp_merge_alt_ref | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   if ( NF != 21)
     # Skip any rows with incorrect count of column fields.
     next
-  else if ( $1 == "NA" )
-    # Missing identifier indicates that second file did not match first file.
+  else if ( ($1 == "NA") )
+    # Missing identifier indicates that records did not match or other problem.
     # Skip the record.
     next
-  else if (($9 != $3) || ($10 != $4) || ((toupper($11) != toupper($5)) && (toupper($11) != toupper($6))))
-    # Chromosome, position, or alleles do not match.
-    # Notice the comparison of A1 to both ALT and REF.
+  else if ( ($9 == "NA") && ($10 == "NA") && ($11 == "NA") && ($12 == "NA") )
+    # Missingness of match criteria indicates that matching record identifier
+    # was missing from the smaller and less inclusive priority table, Table 1.
+    # Information in this record is only from the larger, more inclusive table,
+    # Table 2.
+    # Skip the record.
     next
   else
     # Keep record from successful merge.
@@ -252,7 +261,8 @@ if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "----------"
   echo "----------"
-  echo "Table after Merge 2:"
+  echo "This is your chance to check merge accuracy!"
+  echo "Table immediately after Merge 2:"
   head -10 $path_ftemp_merge_ref_alt
   echo "----------"
   echo "----------"
@@ -269,13 +279,16 @@ cat $path_ftemp_merge_ref_alt | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   if ( NF != 24)
     # Skip any rows with incorrect count of column fields.
     next
-  else if ( $1 == "NA" )
-    # Missing identifier indicates that second file did not match first file.
+  else if ( ($1 == "NA") )
+    # Missing identifier indicates that records did not match or other problem.
     # Skip the record.
     next
-  else if (($12 != $3) || ($13 != $4) || ((toupper($14) != toupper($5)) && (toupper($14) != toupper($6))))
-    # Chromosome, position, or alleles do not match.
-    # Notice the comparison of A1 to both ALT and REF.
+  else if ( ($12 == "NA") && ($13 == "NA") && ($14 == "NA") && ($15 == "NA") )
+    # Missingness of match criteria indicates that matching record identifier
+    # was missing from the smaller and less inclusive priority table, Table 1.
+    # Information in this record is only from the larger, more inclusive table,
+    # Table 2.
+    # Skip the record.
     next
   else
     # Keep record from successful merge.
@@ -302,7 +315,7 @@ cat $path_ftemp_merge_ref_alt_clean | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
     # Use Merge 2: REF_ALT
     print $1, $2, $3, $4, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21
   else
-    # Skip any row for which chromosome, position, or alleles do not match.
+    # Skip any row for which source alleles do not match either combination.
     next
 }' >> $path_ftemp_merge_priority
 
