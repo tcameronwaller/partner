@@ -74,7 +74,6 @@ path_ftemp_merge_alt_ref_clean="${path_directory_temporary}/merge_alt_ref_clean.
 path_ftemp_merge_ref_alt="${path_directory_temporary}/merge_ref_alt.txt"
 path_ftemp_merge_ref_alt_clean="${path_directory_temporary}/merge_ref_alt_clean.txt"
 path_ftemp_merge_priority="${path_directory_temporary}/merge_priority.txt"
-path_ftemp_merge_priority_clean="${path_directory_temporary}/merge_priority_clean.txt"
 path_ftemp_product_format="${path_directory_temporary}/gwas_product_format.txt"
 
 # Initialize files.
@@ -121,7 +120,7 @@ if false; then
 
 
   ##########
-  # 2. For dbSNP, assemble information with unique identifiers specific to site
+  # 2.1. For dbSNP, assemble information with unique identifiers specific to site
   # (chromosome, position) and both reference and alternate alleles.
 
   # Identifier format: <CHROM>_<POS>_<ALT>_<REF>
@@ -136,6 +135,7 @@ if false; then
     print ($2"_"$3"_"$5"_"$4), $1, $2, $3, $4, $5, $6
   }' >> $path_ftemp_dbsnp_extraction_ref_alt
 fi
+
 
 
 ##########
@@ -195,59 +195,26 @@ awk 'FNR==NR{a[$1]=$2FS$3FS$4FS$5FS$6FS$7FS$8FS$9FS$10FS$11FS$12FS$13FS$14FS$15;
   if(a[$1]==""){a[$1]="NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"}; print $1, $2, $3, $4, $5, $6, $7, a[$1]}
 ' $path_ftemp_gwas_identifier_a1_a2 $path_ftemp_dbsnp_extraction_alt_ref > $path_ftemp_merge_alt_ref
 
-# Change column names to clarify.
-echo "identifier_merge ID_ar CHROM_ar POS_ar ALT_ar REF_ar RS_ID_ar SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_ftemp_merge_alt_ref_clean
-cat $path_ftemp_merge_alt_ref | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-  print $0
-}' >> $path_ftemp_merge_alt_ref_clean
+##########
+# Report.
+if [[ "$report" == "true" ]]; then
+  echo "----------"
+  echo "----------"
+  echo "----------"
+  echo "Table after Merge 1:"
+  head -10 $path_ftemp_merge_alt_ref
+  echo "----------"
+  echo "----------"
+  echo "----------"
+fi
 
-# Merge 2.
-# Table 1: Table from Merge 1.
-# Table 1: 21 total columns with merge identifier in column 1.
-# Table 2: dbSNP extraction with identifier format <CHROM>_<POS>_<REF>_<ALT>.
-# Table 2: 7 total columns with merge identifier in column 1.
-# Merged table: 27 total columns with merge identifier in column 1.
-# Delimiter: Space
-# It is not necessary to print the header row separately.
-#echo "identifier_merge ID CHROM POS ALT REF RS_ID ID_ar CHROM_ar POS_ar ALT_ar REF_ar RS_ID_ar SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_ftemp_merge_ref_alt
-awk 'FNR==NR{a[$1]=$2FS$3FS$4FS$5FS$6FS$7FS$8FS$9FS$10FS$11FS$12FS$13FS$14FS$15FS$16FS$17FS$18FS$19FS$20FS$21; next} {
-  if(a[$1]==""){a[$1]="NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"}; print $1, $2, $3, $4, $5, $6, $7, a[$1]}
-' $path_ftemp_merge_alt_ref_clean $path_ftemp_dbsnp_extraction_ref_alt > $path_ftemp_merge_ref_alt
-
-# Change column names to clarify.
-echo "identifier_merge ID_ra CHROM_ra POS_ra ALT_ra REF_ra RS_ID_ra ID_ar CHROM_ar POS_ar ALT_ar REF_ar RS_ID_ar SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_ftemp_merge_ref_alt_clean
-cat $path_ftemp_merge_ref_alt | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-  print $0
-}' >> $path_ftemp_merge_ref_alt_clean
-
-# $1               $2    $3       $4     $5     $6     $7       $8    $9       $10    $11    $12    $13      $14 $15 $16 $17 $18 $19  $20  $21 $22 $23 $24 $25  $26   $27
-# identifier_merge ID_ra CHROM_ra POS_ra ALT_ra REF_ra RS_ID_ra ID_ar CHROM_ar POS_ar ALT_ar REF_ar RS_ID_ar SNP CHR BP  A1  A2  A1AF BETA SE  P   N   Z   INFO NCASE NCONT" > $path_ftemp_merge_ref_alt_clean
-
-# Determine whether to keep information from Merge 1 or Merge 2.
-echo "identifier_merge ID CHROM POS ALT REF RS_ID SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_ftemp_merge_priority
-cat $path_ftemp_merge_ref_alt_clean | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
-  if ( NF != 27)
-    # Skip any rows with incorrect count of column fields.
-    next
-  else if (($15 == $9) && ($16 == $10) && ($17 == $11) && ($18 == $12))
-    # A1 = ALT
-    # A2 = REF
-    # Use Merge 1: ALT_REF
-    print $1, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27
-  else if (($15 == $3) && ($16 == $4) && ($17 == $6) && ($18 == $5))
-    # A1 = REF
-    # A2 = ALT
-    # Use Merge 2: REF_ALT
-    print $1, $2, $3, $4, $5, $6, $7, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27
-  else
-    # Skip any row for which chromosome, position, or alleles do not match.
-    next
-}' >> $path_ftemp_merge_priority
+# $1               $2 $3    $4  $5  $6  $7    $8  $9  $10 $11 $12 $13  $14  $15 $16 $17 $18 $19  $20   $21
+# identifier_merge ID CHROM POS ALT REF RS_ID SNP CHR BP  A1  A2  A1AF BETA SE  P   N   Z   INFO NCASE NCONT
 
 # Check and filter the information from the merge.
-# echo "identifier_merge ID CHROM POS ALT REF RS_ID SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_ftemp_merge_priority_clean
-cat $path_ftemp_merge_priority | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_ftemp_merge_priority_clean
-cat $path_ftemp_merge_priority | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
+echo "identifier_merge ID_ar ALT_ar REF_ar SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_ftemp_merge_alt_ref_clean
+#cat $path_ftemp_merge_alt_ref | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_ftemp_merge_alt_ref_clean
+cat $path_ftemp_merge_alt_ref | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   if ( NF != 21)
     # Skip any rows with incorrect count of column fields.
     next
@@ -261,10 +228,86 @@ cat $path_ftemp_merge_priority | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
     next
   else
     # Keep record from successful merge.
-    print $0
-}' >> $path_ftemp_merge_priority_clean
+    print $1, $2, $5, $6, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21
+}' >> $path_ftemp_merge_alt_ref_clean
 
 
+
+# Merge 2.
+# Table 1: Table from Merge 1.
+# Table 1: 18 total columns with merge identifier in column 1.
+# Table 2: dbSNP extraction with identifier format <CHROM>_<POS>_<REF>_<ALT>.
+# Table 2: 7 total columns with merge identifier in column 1.
+# Merged table: 24 total columns with merge identifier in column 1.
+# Delimiter: Space
+# It is not necessary to print the header row separately.
+#echo "identifier_merge ID CHROM POS ALT REF RS_ID ID_ar SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_ftemp_merge_ref_alt
+awk 'FNR==NR{a[$1]=$2FS$3FS$4FS$5FS$6FS$7FS$8FS$9FS$10FS$11FS$12FS$13FS$14FS$15FS$16FS$17FS$18; next} {
+  if(a[$1]==""){a[$1]="NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"}; print $1, $2, $3, $4, $5, $6, $7, a[$1]}
+' $path_ftemp_merge_alt_ref_clean $path_ftemp_dbsnp_extraction_ref_alt > $path_ftemp_merge_ref_alt
+
+##########
+# Report.
+if [[ "$report" == "true" ]]; then
+  echo "----------"
+  echo "----------"
+  echo "----------"
+  echo "Table after Merge 2:"
+  head -10 $path_ftemp_merge_ref_alt
+  echo "----------"
+  echo "----------"
+  echo "----------"
+fi
+
+# $1               $2 $3    $4  $5  $6  $7    $8    $9     $10    $11 $12 $13 $14 $15 $16  $17  $18 $19 $20 $21 $22  $23   $24
+# identifier_merge ID CHROM POS ALT REF RS_ID ID_ar ALT_ar REF_ar SNP CHR BP  A1  A2  A1AF BETA SE  P   N   Z   INFO NCASE NCONT
+
+# Check and filter the information from the merge.
+echo "identifier_merge ID_ra ALT_ra REF_ra ID_ar ALT_ar REF_ar SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_ftemp_merge_ref_alt_clean
+#cat $path_ftemp_merge_ref_alt | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_ftemp_merge_ref_alt_clean
+cat $path_ftemp_merge_ref_alt | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
+  if ( NF != 24)
+    # Skip any rows with incorrect count of column fields.
+    next
+  else if ( $1 == "NA" )
+    # Missing identifier indicates that second file did not match first file.
+    # Skip the record.
+    next
+  else if (($12 != $3) || ($13 != $4) || ((toupper($14) != toupper($5)) && (toupper($14) != toupper($6))))
+    # Chromosome, position, or alleles do not match.
+    # Notice the comparison of A1 to both ALT and REF.
+    next
+  else
+    # Keep record from successful merge.
+    print $1, $2, $5, $6, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24
+}' >> $path_ftemp_merge_ref_alt_clean
+
+# $1               $2    $3     $4     $5    $6     $7     $8  $9  $10 $11 $12 $13  $14  $15 $16 $17 $18 $19  $20   $21
+# identifier_merge ID_ra ALT_ra REF_ra ID_ar ALT_ar REF_ar SNP CHR BP  A1  A2  A1AF BETA SE  P   N   Z   INFO NCASE NCONT
+
+# Determine whether to keep information from Merge 1 or Merge 2.
+echo "identifier_merge ID ALT REF SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_ftemp_merge_priority
+cat $path_ftemp_merge_ref_alt_clean | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
+  if ( NF != 21)
+    # Skip any rows with incorrect count of column fields.
+    next
+  else if (($11 == $6) && ($12 == $7))
+    # A1 = ALT
+    # A2 = REF
+    # Use Merge 1: ALT_REF
+    print $1, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21
+  else if (($11 == $4) && ($12 == $3))
+    # A1 = REF
+    # A2 = ALT
+    # Use Merge 2: REF_ALT
+    print $1, $2, $3, $4, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21
+  else
+    # Skip any row for which chromosome, position, or alleles do not match.
+    next
+}' >> $path_ftemp_merge_priority
+
+# $1               $2 $3  $4  $5  $6  $7 $8 $9 $10  $11  $12 $13 $14 $15 $16  $17   $18
+# identifier_merge ID ALT REF SNP CHR BP A1 A2 A1AF BETA SE  P   N   Z   INFO NCASE NCONT
 
 ##########
 # Report.
@@ -273,7 +316,7 @@ if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "----------"
   echo "Table after Merge 1, Merge 2, and prioritization:"
-  head -10 $path_ftemp_merge_priority_clean
+  head -10 $path_ftemp_merge_priority
   echo "----------"
   echo "----------"
   echo "----------"
@@ -285,8 +328,8 @@ fi
 # 5. Adjust format of product GWAS summary statistics.
 
 echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_ftemp_product_format
-cat $path_ftemp_merge_priority_clean | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-  print $2, $9, $10, toupper($11), toupper($12), $13, $14, $15, $16, $17, $18, $19, $20, $21
+cat $path_ftemp_merge_priority | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+  print $2, $6, $7, toupper($8), toupper($9), $10, $11, $12, $13, $14, $15, $16, $17, $18
 }' >> $path_ftemp_product_format
 
 # Compress file format.
