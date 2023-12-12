@@ -4,9 +4,14 @@
 # Author: T. Cameron Waller
 # Date, first execution: 22 February 2023
 # Date, last execution: 2 August 2023
-# Review: TCW; 2 August 2023
+# Review: TCW; 12 December 2023
 ################################################################################
 # Note
+
+# Note: TCW; 12 December 2023
+# I suspect errors in the merge of tables by GNU awk such that the GWAS summary
+# statistics might lose SNPs unnecessarily. Refer to script
+# "fill_reference_snp_cluster_identifier.sh" for comparison.
 
 # This script extracts from genomic variation (Variant Call Format; VCF) in
 # Phase 3 of the 1000 Genomes Project frequencies of alternate alleles for the
