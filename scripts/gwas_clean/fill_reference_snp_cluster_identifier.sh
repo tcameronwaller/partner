@@ -240,6 +240,19 @@ cat $path_ftemp_merge_alt_ref | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
     print $1, $2, $5, $6, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21
 }' >> $path_ftemp_merge_alt_ref_clean
 
+##########
+# Report.
+if [[ "$report" == "true" ]]; then
+  echo "----------"
+  echo "----------"
+  echo "----------"
+  echo "Table after Merge 1 and subsequent filters:"
+  head -10 $path_ftemp_merge_alt_ref_clean
+  echo "----------"
+  echo "----------"
+  echo "----------"
+fi
+
 
 
 # Merge 2.
@@ -294,6 +307,21 @@ cat $path_ftemp_merge_ref_alt | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
     # Keep record from successful merge.
     print $1, $2, $5, $6, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24
 }' >> $path_ftemp_merge_ref_alt_clean
+
+##########
+# Report.
+if [[ "$report" == "true" ]]; then
+  echo "----------"
+  echo "----------"
+  echo "----------"
+  echo "Table after Merge 2 and subsequent filters:"
+  head -10 $path_ftemp_merge_ref_alt_clean
+  echo "----------"
+  echo "----------"
+  echo "----------"
+fi
+
+
 
 # $1               $2    $3     $4     $5    $6     $7     $8  $9  $10 $11 $12 $13  $14  $15 $16 $17 $18 $19  $20   $21
 # identifier_merge ID_ra ALT_ra REF_ra ID_ar ALT_ar REF_ar SNP CHR BP  A1  A2  A1AF BETA SE  P   N   Z   INFO NCASE NCONT
