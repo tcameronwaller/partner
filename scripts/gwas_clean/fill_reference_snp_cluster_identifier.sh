@@ -267,6 +267,21 @@ cat $path_ftemp_merge_priority | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
 
 
 ##########
+# Report.
+if [[ "$report" == "true" ]]; then
+  echo "----------"
+  echo "----------"
+  echo "----------"
+  echo "Table after Merge 1, Merge 2, and prioritization:"
+  head -10 $path_ftemp_merge_priority_clean
+  echo "----------"
+  echo "----------"
+  echo "----------"
+fi
+
+
+
+##########
 # 5. Adjust format of product GWAS summary statistics.
 
 echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_ftemp_product_format
@@ -306,6 +321,8 @@ if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "----------"
 fi
+
+
 
 ################################################################################
 # Remove temporary, intermediate directories and files.
