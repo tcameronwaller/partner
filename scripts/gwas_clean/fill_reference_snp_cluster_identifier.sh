@@ -3,8 +3,8 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 11 December 2023
-# Date, last execution: 11 December 2023
-# Review: 11 December 2023
+# Date, last execution: 12 December 2023
+# Review: 12 December 2023
 ################################################################################
 # Notes:
 
@@ -22,6 +22,9 @@
 # the effect allele corresponds to the directionality of the GWAS association
 # effect parameter (beta).
 
+# The script below is a companion to perform the first few operations of this
+# script to save time in subsequent iterations.
+# "/.../partner/scripts/bcftools/extract_dbsnp_biallelic_sites_allele_identifiers.sh"
 
 
 ################################################################################
@@ -52,12 +55,19 @@ path_directory_temporary="${path_directory_product}/temporary_2713956_${name_bas
 
 # Files.
 path_file_reference_dbsnp="${path_directory_reference_dbsnp}/GCF_000001405.25.gz" # dbSNP build 155; accession: TCW; 2023-02-06; chromosome translation: TCW; 2023-02-15
+if true; then
+  path_ftemp_dbsnp_extraction="${path_directory_reference_dbsnp}/dbsnp_extraction.txt"
+  path_ftemp_dbsnp_extraction_alt_ref="${path_directory_reference_dbsnp}/dbsnp_extraction_alt_ref.txt"
+  path_ftemp_dbsnp_extraction_ref_alt="${path_directory_reference_dbsnp}/dbsnp_extraction_ref_alt.txt"
+fi
 
 # Temporary files.
-path_ftemp_dbsnp_biallelic_sites="${path_directory_temporary}/dbsnp_biallelic_sites.vcf.gz"
-path_ftemp_dbsnp_extraction="${path_directory_temporary}/dbsnp_extraction.txt"
-path_ftemp_dbsnp_extraction_alt_ref="${path_directory_temporary}/dbsnp_extraction_alt_ref.txt"
-path_ftemp_dbsnp_extraction_ref_alt="${path_directory_temporary}/dbsnp_extraction_ref_alt.txt"
+if false; then
+  path_ftemp_dbsnp_biallelic_sites="${path_directory_temporary}/dbsnp_biallelic_sites.vcf.gz"
+  path_ftemp_dbsnp_extraction="${path_directory_temporary}/dbsnp_extraction.txt"
+  path_ftemp_dbsnp_extraction_alt_ref="${path_directory_temporary}/dbsnp_extraction_alt_ref.txt"
+  path_ftemp_dbsnp_extraction_ref_alt="${path_directory_temporary}/dbsnp_extraction_ref_alt.txt"
+fi
 path_ftemp_gwas_identifier_a1_a2="${path_directory_temporary}/gwas_source_identifier_a1_a2.txt"
 path_ftemp_merge_alt_ref="${path_directory_temporary}/merge_alt_ref.txt"
 path_ftemp_merge_alt_ref_clean="${path_directory_temporary}/merge_alt_ref_clean.txt"
@@ -96,35 +106,36 @@ cd $path_directory_product
 # 7     70000 rs1041172676     G     A,C     ...     RS=1041172676;dbSNPBuildID=155;...
 # 7     70010 rs1282455439     A     C       ...     RS=1282455439;dbSNPBuildID=155;...
 
-# For simplicity, filter to sites (loci) that only have two allelic variants
-# (biallelic sites).
-#$path_bcftools norm --multiallelics +snps $path_file_reference_1kg_vcf | $path_bcftools view --no-header --min-alleles 2 --max-alleles 2 --types snps | head -10
-$path_bcftools norm --multiallelics +snps $path_file_reference_dbsnp | $path_bcftools view --min-alleles 2 --max-alleles 2 --types snps > $path_ftemp_dbsnp_biallelic_sites
+if false; then
+  # For simplicity, filter to sites (loci) that only have two allelic variants
+  # (biallelic sites).
+  #$path_bcftools norm --multiallelics +snps $path_file_reference_1kg_vcf | $path_bcftools view --no-header --min-alleles 2 --max-alleles 2 --types snps | head -10
+  $path_bcftools norm --multiallelics +snps $path_file_reference_dbsnp | $path_bcftools view --min-alleles 2 --max-alleles 2 --types snps > $path_ftemp_dbsnp_biallelic_sites
 
-# Extract relevant information to a flat text table.
-# https://samtools.github.io/bcftools/howtos/query.html
-#$path_bcftools query -f '%ID %CHROM %POS %REF %ALT %INFO/EUR\n' $path_ftemp_dbsnp_biallelic_sites | head -10
-echo "ID CHROM POS ALT REF RS_ID" > $path_ftemp_dbsnp_extraction
-$path_bcftools query -f '%ID %CHROM %POS %ALT %REF %INFO/RS\n' $path_ftemp_dbsnp_biallelic_sites >> $path_ftemp_dbsnp_extraction
+  # Extract relevant information to a flat text table.
+  # https://samtools.github.io/bcftools/howtos/query.html
+  #$path_bcftools query -f '%ID %CHROM %POS %REF %ALT %INFO/EUR\n' $path_ftemp_dbsnp_biallelic_sites | head -10
+  echo "ID CHROM POS ALT REF RS_ID" > $path_ftemp_dbsnp_extraction
+  $path_bcftools query -f '%ID %CHROM %POS %ALT %REF %INFO/RS\n' $path_ftemp_dbsnp_biallelic_sites >> $path_ftemp_dbsnp_extraction
 
 
 
-##########
-# 2. For dbSNP, assemble information with unique identifiers specific to site
-# (chromosome, position) and both reference and alternate alleles.
+  ##########
+  # 2. For dbSNP, assemble information with unique identifiers specific to site
+  # (chromosome, position) and both reference and alternate alleles.
 
-# Identifier format: <CHROM>_<POS>_<ALT>_<REF>
-echo "identifier_merge ID CHROM POS ALT REF RS_ID" > $path_ftemp_dbsnp_extraction_alt_ref
-cat $path_ftemp_dbsnp_extraction | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-  print ($2"_"$3"_"$4"_"$5), $1, $2, $3, $4, $5, $6
-}' >> $path_ftemp_dbsnp_extraction_alt_ref
+  # Identifier format: <CHROM>_<POS>_<ALT>_<REF>
+  echo "identifier_merge ID CHROM POS ALT REF RS_ID" > $path_ftemp_dbsnp_extraction_alt_ref
+  cat $path_ftemp_dbsnp_extraction | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+    print ($2"_"$3"_"$4"_"$5), $1, $2, $3, $4, $5, $6
+  }' >> $path_ftemp_dbsnp_extraction_alt_ref
 
-# Identifier format: <CHROM>_<POS>_<REF>_<ALT>
-echo "identifier_merge ID CHROM POS ALT REF RS_ID" > $path_ftemp_dbsnp_extraction_ref_alt
-cat $path_ftemp_dbsnp_extraction | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-  print ($2"_"$3"_"$5"_"$4), $1, $2, $3, $4, $5, $6
-}' >> $path_ftemp_dbsnp_extraction_ref_alt
-
+  # Identifier format: <CHROM>_<POS>_<REF>_<ALT>
+  echo "identifier_merge ID CHROM POS ALT REF RS_ID" > $path_ftemp_dbsnp_extraction_ref_alt
+  cat $path_ftemp_dbsnp_extraction | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+    print ($2"_"$3"_"$5"_"$4), $1, $2, $3, $4, $5, $6
+  }' >> $path_ftemp_dbsnp_extraction_ref_alt
+fi
 
 
 ##########
