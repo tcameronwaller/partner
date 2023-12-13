@@ -460,14 +460,14 @@ gzip -cvf $path_ftemp_product_format > $path_file_gwas_product
 if [[ "$report" == "true" ]]; then
   count_source=$(zcat $path_file_gwas_source | wc -l)
   count_product=$(zcat $path_file_gwas_product | wc -l)
+  percentage_poduct=$(echo "scale=5; ($count_product / $count_source) * 100" | bc)
   count_difference=$(($count_source - $count_product))
-  proportion_poduct=$(echo "scale=5; ($count_product / $count_source)" | bc)
   echo "----------"
   echo "----------"
   echo "----------"
   echo "Script:"
   echo $0 # Print full file path to script.
-  echo "Filter and constrain values in GWAS summary statistics."
+  echo "Fill dbSNP rsIDs for SNPs in GWAS summary statistics."
   echo "----------"
   echo "path to source GWAS file: " $path_file_gwas_source
   echo "path to product GWAS file: " $path_file_gwas_product
@@ -481,7 +481,7 @@ if [[ "$report" == "true" ]]; then
   echo "- - Count of lines in product table: " $count_product
   echo "----------"
   echo "Count of lost lines (difference): " $count_difference
-  echo "Proportion of kept lines: " $proportion_product
+  echo "Percentage of kept lines: " $percentage_product "%"
   echo "----------"
   echo "----------"
   echo "----------"
