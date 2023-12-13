@@ -414,6 +414,9 @@ if true; then
   }' >> $path_ftemp_merge_priority_check
   # Report.
   if [[ "$report" == "true" ]]; then
+    count_check=$(cat $path_ftemp_merge_priority_check | wc -l)
+    count_total=$(cat $path_ftemp_merge_priority_clean | wc -l)
+    percentage_check=$(echo "scale=5; ($count_check / $count_total) * 100" | bc)
     echo "----------"
     echo "----------"
     echo "----------"
@@ -422,13 +425,11 @@ if true; then
     echo "proportion of the rsIDs extracted from dbSNP that match the"
     echo "originals."
     echo "----------"
-    echo "Table that only includes SNPs for which source rsID does not match the dbSNP rsID:"
+    echo "Table that only includes SNPs for which the dbSNP rsID does not match"
+    echo "the source rsID:"
     echo "----------"
     head -5 $path_ftemp_merge_priority_check
     echo "----------"
-    count_check=$(cat $path_ftemp_merge_priority_check | wc -l)
-    count_total=$(cat $path_ftemp_merge_priority_clean | wc -l)
-    percentage_check=$(echo "scale=5; ($count_check / $count_total) * 100" | bc)
     echo "lines that do not match: " $count_check
     echo "lines total: " $count_total
     echo "percentage that do not match: " $percentage_check "%"
@@ -460,7 +461,7 @@ if [[ "$report" == "true" ]]; then
   count_source=$(zcat $path_file_gwas_source | wc -l)
   count_product=$(zcat $path_file_gwas_product | wc -l)
   count_difference=$(($count_source - $count_product))
-  percentage_poduct=$(echo "scale=5; ($count_product / $count_source) * 100" | bc)
+  proportion_poduct=$(echo "scale=5; ($count_product / $count_source)" | bc)
   echo "----------"
   echo "----------"
   echo "----------"
@@ -480,7 +481,7 @@ if [[ "$report" == "true" ]]; then
   echo "- - Count of lines in product table: " $count_product
   echo "----------"
   echo "Count of lost lines (difference): " $count_difference
-  echo "Percentage of lost lines: " $percentage_product "%"
+  echo "Proportion of kept lines: " $proportion_product
   echo "----------"
   echo "----------"
   echo "----------"
