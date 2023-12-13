@@ -74,6 +74,7 @@ path_ftemp_merge_alt_ref_clean="${path_directory_temporary}/merge_alt_ref_clean.
 path_ftemp_merge_ref_alt="${path_directory_temporary}/merge_ref_alt.txt"
 path_ftemp_merge_ref_alt_clean="${path_directory_temporary}/merge_ref_alt_clean.txt"
 path_ftemp_merge_priority="${path_directory_temporary}/merge_priority.txt"
+path_ftemp_merge_priority_clean="${path_directory_temporary}/merge_priority_clean.txt"
 path_ftemp_product_format="${path_directory_temporary}/gwas_product_format.txt"
 
 # Initialize files.
@@ -385,6 +386,14 @@ if true; then
       next
   }' >> $path_ftemp_merge_priority
 fi
+echo "identifier_merge SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT ID CHROM POS ALT REF" > $path_ftemp_merge_priority_clean
+cat $path_ftemp_merge_priority | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
+  if ( index($16, ";") != 0)
+    # Skip any rows with incorrect count of column fields.
+    (a = $16); split(a, b, ";"); print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, b[1], $17, $18, $19, $20
+  else
+    print $0
+}' >> $path_ftemp_merge_priority_clean
 
 
 
@@ -397,8 +406,8 @@ if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "----------"
   echo "Table after Merge 1, Merge 2, and prioritization:"
-  head -10 $path_ftemp_merge_priority
-  cat $path_ftemp_merge_priority | wc -l
+  head -10 $path_ftemp_merge_priority_clean
+  cat $path_ftemp_merge_priority_clean | wc -l
   echo "----------"
   echo "----------"
   echo "----------"
@@ -413,7 +422,7 @@ fi
 # 5. Adjust format of product GWAS summary statistics.
 
 echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_ftemp_product_format
-cat $path_ftemp_merge_priority | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+cat $path_ftemp_merge_priority_clean | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
   print $16, $3, $4, toupper($5), toupper($6), $7, $8, $9, $10, $11, $12, $13, $14, $15
 }' >> $path_ftemp_product_format
 
