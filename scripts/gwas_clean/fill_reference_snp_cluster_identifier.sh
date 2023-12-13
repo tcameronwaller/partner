@@ -374,7 +374,7 @@ if false; then
   }' >> $path_ftemp_merge_priority
 fi
 if false; then
-  cat $path_ftemp_merge_ref_alt | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
+  cat $path_ftemp_merge_ref_alt_clean | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
     if ( NF != 25)
       next
     else if ( ($3 == $17) && ($4 == $18) && ($5 == $19) && ($6 == $20) )
@@ -383,14 +383,14 @@ if false; then
       print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $21, $22, $23, $24, $25
     else
       next
-  }' >> $path_ftemp_merge_ref_alt_clean
+  }' >> $path_ftemp_merge_priority
 fi
-cat $path_ftemp_merge_ref_alt | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
+cat $path_ftemp_merge_ref_alt_clean | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   if ( NF != 25)
     next
   else
     print $0
-}' >> $path_ftemp_merge_ref_alt_clean
+}' >> $path_ftemp_merge_priority
 
 
 
