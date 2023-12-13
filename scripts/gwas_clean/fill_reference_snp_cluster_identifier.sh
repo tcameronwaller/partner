@@ -29,6 +29,15 @@
 # script to save time in subsequent iterations.
 # "/.../partner/scripts/bcftools/extract_dbsnp_biallelic_sites_allele_identifiers.sh"
 
+# TODO: TCW; 13 December 2023
+# Write out two different "product files"...
+# 1. Filtered to include only SNPs that had matching rsIDs from dbSNP
+#   - This table is useful for a count of the "successful" SNPs if nothing else.
+# 2. All SNPs from the original GWAS sum stats regardless.
+#   - Subsequent procedures might be able to use more SNPs.
+# IDEA: --> introduce an argument "strict" to determine whether to write out all SNPs or only matching
+
+
 ##########
 # Standard format of GWAS summary statistics.
 # This is the obligatory format of the source and product GWAS summary
