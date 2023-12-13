@@ -276,21 +276,21 @@ if false; then
     if(a[$1]==""){a[$1]="NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"}; print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, a[$1]}
   ' $path_ftemp_dbsnp_extraction_ref_alt $path_ftemp_merge_alt_ref_clean > $path_ftemp_merge_ref_alt
 
-  ##########
-  # Report.
-  if [[ "$report" == "true" ]]; then
-    echo "----------"
-    echo "----------"
-    echo "----------"
-    echo "This is your chance to check merge accuracy!"
-    echo "Table immediately after Merge 2:"
-    head -10 $path_ftemp_merge_ref_alt
-    cat $path_ftemp_merge_ref_alt | wc -l
-    echo "----------"
-    echo "----------"
-    echo "----------"
-  fi
+fi
 
+##########
+# Report.
+if [[ "$report" == "true" ]]; then
+  echo "----------"
+  echo "----------"
+  echo "----------"
+  echo "This is your chance to check merge accuracy!"
+  echo "Table immediately after Merge 2:"
+  head -10 $path_ftemp_merge_ref_alt
+  cat $path_ftemp_merge_ref_alt | wc -l
+  echo "----------"
+  echo "----------"
+  echo "----------"
 fi
 
 # $1               $2  $3  $4 $5 $6 $7   $8   $9 $10 $11 $12 $13  $14   $15   $16   $17      $18    $19    $20    $21 $22   $23 $24 $25 $26
