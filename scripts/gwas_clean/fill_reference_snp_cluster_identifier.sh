@@ -351,48 +351,33 @@ fi
 
 # Determine whether to keep information from Merge 1 or Merge 2.
 # First print conditional block: A1 is ALT, A2 is REF, use Merge 1
-# A1 is ALT
-# A2 is REF
-# Use Merge 1: ALT_REF
 # Second print conditional block: A1 is REF, A2 is ALT, use Merge 2
-# A1 is REF
-# A2 is ALT
-# Use Merge 2: REF_ALT
 # https://www.gnu.org/software/gawk/manual/html_node/String-Functions.html
 echo "identifier_merge SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT ID CHROM POS ALT REF" > $path_ftemp_merge_priority
-if false; then
-  cat $path_ftemp_merge_ref_alt_clean | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
-    if ( NF != 25)
-      # Skip any rows with incorrect count of column fields.
-      next
-    else if ( ($3 == $17) && ($4 == $18) && ($5 == $19) && ($6 == $20) )
-      (a = $16); split(a, b, ";"); print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, b[1], $17, $18, $19, $20
-    else if ( ($3 == $22) && ($4 == $23) && ($5 == $25) && ($6 == $24) )
-      (a = $21); split(a, b, ";"); print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, b[1], $22, $23, $24, $25
-    else
-      # Skip any row for which source alleles do not match either combination.
-      next
-  }' >> $path_ftemp_merge_priority
-fi
-if true; then
-  cat $path_ftemp_merge_ref_alt_clean | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
-    if ( NF != 25)
-      next
-    else if ( ($3 == $17) && ($4 == $18) && ($5 == $19) && ($6 == $20) )
-      print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20
-    else if ( ($3 == $22) && ($4 == $23) && ($5 == $25) && ($6 == $24) )
-      print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $21, $22, $23, $24, $25
-    else
-      next
-  }' >> $path_ftemp_merge_priority
-fi
-# index($16, "\;") != 0
+cat $path_ftemp_merge_ref_alt_clean | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
+  if ( NF != 25)
+    # Skip any rows with incorrect count of column fields.
+    next
+  else if ( ($3 == $17) && ($4 == $18) && ($5 == $19) && ($6 == $20) )
+    # A1 is ALT
+    # A2 is REF
+    # Use Merge 1: ALT_REF
+    print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20
+  else if ( ($3 == $22) && ($4 == $23) && ($5 == $25) && ($6 == $24) )
+    # A1 is REF
+    # A2 is ALT
+    # Use Merge 2: REF_ALT
+    print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $21, $22, $23, $24, $25
+  else
+    # Skip any row for which source alleles do not match either combination.
+    next
+}' >> $path_ftemp_merge_priority
+# GNU Awk can only handle a few operations at a time.
+# Split delimited lists of identifiers and keep only the first.
 echo "identifier_merge SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT ID CHROM POS ALT REF" > $path_ftemp_merge_priority_clean
 cat $path_ftemp_merge_priority | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
-  (a = $16); split(a, b, ";"); print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, b[1], $17, $18, $19, $20;
+  (a = $16); split(a, b, ";"); print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, b[1], $17, $18, $19, $20
 }' >> $path_ftemp_merge_priority_clean
-
-
 
 
 
