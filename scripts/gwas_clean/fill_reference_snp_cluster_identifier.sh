@@ -416,7 +416,7 @@ if true; then
   if [[ "$report" == "true" ]]; then
     count_check=$(cat $path_ftemp_merge_priority_check | wc -l)
     count_total=$(cat $path_ftemp_merge_priority_clean | wc -l)
-    percentage_check=$(echo "scale=5; ($count_check / $count_total) * 100" | bc)
+    percentage_check=$(echo "scale=5; ($count_check / $count_total) * 100" | bc -l)
     echo "----------"
     echo "----------"
     echo "----------"
