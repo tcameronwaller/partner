@@ -373,7 +373,7 @@ if false; then
       next
   }' >> $path_ftemp_merge_priority
 fi
-if false; then
+if true; then
   cat $path_ftemp_merge_ref_alt_clean | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
     if ( NF != 25)
       next
@@ -385,12 +385,6 @@ if false; then
       next
   }' >> $path_ftemp_merge_priority
 fi
-cat $path_ftemp_merge_ref_alt_clean | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
-  if ( NF != 25)
-    next
-  else
-    print $0
-}' >> $path_ftemp_merge_priority
 
 
 
