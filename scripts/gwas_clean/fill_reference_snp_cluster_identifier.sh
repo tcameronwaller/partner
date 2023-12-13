@@ -386,9 +386,10 @@ if true; then
       next
   }' >> $path_ftemp_merge_priority
 fi
+# index($16, "\;") != 0
 echo "identifier_merge SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT ID CHROM POS ALT REF" > $path_ftemp_merge_priority_clean
 cat $path_ftemp_merge_priority | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
-  if ( index($16, "\;") != 0)
+  if ( $16 == $16 )
     # Skip any rows with incorrect count of column fields.
     (a = $16); split(a, b, "\;"); print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, b[1], $17, $18, $19, $20
   else
