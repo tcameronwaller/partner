@@ -30,23 +30,6 @@
 # "/.../partner/scripts/bcftools/extract_dbsnp_biallelic_sites_allele_identifiers.sh"
 
 ##########
-# Testing.
-# TCW; 13 December 2023
-# Version of dbSNP: build 155
-# Accession of dbSNP: TCW; 2023-02-06
-# Translation of chromosome designations in dbSNP: TCW; 2023-02-15
-# I tested the procedure using the GWAS summary statistics for levels of
-# testosterone in females from Ruth et al, 2022 (PubMed:32042192). This set of
-# GWAS summary statistics already included rsIDs for most SNPs, and 99.765% of
-# the rsIDs matched from dbSNP were identical to the original rsIDs. Hence this
-# procedure has high accuracy in its matching of rsIDs from dbSNP. The main
-# limitation of this procedure is the accommodation of biallelic sites only from
-# dbSNP, and the test GWAS summary statistics had lost about half (47%) of their
-# SNPs after this procedure. So in summary this procedure matches rsIDs from
-# dbSNP with high accuracy but also loses a considerable proportion of SNPs,
-# many of which might be for multiallelic sites.
-
-##########
 # Standard format of GWAS summary statistics.
 # This is the obligatory format of the source and product GWAS summary
 # statistics.
@@ -57,6 +40,31 @@
 # $1  $2  $3 $4 $5 $6   $7   $8 $9 $10 $11 $12  $13   $14
 # SNP CHR BP A1 A2 A1AF BETA SE P   N   Z   INFO NCASE NCONT
 
+##########
+# Limitations.
+# 1. The current implementation of this script makes internal reference to
+# anonymous hard-coded file paths for the sake of convenience when executing in
+# a specific computational environment. The script could of course be adapted to
+# accept these file path variables as parameters (arguments).
+# 2. For simplicity, this procedure filters to biallelic sites before extracting
+# information about SNPs and their rsIDs from the dbSNP reference.
+
+##########
+# Testing.
+# TCW; 13 December 2023
+# Version of dbSNP: build 155
+# Accession of dbSNP: TCW; 2023-02-06
+# Translation of chromosome designations in dbSNP: TCW; 2023-02-15
+# I tested the procedure using the GWAS summary statistics for levels of
+# testosterone in females from Ruth et al, 2020 (PubMed:32042192). This set of
+# GWAS summary statistics already included rsIDs for most SNPs, and 99.765% of
+# the rsIDs matched from dbSNP were identical to the original rsIDs. Hence this
+# procedure has high accuracy in its matching of rsIDs from dbSNP. The main
+# limitation of this procedure is the accommodation of biallelic sites only from
+# dbSNP, and the test GWAS summary statistics had lost about half (47%) of their
+# SNPs after this procedure. So in summary, this procedure matches rsIDs from
+# dbSNP with high accuracy but also loses a considerable proportion of SNPs,
+# many of which might be for multiallelic sites.
 
 
 ################################################################################
