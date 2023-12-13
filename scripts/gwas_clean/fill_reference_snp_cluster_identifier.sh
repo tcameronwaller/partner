@@ -417,14 +417,20 @@ if true; then
     echo "----------"
     echo "----------"
     echo "----------"
+    echo "For special situations where the source GWAS summary statistics"
+    echo "already included rsIDs for SNPs, it is possible to test the"
+    echo "proportion of the rsIDs extracted from dbSNP that match the"
+    echo "originals."
+    echo "----------"
     echo "Table that only includes SNPs for which source rsID does not match the dbSNP rsID:"
+    echo "----------"
     head -10 $path_ftemp_merge_priority_check
     count_check=$(cat $path_ftemp_merge_priority_check | wc -l)
     count_total=$(cat $path_ftemp_merge_priority_clean | wc -l)
-    percentage_check=$(echo "scale=3; $count_check / $count_total" | bc)
+    percentage_check=$(echo "scale=5; ($count_check / $count_total) * 100" | bc)
     echo "lines that do not match: " $count_check
     echo "lines total: " $count_total
-    echo "proportion that do not match: " $percentage_check
+    echo "proportion that do not match: " $percentage_check "%"
     echo "----------"
     echo "----------"
     echo "----------"
