@@ -534,7 +534,7 @@ fi
 # Remove temporary, intermediate directories and files.
 
 # Suppress this block for debugging.
-if false; then
+if true; then
   rm -r $path_directory_temporary
 fi
 
