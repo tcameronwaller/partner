@@ -414,9 +414,12 @@ if true; then
   }' >> $path_ftemp_merge_priority_check
   # Report.
   if [[ "$report" == "true" ]]; then
+    # Calculations.
+    # https://www.gnu.org/software/bc/manual/html_mono/bc.html
     count_check=$(cat $path_ftemp_merge_priority_check | wc -l)
     count_total=$(cat $path_ftemp_merge_priority_clean | wc -l)
-    percentage_check=$(echo "scale=5; 100 * ($count_check / $count_total)" | bc -l) # order of operations and scale rounding matters
+    proportion_check=$(echo "scale=5; ($count_check / $count_total)" | bc -l) # order of operations and scale rounding matters
+    percentage_check=$(echo "scale=5; ($proportion_check * 100)" | bc -l) # order of operations and scale rounding matters
     echo "----------"
     echo "----------"
     echo "----------"
@@ -432,6 +435,7 @@ if true; then
     echo "----------"
     echo "lines that do not match: " $count_check
     echo "lines total: " $count_total
+    echo "proportion that do not match: " $proportion_check
     echo "percentage that do not match: " $percentage_check "%"
     echo "----------"
     echo "----------"
@@ -458,9 +462,13 @@ gzip -cvf $path_ftemp_product_format > $path_file_gwas_product
 # Report.
 
 if [[ "$report" == "true" ]]; then
+  # Calculations.
+  # https://www.gnu.org/software/bc/manual/html_mono/bc.html
   count_source=$(zcat $path_file_gwas_source | wc -l)
   count_product=$(zcat $path_file_gwas_product | wc -l)
-  percentage_poduct=$(echo "100 * ($count_product / $count_source)" | bc -l) # order of operations and scale rounding matters
+  #percentage_poduct=$(echo "100 * ($count_product / $count_source)" | bc -l) # order of operations and scale rounding matters
+  proportion_product=$(echo "scale=5; ($count_product / $count_source)" | bc -l) # order of operations and scale rounding matters
+  percentage_product=$(echo "scale=5; ($proportion_product * 100)" | bc -l) # order of operations and scale rounding matters
   count_difference=$(($count_source - $count_product))
   echo "----------"
   echo "----------"
@@ -481,6 +489,7 @@ if [[ "$report" == "true" ]]; then
   echo "- - Count of lines in product table: " $count_product
   echo "----------"
   echo "Count of lost lines (difference): " $count_difference
+  echo "Proportion of kept lines: " $proportion_product
   echo "Percentage of kept lines: " $percentage_product "%"
   echo "----------"
   echo "----------"
