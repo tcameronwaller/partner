@@ -416,7 +416,7 @@ if true; then
   if [[ "$report" == "true" ]]; then
     count_check=$(cat $path_ftemp_merge_priority_check | wc -l)
     count_total=$(cat $path_ftemp_merge_priority_clean | wc -l)
-    percentage_check=$(echo "scale=5; ($count_check / $count_total) * 100" | bc -l)
+    percentage_check=$(echo "scale=5; 100 * ($count_check / $count_total)" | bc -l)
     echo "----------"
     echo "----------"
     echo "----------"
@@ -460,7 +460,7 @@ gzip -cvf $path_ftemp_product_format > $path_file_gwas_product
 if [[ "$report" == "true" ]]; then
   count_source=$(zcat $path_file_gwas_source | wc -l)
   count_product=$(zcat $path_file_gwas_product | wc -l)
-  percentage_poduct=$(echo "scale=5; ($count_product / $count_source) * 100" | bc)
+  percentage_poduct=$(echo "scale=5; 100 * ($count_product / $count_source)" | bc -l)
   count_difference=$(($count_source - $count_product))
   echo "----------"
   echo "----------"
