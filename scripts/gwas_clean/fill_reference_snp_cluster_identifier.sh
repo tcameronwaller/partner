@@ -353,6 +353,7 @@ fi
 # A1 is REF
 # A2 is ALT
 # Use Merge 2: REF_ALT
+# https://www.gnu.org/software/gawk/manual/html_node/String-Functions.html
 echo "identifier_merge SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT ID CHROM POS ALT REF" > $path_ftemp_merge_priority
 cat $path_ftemp_merge_ref_alt_clean | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   if ( NF != 25)
