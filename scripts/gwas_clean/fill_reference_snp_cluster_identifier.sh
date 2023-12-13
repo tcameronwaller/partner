@@ -75,6 +75,7 @@ path_ftemp_merge_ref_alt="${path_directory_temporary}/merge_ref_alt.txt"
 path_ftemp_merge_ref_alt_clean="${path_directory_temporary}/merge_ref_alt_clean.txt"
 path_ftemp_merge_priority="${path_directory_temporary}/merge_priority.txt"
 path_ftemp_merge_priority_clean="${path_directory_temporary}/merge_priority_clean.txt"
+path_ftemp_merge_priority_check="${path_directory_temporary}/merge_priority_check.txt"
 path_ftemp_product_format="${path_directory_temporary}/gwas_product_format.txt"
 
 # Initialize files.
@@ -379,6 +380,9 @@ cat $path_ftemp_merge_priority | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   (a = $16); split(a, b, ";"); print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, b[1], $17, $18, $19, $20
 }' >> $path_ftemp_merge_priority_clean
 
+# $1               $2  $3  $4 $5 $6 $7   $8   $9 $10 $11 $12 $13  $14   $15   $16 $17   $18 $19 $20
+# identifier_merge SNP CHR BP A1 A2 A1AF BETA SE P   N   Z   INFO NCASE NCONT ID  CHROM POS ALT REF
+
 
 
 ##########
@@ -397,8 +401,37 @@ fi
 
 
 
-# $1               $2  $3  $4 $5 $6 $7   $8   $9 $10 $11 $12 $13  $14   $15   $16 $17   $18 $19 $20
-# identifier_merge SNP CHR BP A1 A2 A1AF BETA SE P   N   Z   INFO NCASE NCONT ID  CHROM POS ALT REF
+if true; then
+  # Test the procedure by determining the proportion of SNP rsIDs from dbSNP that match those in original GWAS summary statistics.
+  echo "identifier_merge SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT ID CHROM POS ALT REF" > $path_ftemp_merge_priority_check
+  cat $path_ftemp_merge_priority_clean | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
+    if ( $2 != $16)
+      # Keep rows for which the source SNP rsID does not match the dbSNP rsID.
+      print $0
+    else
+      # Skip rows for which source SNP rsID matches the dbSNP rsID.
+      next
+  }' >> $path_ftemp_merge_priority_check
+  # Report.
+  if [[ "$report" == "true" ]]; then
+    echo "----------"
+    echo "----------"
+    echo "----------"
+    echo "Table that only includes SNPs for which source rsID does not match the dbSNP rsID:"
+    head -10 $path_ftemp_merge_priority_check
+    count_check=$(cat $path_ftemp_merge_priority_check | wc -l)
+    count_total=$(cat $path_ftemp_merge_priority_clean | wc -l)
+    percentage_check=$(echo "scale=3; $count_check / $count_total" | bc)
+    echo "lines that do not match: " $count_check
+    echo "lines total: " $count_total
+    echo "proportion that do not match: " $percentage_check
+    echo "----------"
+    echo "----------"
+    echo "----------"
+  fi
+fi
+
+
 
 ##########
 # 5. Adjust format of product GWAS summary statistics.
