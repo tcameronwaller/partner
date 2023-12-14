@@ -84,7 +84,8 @@
 
 path_file_gwas_source=${1} # full path to file for source GWAS summary statistics with GZip compression
 path_file_gwas_product=${2} # full path to file for product GWAS summary statistics in format with GZip compression
-report=${3} # whether to print reports
+strict=${3} # whether to return GWAS summary statistics filtered to SNPs with successful match to dbSNP rsID
+report=${4} # whether to print reports
 
 
 ################################################################################
