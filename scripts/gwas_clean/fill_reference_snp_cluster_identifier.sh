@@ -3,8 +3,8 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 11 December 2023
-# Date, last execution: 13 December 2023
-# Review: 13 December 2023
+# Date, last execution: 14 December 2023
+# Review: 14 December 2023
 ################################################################################
 # Notes:
 
@@ -125,6 +125,7 @@ path_ftemp_merge_ref_alt="${path_directory_temporary}/merge_ref_alt.txt"
 path_ftemp_merge_ref_alt_clean="${path_directory_temporary}/merge_ref_alt_clean.txt"
 path_ftemp_merge_priority="${path_directory_temporary}/merge_priority.txt"
 path_ftemp_merge_priority_clean="${path_directory_temporary}/merge_priority_clean.txt"
+path_ftemp_merge_priority_clean_strict="${path_directory_temporary}/merge_priority_clean_strict.txt"
 path_ftemp_merge_priority_check="${path_directory_temporary}/merge_priority_check.txt"
 path_ftemp_product_format="${path_directory_temporary}/gwas_product_format.txt"
 
@@ -412,8 +413,9 @@ cat $path_ftemp_merge_ref_alt_clean | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
     # Use Merge 2: REF_ALT
     print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $21, $22, $23, $24, $25
   else
-    # Skip any row for which source alleles do not match either combination.
-    next
+    # The record did not match or merge with information from dbSNP.
+    # Fill with missing information.
+    print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, "NA", "NA", "NA", "NA", "NA"
 }' >> $path_ftemp_merge_priority
 # GNU Awk can only handle a few operations at a time.
 # Split delimited lists of identifiers and keep only the first.
@@ -421,6 +423,18 @@ echo "identifier_merge SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT ID C
 cat $path_ftemp_merge_priority | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   (a = $16); split(a, b, ";"); print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, b[1], $17, $18, $19, $20
 }' >> $path_ftemp_merge_priority_clean
+
+# Strict.
+echo "identifier_merge SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT ID CHROM POS ALT REF" > $path_ftemp_merge_priority_clean_strict
+cat $path_ftemp_merge_priority_clean | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
+  if ( ($16 == "NA") && ($17 == "NA") && ($18 == "NA") && ($19 == "NA") && ($20 == "NA") )
+    # Skip any row records with missing information from merge.
+    next
+  else
+    # Keep the row record.
+    print $0
+}' >> $path_ftemp_merge_priority_clean_strict
+
 
 # $1               $2  $3  $4 $5 $6 $7   $8   $9 $10 $11 $12 $13  $14   $15   $16 $17   $18 $19 $20
 # identifier_merge SNP CHR BP A1 A2 A1AF BETA SE P   N   Z   INFO NCASE NCONT ID  CHROM POS ALT REF
@@ -446,7 +460,7 @@ fi
 if true; then
   # Test the procedure by determining the proportion of SNP rsIDs from dbSNP that match those in original GWAS summary statistics.
   echo "identifier_merge SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT ID CHROM POS ALT REF" > $path_ftemp_merge_priority_check
-  cat $path_ftemp_merge_priority_clean | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
+  cat $path_ftemp_merge_priority_clean_strict | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
     if ( $2 != $16)
       # Keep rows for which the source SNP rsID does not match the dbSNP rsID.
       print $0
@@ -459,7 +473,7 @@ if true; then
     # Calculations.
     # https://www.gnu.org/software/bc/manual/html_mono/bc.html
     count_check=$(cat $path_ftemp_merge_priority_check | wc -l)
-    count_total=$(cat $path_ftemp_merge_priority_clean | wc -l)
+    count_total=$(cat $path_ftemp_merge_priority_clean_strict | wc -l)
     proportion_check=$(echo "scale=5; ($count_check / $count_total)" | bc -l) # order of operations and scale rounding matters
     percentage_check=$(echo "scale=5; ($proportion_check * 100)" | bc -l) # order of operations and scale rounding matters
     echo "----------"
@@ -470,13 +484,16 @@ if true; then
     echo "proportion of the rsIDs extracted from dbSNP that match the"
     echo "originals."
     echo "----------"
+    echo "This check uses the strict version that only considers the SNPs that"
+    echo "matched and merged with dbSNP rsIDs successfully."
+    echo "----------"
     echo "Table that only includes SNPs for which the dbSNP rsID does not match"
     echo "the source rsID:"
     echo "----------"
     head -5 $path_ftemp_merge_priority_check
     echo "----------"
-    echo "Lines that do not match: " $count_check
-    echo "Lines total: " $count_total
+    echo "Lines that do not match between original and dbSNP: " $count_check
+    echo "Lines total (strict): " $count_total
     echo "Proportion that do not match: " $proportion_check
     echo "Percentage that do not match: " $percentage_check "%"
     echo "----------"
@@ -490,10 +507,21 @@ fi
 ##########
 # 5. Adjust format of product GWAS summary statistics.
 
-echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_ftemp_product_format
-cat $path_ftemp_merge_priority_clean | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-  print $16, $3, $4, toupper($5), toupper($6), $7, $8, $9, $10, $11, $12, $13, $14, $15
-}' >> $path_ftemp_product_format
+if [ "$strict" == "true" ]; then
+
+  echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_ftemp_product_format
+  cat $path_ftemp_merge_priority_clean_strict | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+    print $16, $3, $4, toupper($5), toupper($6), $7, $8, $9, $10, $11, $12, $13, $14, $15
+  }' >> $path_ftemp_product_format
+
+elif [ "$strict" == "false" ]; then
+
+    echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_ftemp_product_format
+    cat $path_ftemp_merge_priority_clean | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+      print $16, $3, $4, toupper($5), toupper($6), $7, $8, $9, $10, $11, $12, $13, $14, $15
+    }' >> $path_ftemp_product_format
+
+fi
 
 # Compress file format.
 gzip -cvf $path_ftemp_product_format > $path_file_gwas_product
@@ -507,17 +535,27 @@ if [[ "$report" == "true" ]]; then
   # Calculations.
   # https://www.gnu.org/software/bc/manual/html_mono/bc.html
   count_source=$(zcat $path_file_gwas_source | wc -l)
+  count_strict=$(cat $path_ftemp_merge_priority_clean_strict | wc -l)
   count_product=$(zcat $path_file_gwas_product | wc -l)
   #percentage_poduct=$(echo "100 * ($count_product / $count_source)" | bc -l) # order of operations and scale rounding matters
-  proportion_product=$(echo "scale=5; ($count_product / $count_source)" | bc -l) # order of operations and scale rounding matters
-  percentage_product=$(echo "scale=5; ($proportion_product * 100)" | bc -l) # order of operations and scale rounding matters
-  count_difference=$(($count_source - $count_product))
+  proportion_strict=$(echo "scale=5; ($count_strict / $count_source)" | bc -l) # order of operations and scale rounding matters
+  percentage_strict=$(echo "scale=5; ($proportion_strict * 100)" | bc -l) # order of operations and scale rounding matters
+  count_difference=$(($count_source - $count_strict))
   echo "----------"
   echo "----------"
   echo "----------"
   echo "Script:"
   echo $0 # Print full file path to script.
   echo "Fill dbSNP rsIDs for SNPs in GWAS summary statistics."
+  echo "----------"
+  echo "Count of original lines in source: " $count_source
+  echo "Count of lines that matched and merged with dbSNP (strict): " $count_strict
+  echo "Count of lines difference between source and strict: " $count_difference
+  echo "Proportion of lines that matched and merged: " $proportion_strict
+  echo "Percentage of lines that matched and merged: " $percentage_strict "%"
+  echo "----------"
+  echo "Use strict filter to SNPs that matched and merged with dbSNP: " $strict
+  echo "If active this filter determines count of lines in product."
   echo "----------"
   echo "path to source GWAS file: " $path_file_gwas_source
   echo "path to product GWAS file: " $path_file_gwas_product
@@ -529,10 +567,6 @@ if [[ "$report" == "true" ]]; then
   echo "product table after transformation:"
   zcat $path_file_gwas_product | head -5
   echo "- - Count of lines in product table: " $count_product
-  echo "----------"
-  echo "Count of lost lines (difference): " $count_difference
-  echo "Proportion of kept lines: " $proportion_product
-  echo "Percentage of kept lines: " $percentage_product "%"
   echo "----------"
   echo "----------"
   echo "----------"
