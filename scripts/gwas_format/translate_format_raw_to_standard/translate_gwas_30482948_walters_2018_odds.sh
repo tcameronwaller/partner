@@ -3,8 +3,8 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 1 March 2023
-# Date, last execution: 2 August 2023
-# Review: TCW; 2 August 2023
+# Date, last execution: 18 December 2023
+# Review: TCW; 18 December 2023
 ################################################################################
 # Note
 
@@ -13,6 +13,13 @@
 # (PubMed:30482948).
 # Host: https://pgc.unc.edu/
 # Host: https://figshare.com/articles/dataset/sud2018-alc/14672187
+
+
+# pgc_alcdep.eur_unrel_genotyped.aug2018_release.txt.gz
+# Determine maximal counts of observations (samples) for cases and controls.
+# $ zcat pgc_alcdep.eur_unrel_genotyped.aug2018_release.txt.gz | awk 'BEGIN{FS=" "; OFS=" "; a=0} NR>1{if ((toupper($10) != "NA") && (($10+0)>(a+0))) a=$10} END{print a}'
+# Maximal value in column "$10" (effective sample size): 28,664.4
+
 
 ################################################################################
 
@@ -57,7 +64,14 @@ rm $path_file_product
 # Note that AWK interprets a single space delimiter (FS=" ") as any white space.
 echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format
 # For conciseness, only support the conditions that are relevant.
-if [ "$fill_observations" != "1" ] && [ "$fill_case_control" == "1" ]; then
+if [ "$fill_observations" == "1" ] && [ "$fill_case_control" == "1" ]; then
+  zcat $path_file_source | awk -v observations=$observations -v cases=$cases -v controls=$controls 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+    if ((toupper($7) != "NA") && (($7 + 0) > 0))
+      print $2, $1, $3, toupper($4), toupper($5), "NA", log($7), $8, $9, (observations), "NA", $6, (cases), (controls)
+    else
+      print $2, $1, $3, toupper($4), toupper($5), "NA", "NA", $8, $9, (observations), "NA", $6, (cases), (controls)
+  }' >> $path_file_temporary_format
+elif [ "$fill_observations" != "1" ] && [ "$fill_case_control" == "1" ]; then
   zcat $path_file_source | awk -v cases=$cases -v controls=$controls 'BEGIN {FS = " "; OFS = " "} NR > 1 {
     if ((toupper($7) != "NA") && (($7 + 0) > 0))
       print $2, $1, $3, toupper($4), toupper($5), "NA", log($7), $8, $9, int($10), "NA", $6, (cases), (controls)

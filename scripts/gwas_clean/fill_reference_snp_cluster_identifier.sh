@@ -3,8 +3,8 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 11 December 2023
-# Date, last execution: 14 December 2023
-# Review: 14 December 2023
+# Date, last execution: 18 December 2023
+# Review: 18 December 2023
 ################################################################################
 # Notes:
 
@@ -502,12 +502,16 @@ if true; then
   fi
 fi
 
-
+# $1               $2  $3  $4 $5 $6 $7   $8   $9 $10 $11 $12 $13  $14   $15   $16 $17   $18 $19 $20
+# identifier_merge SNP CHR BP A1 A2 A1AF BETA SE P   N   Z   INFO NCASE NCONT ID  CHROM POS ALT REF
 
 ##########
 # 5. Adjust format of product GWAS summary statistics.
 
 if [ "$strict" == "true" ]; then
+
+  # The strict version has already been filtered to non-missing matches with
+  # dbSNP.
 
   echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_ftemp_product_format
   cat $path_ftemp_merge_priority_clean_strict | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
@@ -516,9 +520,17 @@ if [ "$strict" == "true" ]; then
 
 elif [ "$strict" == "false" ]; then
 
+  # The non-strict version has not yet been filtered to non-missing matches with
+  # dbSNP.
+  # Only replace the original SNP identifier if the match from dbSNP is not
+  # missing.
+
     echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_ftemp_product_format
     cat $path_ftemp_merge_priority_clean | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-      print $16, $3, $4, toupper($5), toupper($6), $7, $8, $9, $10, $11, $12, $13, $14, $15
+      if ( ($16 != "NA") && ($17 != "NA") && ($18 != "NA") && ($19 != "NA") && ($20 != "NA") )
+        print $16, $3, $4, toupper($5), toupper($6), $7, $8, $9, $10, $11, $12, $13, $14, $15
+      else
+        print $2, $3, $4, toupper($5), toupper($6), $7, $8, $9, $10, $11, $12, $13, $14, $15
     }' >> $path_ftemp_product_format
 
 fi

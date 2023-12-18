@@ -3,8 +3,8 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 2 August 2023
-# Date, last execution: 2 August 2023
-# Review: TCW; 22 November 2023
+# Date, last execution: 18 December 2023
+# Review: TCW; 18 December 2023
 ################################################################################
 # Note
 
@@ -26,6 +26,16 @@
 # If we assume that across all betas the mean is approximately zero and the
 # standard deviation is approximately one, then the z-score is an adequate
 # approximation of the beta effect.
+
+# pgc_alcdep.eur_discovery.aug2018_release.txt.gz
+# Determine maximal counts of observations (samples) for cases and controls.
+# $ zcat pgc_alcdep.eur_discovery.aug2018_release.txt.gz | awk 'BEGIN{FS=" "; OFS=" "; a=0} NR>1{if ((toupper($8) != "NA") && (($8+0)>(a+0))) a=$8} END{print a}'
+# Maximal value in column "$8" (effective sample size): 26,853.43
+
+# pgc_alcdep.eur_unrelated.aug2018_release.txt.gz
+# Determine maximal counts of observations (samples) for cases and controls.
+# $ zcat pgc_alcdep.eur_unrelated.aug2018_release.txt.gz | awk 'BEGIN{FS=" "; OFS=" "; a=0} NR>1{if ((toupper($8) != "NA") && (($8+0)>(a+0))) a=$8} END{print a}'
+# Maximal value in column "$8" (effective sample size): 23,282.33
 
 ################################################################################
 
@@ -77,7 +87,11 @@ rm $path_file_product
 
 # 1. Translate column format while simplifying identifier.
 echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format_1
-if [ "$fill_observations" != "1" ] && [ "$fill_case_control" == "1" ]; then
+if [ "$fill_observations" == "1" ] && [ "$fill_case_control" == "1" ]; then
+  zcat $path_file_source | awk -v observations=$observations -v cases=$cases -v controls=$controls 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+    (a = $2); split(a, b, ":"); print b[1], $1, $3, toupper($4), toupper($5), "NA", $6, "NA", $7, (observations), "NA", (1.0), (cases), (controls)
+  }' >> $path_file_temporary_format_1
+elif [ "$fill_observations" != "1" ] && [ "$fill_case_control" == "1" ]; then
   zcat $path_file_source | awk -v cases=$cases -v controls=$controls 'BEGIN {FS = " "; OFS = " "} NR > 1 {
     (a = $2); split(a, b, ":"); print b[1], $1, $3, toupper($4), toupper($5), "NA", $6, "NA", $7, int($8), "NA", (1.0), (cases), (controls)
   }' >> $path_file_temporary_format_1
