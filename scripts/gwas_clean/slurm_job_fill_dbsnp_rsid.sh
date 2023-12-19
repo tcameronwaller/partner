@@ -63,7 +63,7 @@ fi
 
 
 ##########
-# Call script for translation.
+# Call script.
 /usr/bin/bash $path_file_script \
 $path_file_source \
 $path_file_product \

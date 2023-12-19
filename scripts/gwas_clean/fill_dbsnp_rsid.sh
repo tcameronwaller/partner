@@ -3,8 +3,8 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 11 December 2023
-# Date, last execution: 18 December 2023
-# Review: 18 December 2023
+# Date, last execution: 19 December 2023
+# Review: 19 December 2023
 ################################################################################
 # Notes:
 
@@ -242,6 +242,19 @@ fi
 # After merges, be very careful not to filter and remove records from the
 # smaller, less inclusive, priority table, Table 1.
 
+# Process explanation:
+# 1. GNU awk reads lines from the first file (FNR==NR) into an array in memory
+# (array "a") that uses values from the first column of the first file (column
+# "identifier_merge") as a hashable index (a[$1]=...).
+# 2. GNU awk then proceeds to the second file and prints line by line while
+# including any of the hashable lines from the first file that have a matching
+# index, this time from the first column of the second file (column
+# "identifier_merge").
+
+# Reference:
+# https://stackoverflow.com/questions/32481877/what-are-nr-and-fnr-and-what-does-nr-fnr-imply
+
+
 ##########
 # 4.1. Merge 1.
 # Table 1: dbSNP extraction with identifier format <CHROM>_<POS>_<ALT>_<REF>.
@@ -253,8 +266,10 @@ fi
 # It is not necessary to print the header row separately.
 #echo "identifier_merge SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT ID CHROM POS ALT REF RS_ID" > $path_ftemp_merge_alt_ref
 awk 'FNR==NR{a[$1]=$2FS$3FS$4FS$5FS$6FS$7; next} {
-  if(a[$1]==""){a[$1]="NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"}; print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, a[$1]}
-' $path_ftemp_dbsnp_extraction_alt_ref $path_ftemp_gwas_identifier_a1_a2 > $path_ftemp_merge_alt_ref
+  if(a[$1]==""){a[$1]="NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"}; print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, a[$1]
+} END {
+  delete a
+}' $path_ftemp_dbsnp_extraction_alt_ref $path_ftemp_gwas_identifier_a1_a2 > $path_ftemp_merge_alt_ref
 
 ##########
 # Report.
@@ -323,8 +338,10 @@ fi
 # It is not necessary to print the header row separately.
 #echo "identifier_merge SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT ID_ar CHROM_ar POS_ar ALT_ar REF_ar ID CHROM POS ALT REF RS_ID" > $path_ftemp_merge_ref_alt
 awk 'FNR==NR{a[$1]=$2FS$3FS$4FS$5FS$6FS$7; next} {
-  if(a[$1]==""){a[$1]="NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"}; print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, a[$1]}
-' $path_ftemp_dbsnp_extraction_ref_alt $path_ftemp_merge_alt_ref_clean > $path_ftemp_merge_ref_alt
+  if(a[$1]==""){a[$1]="NA"FS"NA"FS"NA"FS"NA"FS"NA"FS"NA"}; print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, a[$1]
+} END {
+  delete a
+}' $path_ftemp_dbsnp_extraction_ref_alt $path_ftemp_merge_alt_ref_clean > $path_ftemp_merge_ref_alt
 
 
 
