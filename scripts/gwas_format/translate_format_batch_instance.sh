@@ -81,6 +81,7 @@ if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "Slurm job id: " $SLURM_JOB_ID
   echo "SLURM_ARRAY_TASK_ID: " $SLURM_ARRAY_TASK_ID
+  echo "----------"
 fi
 
 ###########################################################################
