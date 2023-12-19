@@ -6,8 +6,8 @@
 #SBATCH --partition=cpu-short                # queue: cpu-short, cpu-med, cpu-long
 #SBATCH --nodes=1                            # count of cluster nodes (CPUs)
 #SBATCH --ntasks-per-node=1                  # count of cores or threads on node
-#SBATCH --mem=8G                             # memory per node (per CPU)
-#SBATCH --time=0-05:00:00                    # time allocation request (days-hours:minutes:seconds)
+#SBATCH --mem=16G                            # memory per node (per CPU)
+#SBATCH --time=0-03:00:00                    # time allocation request (days-hours:minutes:seconds)
 #SBATCH --output ./%x.%A.%N.%j.%a.stdout
 #SBATCH --error ./%x.%A.%N.%j.%a.stderr
 #SBATCH --signal=USR1@60
