@@ -15,7 +15,7 @@
 ################################################################################
 # Note.
 
-# Review: TCW; 26 November 2023
+# Review: TCW; 19 December 2023
 
 ################################################################################
 # Organize arguments.
@@ -42,14 +42,18 @@ raw_directory="${array[0]}"
 raw_name_file_source="${array[1]}"
 raw_suffix_file_source="${array[2]}"
 raw_name_study="${array[3]}"
-raw_fill_observations="${array[4]}"
-raw_fill_case_control="${array[5]}"
-raw_observations="${array[6]}"
-raw_cases="${array[7]}"
-raw_controls="${array[8]}"
-raw_bgzip="${array[9]}"
-raw_gzip="${array[10]}"
-raw_script="${array[11]}"
+raw_type="${array[4]}"
+raw_fill_observations="${array[5]}"
+raw_fill_case_control="${array[6]}"
+raw_observations_total="${array[7]}"
+raw_cases="${array[8]}"
+raw_controls="${array[9]}"
+raw_observations_effective="${array[10]}"
+raw_prevalence_sample="${array[11]}"
+raw_prevalence_population="${array[12]}"
+raw_bgzip="${array[13]}"
+raw_gzip="${array[14]}"
+raw_script="${array[15]}"
 
 ################################################################################
 # Organize paths.
@@ -72,7 +76,7 @@ if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "Script:"
   echo $0 # Print full file path to script.
-  echo "translate_format_batch_instance.sh"
+  echo "slurm_job_translate_format.sh"
   echo "----------"
   echo "Source file path:"
   echo $path_file_source
@@ -110,7 +114,7 @@ fi
 $path_file_source_standard \
 $path_file_product \
 $raw_fill_observations \
-$raw_observations \
+$raw_observations_total \
 $raw_fill_case_control \
 $raw_cases \
 $raw_controls \

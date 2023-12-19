@@ -4,7 +4,7 @@
 # Author: T. Cameron Waller
 # Date, first execution: 2 August 2023
 # Date, last execution: 2 August 2023
-# Review: TCW; 5 December 2023
+# Review: TCW; 19 December 2023
 ################################################################################
 # Note
 
@@ -22,6 +22,11 @@
 # $ zcat pgc-bip2021-BDI.vcf.tsv.gz | awk 'BEGIN{FS=" "; OFS=" "; a=0} NR>73{if ((toupper($14) != "NA") && (($14+0)>(a+0))) a=$14} END{print a}'
 # $ zcat pgc-bip2021-BDI.vcf.tsv.gz | awk 'BEGIN{FS=" "; OFS=" "; a=0} NR>73{if ((toupper($15) != "NA") && (($15+0)>(a+0))) a=$15} END{print a}'
 
+# Count of cases: 25,060
+# Count of controls: 449,978
+# Count of total observations: 475,038
+# Proportion of cases: 0.053
+# Proportion of controls: 0.947
 
 ################################################################################
 # Organize arguments.
@@ -61,7 +66,7 @@ echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_tempora
 # For conciseness, only support the conditions that are relevant.
 if [ "$fill_observations" != "1" ] && [ "$fill_case_control" != "1" ]; then
   zcat $path_file_source | awk 'BEGIN {FS = " "; OFS = " "} NR > 73 {
-    print $3, $1, $2, toupper($4), toupper($5), (($10*0.047)+($11*0.953)), $6, $7, $8, ($14 + $15), "NA", $12, $14, $15
+    print $3, $1, $2, toupper($4), toupper($5), (($10*0.053)+($11*0.947)), $6, $7, $8, ($14 + $15), "NA", $12, $14, $15
   }' >> $path_file_temporary_format
 fi
 

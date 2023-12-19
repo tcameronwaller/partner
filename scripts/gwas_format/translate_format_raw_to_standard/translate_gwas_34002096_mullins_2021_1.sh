@@ -4,7 +4,7 @@
 # Author: T. Cameron Waller
 # Date, first execution: 2 August 2023
 # Date, last execution: 2 August 2023
-# Review: TCW; 5 December 2023
+# Review: TCW; 19 December 2023
 ################################################################################
 # Note
 
@@ -22,6 +22,11 @@
 # $ zcat pgc-bip2021-all.vcf.tsv.gz | awk 'BEGIN{FS=" "; OFS=" "; a=0} NR>73{if ((toupper($14) != "NA") && (($14+0)>(a+0))) a=$14} END{print a}'
 # $ zcat pgc-bip2021-all.vcf.tsv.gz | awk 'BEGIN{FS=" "; OFS=" "; a=0} NR>73{if ((toupper($15) != "NA") && (($15+0)>(a+0))) a=$15} END{print a}'
 
+# Count of cases: 41,917
+# Count of controls: 371,549
+# Count of total observations: 413,466
+# Proportion of cases: 0.101
+# Proportion of controls: 0.899
 
 ################################################################################
 # Organize arguments.

@@ -4,7 +4,7 @@
 # Author: T. Cameron Waller
 # Date, first execution: 2 August 2023
 # Date, last execution: 2 August 2023
-# Review: TCW; 5 December 2023
+# Review: TCW; 19 December 2023
 ################################################################################
 # Note
 
@@ -21,6 +21,12 @@
 # $ zcat daner_bip_pgc3_nm_noukbiobank.gz | awk 'BEGIN{FS=" "; OFS=" "; a=0} NR>1{if ((toupper($17) != "NA") && (($17+0)>(a+0))) a=$17} END{print a}'
 # $ zcat daner_bip_pgc3_nm_noukbiobank.gz | awk 'BEGIN{FS=" "; OFS=" "; a=0} NR>1{if ((toupper($18) != "NA") && (($18+0)>(a+0))) a=$18} END{print a}'
 # $ zcat daner_bip_pgc3_nm_noukbiobank.gz | awk 'BEGIN{FS=" "; OFS=" "; a=0} NR>1{if ((toupper($19) != "NA") && (($19+0)>(a+0))) a=$19} END{print a}'
+
+# Count of cases: 40,463
+# Count of controls: 313,436
+# Count of total observations: 353,899
+# Proportion of cases: 0.114
+# Proportion of controls: 0.886
 
 ################################################################################
 # Organize arguments.

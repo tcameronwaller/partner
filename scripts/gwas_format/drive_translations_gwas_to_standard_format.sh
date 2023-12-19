@@ -3,8 +3,8 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 22 December 2022
-# Date, last execution: 13 December 2023
-# Review: TCW; 13 December 2023
+# Date, last execution: 19 December 2023
+# Review: TCW; 19 December 2023
 ################################################################################
 # Note
 
@@ -31,7 +31,7 @@ path_file_batch_instances="${path_directory_batch}/batch_instances.txt"
 
 # Scripts.
 path_directory_parent_scripts_format="${path_directory_partner_scripts}/gwas_format/translate_format_raw_to_standard"
-path_file_script_batch_instance="${path_directory_partner_scripts}/gwas_format/translate_format_batch_instance.sh"
+path_file_script_slurm_job="${path_directory_partner_scripts}/gwas_format/slurm_job_translate_format.sh"
 
 # Initialize directories.
 rm -r $path_directory_batch # caution
@@ -108,12 +108,15 @@ do
   if [ $raw_inclusion == "1" ]; then
     # Assemble parameters for instance.
     part_one="${raw_directory};${raw_name_file_source};${raw_suffix_file_source};${raw_name_study}"
-    part_two="${raw_fill_observations};${raw_fill_case_control}"
-    part_three="${raw_observations_total};${raw_cases};${raw_controls}"
-    part_four="${raw_bgzip};${raw_gzip};${raw_script}"
-    instances+=("${part_one};${part_two};${part_three};${part_four}")
+    part_two="${raw_type};${raw_fill_observations};${raw_fill_case_control}"
+    part_three="${raw_observations_total};${raw_cases};${raw_controls};${raw_observations_effective}"
+    part_four="${raw_prevalence_sample};${raw_prevalence_population}"
+    part_five="${raw_bgzip};${raw_gzip};${raw_script}"
+    instances+=("${part_one};${part_two};${part_three};${part_four};${part_five}")
   fi
 done < "${input}"
+
+
 
 ##########
 # Organize batch instances.
@@ -163,7 +166,7 @@ sleep 5s
 
 if true; then
   sbatch --array 0-${index_array_maximum}:1 --chdir $path_directory_batch \
-  $path_file_script_batch_instance \
+  $path_file_script_slurm_job \
   $path_file_batch_instances \
   $batch_instances_count \
   $path_directory_parent_source \
