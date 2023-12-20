@@ -118,14 +118,18 @@ if false; then
   path_ftemp_dbsnp_extraction_alt_ref="${path_directory_temporary}/dbsnp_extraction_alt_ref.txt"
   path_ftemp_dbsnp_extraction_ref_alt="${path_directory_temporary}/dbsnp_extraction_ref_alt.txt"
 fi
+
 path_ftemp_gwas_identifier_a1_a2="${path_directory_temporary}/gwas_source_identifier_a1_a2.txt"
 path_ftemp_merge_alt_ref="${path_directory_temporary}/merge_alt_ref.txt"
 path_ftemp_merge_alt_ref_clean="${path_directory_temporary}/merge_alt_ref_clean.txt"
+
 path_ftemp_merge_ref_alt="${path_directory_temporary}/merge_ref_alt.txt"
 path_ftemp_merge_ref_alt_clean="${path_directory_temporary}/merge_ref_alt_clean.txt"
+
 path_ftemp_merge_priority="${path_directory_temporary}/merge_priority.txt"
 path_ftemp_merge_priority_clean="${path_directory_temporary}/merge_priority_clean.txt"
 path_ftemp_merge_priority_clean_strict="${path_directory_temporary}/merge_priority_clean_strict.txt"
+
 path_ftemp_merge_priority_check="${path_directory_temporary}/merge_priority_check.txt"
 path_ftemp_product_format="${path_directory_temporary}/gwas_product_format.txt"
 
@@ -526,6 +530,63 @@ fi
 
 
 
+##########
+# 5. Adjust format of product GWAS summary statistics.
+
+if [ "$strict" == "true" ]; then
+
+  # The strict version has already been filtered to non-missing matches with
+  # dbSNP.
+
+  echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_ftemp_product_format
+  cat $path_ftemp_merge_priority_clean_strict | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+    print $16, $3, $4, toupper($5), toupper($6), $7, $8, $9, $10, $11, $12, $13, $14, $15
+  }' >> $path_ftemp_product_format
+
+elif [ "$strict" == "false" ]; then
+
+  # The non-strict version has not yet been filtered to non-missing matches with
+  # dbSNP.
+  # Only replace the original SNP identifier if the match from dbSNP is not
+  # missing.
+
+    echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_ftemp_product_format
+    cat $path_ftemp_merge_priority_clean | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+      if ( ($16 != "NA") && ($17 != "NA") && ($18 != "NA") && ($19 != "NA") && ($20 != "NA") )
+        print $16, $3, $4, toupper($5), toupper($6), $7, $8, $9, $10, $11, $12, $13, $14, $15
+      else
+        print $2, $3, $4, toupper($5), toupper($6), $7, $8, $9, $10, $11, $12, $13, $14, $15
+    }' >> $path_ftemp_product_format
+
+fi
+
+# Compress file format.
+gzip -cvf $path_ftemp_product_format > $path_file_gwas_product
+
+# End part 4
+############
+##############
+#################
+#######################
+###############################
+
+
+
+
+##########################
+#######################
+###################
+################
+#############
+# Begin part 5
+
+
+
+# $1               $2  $3  $4 $5 $6 $7   $8   $9 $10 $11 $12 $13  $14   $15   $16 $17   $18 $19 $20
+# identifier_merge SNP CHR BP A1 A2 A1AF BETA SE P   N   Z   INFO NCASE NCONT ID  CHROM POS ALT REF
+
+
+
 if true; then
   # Test the procedure by determining the proportion of SNP rsIDs from dbSNP that match those in original GWAS summary statistics.
   echo "identifier_merge SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT ID CHROM POS ALT REF" > $path_ftemp_merge_priority_check
@@ -571,49 +632,8 @@ if true; then
   fi
 fi
 
-# $1               $2  $3  $4 $5 $6 $7   $8   $9 $10 $11 $12 $13  $14   $15   $16 $17   $18 $19 $20
-# identifier_merge SNP CHR BP A1 A2 A1AF BETA SE P   N   Z   INFO NCASE NCONT ID  CHROM POS ALT REF
-
-##########
-# 5. Adjust format of product GWAS summary statistics.
-
-if [ "$strict" == "true" ]; then
-
-  # The strict version has already been filtered to non-missing matches with
-  # dbSNP.
-
-  echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_ftemp_product_format
-  cat $path_ftemp_merge_priority_clean_strict | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-    print $16, $3, $4, toupper($5), toupper($6), $7, $8, $9, $10, $11, $12, $13, $14, $15
-  }' >> $path_ftemp_product_format
-
-elif [ "$strict" == "false" ]; then
-
-  # The non-strict version has not yet been filtered to non-missing matches with
-  # dbSNP.
-  # Only replace the original SNP identifier if the match from dbSNP is not
-  # missing.
-
-    echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_ftemp_product_format
-    cat $path_ftemp_merge_priority_clean | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
-      if ( ($16 != "NA") && ($17 != "NA") && ($18 != "NA") && ($19 != "NA") && ($20 != "NA") )
-        print $16, $3, $4, toupper($5), toupper($6), $7, $8, $9, $10, $11, $12, $13, $14, $15
-      else
-        print $2, $3, $4, toupper($5), toupper($6), $7, $8, $9, $10, $11, $12, $13, $14, $15
-    }' >> $path_ftemp_product_format
-
-fi
-
-# Compress file format.
-gzip -cvf $path_ftemp_product_format > $path_file_gwas_product
 
 
-# End part 4
-############
-##############
-#################
-#######################
-###############################
 
 
 ################################################################################

@@ -16,7 +16,7 @@
 # Note.
 
 # sinfo -o "..." see documentation (https://slurm.schedmd.com/sinfo.html)
-
+# sinfo -o "%20P   %10c   %70m"
 
 # Use "sbatch --help" to see descriptions of parameters.
 # Use syntax "--<option>=<value>" for full name of parameter.
