@@ -29,6 +29,18 @@
 # script to save time in subsequent iterations.
 # "/.../partner/scripts/bcftools/extract_dbsnp_biallelic_sites_allele_identifiers.sh"
 
+# Note: TCW; 19 December 2023
+# The process of the full "fill_dbsnp_rsid.sh" script, without any division into
+# smaller sections (subscripts), completed for the study
+# "37872160_williams_2023", using 278.20 Gigabytes of memory with management by
+# the SLURM scheduler.
+# Subsequently, the process of the "fill_dbsnp_rsid.sh" script, after division
+# into five smaller sections (subscripts) in an attempt to save memory,
+# completed for the study "37872160_williams_2023", using 274.89 Gigabytes of
+# memory with management by the SLURM scheduler.
+# It appears that division of the process into smaller subscripts did not offer
+# any advantage of clearing system memory between subscripts.
+
 # TODO: TCW; 13 December 2023
 # Write out two different "product files"...
 # 1. Filtered to include only SNPs that had matching rsIDs from dbSNP

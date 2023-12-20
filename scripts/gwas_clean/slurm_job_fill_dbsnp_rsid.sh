@@ -6,7 +6,7 @@
 #SBATCH --partition=lg-mem                   # queue: cpu-short, cpu-med, cpu-long, lg-mem
 #SBATCH --nodes=1                            # count of cluster nodes (CPUs)
 #SBATCH --ntasks-per-node=1                  # count of cores or threads on node
-#SBATCH --mem=450G                           # memory per node (per CPU)
+#SBATCH --mem=300G                           # memory per node (per CPU)
 #SBATCH --time=0-05:00:00                    # time allocation request (days-hours:minutes:seconds)
 #SBATCH --output ./%x.%A.%N.%j.%a.stdout
 #SBATCH --error ./%x.%A.%N.%j.%a.stderr
@@ -16,6 +16,18 @@
 # Note.
 
 # Review: TCW; 19 December 2023
+
+# Note: TCW; 19 December 2023
+# The process of the full "fill_dbsnp_rsid.sh" script, without any division into
+# smaller sections (subscripts), completed for the study
+# "37872160_williams_2023", using 278.20 Gigabytes of memory with management by
+# the SLURM scheduler.
+# Subsequently, the process of the "fill_dbsnp_rsid.sh" script, after division
+# into five smaller sections (subscripts) in an attempt to save memory,
+# completed for the study "37872160_williams_2023", using 274.89 Gigabytes of
+# memory with management by the SLURM scheduler.
+# It appears that division of the process into smaller subscripts did not offer
+# any advantage of clearing system memory between subscripts.
 
 ################################################################################
 # Organize arguments.
