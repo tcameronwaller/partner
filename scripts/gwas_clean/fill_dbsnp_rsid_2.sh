@@ -14,8 +14,9 @@
 # Organize arguments.
 
 path_file_gwas_source=${1} #
-path_directory_temporary=${2} #
-report=${3} #
+path_directory_reference_dbsnp=${2} #
+path_directory_temporary=${3} #
+report=${4} #
 
 ################################################################################
 # Organize paths.

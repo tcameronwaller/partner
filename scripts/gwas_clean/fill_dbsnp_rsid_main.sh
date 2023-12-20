@@ -144,6 +144,7 @@ fi
 # Merge 1 and subsequent clean up.
 /usr/bin/bash $path_file_script_2 \
 $path_file_gwas_source \
+$path_directory_reference_dbsnp \
 $path_directory_temporary \
 $report
 
