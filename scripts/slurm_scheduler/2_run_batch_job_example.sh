@@ -15,6 +15,9 @@
 ################################################################################
 # Note.
 
+# sinfo -o "..." see documentation (https://slurm.schedmd.com/sinfo.html)
+
+
 # Use "sbatch --help" to see descriptions of parameters.
 # Use syntax "--<option>=<value>" for full name of parameter.
 # Use syntax "-<option> <value>" for abbreviations of parameter.
