@@ -234,13 +234,9 @@ fi
 # it might require the same identifiers in sort order.
 # These merges treat Table 2 as the priority table.
 # The merge of Table 1 with Table 2 will include all records from Table 2 but
-# not all records from Table 1.
-# The merge of Table 1 with Table 2 will use the record merge identifier from
-# Table 2.
+# only those records from Table 1 that have matching identifiers.
 # These merges print each row of Table 2 regardless of whether there is a record
 # with matching identifier in Table 1.
-# After merges, be very careful not to filter and remove records from the
-# smaller, less inclusive, priority table, Table 1.
 
 # Process explanation:
 # 1. GNU awk reads lines from the first file (FNR==NR) into an array in memory
