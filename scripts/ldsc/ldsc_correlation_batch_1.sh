@@ -85,7 +85,7 @@ fi
 # Submit to Slurm Scheduler.
 # Indices in array of batch jobs start at zero.
 
-if false; then
+if true; then
   sbatch --array 0-${index_array_maximum}:1 --chdir $path_directory_batch_1 \
   $path_script_batch_2 \
   $path_file_batch_instances \
@@ -104,7 +104,14 @@ fi
 # SLURM will not allow an array index greater than "MaxArraySize".
 # It is necessary to split larger jobs.
 
-if true; then
+# Alternative.
+# instances: 0 - 2,999
+# instances: 3,000 - 5,999
+# instances: 6,000 - maximum
+
+
+
+if false; then
 
   # instances: 0 - 3,000
   sbatch --array 0-3000:1 --chdir $path_directory_batch_1 \
