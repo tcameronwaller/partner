@@ -134,14 +134,11 @@ fi
 path_ftemp_gwas_identifier_a1_a2="${path_directory_temporary}/gwas_source_identifier_a1_a2.txt"
 path_ftemp_merge_alt_ref="${path_directory_temporary}/merge_alt_ref.txt"
 path_ftemp_merge_alt_ref_clean="${path_directory_temporary}/merge_alt_ref_clean.txt"
-
 path_ftemp_merge_ref_alt="${path_directory_temporary}/merge_ref_alt.txt"
 path_ftemp_merge_ref_alt_clean="${path_directory_temporary}/merge_ref_alt_clean.txt"
-
 path_ftemp_merge_priority="${path_directory_temporary}/merge_priority.txt"
 path_ftemp_merge_priority_clean="${path_directory_temporary}/merge_priority_clean.txt"
 path_ftemp_merge_priority_clean_strict="${path_directory_temporary}/merge_priority_clean_strict.txt"
-
 path_ftemp_merge_priority_check="${path_directory_temporary}/merge_priority_check.txt"
 path_ftemp_product_format="${path_directory_temporary}/gwas_product_format.txt"
 
@@ -153,8 +150,6 @@ rm -r $path_directory_temporary
 mkdir -p $path_directory_product
 mkdir -p $path_directory_temporary
 cd $path_directory_product
-
-
 
 ###########################################################################
 # Execute procedure.
