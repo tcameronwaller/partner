@@ -3,8 +3,8 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 2 August 2023
-# Date, last execution: 2 August 2023
-# Review: TCW; 19 December 2023
+# Date, last execution: 29 December 2023
+# Review: TCW; 30 December 2023
 ################################################################################
 # Note
 
@@ -67,7 +67,14 @@ rm $path_file_product
 # Note that AWK interprets a single space delimiter (FS=" ") as any white space.
 echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format
 # For conciseness, only support the conditions that are relevant.
-if [ "$fill_observations" != "1" ] && [ "$fill_case_control" != "1" ]; then
+if [ "$fill_observations" == "1" ] && [ "$fill_case_control" == "1" ]; then
+  zcat $path_file_source | awk -v observations=$observations -v cases=$cases -v controls=$controls 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+    if ((toupper($9) != "NA") && (($9 + 0) > 0))
+      print $2, $1, $3, toupper($4), toupper($5), (($6*0.114)+($7*0.886)), log($9), $10, $11, (observations), "NA", $8, (cases), (controls)
+    else
+      print $2, $1, $3, toupper($4), toupper($5), (($6*0.114)+($7*0.886)), "NA", $10, $11, (observations), "NA", $8, (cases), (controls)
+  }' >> $path_file_temporary_format
+elif [ "$fill_observations" != "1" ] && [ "$fill_case_control" != "1" ]; then
   zcat $path_file_source | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
     if ((toupper($9) != "NA") && (($9 + 0) > 0))
       print $2, $1, $3, toupper($4), toupper($5), (($6*0.114)+($7*0.886)), log($9), $10, $11, ($17 + $18), "NA", $8, $17, $18

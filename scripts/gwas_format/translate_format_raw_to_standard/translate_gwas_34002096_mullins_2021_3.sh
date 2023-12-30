@@ -3,8 +3,8 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 2 August 2023
-# Date, last execution: 2 August 2023
-# Review: TCW; 19 December 2023
+# Date, last execution: 29 December 2023
+# Review: TCW; 30 December 2023
 ################################################################################
 # Note
 
@@ -64,7 +64,11 @@ rm $path_file_product
 # Note that AWK interprets a single space delimiter (FS=" ") as any white space.
 echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_format
 # For conciseness, only support the conditions that are relevant.
-if [ "$fill_observations" != "1" ] && [ "$fill_case_control" != "1" ]; then
+if [ "$fill_observations" == "1" ] && [ "$fill_case_control" == "1" ]; then
+  zcat $path_file_source | awk -v observations=$observations -v cases=$cases -v controls=$controls 'BEGIN {FS = " "; OFS = " "} NR > 73 {
+    print $3, $1, $2, toupper($4), toupper($5), (($10*0.053)+($11*0.947)), $6, $7, $8, (observations), "NA", $12, (cases), (controls)
+  }' >> $path_file_temporary_format
+elif [ "$fill_observations" != "1" ] && [ "$fill_case_control" != "1" ]; then
   zcat $path_file_source | awk 'BEGIN {FS = " "; OFS = " "} NR > 73 {
     print $3, $1, $2, toupper($4), toupper($5), (($10*0.053)+($11*0.947)), $6, $7, $8, ($14 + $15), "NA", $12, $14, $15
   }' >> $path_file_temporary_format
