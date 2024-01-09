@@ -104,7 +104,7 @@ fi
 # SLURM will not allow an array index greater than "MaxArraySize".
 # It is necessary to split larger jobs.
 
-if false; then
+if true; then
 
   # instances: 0 - 3,499
   sbatch --array 0-3499:1 --chdir $path_directory_batch_1 \
@@ -135,7 +135,7 @@ fi
 
 
 
-if true; then
+if false; then
 
   # instances: 0 - 3,499
   sbatch --array 0-3499:1 --chdir $path_directory_batch_1 \
