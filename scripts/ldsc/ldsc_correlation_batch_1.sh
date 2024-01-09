@@ -3,8 +3,8 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 6 August 2022
-# Date, last execution: 30 November 2023
-# Review: TCW; 30 November 2023
+# Date, last execution: 9 January 2024
+# Review: TCW; 9 January 2024
 ################################################################################
 # Note
 
@@ -85,7 +85,7 @@ fi
 # Submit to Slurm Scheduler.
 # Indices in array of batch jobs start at zero.
 
-if true; then
+if false; then
   sbatch --array 0-${index_array_maximum}:1 --chdir $path_directory_batch_1 \
   $path_script_batch_2 \
   $path_file_batch_instances \
@@ -104,17 +104,10 @@ fi
 # SLURM will not allow an array index greater than "MaxArraySize".
 # It is necessary to split larger jobs.
 
-# Alternative.
-# instances: 0 - 2,999
-# instances: 3,000 - 5,999
-# instances: 6,000 - maximum
-
-
-
 if false; then
 
-  # instances: 0 - 3,000
-  sbatch --array 0-3000:1 --chdir $path_directory_batch_1 \
+  # instances: 0 - 3,499
+  sbatch --array 0-3499:1 --chdir $path_directory_batch_1 \
   $path_script_batch_2 \
   $path_file_batch_instances \
   $batch_instances_count \
@@ -125,24 +118,13 @@ if false; then
   $report \
   $path_script_batch_3
 
-  # instances: 3,001 - 6,001
-  sbatch --array 0-3000:1 --chdir $path_directory_batch_2 \
+  # instances: 3,500 - maximum
+  # 6,399 - 3,500 = 2,899
+  sbatch --array 0-$((index_array_maximum - 3500)):1 --chdir $path_directory_batch_2 \
   $path_script_batch_2 \
   $path_file_batch_instances \
   $batch_instances_count \
-  3001 \
-  $path_directory_product \
-  $path_directory_disequilibrium \
-  $threads \
-  $report \
-  $path_script_batch_3
-
-  # instances: 6,002 - maximum
-  sbatch --array 0-$((index_array_maximum - 6002)):1 --chdir $path_directory_batch_3 \
-  $path_script_batch_2 \
-  $path_file_batch_instances \
-  $batch_instances_count \
-  6002 \
+  3500 \
   $path_directory_product \
   $path_directory_disequilibrium \
   $threads \
@@ -151,6 +133,60 @@ if false; then
 
 fi
 
+
+
+if true; then
+
+  # instances: 0 - 3,499
+  sbatch --array 0-3499:1 --chdir $path_directory_batch_1 \
+  $path_script_batch_2 \
+  $path_file_batch_instances \
+  $batch_instances_count \
+  0 \
+  $path_directory_product \
+  $path_directory_disequilibrium \
+  $threads \
+  $report \
+  $path_script_batch_3
+
+  # instances: 3,500 - 6,999
+  sbatch --array 0-3499:1 --chdir $path_directory_batch_2 \
+  $path_script_batch_2 \
+  $path_file_batch_instances \
+  $batch_instances_count \
+  3500 \
+  $path_directory_product \
+  $path_directory_disequilibrium \
+  $threads \
+  $report \
+  $path_script_batch_3
+
+  # instances: 7,000 - 10,499
+  sbatch --array 0-3499:1 --chdir $path_directory_batch_3 \
+  $path_script_batch_2 \
+  $path_file_batch_instances \
+  $batch_instances_count \
+  7000 \
+  $path_directory_product \
+  $path_directory_disequilibrium \
+  $threads \
+  $report \
+  $path_script_batch_3
+
+  # instances: 10,500 - maximum
+  # 13,119 - 10,500 = 2,619
+  sbatch --array 0-$((index_array_maximum - 10500)):1 --chdir $path_directory_batch_4 \
+  $path_script_batch_2 \
+  $path_file_batch_instances \
+  $batch_instances_count \
+  10500 \
+  $path_directory_product \
+  $path_directory_disequilibrium \
+  $threads \
+  $report \
+  $path_script_batch_3
+
+fi
 
 
 
