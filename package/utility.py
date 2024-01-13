@@ -2163,7 +2163,142 @@ def combine_unique_elements_pairwise_order(
     return pairs
 
 
+
+
+##################################################
+##########
 # Pandas
+
+
+def read_organize_transpose_source_table_multiindex_columns(
+    path_file_table=None,
+    row_index_place_holder=None,
+    name_row_index=None,
+    name_column_index_1=None,
+    name_column_index_2=None,
+    report=None,
+):
+    """
+    Reads from file, organizes, and transposes a table as a Pandas data frame.
+    The original source table is in a tab-delimited text file that has a
+    multi-level index across the dimension of columns consisting of rows 0 and 1
+    (compound header) and a single-level index across the dimension of rows.
+
+    Multi-level indices across one or both dimensions (rows, columns) of a table
+    are useful for filters. It is common to use a multi-level index across rows,
+    with the values of two or more columns determining a combination of
+    categorical groups that together define the values in other columns of the
+    same row. This format often has the name "long format".
+
+    While the multi-level index is common and intuitive in the dimension across
+    rows, in some applications it is far more convenient to organize the
+    original data table with the multi-level index in the dimension across
+    columns. This format often has the name "wide format".
+
+    This function makes it convenient to convert from wide format to long
+    format.
+
+    This function could also serve as a template for further adaptation to
+    accommodate multi-level indices across both rows and columns.
+
+    Format of source table in wide format:
+    Note: notice the use of "index", "index" as a place-holder.
+
+    index       group_1_a   group_1_a   group_1_b   group_1_b
+    index       signal      p_value     signal      p_value
+    group_2_a   -0.15       0.001       0.15        0.001
+    group_2_b   -0.2        0.001       0.2         0.001
+    group_2_c   -0.25       0.001       0.25        0.001
+
+    Format of product table in long format:
+
+    group       type      group_2_a   group_2_b   group_2_c
+    group_1_a   signal    -0.15       -0.2        -0.25
+    group_1_a   p_value   0.001       0.001       0.001
+    group_1_b   signal    0.15        0.2         0.25
+    group_1_b   p_value   0.001       0.001       0.001
+
+    Notice that Pandas does not accommodate missing values within series of
+    integer variable types.
+
+    arguments:
+        path_file_table (str): path to file for original source table
+        row_index_place_holder (str): place holder for index across rows
+        name_row_index (str): new name for index across rows
+        name_column_index_1 (str): new name for first index across columns
+        name_column_index_2 (str): new name for second index across columns
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame tables before and after transposition
+
+    """
+
+    # Read information from file.
+    table = pandas.read_csv(
+        path_file_table,
+        sep="\t",
+        header=[0,1],
+        na_values=["nan", "na", "NAN", "NA",],
+    )
+    # Organize information in table.
+    table.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    table.set_index(
+        [(row_index_place_holder, row_index_place_holder),],
+        append=False,
+        drop=True,
+        inplace=True,
+    )
+    table.index.rename(
+        name_row_index,
+        inplace=True,
+    ) # single-dimensional index
+    table.columns.rename(
+        name_column_index_1,
+        level=0,
+        inplace=True,
+    ) # multi-dimensional index
+    table.columns.rename(
+        name_column_index_2,
+        level=1,
+        inplace=True,
+    ) # multi-dimensional index
+    #matrix = numpy.copy(table.to_numpy())
+    # Transpose table.
+    table_transpose = table.transpose(copy=True)
+    # Report.
+    if report:
+        print_terminal_partition(level=4)
+        print("Original source table after organization:")
+        print(table)
+        print("Column labels:")
+        labels_columns = table.columns.to_list()
+        print(labels_columns)
+        print("Row labels:")
+        labels_rows = table.index.to_list()
+        print(labels_rows)
+        #print(table.loc[
+        #    :, (["bipolar_disorder", "schizophrenia"], ["signal", "p_value"])]
+        #)
+        #print(table.loc[:, (["bipolar_disorder", "schizophrenia"], "signal")])
+        #print(table.loc[:, ("bipolar_disorder", ["signal", "p_value"])])
+        #print(table.loc[:, ("bipolar_disorder", "signal")])
+        print_terminal_partition(level=4)
+        print("Novel product table after transpose:")
+        print(table_transpose)
+        print_terminal_partition(level=4)
+    # Collect information.
+    pail = dict()
+    pail["table"] = table
+    pail["table_transpose"] = table_transpose
+    # Return information.
+    return pail
 
 
 def calculate_sum_row_column_values(
@@ -3525,16 +3660,6 @@ def drive_calculate_table_column_pair_correlations(
     return table
 
 
-
-
-
-##########################
-# Basic operations on Pandas dataframe tables
-###############################
-
-
-
-
 def organize_table_column_identifier(
     column_source=None,
     column_product=None,
@@ -3542,7 +3667,8 @@ def organize_table_column_identifier(
     report=None,
 ):
     """
-    Organizes table of information about phenotypes.
+    Prepares columns in table for use as index identifier, string format without
+    missing values.
 
     arguments:
         column_source (str): name of original column for identifier
