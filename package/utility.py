@@ -3850,7 +3850,7 @@ def merge_columns_tables_supplements_to_main(
     table_main.reset_index(
         level=None,
         inplace=True,
-        drop=False, # remove index; do not move to regular columns
+        drop=False, # move index to regular columns
     )
 
     # Collect columns in original main table.

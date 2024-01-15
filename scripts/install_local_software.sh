@@ -29,9 +29,10 @@ sudo apt install atom
 # Discord
 # Or use the web browser application.
 cd ~/Downloads
-wget https://dl.discordapp.net/apps/linux/0.0.15/discord-0.0.15.deb
+wget https://dl.discordapp.net/apps/linux/0.0.40/discord-0.0.40.deb
+#wget https://discord.com/api/download?platform=linux&format=deb
 #wget "https://discord.com/api/download?platform=linux&format=deb"
-sudo apt install ./discord-0.0.14.deb
+sudo apt install ./discord-0.0.40.deb
 sudo apt remove discord
 
 # Zoom
