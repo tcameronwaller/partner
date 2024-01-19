@@ -400,7 +400,7 @@ def define_color_properties():
     gray = (0.5, 0.5, 0.5, 1.0)
     gray_dark = (0.3, 0.3, 0.3, 1.0) # (red: 75; green: 75; blue: 75)
     gray_light = (0.7, 0.7, 0.7, 1.0) # (red: 180; green: 180; blue: 180)
-    gray_faint = (0.5, 0.5, 0.5, 0.25) # (red: 180; green: 180; blue: 180)
+    gray_faint = (0.5, 0.5, 0.5, 0.5) # (red: 180; green: 180; blue: 180)
     # White.
     white = (1.0, 1.0, 1.0, 1.0)
     white_faint = (1.0, 1.0, 1.0, 0.75)
@@ -604,15 +604,15 @@ def plot_heat_map_few_signal_significance_labels(
 
     # Report.
     if report:
-        putility.print_terminal_partition(level=4)
+        utility.print_terminal_partition(level=4)
         print("Rows in table of signals: " + str(table_signal.shape[0]))
         print("Columns in table of signals: " + str(table_signal.shape[1]))
-        putility.print_terminal_partition(level=4)
+        utility.print_terminal_partition(level=4)
         if (show_significance):
-            putility.print_terminal_partition(level=4)
+            utility.print_terminal_partition(level=4)
             print("Rows in table of p-values: " + str(table_p.shape[0]))
             print("Columns in table of p-values: " + str(table_p.shape[1]))
-            putility.print_terminal_partition(level=4)
+            utility.print_terminal_partition(level=4)
 
     # Extract values.
     if (transpose_table):
@@ -641,13 +641,13 @@ def plot_heat_map_few_signal_significance_labels(
 
     # Report.
     if report:
-        putility.print_terminal_partition(level=4)
+        utility.print_terminal_partition(level=4)
         print("Matrix of signals:")
         count_rows = copy.deepcopy(matrix_signal.shape[0])
         count_columns = copy.deepcopy(matrix_signal.shape[1])
         print("Matrix rows (dimension 0): " + str(count_rows))
         print("Matrix columns (dimension 1): " + str(count_columns))
-        putility.print_terminal_partition(level=4)
+        utility.print_terminal_partition(level=4)
 
     # Extract categorical names for labels.
     if (
@@ -677,16 +677,16 @@ def plot_heat_map_few_signal_significance_labels(
 
     # Report.
     if report:
-        putility.print_terminal_partition(level=4)
+        utility.print_terminal_partition(level=4)
         print("Column labels:")
         print(labels_ordinate_categories)
         print("Row labels:")
         print(labels_abscissa_categories)
-        putility.print_terminal_partition(level=4)
+        utility.print_terminal_partition(level=4)
 
     ##########
     # Create figure.
-    figure = pplot.initialize_matplotlib_figure_aspect(
+    figure = initialize_matplotlib_figure_aspect(
         aspect=aspect,
     )
     # Create axes.
@@ -700,7 +700,7 @@ def plot_heat_map_few_signal_significance_labels(
     # Sequential color maps: "Reds", "Reds_r", "Oranges", "Oranges_r",
     image = axes.imshow(
         matrix_signal,
-        cmap=matplotlib.colormaps["RdBu"],
+        cmap=matplotlib.colormaps["RdBu_r"],
         vmin=value_minimum,
         vmax=value_maximum,
         aspect="equal", # "auto", "equal",
@@ -824,7 +824,7 @@ def plot_heat_map_few_signal_significance_labels(
                 alpha=1.0,
                 backgroundcolor=colors["white"],
                 color=colors["black"],
-                fontproperties=fonts["properties"]["seven"],
+                fontproperties=fonts["properties"]["nine"],
             )
         bar.ax.tick_params(
             axis="both",
@@ -837,6 +837,24 @@ def plot_heat_map_few_signal_significance_labels(
             labelsize=fonts["values"]["eight"]["size"],
             labelcolor=colors["black"],
         )
+    # Create labels for chart.
+    # TODO: TCW; 18 January 2024
+    # TODO: I need to troubleshoot this... I want the label to be on the figure
+    # to the top right of the chart area... maybe need to create text label
+    # on "figure" not "axes".
+    if False:
+        if len(label_top_right) > 0:
+            matplotlib.pyplot.text(
+                0.99,
+                0.99,
+                label_top_right,
+                horizontalalignment="right",
+                verticalalignment="top",
+                transform=axes.transAxes,
+                backgroundcolor=colors["white_faint"],
+                color=colors["black"],
+                fontproperties=fonts["properties"]["four"]
+            )
     # Return figure.
     return figure
 

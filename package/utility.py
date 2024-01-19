@@ -2301,6 +2301,68 @@ def read_organize_transpose_source_table_multiindex_columns(
     return pail
 
 
+def sort_table_rows_by_list_indices(
+    table=None,
+    list_sort=None,
+    name_column=None,
+    report=None,
+):
+    """
+    Merges a list of indices as a new column to a Pandas data-frame table, sorts
+    rows in the table by the new indices, and then removes the sort column.
+
+    It would be useful to implement a conceptually similar function that
+    concatenates multiple columns from a secondary table to the primary table
+    and then uses those multiple columns for an hierarchical sort.
+
+    arguments:
+        table (object): Pandas data-frame table
+        list_sort (list<str>): list of string integer indices for sort
+        name_column (str): name for new column of indices for sort
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table after sort on rows
+
+    """
+
+    # Copy information in table.
+    table = table.copy(deep=True)
+    # Convert strings in list to integers.
+    list_sort_integer = copy.deepcopy(list(map(
+        lambda value: int(value), list_sort
+    )))
+    # Check that the count of indices matches the count of rows in the table.
+    count_list_elements = len(list_sort_integer)
+    count_table_rows = (table.shape[0])
+    if (count_list_elements != count_table_rows):
+        #list_sort_integer = list_sort_integer[0:count_table_rows:1]
+        print_terminal_partition(level=4)
+        print(
+            "ERROR: Count of indices for sort does not match count of rows!"
+        )
+        print_terminal_partition(level=4)
+    # Introduce list of indices to the data-frame table.
+    table[name_column] = list_sort_integer
+    # Sort rows in table.
+    table.sort_values(
+        by=[name_column],
+        axis="index",
+        ascending=True,
+        inplace=True,
+    )
+    # Remove the temporary column of indices for sort.
+    table.drop(
+        labels=[name_column],
+        axis=1, # axis 0: rows; axis 1: columns
+        inplace=True,
+    )
+    # Return information.
+    return table
+
+
 def calculate_sum_row_column_values(
     columns=None,
     row=None,
