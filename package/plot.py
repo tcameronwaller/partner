@@ -482,6 +482,12 @@ def initialize_matplotlib_figure_aspect(
             figsize=(5.906, 15.748), # aspect 1.5 X 4; 5.906 inches = 15.001 cm
             tight_layout=True
         )
+        # 80 cm = 31.496 inches
+        # 30 cm = 11.811 inches
+        #figure = matplotlib.pyplot.figure(
+        #    figsize=(11.811, 31.496), # aspect 1.5 X 4; 5.906 inches = 15.001 cm
+        #    tight_layout=True
+        #)
     elif aspect == "landscape":
         figure = matplotlib.pyplot.figure(
             figsize=(15.748, 11.811), # aspect 4 X 3; 11.811 inches = 29.999 cm
@@ -703,7 +709,7 @@ def plot_heat_map_few_signal_significance_labels(
         cmap=matplotlib.colormaps["RdBu_r"],
         vmin=value_minimum,
         vmax=value_maximum,
-        aspect="equal", # "auto", "equal",
+        aspect="auto", # "auto", "equal",
         origin="upper",
         # Extent: (left, right, bottom, top)
         #extent=(-0.5, (matrix.shape[1] - 0.5), (matrix.shape[0] - 0.5), -0.5),
@@ -789,7 +795,7 @@ def plot_heat_map_few_signal_significance_labels(
                         label,
                         horizontalalignment="center",
                         verticalalignment="center",
-                        fontproperties=fonts["properties"]["twelve"],
+                        fontproperties=fonts["properties"]["ten"],
                         backgroundcolor=colors["gray_faint"],
                         color=colors["white"],
                     )
@@ -802,7 +808,7 @@ def plot_heat_map_few_signal_significance_labels(
                         label,
                         horizontalalignment="center",
                         verticalalignment="center",
-                        fontproperties=fonts["properties"]["twelve"],
+                        fontproperties=fonts["properties"]["ten"],
                         backgroundcolor=colors["gray_faint"],
                         color=colors["white"],
                     )
@@ -824,7 +830,7 @@ def plot_heat_map_few_signal_significance_labels(
                 alpha=1.0,
                 backgroundcolor=colors["white"],
                 color=colors["black"],
-                fontproperties=fonts["properties"]["nine"],
+                fontproperties=fonts["properties"]["seven"],
             )
         bar.ax.tick_params(
             axis="both",
