@@ -1169,8 +1169,12 @@ def read_file_text_list(
     # Split content by line delimiters.
     values_split = content.split(delimiter)
     values_strip = list(map(lambda value: value.strip(), values_split))
+    values_not_empty = list(filter(
+        lambda value: (len(value) > 0),
+        values_strip
+    ))
     # Return information
-    return values_strip
+    return values_not_empty
 
 
 def read_file_text_lines(
