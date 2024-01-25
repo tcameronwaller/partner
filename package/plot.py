@@ -512,7 +512,6 @@ def initialize_matplotlib_figure_aspect(
 # These heatmap plots support options such as text labels on the cells.
 
 
-
 def plot_heat_map_few_signal_significance_labels(
     table=None,
     transpose_table=None,
@@ -795,7 +794,7 @@ def plot_heat_map_few_signal_significance_labels(
                         label,
                         horizontalalignment="center",
                         verticalalignment="center",
-                        fontproperties=fonts["properties"]["ten"],
+                        fontproperties=fonts["properties"]["eight"],
                         backgroundcolor=colors["gray_faint"],
                         color=colors["white"],
                     )
@@ -826,11 +825,11 @@ def plot_heat_map_few_signal_significance_labels(
                 title_bar,
                 rotation=-90,
                 va="bottom",
-                labelpad=5,
+                labelpad=3, # 5
                 alpha=1.0,
                 backgroundcolor=colors["white"],
                 color=colors["black"],
-                fontproperties=fonts["properties"]["seven"],
+                fontproperties=fonts["properties"]["eight"],
             )
         bar.ax.tick_params(
             axis="both",
@@ -840,7 +839,7 @@ def plot_heat_map_few_signal_significance_labels(
             width=5.0,
             color=colors["black"],
             pad=5,
-            labelsize=fonts["values"]["eight"]["size"],
+            labelsize=fonts["values"]["nine"]["size"],
             labelcolor=colors["black"],
         )
     # Create labels for chart.
@@ -863,7 +862,6 @@ def plot_heat_map_few_signal_significance_labels(
             )
     # Return figure.
     return figure
-
 
 
 ##########

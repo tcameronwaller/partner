@@ -450,10 +450,30 @@ def read_extract_ldsc_correlation(
         "correlation_ci99_low",
         "correlation_ci99_high",
     ]
+    variables_convenience = [
+        "correlation",
+        "p_not_zero",
+        "summary_correlation_error",
+        "summary_correlation_ci95",
+        "summary_correlation_ci99",
+        "variants",
+        "variants_valid",
+        "covariance",
+        "covariance_error",
+        "z_score",
+        "correlation_ci95_not_zero",
+        "correlation_ci95_not_one",
+        "correlation_absolute",
+        "correlation_error",
+        "correlation_ci95_low",
+        "correlation_ci95_high",
+        "correlation_ci99_low",
+        "correlation_ci99_high",
+    ]
     # Return information.
     pail = dict()
     pail["record"] = record
-    pail["variables"] = variables
+    pail["variables"] = variables_convenience
     return pail
 
 
