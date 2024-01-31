@@ -2174,7 +2174,7 @@ def combine_unique_elements_pairwise_order(
 # Pandas
 
 
-def read_organize_transpose_source_table_multiindex_columns(
+def read_source_table_multiindex_columns_transpose_calculate_q_values(
     path_file_table=None,
     row_index_place_holder=None,
     name_row_index=None,
@@ -2189,10 +2189,11 @@ def read_organize_transpose_source_table_multiindex_columns(
     (compound header) and a single-level index across the dimension of rows.
 
     Multi-level indices across one or both dimensions (rows, columns) of a table
-    are useful for filters. It is common to use a multi-level index across rows,
-    with the values of two or more columns determining a combination of
-    categorical groups that together define the values in other columns of the
-    same row. This format often has the name "long format".
+    are useful for filters. It is most often common and convenient to use a
+    multi-level index across rows, with the values of two or more columns
+    determining a combination of categorical groups that together define the
+    values in the other columns of that same row. This format often has the name
+    "long format".
 
     While the multi-level index is common and intuitive in the dimension across
     rows, in some applications it is far more convenient to organize the
@@ -2200,7 +2201,8 @@ def read_organize_transpose_source_table_multiindex_columns(
     columns. This format often has the name "wide format".
 
     This function makes it convenient to convert from wide format to long
-    format.
+    format. This function also calculates Benjamini-Hochberg False Discovery
+    Rate q-values from all p-values in the table.
 
     This function could also serve as a template for further adaptation to
     accommodate multi-level indices across both rows and columns.
@@ -2211,96 +2213,268 @@ def read_organize_transpose_source_table_multiindex_columns(
     index       group_1_a   group_1_a   group_1_b   group_1_b
     index       signal      p_value     signal      p_value
     group_2_a   -0.15       0.001       0.15        0.001
-    group_2_b   -0.2        0.001       0.2         0.001
+    group_2_b   -0.20       0.001       0.20        0.001
     group_2_c   -0.25       0.001       0.25        0.001
 
-    Format of product table in long format:
+    Format of product table in partial long format:
 
     group       type      group_2_a   group_2_b   group_2_c
-    group_1_a   signal    -0.15       -0.2        -0.25
+    group_1_a   signal    -0.15       -0.20       -0.25
     group_1_a   p_value   0.001       0.001       0.001
-    group_1_b   signal    0.15        0.2         0.25
+    group_1_b   signal    0.15        0.20        0.25
     group_1_b   p_value   0.001       0.001       0.001
 
-    Notice that Pandas does not accommodate missing values within series of
-    integer variable types.
+    Format of product table in complete long format:
+
+    group_1     group_2     type      value
+    group_1_a   group_2_a   signal    -0.15
+    group_1_a   group_2_a   p_value   0.001
+    group_1_a   group_2_b   signal    -0.20
+    group_1_a   group_2_b   p_value   0.001
+    group_1_a   group_2_c   signal    -0.25
+    group_1_a   group_2_c   p_value   0.001
+    group_1_b   group_2_a   signal    0.15
+    group_1_b   group_2_a   p_value   0.001
+    group_1_b   group_2_b   signal    0.20
+    group_1_b   group_2_b   p_value   0.001
+    group_1_b   group_2_c   signal    0.25
+    group_1_b   group_2_c   p_value   0.001
+
+    Format of product table in partial long format with new q-values:
+
+    group       type      group_2_a   group_2_b   group_2_c
+    group_1_a   signal    -0.15       -0.20       -0.25
+    group_1_a   p_value   0.001       0.001       0.001
+    group_1_a   q_value   0.001       0.001       0.001
+    group_1_b   signal    0.15        0.20        0.25
+    group_1_b   p_value   0.001       0.001       0.001
+    group_1_b   q_value   0.001       0.001       0.001
+
+    Recommendations for names of indices:
+    row_index_place_holder="group_secondary",
+    name_row_index="group_secondary",
+    name_column_index_1="group_primary",
+    name_column_index_2="type_value",
+
+    Recommendations for categories within name_column_index_2, "type_value":
+    signal
+    p_value
+    q_value (calculated and introduced by this function)
 
     arguments:
         path_file_table (str): path to file for original source table
         row_index_place_holder (str): place holder for index across rows
         name_row_index (str): new name for index across rows
         name_column_index_1 (str): new name for first index across columns
-        name_column_index_2 (str): new name for second index across columns
+        name_column_index_2 (str): new name for second index across columns;
+            one of the two categorical values must be 'p_value'
         report (bool): whether to print reports
 
     raises:
 
     returns:
-        (object): Pandas data-frame tables before and after transposition
+        (object): Pandas data-frame tables before and after transposition and
+            with Benjamini-Hochberg False Discovery Rate q-values
 
     """
 
+    ##########
+    # 1. Read table from file.
+
     # Read information from file.
-    table = pandas.read_csv(
+    table_wide = pandas.read_csv(
         path_file_table,
         sep="\t",
         header=[0,1],
         na_values=["nan", "na", "NAN", "NA",],
     )
+
+    ##########
+    # 2. Transform table format from wide to partial long.
+
     # Organize information in table.
-    table.reset_index(
+    table_wide.reset_index(
         level=None,
         inplace=True,
         drop=True, # remove index; do not move to regular columns
     )
-    table.set_index(
+    table_wide.set_index(
         [(row_index_place_holder, row_index_place_holder),],
         append=False,
         drop=True,
         inplace=True,
     )
-    table.index.rename(
+    table_wide.index.rename(
         name_row_index,
         inplace=True,
     ) # single-dimensional index
-    table.columns.rename(
+    table_wide.columns.rename(
         name_column_index_1,
         level=0,
         inplace=True,
     ) # multi-dimensional index
-    table.columns.rename(
+    table_wide.columns.rename(
         name_column_index_2,
         level=1,
         inplace=True,
     ) # multi-dimensional index
-    #matrix = numpy.copy(table.to_numpy())
+
     # Transpose table.
-    table_transpose = table.transpose(copy=True)
+    table_long_partial = table_wide.transpose(copy=True)
+
+    # Separate signals from p-values.
+    #table_signal = table_long_partial.loc[
+    #    (table_long_partial["type_value"] == "signal"), :
+    #].copy(deep=True)
+    #table_signal = table_long_partial[
+    #    table_long_partial.index.get_level_values("type_value").isin(["signal"])
+    #].copy(deep=True)
+    #table_p = table_long_partial[
+    #    table_long_partial.index.get_level_values("type_value").isin(["p_value"])
+    #].copy(deep=True)
+    #matrix_p = numpy.copy(table_p.to_numpy())
+
+    ##########
+    # 3. Calculate Benjamini-Hochberg False Discovery Rate q-values.
+
+    # Transform table to complete long format.
+    # Pandas dataframe methods "stack", "melt", and "wide_to_long", can all be
+    # useful in this context.
+    # Method "stack" converts to a multi-index series when the column index only
+    # has a single level.
+    # Method "wide_to_long" assumes that the information about multiple levels
+    # in the column index is stored in delimited strings of compound column
+    # names.
+    # Copy information.
+    table_long_partial_copy = table_long_partial.copy(deep=True)
+    if False:
+        table_long_complete = table_long_partial_copy.stack(
+            level=name_row_index,
+            #future_stack=True,
+        )
+    table_long_complete = table_long_partial_copy.melt(
+        id_vars=None,
+        value_vars=None,
+        var_name=name_row_index,
+        value_name="value",
+        ignore_index=False,
+    )
+
+    # Separate p-values.
+    table_p = table_long_complete[
+        table_long_complete.index.get_level_values(
+            name_column_index_2
+        ).isin(["p_value"])
+    ].copy(deep=True)
+    # Translate names of columns.
+    translations = dict()
+    translations["value"] = "p_value"
+    table_p.rename(
+        columns=translations,
+        inplace=True,
+    )
+    # Calculate Benjamini-Hochberg False Discovery Rate q-values.
+    table_q = calculate_table_false_discovery_rate_q_values(
+        threshold=0.05,
+        name_column_p_value="p_value",
+        name_column_q_value="q_value",
+        name_column_significance="q_significance",
+        table=table_p,
+    )
+
+    ##########
+    # 4. Combine the q-values with the larger table in partial long format.
+
+    # Remove unnecessary columns.
+    table_q.drop(
+        labels=["p_value", "q_significance",],
+        axis="columns",
+        inplace=True
+    )
+    # Organize information in table.
+    table_q.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
+    table_q[name_column_index_2] = "q_value"
+
+    # Transform table to partial long format.
+    # Pandas dataframe methods "unstack" and "pivot" can be useful in this
+    # context.
+    if False:
+        table_q.set_index(
+            [name_column_index_1, name_column_index_2, name_row_index,],
+            append=False,
+            drop=True,
+            inplace=True,
+        )
+        table_q_long_partial = table_q.unstack(
+            level=[name_row_index,],
+        )
+    table_q_long_partial = table_q.pivot(
+        columns=[name_row_index,],
+        index=[name_column_index_1, name_column_index_2,],
+        values="q_value",
+    )
+
+    # Combine the new q-values with the original signals and p-values.
+    table_long_partial_q = pandas.concat(
+        [table_long_partial, table_q_long_partial,],
+        axis="index",
+        join="outer",
+        ignore_index=False,
+        copy=True,
+    )
+
+    ##########
+    # 5. Sort rows of q-values to match the original sequence.
+    # pandas.DataFrame.sort_index()
+    # pandas.DataFrame.sort_values()
+    values_name_column_index_1 = copy.deepcopy(
+        table_long_partial.index.get_level_values(name_column_index_1).to_list()
+    )
+    sequence_name_column_index_1 = dict()
+    counter = 0
+    for value in values_name_column_index_1:
+        if value not in sequence_name_column_index_1.keys():
+            sequence_name_column_index_1[value] = counter
+            counter +=1
+    table_long_partial_q.sort_index(
+        axis="index",
+        level=[name_column_index_1,],
+        ascending=True,
+        inplace=True,
+        key=lambda x: x.map(sequence_name_column_index_1),
+    )
+
     # Report.
     if report:
         print_terminal_partition(level=4)
-        print("Original source table after organization:")
-        print(table)
+        print("Original source table in wide format after organization:")
+        print(table_wide)
         print("Column labels:")
-        labels_columns = table.columns.to_list()
+        labels_columns = table_wide.columns.to_list()
         print(labels_columns)
         print("Row labels:")
-        labels_rows = table.index.to_list()
+        labels_rows = table_wide.index.to_list()
         print(labels_rows)
-        #print(table.loc[
-        #    :, (["bipolar_disorder", "schizophrenia"], ["signal", "p_value"])]
-        #)
-        #print(table.loc[:, (["bipolar_disorder", "schizophrenia"], "signal")])
-        #print(table.loc[:, ("bipolar_disorder", ["signal", "p_value"])])
-        #print(table.loc[:, ("bipolar_disorder", "signal")])
         print_terminal_partition(level=4)
-        print("Novel product table after transpose:")
-        print(table_transpose)
+        print("Novel product table in partial long format after transpose:")
+        print(table_long_partial)
         print_terminal_partition(level=4)
+        print("Novel product table in complete long format after melt:")
+        print(table_long_complete)
+        print_terminal_partition(level=4)
+        print("Novel product table in partial long format with q values:")
+        print(table_long_partial_q)
+        print_terminal_partition(level=4)
+
     # Collect information.
     pail = dict()
-    pail["table"] = table
-    pail["table_transpose"] = table_transpose
+    pail["table_wide"] = table_wide
+    pail["table_long_complete"] = table_long_complete
+    pail["table_long_partial_q"] = table_long_partial_q
     # Return information.
     return pail
 
@@ -2680,65 +2854,69 @@ def filter_rows_columns_by_threshold_outer_proportion(
     return data_pass
 
 
-def calculate_table_false_discovery_rates(
+def calculate_table_false_discovery_rate_q_values(
     threshold=None,
-    probability=None,
-    discovery=None,
-    significance=None,
+    name_column_p_value=None,
+    name_column_q_value=None,
+    name_column_significance=None,
     table=None,
 ):
     """
-    Calculates false discovery rates (FDRs) from probabilities.
+    Calculates Benjamini-Hochberg q-values to indicate false discovery rates
+    (FDRs) from original p-values.
 
     arguments:
         threshold (float): value of alpha, or family-wise error rate of false
             discoveries
-        probability (str): name of table's column of probabilities
-        discovery (str): name for table's column of false discovery rates
-        significance (str): name for table's column of FDR significance
+        name_column_p_value (str): name of table's column of p-values
+        name_column_q_value (str): name for table's column of q-values
+        name_column_significance (str): name for table's column of FDR
+            indication that null hypothesis can be rejected
         table (object): Pandas data frame with column of probabilities across
             observations in rows
 
     raises:
 
     returns:
-        (object): Pandas data frame of probabilities and false discovery rates
+        (object): Pandas data frame of original p-values and novel q-values to
+            indicate false discovery rates
 
     """
 
     # Copy information.
     table = table.copy(deep=True)
 
-    # False discovery rate method cannot accommodate missing values.
+    # False name_column_q_value rate method cannot accommodate missing values.
     # Remove null values.
-    table_null_boolean = pandas.isna(table[probability])
+    table_null_boolean = pandas.isna(table[name_column_p_value])
     table_null = table.loc[table_null_boolean]
     table_valid = table.dropna(
         axis="index",
         how="any",
-        subset=[probability],
+        subset=[name_column_p_value],
         inplace=False,
     )
-    # Calculate false discovery rates from probabilities.
-    probabilities = table_valid[probability].to_numpy()
-    if len(probabilities) > 3:
+    # Calculate false name_column_q_value rates from probabilities.
+    p_values = copy.deepcopy(table_valid[name_column_p_value].to_numpy())
+    if len(p_values) > 3:
         report = statsmodels.stats.multitest.multipletests(
-            probabilities,
+            p_values,
             alpha=threshold,
-            method="fdr_bh", # use Benjamini-Hochberg False Discovery Rate (FDR)
+            method="fdr_bh", # use Benjamini-Hochberg False name_column_q_value Rate (FDR)
             is_sorted=False,
+            #return_sorted=False, # keep q-values in original sequence
         )
         significances = report[0] # valid to reject null hypothesis
         #significances = numpy.invert(rejects)
-        discoveries = report[1]
-        table_valid[significance] = significances
-        table_valid[discovery] = discoveries
+        q_values = report[1]
+        table_valid[name_column_significance] = significances
+        table_valid[name_column_q_value] = q_values
     else:
-        table_valid[significance] = float("nan")
-        table_valid[discovery] = float("nan")
+        table_valid[name_column_significance] = float("nan")
+        table_valid[name_column_q_value] = float("nan")
         pass
-    table_null[significance] = False
-    table_null[discovery] = float("nan")
+    table_null[name_column_significance] = False
+    table_null[name_column_q_value] = float("nan")
 
     # Combine null and valid portions of data.
     table_discoveries = table_valid.append(

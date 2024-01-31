@@ -198,11 +198,19 @@ def define_font_properties():
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
+        "stretch": 175,
+        "weight": 175,
+        "size": 6,
+    }
+    values_15 = {
+        "family": "sans-serif",
+        "style": "normal",
+        "variant": "normal",
         "stretch": 150,
         "weight": 150,
         "size": 5,
     }
-    values_15 = {
+    values_16 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
@@ -331,6 +339,14 @@ def define_font_properties():
         weight=values_15["weight"],
         size=values_15["size"]
     )
+    properties_16 = matplotlib.font_manager.FontProperties(
+        family=values_16["family"],
+        style=values_16["style"],
+        variant=values_16["variant"],
+        stretch=values_16["stretch"],
+        weight=values_16["weight"],
+        size=values_16["size"]
+    )
     # Compile and return references.
     return {
         "values": {
@@ -349,6 +365,7 @@ def define_font_properties():
             "thirteen": values_13,
             "fourteen": values_14,
             "fifteen": values_15,
+            "sixteen": values_16,
         },
         "properties": {
             "one": properties_1,
@@ -366,6 +383,7 @@ def define_font_properties():
             "thirteen": properties_13,
             "fourteen": properties_14,
             "fifteen": properties_15,
+            "sixteen": properties_16,
         }
     }
 
@@ -511,12 +529,13 @@ def initialize_matplotlib_figure_aspect(
 # Heatmap plots with few cells
 # These heatmap plots support options such as text labels on the cells.
 
+# significance_labels= eithier "p_value" or "q_value"
 
 def plot_heat_map_few_signal_significance_labels(
     table=None,
     transpose_table=None,
-    show_significance=None,
-    threshold_significance=None,
+    significance_type=None,
+    significance_thresholds=None,
     fill_missing=None,
     value_missing_fill=None,
     constrain_signal_values=None,
@@ -524,7 +543,9 @@ def plot_heat_map_few_signal_significance_labels(
     value_maximum=None,
     labels_ordinate_categories=None,
     labels_abscissa_categories=None,
-    title_figure_top_center=None,
+    label_figure_top_right_1=None,
+    label_figure_top_right_2=None,
+    label_figure_top_right_3=None,
     title_chart_top_right=None,
     title_ordinate=None,
     title_abscissa=None,
@@ -548,8 +569,10 @@ def plot_heat_map_few_signal_significance_labels(
     group_primary       type
     group_1_a           signal    -0.15       -0.2        -0.25
     group_1_a           p_value   0.001       0.001       0.001
+    group_1_a           q_value   0.001       0.001       0.001
     group_1_b           signal    0.15        0.2         0.25
     group_1_b           p_value   0.001       0.001       0.001
+    group_1_b           q_value   0.001       0.001       0.001
 
     MatPlotLib color maps.
     https://matplotlib.org/stable/tutorials/colors/colormaps.html
@@ -558,10 +581,11 @@ def plot_heat_map_few_signal_significance_labels(
         table (object): Pandas data-frame table in long format with
             floating-point values of signal and p-values.
         transpose_table (bool): whether to transpose matrix from table
-        show_significance (bool): whether to show indicators of significance on
-            the heatmap
-        threshold_significance (float): value of threshold on p-values for
-            determination of significance
+        significance_type (str): whether to use 'p_value' or 'q_value' for
+            for labels on the heatmap as potential suggestions of significance
+        significance_thresholds (list<float>): values of thresholds on p-value
+            or q-value for determination of significance, or actually just
+            whether to draw the labels
         fill_missing (bool): whether to fill any missing values in every element
             of matrix
         value_missing_fill (float): value with which to fill any missing values
@@ -572,11 +596,13 @@ def plot_heat_map_few_signal_significance_labels(
             ordinate or vertical axis
         labels_abscissa_categories (list<str>): optional, explicit labels for
             abscissa or horizontal axis
-        title_figure_top_center (str):
+        label_figure_top_right_1 (str): label for top right of figure margins
+        label_figure_top_right_2 (str): label for top right of figure margins
+        label_figure_top_right_3 (str): label for top right of figure margins
         title_chart_top_right (str):
         title_ordinate (str):
         title_abscissa (str):
-        title_bar (str):
+        title_bar (str): title for scale bar
         aspect (str): aspect ratio for MatPlotLib figure
         size_label_ordinate_categories (str):
         size_label_abscissa_categories (str):
@@ -602,10 +628,9 @@ def plot_heat_map_few_signal_significance_labels(
     table_signal = table[
         table.index.get_level_values("type_value").isin(["signal"])
     ].copy(deep=True)
-    if show_significance:
-        table_p = table[
-            table.index.get_level_values("type_value").isin(["p_value"])
-        ].copy(deep=True)
+    table_p = table[
+        table.index.get_level_values("type_value").isin([significance_type])
+    ].copy(deep=True)
 
     # Report.
     if report:
@@ -613,21 +638,20 @@ def plot_heat_map_few_signal_significance_labels(
         print("Rows in table of signals: " + str(table_signal.shape[0]))
         print("Columns in table of signals: " + str(table_signal.shape[1]))
         utility.print_terminal_partition(level=4)
-        if (show_significance):
-            utility.print_terminal_partition(level=4)
-            print("Rows in table of p-values: " + str(table_p.shape[0]))
-            print("Columns in table of p-values: " + str(table_p.shape[1]))
-            utility.print_terminal_partition(level=4)
+        print("Rows in table of p-values or q-values: " + str(table_p.shape[0]))
+        print(
+            "Columns in table of p-values or q-values: "
+            + str(table_p.shape[1])
+        )
+        utility.print_terminal_partition(level=4)
 
     # Extract values.
     if (transpose_table):
         matrix_signal = numpy.transpose(numpy.copy(table_signal.to_numpy()))
-        if (show_significance):
-            matrix_p = numpy.transpose(numpy.copy(table_p.to_numpy()))
+        matrix_p = numpy.transpose(numpy.copy(table_p.to_numpy()))
     else:
         matrix_signal = numpy.copy(table_signal.to_numpy())
-        if (show_significance):
-            matrix_p = numpy.copy(table_p.to_numpy())
+        matrix_p = numpy.copy(table_p.to_numpy())
 
     # Organize signals in matrix.
     # Replace missing values.
@@ -669,7 +693,7 @@ def plot_heat_map_few_signal_significance_labels(
         table_signal.reset_index(
             level=None,
             inplace=True,
-            drop=False, # move index to regular columns
+            drop=False, # remove index; do not move to regular columns
         )
         #labels_rows = table.index.to_list()
         labels_rows = table_signal["group_primary"].to_list()
@@ -696,6 +720,67 @@ def plot_heat_map_few_signal_significance_labels(
     )
     # Create axes.
     axes = matplotlib.pyplot.axes()
+    #figure.subplots_adjust(bottom=0.2) # Does this work?
+    #axes.margins(
+    #    x=1,
+    #    y=1,
+    #    tight=True,
+    #)
+
+    # Create labels or titles on figure.
+    string_title = str(
+        "Labels:\n"
+        + str("   " + label_figure_top_right_1 + "\n")
+        + str("   " + label_figure_top_right_2 + "\n")
+        + str("   " + label_figure_top_right_3)
+    )
+    axes.set_title(
+        string_title,
+        #loc="right",
+        x=1.030, # 1.0 - 1.2; 1 unit is horizontal dimension of 1 cell?
+        y=1.000, # 1.0 - 1.3; 1 unit is vertical dimension of 1 cell? 0.985
+        ha="left",
+        va="bottom", # top, center, bottom
+        backgroundcolor=colors["gray"],
+        color=colors["white"],
+        fontproperties=fonts["properties"]["ten"]
+    )
+    if False:
+        text = axes.text(
+            ((matrix_signal.shape[1]) + 0.75),
+            -3,
+            label_figure_top_right_1,
+            horizontalalignment="left",
+            verticalalignment="top",
+            fontproperties=fonts["properties"]["nine"],
+            backgroundcolor=colors["white"],
+            color=colors["black"],
+        )
+        text = axes.text(
+            ((matrix_signal.shape[1]) + 0.75),
+            -2.25,
+            label_figure_top_right_2,
+            horizontalalignment="left",
+            verticalalignment="top",
+            fontproperties=fonts["properties"]["nine"],
+            backgroundcolor=colors["white"],
+            color=colors["black"],
+        )
+        text = axes.text(
+            ((matrix_signal.shape[1]) + 0.75),
+            -1.5,
+            label_figure_top_right_3,
+            horizontalalignment="left",
+            verticalalignment="top",
+            fontproperties=fonts["properties"]["nine"],
+            backgroundcolor=colors["white"],
+            color=colors["black"],
+        )
+    #
+    #
+    #
+    #
+    #
 
     # Plot values as a color grid.
     # This function represents values acros matrix dimension 0 as vertical rows.
@@ -739,7 +824,7 @@ def plot_heat_map_few_signal_significance_labels(
         which="both", # "major", "minor", or "both"
         length=7.5,
         width=5.0,
-        pad=5,
+        pad=7.5,
         direction="out",
         color=colors["black"],
         labelcolor=colors["black"],
@@ -784,34 +869,46 @@ def plot_heat_map_few_signal_significance_labels(
             signal = "{:.2f}".format(
                 round(matrix_signal[index_row, index_column], 2)
             )
-            if (show_significance):
-                p = matrix_p[index_row, index_column]
-                if (p < threshold_significance):
-                    label = str(str(signal) + "*")
-                    text = axes.text(
-                        index_column,
-                        index_row,
-                        label,
-                        horizontalalignment="center",
-                        verticalalignment="center",
-                        fontproperties=fonts["properties"]["eight"],
-                        backgroundcolor=colors["gray_faint"],
-                        color=colors["white"],
-                    )
-            else:
-                if False:
-                    label = str(signal)
-                    text = axes.text(
-                        index_column,
-                        index_row,
-                        label,
-                        horizontalalignment="center",
-                        verticalalignment="center",
-                        fontproperties=fonts["properties"]["ten"],
-                        backgroundcolor=colors["gray_faint"],
-                        color=colors["white"],
-                    )
-                    pass
+            p = matrix_p[index_row, index_column]
+            if (p < significance_thresholds[2]):
+                label = str(str(signal) + "**")
+                text = axes.text(
+                    index_column,
+                    index_row,
+                    label,
+                    horizontalalignment="center",
+                    verticalalignment="center",
+                    fontproperties=fonts["properties"]["fourteen"],
+                    backgroundcolor=colors["gray_faint"],
+                    color=colors["white"],
+                )
+            elif (p < significance_thresholds[1]):
+                label = str(str(signal) + "*")
+                text = axes.text(
+                    index_column,
+                    index_row,
+                    label,
+                    horizontalalignment="center",
+                    verticalalignment="center",
+                    fontproperties=fonts["properties"]["fourteen"],
+                    backgroundcolor=colors["gray_faint"],
+                    color=colors["white"],
+                )
+            elif (p < significance_thresholds[0]):
+                label = str(str(signal))
+                text = axes.text(
+                    index_column,
+                    index_row,
+                    label,
+                    horizontalalignment="center",
+                    verticalalignment="center",
+                    fontproperties=fonts["properties"]["fourteen"],
+                    backgroundcolor=colors["gray_faint"],
+                    color=colors["white"],
+                )
+                pass
+            pass
+        pass
 
     # Create legend for scale of color grid.
     if scale_bar:
@@ -819,13 +916,15 @@ def plot_heat_map_few_signal_significance_labels(
             image,
             orientation="vertical",
             ax=axes,
+            location="right",
+            shrink=0.7, # Factor for dimensions of the Scale Bar.
         )
         if (len(title_bar) > 0):
             bar.ax.set_ylabel(
                 title_bar,
                 rotation=-90,
                 va="bottom",
-                labelpad=3, # 5
+                labelpad=5, # 5
                 alpha=1.0,
                 backgroundcolor=colors["white"],
                 color=colors["black"],
@@ -835,11 +934,11 @@ def plot_heat_map_few_signal_significance_labels(
             axis="both",
             which="both", # major, minor, or both
             direction="out",
-            length=7.5,
-            width=5.0,
+            length=5.0, # 7.5
+            width=2.5,
             color=colors["black"],
             pad=5,
-            labelsize=fonts["values"]["nine"]["size"],
+            labelsize=fonts["values"]["ten"]["size"],
             labelcolor=colors["black"],
         )
     # Create labels for chart.
