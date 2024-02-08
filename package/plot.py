@@ -533,18 +533,18 @@ def initialize_matplotlib_figure_aspect(
 def plot_heat_map_few_signal_significance_labels(
     table=None,
     transpose_table=None,
-    significance_type=None,
-    significance_thresholds=None,
     fill_missing=None,
     value_missing_fill=None,
     constrain_signal_values=None,
     value_minimum=None,
     value_maximum=None,
+    significance_p=None,
+    significance_q=None,
+    thresholds_p=None,
+    thresholds_q=None,
+    label_legend=None,
     labels_ordinate_categories=None,
     labels_abscissa_categories=None,
-    label_figure_top_right_1=None,
-    label_figure_top_right_2=None,
-    label_figure_top_right_3=None,
     title_chart_top_right=None,
     title_ordinate=None,
     title_abscissa=None,
@@ -573,6 +573,23 @@ def plot_heat_map_few_signal_significance_labels(
     group_1_b           p_value   0.001       0.001       0.001
     group_1_b           q_value   0.001       0.001       0.001
 
+    This function creates labels on cells of the heatmap to indicate
+    significance on the basis of the either the q-value or the p-value.
+
+             dagger: q < 0.05
+      double-dagger: q < 0.01
+           asterisk: p < 0.05
+    double-asterisk: p < 0.01
+
+    str("$\u2020$") # dagger U+2020
+    str("$\u2021$") # double dagger U+2021
+    str("$\u002A$") # asterisk U+002A
+    str("$\u2051$") # double asterisk U+2051
+
+    The advantage of using the symbols dagger, double-dagger, asterisk, and
+    double-asterisk is that they all occupy a single character space, which
+    helps keep the horizontal alignment clean.
+
     MatPlotLib color maps.
     https://matplotlib.org/stable/tutorials/colors/colormaps.html
 
@@ -580,24 +597,27 @@ def plot_heat_map_few_signal_significance_labels(
         table (object): Pandas data-frame table in long format with
             floating-point values of signal and p-values.
         transpose_table (bool): whether to transpose matrix from table
-        significance_type (str): whether to use 'p_value' or 'q_value' for
-            for labels on the heatmap as potential suggestions of significance
-        significance_thresholds (list<float>): values of thresholds on p-value
-            or q-value for determination of significance, or actually just
-            whether to draw the labels
         fill_missing (bool): whether to fill any missing values in every element
             of matrix
         value_missing_fill (float): value with which to fill any missing values
         constrain_signal_values (bool): whether to constrain all values in matrix
         value_minimum (float): minimal value for constraint on signals and scale
         value_maximum (float): maximal value for constraint on signals and scale
+        significance_p (bool): whether to consider p-values to indicate
+            significance in labels on the heatmap
+        significance_q (bool): whether to consider q-values to indicate
+            significance in labels on the heatmap
+        thresholds_p (list<float>): values of thresholds on p-values for
+            determination of significance, or actually whether to draw the
+            labels on the heatmap
+        thresholds_q (list<float>): values of thresholds on q-values for
+            determination of significance, or actually whether to draw the
+            labels on the heatmap
+        label_legend (str): text character string for legend label
         labels_ordinate_categories (list<str>): optional, explicit labels for
             ordinate or vertical axis
         labels_abscissa_categories (list<str>): optional, explicit labels for
             abscissa or horizontal axis
-        label_figure_top_right_1 (str): label for top right of figure margins
-        label_figure_top_right_2 (str): label for top right of figure margins
-        label_figure_top_right_3 (str): label for top right of figure margins
         title_chart_top_right (str):
         title_ordinate (str):
         title_abscissa (str):
@@ -628,7 +648,10 @@ def plot_heat_map_few_signal_significance_labels(
         table.index.get_level_values("type_value").isin(["signal"])
     ].copy(deep=True)
     table_p = table[
-        table.index.get_level_values("type_value").isin([significance_type])
+        table.index.get_level_values("type_value").isin(["p_value"])
+    ].copy(deep=True)
+    table_q = table[
+        table.index.get_level_values("type_value").isin(["q_value"])
     ].copy(deep=True)
 
     # Report.
@@ -648,9 +671,11 @@ def plot_heat_map_few_signal_significance_labels(
     if (transpose_table):
         matrix_signal = numpy.transpose(numpy.copy(table_signal.to_numpy()))
         matrix_p = numpy.transpose(numpy.copy(table_p.to_numpy()))
+        matrix_q = numpy.transpose(numpy.copy(table_q.to_numpy()))
     else:
         matrix_signal = numpy.copy(table_signal.to_numpy())
         matrix_p = numpy.copy(table_p.to_numpy())
+        matrix_q = numpy.copy(table_q.to_numpy())
 
     # Organize signals in matrix.
     # Replace missing values.
@@ -729,14 +754,8 @@ def plot_heat_map_few_signal_significance_labels(
     # Create labels or titles on figure.
     # https://stackoverflow.com/questions/34937048/make-part-of-a-title-bold-and-a-different-color
     # ... how to make part of the title string bold-face
-    string_title = str(
-        "Labels:\n"
-        + str("   " + label_figure_top_right_1 + "\n")
-        + str("   " + label_figure_top_right_2 + "\n")
-        + str("   " + label_figure_top_right_3)
-    )
     axes.set_title(
-        string_title,
+        str(label_legend),
         #loc="right",
         x=1.050, # 1.0 - 1.2; 1 unit is horizontal dimension of 1 cell?
         y=0.000, # 1.0 - 1.3; 1 unit is vertical dimension of 1 cell? 0.985
@@ -882,52 +901,86 @@ def plot_heat_map_few_signal_significance_labels(
     for position in ['right', 'top', 'bottom', 'left']:
         matplotlib.pyplot.gca().spines[position].set_visible(False)
 
-    # Create value labels on the chart.
+    # Create value labels on individual cells on the chart.
+    # Iterate across values in matrices.
     for index_row in range(matrix_signal.shape[0]):
         for index_column in range(matrix_signal.shape[1]):
+            # Extract signal, p-value, and q-value from respective matrices.
             signal_value = matrix_signal[index_row, index_column]
             signal_text = "{:.2f}".format(round(signal_value, 2))
-            p = matrix_p[index_row, index_column]
+            p_value = matrix_p[index_row, index_column]
+            q_value = matrix_q[index_row, index_column]
             if ((signal_value > 0.4) or (signal_value < -0.4)):
                 color="white"
             else:
                 color="black"
-            if (p < significance_thresholds[2]):
-                #label = str(str(signal_text) + "**")
-                label = str("***")
+            # Determine whether to create labels on cells.
+            #str("$\u2020$") # dagger U+2020
+            #str("$\u2021$") # double dagger U+2021
+            #str("$\u002A$") # asterisk U+002A
+            #str("$\u2051$") # double asterisk U+2051
+            if (
+                (significance_q) and
+                (not numpy.isnan(q_value)) and
+                (q_value < thresholds_q[1])
+            ):
+                #label_cell = str(str(signal_text) + "**")
+                label_cell = str("$\u2021$")
                 text = axes.text(
                     index_column,
                     index_row,
-                    label,
+                    label_cell,
                     horizontalalignment="center",
                     verticalalignment="center",
-                    fontproperties=fonts["properties"]["nine"],
+                    fontproperties=fonts["properties"]["ten"],
                     backgroundcolor=colors["clear"],
                     color=colors[color],
                 )
-            elif (p < significance_thresholds[1]):
-                #label = str(str(signal_text) + "*")
-                label = str("**")
+            elif (
+                (significance_q) and
+                (not numpy.isnan(q_value)) and
+                (q_value < thresholds_q[0])
+            ):
+                label_cell = str("$\u2020$")
                 text = axes.text(
                     index_column,
                     index_row,
-                    label,
+                    label_cell,
                     horizontalalignment="center",
                     verticalalignment="center",
-                    fontproperties=fonts["properties"]["nine"],
+                    fontproperties=fonts["properties"]["ten"],
                     backgroundcolor=colors["clear"],
                     color=colors[color],
                 )
-            elif (p < significance_thresholds[0]):
-                #label = str(str(signal_text))
-                label = str("*")
+            elif (
+                (significance_p) and
+                (not numpy.isnan(p_value)) and
+                (p_value < thresholds_p[1])
+            ):
+                label_cell = str("$\u2051$")
                 text = axes.text(
                     index_column,
                     index_row,
-                    label,
+                    label_cell,
                     horizontalalignment="center",
                     verticalalignment="center",
-                    fontproperties=fonts["properties"]["nine"],
+                    fontproperties=fonts["properties"]["ten"],
+                    backgroundcolor=colors["clear"],
+                    color=colors[color],
+                )
+            elif (
+                (significance_p) and
+                (not numpy.isnan(p_value)) and
+                (p_value < thresholds_p[0])
+            ):
+                label_cell = str("$\u002A$")
+                text = axes.text(
+                    index_column,
+                    index_row,
+                    label_cell,
+                    horizontalalignment="center",
+                    verticalalignment="center",
+                    fontproperties=fonts["properties"]["ten"],
                     backgroundcolor=colors["clear"],
                     color=colors[color],
                 )
