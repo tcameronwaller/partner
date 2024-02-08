@@ -2174,7 +2174,7 @@ def combine_unique_elements_pairwise_order(
 # Pandas
 
 
-def read_source_table_multiindex_columns_transpose(
+def read_table_multiindex_columns_transpose(
     path_file_table=None,
     row_index_place_holder=None,
     name_row_index=None,
@@ -2183,6 +2183,10 @@ def read_source_table_multiindex_columns_transpose(
     report=None,
 ):
     """
+    Dependency:
+    This function is a dependency of the function below.
+    partner.utility.read_table_multiindex_columns_transform_calculate_q_values()
+
     Reads from file, organizes, and transforms a table as a Pandas data frame.
     The original source table is in a tab-delimited text file that has a
     multi-level index across the dimension of columns consisting of rows 0 and 1
@@ -2308,7 +2312,7 @@ def read_source_table_multiindex_columns_transpose(
     return pail
 
 
-def read_source_table_multiindex_columns_transform_calculate_q_values(
+def read_table_multiindex_columns_transform_calculate_q_values(
     path_file_table=None,
     row_index_place_holder=None,
     name_row_index=None,
@@ -2425,7 +2429,7 @@ def read_source_table_multiindex_columns_transform_calculate_q_values(
     # 1. Read table from file.
     # 2. Organize indices and transform table from wide to partial long format.
 
-    source = read_source_table_multiindex_columns_transpose(
+    source = read_table_multiindex_columns_transpose(
         path_file_table=path_file_table,
         row_index_place_holder=row_index_place_holder,
         name_row_index=name_row_index,
