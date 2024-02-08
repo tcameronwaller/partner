@@ -538,10 +538,10 @@ def plot_heat_map_few_signal_significance_labels(
     constrain_signal_values=None,
     value_minimum=None,
     value_maximum=None,
-    significance_p=None,
     significance_q=None,
-    thresholds_p=None,
+    significance_p=None,
     thresholds_q=None,
+    thresholds_p=None,
     label_legend=None,
     labels_ordinate_categories=None,
     labels_abscissa_categories=None,
@@ -603,14 +603,14 @@ def plot_heat_map_few_signal_significance_labels(
         constrain_signal_values (bool): whether to constrain all values in matrix
         value_minimum (float): minimal value for constraint on signals and scale
         value_maximum (float): maximal value for constraint on signals and scale
-        significance_p (bool): whether to consider p-values to indicate
-            significance in labels on the heatmap
         significance_q (bool): whether to consider q-values to indicate
             significance in labels on the heatmap
-        thresholds_p (list<float>): values of thresholds on p-values for
+        significance_p (bool): whether to consider p-values to indicate
+            significance in labels on the heatmap
+        thresholds_q (list<float>): values of thresholds on q-values for
             determination of significance, or actually whether to draw the
             labels on the heatmap
-        thresholds_q (list<float>): values of thresholds on q-values for
+        thresholds_p (list<float>): values of thresholds on p-values for
             determination of significance, or actually whether to draw the
             labels on the heatmap
         label_legend (str): text character string for legend label
