@@ -2174,7 +2174,7 @@ def combine_unique_elements_pairwise_order(
 # Pandas
 
 
-def read_source_table_multiindex_columns_transpose_calculate_q_values(
+def read_source_table_multiindex_columns_transpose(
     path_file_table=None,
     row_index_place_holder=None,
     name_row_index=None,
@@ -2183,7 +2183,7 @@ def read_source_table_multiindex_columns_transpose_calculate_q_values(
     report=None,
 ):
     """
-    Reads from file, organizes, and transposes a table as a Pandas data frame.
+    Reads from file, organizes, and transforms a table as a Pandas data frame.
     The original source table is in a tab-delimited text file that has a
     multi-level index across the dimension of columns consisting of rows 0 and 1
     (compound header) and a single-level index across the dimension of rows.
@@ -2218,11 +2218,151 @@ def read_source_table_multiindex_columns_transpose_calculate_q_values(
 
     Format of product table in partial long format:
 
-    group       type      group_2_a   group_2_b   group_2_c
-    group_1_a   signal    -0.15       -0.20       -0.25
-    group_1_a   p_value   0.001       0.001       0.001
-    group_1_b   signal    0.15        0.20        0.25
-    group_1_b   p_value   0.001       0.001       0.001
+    group       type_value   group_2_a   group_2_b   group_2_c
+    group_1_a   signal       -0.15       -0.20       -0.25
+    group_1_a   p_value      0.001       0.001       0.001
+    group_1_b   signal       0.15        0.20        0.25
+    group_1_b   p_value      0.001       0.001       0.001
+
+    arguments:
+        path_file_table (str): path to file for original source table
+        row_index_place_holder (str): place holder for index across rows
+        name_row_index (str): new name for index across rows
+        name_column_index_1 (str): new name for first index across columns
+        name_column_index_2 (str): new name for second index across columns;
+            one of the two categorical values must be 'p_value'
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame tables before and after transposition
+
+    """
+
+    ##########
+    # 1. Read table from file.
+
+    # Read information from file.
+    table_wide = pandas.read_csv(
+        path_file_table,
+        sep="\t",
+        header=[0,1],
+        na_values=["nan", "na", "NAN", "NA",],
+    )
+
+    ##########
+    # 2. Organize indices and transform table from wide to partial long format.
+
+    # Organize information in table.
+    table_wide.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    table_wide.set_index(
+        [(row_index_place_holder, row_index_place_holder),],
+        append=False,
+        drop=True,
+        inplace=True,
+    )
+    table_wide.index.rename(
+        name_row_index,
+        inplace=True,
+    ) # single-dimensional index
+    table_wide.columns.rename(
+        name_column_index_1,
+        level=0,
+        inplace=True,
+    ) # multi-dimensional index
+    table_wide.columns.rename(
+        name_column_index_2,
+        level=1,
+        inplace=True,
+    ) # multi-dimensional index
+    # Transpose table.
+    table_long_partial = table_wide.transpose(copy=True)
+
+    ##########
+    # 3. Report.
+    if report:
+        print_terminal_partition(level=4)
+        print("1. Original source table in wide format after organization:")
+        print(table_wide)
+        print("Column labels:")
+        labels_columns = table_wide.columns.to_list()
+        print(labels_columns)
+        print("Row labels:")
+        labels_rows = table_wide.index.to_list()
+        print(labels_rows)
+        print_terminal_partition(level=4)
+        print("2. Novel product table in partial long format:")
+        print(table_long_partial)
+        print_terminal_partition(level=4)
+
+    # Collect information.
+    pail = dict()
+    pail["table_wide"] = table_wide
+    pail["table_long_partial"] = table_long_partial
+    # Return information.
+    return pail
+
+
+def read_source_table_multiindex_columns_transform_calculate_q_values(
+    path_file_table=None,
+    row_index_place_holder=None,
+    name_row_index=None,
+    name_column_index_1=None,
+    name_column_index_2=None,
+    filter_half_triangle=None,
+    report=None,
+):
+    """
+    Reads from file, organizes, and transforms a table as a Pandas data frame.
+    The original source table is in a tab-delimited text file that has a
+    multi-level index across the dimension of columns consisting of rows 0 and 1
+    (compound header) and a single-level index across the dimension of rows.
+
+    This function calculates Benjamini-Hochberg False Discovery Rate (FDR)
+    q-values from all p-values in the original table, unless the argument is
+    active to filter a symmetrical table's matrix of values to a half triangle
+    along the diagonal axis.
+
+    Multi-level indices across one or both dimensions (rows, columns) of a table
+    are useful for filters. It is most often common and convenient to use a
+    multi-level index across rows, with the values of two or more columns
+    determining a combination of categorical groups that together define the
+    values in the other columns of that same row. This format often has the name
+    "long format".
+
+    While the multi-level index is common and intuitive in the dimension across
+    rows, in some applications it is far more convenient to organize the
+    original data table with the multi-level index in the dimension across
+    columns. This format often has the name "wide format".
+
+    This function makes it convenient to convert from wide format to long
+    format. This function also calculates Benjamini-Hochberg False Discovery
+    Rate q-values from all p-values in the table.
+
+    This function could also serve as a template for further adaptation to
+    accommodate multi-level indices across both rows and columns.
+
+    Format of source table in wide format:
+    Note: notice the use of "index", "index" as a place-holder.
+
+    index       group_1_a   group_1_a   group_1_b   group_1_b
+    index       signal      p_value     signal      p_value
+    group_2_a   -0.15       0.001       0.15        0.001
+    group_2_b   -0.20       0.001       0.20        0.001
+    group_2_c   -0.25       0.001       0.25        0.001
+
+    Format of product table in partial long format:
+
+    group       type_value   group_2_a   group_2_b   group_2_c
+    group_1_a   signal       -0.15       -0.20       -0.25
+    group_1_a   p_value      0.001       0.001       0.001
+    group_1_b   signal       0.15        0.20        0.25
+    group_1_b   p_value      0.001       0.001       0.001
 
     Format of product table in complete long format:
 
@@ -2268,6 +2408,9 @@ def read_source_table_multiindex_columns_transpose_calculate_q_values(
         name_column_index_1 (str): new name for first index across columns
         name_column_index_2 (str): new name for second index across columns;
             one of the two categorical values must be 'p_value'
+        filter_half_triangle (bool): whether to filter the values of a table
+            representing a symmetrical matrix to keep only the lower half along
+            the diagonal
         report (bool): whether to print reports
 
     raises:
@@ -2280,62 +2423,67 @@ def read_source_table_multiindex_columns_transpose_calculate_q_values(
 
     ##########
     # 1. Read table from file.
+    # 2. Organize indices and transform table from wide to partial long format.
 
-    # Read information from file.
-    table_wide = pandas.read_csv(
-        path_file_table,
-        sep="\t",
-        header=[0,1],
-        na_values=["nan", "na", "NAN", "NA",],
+    source = read_source_table_multiindex_columns_transpose(
+        path_file_table=path_file_table,
+        row_index_place_holder=row_index_place_holder,
+        name_row_index=name_row_index,
+        name_column_index_1=name_column_index_1,
+        name_column_index_2=name_column_index_2,
+        report=None,
     )
+    # Copy information in table.
+    table_wide = source["table_wide"].copy(deep=True)
+    table_long_partial = source["table_long_partial"].copy(deep=True)
 
     ##########
-    # 2. Transform table format from wide to partial long.
+    # 3. Filter to the diagonal lower half of a table representing a symmetrical
+    # matrix.
 
-    # Organize information in table.
-    table_wide.reset_index(
-        level=None,
-        inplace=True,
-        drop=True, # remove index; do not move to regular columns
-    )
-    table_wide.set_index(
-        [(row_index_place_holder, row_index_place_holder),],
-        append=False,
-        drop=True,
-        inplace=True,
-    )
-    table_wide.index.rename(
-        name_row_index,
-        inplace=True,
-    ) # single-dimensional index
-    table_wide.columns.rename(
-        name_column_index_1,
-        level=0,
-        inplace=True,
-    ) # multi-dimensional index
-    table_wide.columns.rename(
-        name_column_index_2,
-        level=1,
-        inplace=True,
-    ) # multi-dimensional index
+    # It is necessary to filter the "signal" values and the "p-value" values
+    # separately and then combine them together again.
 
-    # Transpose table.
-    table_long_partial = table_wide.transpose(copy=True)
+    if (filter_half_triangle):
+        # Separate signals from p-values.
+        #table_signal = table_long_partial.loc[
+        #    (table_long_partial["type_value"] == "signal"), :
+        #].copy(deep=True)
+        table_signal = table_long_partial[
+            table_long_partial.index.get_level_values(
+                name_column_index_2
+            ).isin(["signal"])
+        ].copy(deep=True)
+        table_p = table_long_partial[
+            table_long_partial.index.get_level_values(
+                name_column_index_2
+            ).isin(["p_value"])
+        ].copy(deep=True)
+        #matrix_p = numpy.copy(table_p.to_numpy())
+        # Create a mask matrix for the lower half diagonal triangle of the table.
+        # numpy.triu() # Upper half triangle.
+        # numpy.tril() # Lower half triangle.
+        matrix_mask_half = numpy.tril(
+            numpy.ones(table_signal.shape)
+        ).astype(numpy.bool)
+        table_signal_half = table_signal.where(matrix_mask_half)
+        table_p_half = table_p.where(matrix_mask_half)
 
-    # Separate signals from p-values.
-    #table_signal = table_long_partial.loc[
-    #    (table_long_partial["type_value"] == "signal"), :
-    #].copy(deep=True)
-    #table_signal = table_long_partial[
-    #    table_long_partial.index.get_level_values("type_value").isin(["signal"])
-    #].copy(deep=True)
-    #table_p = table_long_partial[
-    #    table_long_partial.index.get_level_values("type_value").isin(["p_value"])
-    #].copy(deep=True)
-    #matrix_p = numpy.copy(table_p.to_numpy())
+        # Combine the half-triangle signals and p-values.
+        table_long_partial_half = pandas.concat(
+            [table_signal_half, table_p_half,],
+            axis="index",
+            join="outer",
+            ignore_index=False,
+            copy=True,
+        )
+
+        # Copy information in table.
+        table_long_partial = table_long_partial_half.copy(deep=True)
+        pass
 
     ##########
-    # 3. Calculate Benjamini-Hochberg False Discovery Rate q-values.
+    # 4. Transform table from partial long to complete long format.
 
     # Transform table to complete long format.
     # Pandas dataframe methods "stack", "melt", and "wide_to_long", can all be
@@ -2345,7 +2493,7 @@ def read_source_table_multiindex_columns_transpose_calculate_q_values(
     # Method "wide_to_long" assumes that the information about multiple levels
     # in the column index is stored in delimited strings of compound column
     # names.
-    # Copy information.
+    # Copy information in table.
     table_long_partial_copy = table_long_partial.copy(deep=True)
     if False:
         table_long_complete = table_long_partial_copy.stack(
@@ -2359,6 +2507,21 @@ def read_source_table_multiindex_columns_transpose_calculate_q_values(
         value_name="value",
         ignore_index=False,
     )
+    # Organize information in table.
+    table_long_complete.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
+    table_long_complete.set_index(
+        [name_column_index_1, name_row_index, name_column_index_2,],
+        append=False,
+        drop=True,
+        inplace=True,
+    )
+
+    ##########
+    # 5. Calculate Benjamini-Hochberg False Discovery Rate q-values.
 
     # Separate p-values.
     table_p = table_long_complete[
@@ -2381,10 +2544,6 @@ def read_source_table_multiindex_columns_transpose_calculate_q_values(
         name_column_significance="q_significance",
         table=table_p,
     )
-
-    ##########
-    # 4. Combine the q-values with the larger table in partial long format.
-
     # Remove unnecessary columns.
     table_q.drop(
         labels=["p_value", "q_significance",],
@@ -2398,60 +2557,131 @@ def read_source_table_multiindex_columns_transpose_calculate_q_values(
         drop=False, # remove index; do not move to regular columns
     )
     table_q[name_column_index_2] = "q_value"
+    # Translate names of columns.
+    translations = dict()
+    translations["q_value"] = "value"
+    table_q.rename(
+        columns=translations,
+        inplace=True,
+    )
+    # Combine the novel q-values with the information in the original table.
+    table_long_complete.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
+    table_long_complete_q = pandas.concat(
+        [table_long_complete, table_q,],
+        axis="index",
+        join="outer",
+        ignore_index=True,
+        copy=True,
+    )
+    # Organize information in table.
+    table_long_complete_q.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    table_long_complete_q.set_index(
+        [name_column_index_1, name_row_index, name_column_index_2,],
+        append=False,
+        drop=True,
+        inplace=True,
+    )
 
+    ##########
+    # 6. Transform table to long partial and wide formats.
+
+    # Copy information in table.
+    table_long_complete_q_copy = table_long_complete_q.copy(deep=True)
+    # Organize information in table.
+    table_long_complete_q_copy.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
     # Transform table to partial long format.
     # Pandas dataframe methods "unstack" and "pivot" can be useful in this
     # context.
     if False:
-        table_q.set_index(
-            [name_column_index_1, name_column_index_2, name_row_index,],
+        table_long_complete_q_copy.set_index(
+            [name_column_index_1, name_row_index, name_column_index_2,],
             append=False,
             drop=True,
             inplace=True,
         )
-        table_q_long_partial = table_q.unstack(
+        table_long_partial_q = table_long_complete_q_copy.unstack(
             level=[name_row_index,],
         )
-    table_q_long_partial = table_q.pivot(
+    table_long_partial_q = table_long_complete_q_copy.pivot(
         columns=[name_row_index,],
         index=[name_column_index_1, name_column_index_2,],
-        values="q_value",
+        values="value",
     )
-
-    # Combine the new q-values with the original signals and p-values.
-    table_long_partial_q = pandas.concat(
-        [table_long_partial, table_q_long_partial,],
+    # Sort columns in table.
+    sequence_row_index = copy.deepcopy(
+        table_wide.index.get_level_values(name_row_index).to_list()
+    )
+    table_long_partial_q = table_long_partial_q[[*sequence_row_index]]
+    # Sort rows in table
+    table_long_partial_q.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
+    table_long_partial_q["sort_row_key"] = table_long_partial_q.apply(
+        lambda row: str(
+            row[name_column_index_1] +
+            row[name_column_index_2]
+        ),
+        axis="columns", # apply function to each row
+    )
+    sequence_column_index_1 = copy.deepcopy(
+        table_wide.columns.get_level_values(name_column_index_1).to_list()
+    )
+    sequence_column_index_2 = ["signal", "p_value", "q_value"]
+    #values_tier_2 = copy.deepcopy(table_long_partial.columns.to_list())
+    #values_tier_3 = ["signal", "p_value", "q_value"]
+    sequence = dict()
+    counter = 1
+    for value_1 in sequence_column_index_1:
+        for value_2 in sequence_column_index_2:
+            sort_key = str(value_1 + value_2)
+            if sort_key not in sequence.keys():
+                sequence[sort_key] = counter
+                counter +=1
+                pass
+            pass
+        pass
+    table_long_partial_q.sort_values(
+        by=["sort_row_key"],
         axis="index",
-        join="outer",
-        ignore_index=False,
-        copy=True,
-    )
-
-    ##########
-    # 5. Sort rows of q-values to match the original sequence.
-    # pandas.DataFrame.sort_index()
-    # pandas.DataFrame.sort_values()
-    values_name_column_index_1 = copy.deepcopy(
-        table_long_partial.index.get_level_values(name_column_index_1).to_list()
-    )
-    sequence_name_column_index_1 = dict()
-    counter = 0
-    for value in values_name_column_index_1:
-        if value not in sequence_name_column_index_1.keys():
-            sequence_name_column_index_1[value] = counter
-            counter +=1
-    table_long_partial_q.sort_index(
-        axis="index",
-        level=[name_column_index_1,],
         ascending=True,
         inplace=True,
-        key=lambda x: x.map(sequence_name_column_index_1),
+        key=lambda x: x.map(sequence),
     )
+    # Remove unnecessary columns.
+    table_long_partial_q.drop(
+        labels=["sort_row_key",],
+        axis="columns",
+        inplace=True
+    )
+    # Organize information in table.
+    table_long_partial_q.set_index(
+        [name_column_index_1, name_column_index_2,],
+        append=False,
+        drop=True,
+        inplace=True,
+    )
+    # Transpose table.
+    table_wide_q = table_long_partial_q.transpose(copy=True)
 
-    # Report.
+    ##########
+    # 7. Report.
     if report:
         print_terminal_partition(level=4)
-        print("Original source table in wide format after organization:")
+        print("1. Original source table in wide format after organization:")
         print(table_wide)
         print("Column labels:")
         labels_columns = table_wide.columns.to_list()
@@ -2460,23 +2690,128 @@ def read_source_table_multiindex_columns_transpose_calculate_q_values(
         labels_rows = table_wide.index.to_list()
         print(labels_rows)
         print_terminal_partition(level=4)
-        print("Novel product table in partial long format after transpose:")
-        print(table_long_partial)
+        print(
+            "The novel product tables below in partial long format and in " +
+            "wide format should preserve the original sequences of labels."
+        )
+        print(
+            "The novel product tables below will also show any half-diagonal " +
+            "filter on a table representing a symmetrical matrix."
+        )
         print_terminal_partition(level=4)
-        print("Novel product table in complete long format after melt:")
-        print(table_long_complete)
+        print(
+            "2. Novel product table in complete long format with newly " +
+            "calculated Benjamini-Hochberg False Discovery Rate q-values:"
+        )
+        print(table_long_complete_q)
         print_terminal_partition(level=4)
-        print("Novel product table in partial long format with q values:")
+        print(
+            "3. Novel product table in partial long format with newly " +
+            "calculated Benjamini-Hochberg False Discovery Rate q-values:"
+        )
         print(table_long_partial_q)
+        print_terminal_partition(level=4)
+        print(
+            "4. Novel product table in wide format with newly " +
+            "calculated Benjamini-Hochberg False Discovery Rate q-values:"
+        )
+        print(table_wide_q)
         print_terminal_partition(level=4)
 
     # Collect information.
     pail = dict()
-    pail["table_wide"] = table_wide
-    pail["table_long_complete"] = table_long_complete
+    pail["table_wide_q"] = table_wide_q
+    pail["table_long_complete_q"] = table_long_complete_q
     pail["table_long_partial_q"] = table_long_partial_q
     # Return information.
     return pail
+
+
+def write_product_table_tab(
+    table=None,
+    name_file=None,
+    path_directory=None,
+):
+    """
+    Writes product information to file.
+
+    arguments:
+        table (object): table of information to write to file
+        name_file (str): base name for file
+        path_directory (str): path to directory within which to write file
+
+    raises:
+
+    returns:
+
+    """
+
+    # Reset index.
+    table.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
+    # Specify directories and files.
+    path_file_table = os.path.join(
+        path_directory, str(name_file + ".tsv")
+    )
+    # Write information to file.
+    table.to_csv(
+        path_or_buf=path_file_table,
+        sep="\t",
+        na_rep="NA",
+        header=True,
+        index=False,
+    )
+    pass
+
+
+def write_product_tables_child_directories(
+    pail_write=None,
+    path_directory_parent=None,
+):
+    """
+    Writes product information to file.
+
+    First dictionary tier names the child directory.
+    Second dictionary tier names the file.
+
+    arguments:
+        pail_write (dict<dict<object>>): collection of information to write to
+            file
+        path_directory_parent (str): path to parent directory
+
+    raises:
+
+    returns:
+
+    """
+
+    # Structure of "plots" collection is "dict<dict<object>>".
+    # First level of plots dictionary tree gives names for child directories.
+    # Second level of plots dictionary tree gives names of plots.
+    # Iterate across child directories.
+    for name_directory in pail_write.keys():
+        # Define paths to directories.
+        path_directory_child = os.path.join(
+            path_directory_parent, name_directory
+        )
+        # Initialize directories.
+        create_directories(
+            path=path_directory_child
+        )
+        # Iterate across charts.
+        for name_file in pail_write[name_directory].keys():
+            # Write chart object to file in child directory.
+            write_product_table_tab(
+                table=pail_write[name_directory][name_file],
+                name_file=name_file,
+                path_directory=path_directory_child,
+            )
+            pass
+        pass
+    pass
 
 
 def sort_table_rows_by_list_indices(
@@ -4691,6 +5026,8 @@ def filter_records_by_multiple_keys(
         pass
     # Return information
     return records_filter
+
+
 
 
 

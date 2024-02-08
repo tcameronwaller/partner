@@ -529,7 +529,6 @@ def initialize_matplotlib_figure_aspect(
 # Heatmap plots with few cells
 # These heatmap plots support options such as text labels on the cells.
 
-# significance_labels= eithier "p_value" or "q_value"
 
 def plot_heat_map_few_signal_significance_labels(
     table=None,
@@ -728,6 +727,8 @@ def plot_heat_map_few_signal_significance_labels(
     #)
 
     # Create labels or titles on figure.
+    # https://stackoverflow.com/questions/34937048/make-part-of-a-title-bold-and-a-different-color
+    # ... how to make part of the title string bold-face
     string_title = str(
         "Labels:\n"
         + str("   " + label_figure_top_right_1 + "\n")
@@ -737,13 +738,18 @@ def plot_heat_map_few_signal_significance_labels(
     axes.set_title(
         string_title,
         #loc="right",
-        x=1.030, # 1.0 - 1.2; 1 unit is horizontal dimension of 1 cell?
-        y=1.000, # 1.0 - 1.3; 1 unit is vertical dimension of 1 cell? 0.985
+        x=1.050, # 1.0 - 1.2; 1 unit is horizontal dimension of 1 cell?
+        y=0.000, # 1.0 - 1.3; 1 unit is vertical dimension of 1 cell? 0.985
         ha="left",
-        va="bottom", # top, center, bottom
-        backgroundcolor=colors["gray"],
-        color=colors["white"],
-        fontproperties=fonts["properties"]["ten"]
+        va="top", # top, center, bottom
+        backgroundcolor=colors["white"],
+        color=colors["black"],
+        fontproperties=fonts["properties"]["nine"],
+        bbox=dict(
+            facecolor="none",
+            edgecolor="black",
+            boxstyle="round",
+        )
     )
     if False:
         text = axes.text(
@@ -838,7 +844,9 @@ def plot_heat_map_few_signal_significance_labels(
         labelright=False,
     )
     # Set tick positions and labels on axes.
-    axes.set_yticks(numpy.arange(matrix_signal.shape[0]))
+    axes.set_yticks(
+        numpy.arange(matrix_signal.shape[0]),
+    )
     axes.set_yticklabels(
         labels_ordinate_categories,
         #minor=False,
@@ -849,62 +857,79 @@ def plot_heat_map_few_signal_significance_labels(
         color=colors["black"],
         fontproperties=fonts["properties"][size_label_ordinate_categories]
     )
-    axes.set_xticks(numpy.arange(matrix_signal.shape[1]))
+    axes.set_xticks(
+        numpy.arange(matrix_signal.shape[1]),
+    )
     axes.set_xticklabels(
         labels_abscissa_categories,
         #minor=False,
         rotation=-60,
         rotation_mode="anchor",
-        ha="right", # horizontal alignment
-        va="bottom", # vertical alignment
+        ha="left", # horizontal alignment
+        va="top", # vertical alignment
         alpha=1.0,
         backgroundcolor=colors["white"],
         color=colors["black"],
         fontproperties=fonts["properties"][size_label_abscissa_categories]
     )
+    axes.tick_params(
+        top=False,
+        labeltop=False,
+        bottom=True,
+        labelbottom=True,
+    )
+    # Keep axes, ticks, and labels, but remove border.
+    for position in ['right', 'top', 'bottom', 'left']:
+        matplotlib.pyplot.gca().spines[position].set_visible(False)
 
     # Create value labels on the chart.
     for index_row in range(matrix_signal.shape[0]):
         for index_column in range(matrix_signal.shape[1]):
-            signal = "{:.2f}".format(
-                round(matrix_signal[index_row, index_column], 2)
-            )
+            signal_value = matrix_signal[index_row, index_column]
+            signal_text = "{:.2f}".format(round(signal_value, 2))
             p = matrix_p[index_row, index_column]
+            if ((signal_value > 0.4) or (signal_value < -0.4)):
+                color="white"
+            else:
+                color="black"
             if (p < significance_thresholds[2]):
-                label = str(str(signal) + "**")
+                #label = str(str(signal_text) + "**")
+                label = str("***")
                 text = axes.text(
                     index_column,
                     index_row,
                     label,
                     horizontalalignment="center",
                     verticalalignment="center",
-                    fontproperties=fonts["properties"]["fourteen"],
-                    backgroundcolor=colors["gray_faint"],
-                    color=colors["white"],
+                    fontproperties=fonts["properties"]["nine"],
+                    backgroundcolor=colors["clear"],
+                    color=colors[color],
                 )
             elif (p < significance_thresholds[1]):
-                label = str(str(signal) + "*")
+                #label = str(str(signal_text) + "*")
+                label = str("**")
                 text = axes.text(
                     index_column,
                     index_row,
                     label,
                     horizontalalignment="center",
                     verticalalignment="center",
-                    fontproperties=fonts["properties"]["fourteen"],
-                    backgroundcolor=colors["gray_faint"],
-                    color=colors["white"],
+                    fontproperties=fonts["properties"]["nine"],
+                    backgroundcolor=colors["clear"],
+                    color=colors[color],
                 )
             elif (p < significance_thresholds[0]):
-                label = str(str(signal))
+                #label = str(str(signal_text))
+                label = str("*")
                 text = axes.text(
                     index_column,
                     index_row,
                     label,
                     horizontalalignment="center",
                     verticalalignment="center",
-                    fontproperties=fonts["properties"]["fourteen"],
-                    backgroundcolor=colors["gray_faint"],
-                    color=colors["white"],
+                    fontproperties=fonts["properties"]["nine"],
+                    backgroundcolor=colors["clear"],
+                    color=colors[color],
                 )
                 pass
             pass
@@ -4236,6 +4261,7 @@ def write_product_plot_figure(
         figure=figure,
         format="png",
         resolution=300, # dots per inch: 100, 150, 300, 600
+        #transparent=True,
         path=path_file,
     )
     pass
