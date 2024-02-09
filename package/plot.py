@@ -110,59 +110,83 @@ def define_font_properties():
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
-        "stretch": 1000, # '1000' is the maximal permissable font stretch
-        "weight": 1000, # '1000' is the maximal permissable font weight
+        "stretch": 950, # '1000' is the maximal permissable font stretch
+        "weight": 950, # '1000' is the maximal permissable font weight
         "size": 50,
     }
     values_4 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
-        "stretch": 1000, # '1000' is the maximal permissable font stretch
-        "weight": 1000, # '1000' is the maximal permissable font weight
+        "stretch": 900, # '1000' is the maximal permissable font stretch
+        "weight": 900, # '1000' is the maximal permissable font weight
         "size": 45,
     }
     values_5 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
-        "stretch": 950, # '1000' is the maximal permissable font stretch
-        "weight": 950, # '1000' is the maximal permissable font weight
+        "stretch": 850, # '1000' is the maximal permissable font stretch
+        "weight": 850, # '1000' is the maximal permissable font weight
         "size": 40,
     }
     values_6 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
-        "stretch": 900,
-        "weight": 900,
+        "stretch": 800,
+        "weight": 800,
         "size": 35,
     }
     values_7 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
-        "stretch": 900,
-        "weight": 900,
+        "stretch": 750,
+        "weight": 750,
         "size": 30,
     }
     values_8 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
-        "stretch": 750,
-        "weight": 750,
-        "size": 20,
+        "stretch": 700,
+        "weight": 700,
+        "size": 27,
     }
     values_9 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
-        "stretch": 500,
-        "weight": 500,
-        "size": 17,
+        "stretch": 600,
+        "weight": 600,
+        "size": 25,
     }
     values_10 = {
+        "family": "sans-serif",
+        "style": "normal",
+        "variant": "normal",
+        "stretch": 550,
+        "weight": 550,
+        "size": 23,
+    }
+    values_11 = {
+        "family": "sans-serif",
+        "style": "normal",
+        "variant": "normal",
+        "stretch": 500,
+        "weight": 500,
+        "size": 20,
+    }
+    values_12 = {
+        "family": "sans-serif",
+        "style": "normal",
+        "variant": "normal",
+        "stretch": 450,
+        "weight": 450,
+        "size": 17,
+    }
+    values_13 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
@@ -170,7 +194,7 @@ def define_font_properties():
         "weight": 400,
         "size": 15,
     }
-    values_11 = {
+    values_14 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
@@ -178,15 +202,15 @@ def define_font_properties():
         "weight": 300,
         "size": 13,
     }
-    values_12 = {
+    values_15 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
-        "stretch": 300,
-        "weight": 300,
+        "stretch": 250,
+        "weight": 250,
         "size": 10,
     }
-    values_13 = {
+    values_16 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
@@ -194,7 +218,7 @@ def define_font_properties():
         "weight": 200,
         "size": 7,
     }
-    values_14 = {
+    values_17 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
@@ -202,7 +226,7 @@ def define_font_properties():
         "weight": 175,
         "size": 6,
     }
-    values_15 = {
+    values_18 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
@@ -210,7 +234,7 @@ def define_font_properties():
         "weight": 150,
         "size": 5,
     }
-    values_16 = {
+    values_19 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
@@ -347,6 +371,30 @@ def define_font_properties():
         weight=values_16["weight"],
         size=values_16["size"]
     )
+    properties_17 = matplotlib.font_manager.FontProperties(
+        family=values_17["family"],
+        style=values_17["style"],
+        variant=values_17["variant"],
+        stretch=values_17["stretch"],
+        weight=values_17["weight"],
+        size=values_17["size"]
+    )
+    properties_18 = matplotlib.font_manager.FontProperties(
+        family=values_18["family"],
+        style=values_18["style"],
+        variant=values_18["variant"],
+        stretch=values_18["stretch"],
+        weight=values_18["weight"],
+        size=values_18["size"]
+    )
+    properties_19 = matplotlib.font_manager.FontProperties(
+        family=values_19["family"],
+        style=values_19["style"],
+        variant=values_19["variant"],
+        stretch=values_19["stretch"],
+        weight=values_19["weight"],
+        size=values_19["size"]
+    )
     # Compile and return references.
     return {
         "values": {
@@ -366,6 +414,9 @@ def define_font_properties():
             "fourteen": values_14,
             "fifteen": values_15,
             "sixteen": values_16,
+            "seventeen": values_17,
+            "eighteen": values_18,
+            "nineteen": values_19,
         },
         "properties": {
             "one": properties_1,
@@ -384,6 +435,9 @@ def define_font_properties():
             "fourteen": properties_14,
             "fifteen": properties_15,
             "sixteen": properties_16,
+            "seventeen": properties_17,
+            "eighteen": properties_18,
+            "nineteen": properties_19,
         }
     }
 
@@ -549,10 +603,16 @@ def plot_heat_map_few_signal_significance_labels(
     title_ordinate=None,
     title_abscissa=None,
     title_bar=None,
-    aspect=None,
-    size_label_ordinate_categories=None,
-    size_label_abscissa_categories=None,
+    size_label_significance=None,
+    size_title_ordinate=None,
+    size_title_abscissa=None,
+    size_label_ordinate=None,
+    size_label_abscissa=None,
+    size_label_legend=None,
+    size_title_bar=None,
+    size_label_bar=None,
     scale_bar=None,
+    aspect=None,
     fonts=None,
     colors=None,
     report=None,
@@ -622,10 +682,16 @@ def plot_heat_map_few_signal_significance_labels(
         title_ordinate (str):
         title_abscissa (str):
         title_bar (str): title for scale bar
-        aspect (str): aspect ratio for MatPlotLib figure
-        size_label_ordinate_categories (str):
-        size_label_abscissa_categories (str):
+        size_label_significance (str): Font size
+        size_title_ordinate (str): Font size
+        size_title_abscissa (str): Font size
+        size_label_ordinate (str): Font size
+        size_label_abscissa (str): Font size
+        size_label_legend (str): Font size
+        size_title_bar (str): Font size
+        size_label_bar (str): Font size
         scale_bar (bool): whether to create scale bar
+        aspect (str): aspect ratio for MatPlotLib figure
         fonts (dict<object>): references to definitions of font properties
         colors (dict<tuple>): references to definitions of color properties
         report (bool): whether to print reports
@@ -763,7 +829,7 @@ def plot_heat_map_few_signal_significance_labels(
         va="top", # top, center, bottom
         backgroundcolor=colors["white"],
         color=colors["black"],
-        fontproperties=fonts["properties"]["nine"],
+        fontproperties=fonts["properties"][size_label_legend],
         bbox=dict(
             facecolor="none",
             edgecolor="black",
@@ -777,7 +843,7 @@ def plot_heat_map_few_signal_significance_labels(
             label_figure_top_right_1,
             horizontalalignment="left",
             verticalalignment="top",
-            fontproperties=fonts["properties"]["nine"],
+            fontproperties=fonts["properties"][size_label_legend],
             backgroundcolor=colors["white"],
             color=colors["black"],
         )
@@ -787,7 +853,7 @@ def plot_heat_map_few_signal_significance_labels(
             label_figure_top_right_2,
             horizontalalignment="left",
             verticalalignment="top",
-            fontproperties=fonts["properties"]["nine"],
+            fontproperties=fonts["properties"][size_label_legend],
             backgroundcolor=colors["white"],
             color=colors["black"],
         )
@@ -797,7 +863,7 @@ def plot_heat_map_few_signal_significance_labels(
             label_figure_top_right_3,
             horizontalalignment="left",
             verticalalignment="top",
-            fontproperties=fonts["properties"]["nine"],
+            fontproperties=fonts["properties"][size_label_legend],
             backgroundcolor=colors["white"],
             color=colors["black"],
         )
@@ -832,7 +898,7 @@ def plot_heat_map_few_signal_significance_labels(
             alpha=1.0,
             backgroundcolor=colors["white"],
             color=colors["black"],
-            fontproperties=fonts["properties"]["one"]
+            fontproperties=fonts["properties"][size_title_ordinate]
         )
     if (len(title_abscissa) > 0):
         axes.set_xlabel(
@@ -841,14 +907,14 @@ def plot_heat_map_few_signal_significance_labels(
             alpha=1.0,
             backgroundcolor=colors["white"],
             color=colors["black"],
-            fontproperties=fonts["properties"]["one"]
+            fontproperties=fonts["properties"][size_title_abscissa]
         )
     # Set tick parameters for axes.
     axes.tick_params(
         axis="both", # "y", "x", or "both"
         which="both", # "major", "minor", or "both"
-        length=7.5,
-        width=5.0,
+        length=5.0,
+        width=3.5,
         pad=7.5,
         direction="out",
         color=colors["black"],
@@ -874,7 +940,7 @@ def plot_heat_map_few_signal_significance_labels(
         alpha=1.0,
         backgroundcolor=colors["white"],
         color=colors["black"],
-        fontproperties=fonts["properties"][size_label_ordinate_categories]
+        fontproperties=fonts["properties"][size_label_ordinate]
     )
     axes.set_xticks(
         numpy.arange(matrix_signal.shape[1]),
@@ -889,7 +955,7 @@ def plot_heat_map_few_signal_significance_labels(
         alpha=1.0,
         backgroundcolor=colors["white"],
         color=colors["black"],
-        fontproperties=fonts["properties"][size_label_abscissa_categories]
+        fontproperties=fonts["properties"][size_label_abscissa]
     )
     axes.tick_params(
         top=False,
@@ -910,7 +976,7 @@ def plot_heat_map_few_signal_significance_labels(
             signal_text = "{:.2f}".format(round(signal_value, 2))
             p_value = matrix_p[index_row, index_column]
             q_value = matrix_q[index_row, index_column]
-            if ((signal_value > 0.4) or (signal_value < -0.4)):
+            if ((signal_value > 0.5) or (signal_value < -0.5)):
                 color="white"
             else:
                 color="black"
@@ -932,7 +998,7 @@ def plot_heat_map_few_signal_significance_labels(
                     label_cell,
                     horizontalalignment="center",
                     verticalalignment="center",
-                    fontproperties=fonts["properties"]["ten"],
+                    fontproperties=fonts["properties"][size_label_significance],
                     backgroundcolor=colors["clear"],
                     color=colors[color],
                 )
@@ -948,7 +1014,7 @@ def plot_heat_map_few_signal_significance_labels(
                     label_cell,
                     horizontalalignment="center",
                     verticalalignment="center",
-                    fontproperties=fonts["properties"]["ten"],
+                    fontproperties=fonts["properties"][size_label_significance],
                     backgroundcolor=colors["clear"],
                     color=colors[color],
                 )
@@ -964,7 +1030,7 @@ def plot_heat_map_few_signal_significance_labels(
                     label_cell,
                     horizontalalignment="center",
                     verticalalignment="center",
-                    fontproperties=fonts["properties"]["ten"],
+                    fontproperties=fonts["properties"][size_label_significance],
                     backgroundcolor=colors["clear"],
                     color=colors[color],
                 )
@@ -980,7 +1046,7 @@ def plot_heat_map_few_signal_significance_labels(
                     label_cell,
                     horizontalalignment="center",
                     verticalalignment="center",
-                    fontproperties=fonts["properties"]["ten"],
+                    fontproperties=fonts["properties"][size_label_significance],
                     backgroundcolor=colors["clear"],
                     color=colors[color],
                 )
@@ -1006,7 +1072,7 @@ def plot_heat_map_few_signal_significance_labels(
                 alpha=1.0,
                 backgroundcolor=colors["white"],
                 color=colors["black"],
-                fontproperties=fonts["properties"]["eight"],
+                fontproperties=fonts["properties"][size_title_bar],
             )
         bar.ax.tick_params(
             axis="both",
@@ -1016,7 +1082,7 @@ def plot_heat_map_few_signal_significance_labels(
             width=2.5,
             color=colors["black"],
             pad=5,
-            labelsize=fonts["values"]["ten"]["size"],
+            labelsize=fonts["values"][size_label_bar]["size"],
             labelcolor=colors["black"],
         )
     # Create labels for chart.
