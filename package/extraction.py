@@ -4,13 +4,13 @@ reports of other tools.
 
 This module is not directly executable.
 
-This subpackage 'partner' provides executable functionality under the
-management of a higher level package. Importation paths represent this
+This module within subpackage 'partner' provides executable functionality under
+the management of a higher level package. Importation paths must represent this
 hierarchy.
 
 Author:
 
-    T. Cameron Waller
+    T. Cameron Waller, Ph.D.
     tcameronwaller@gmail.com
     Monroe, North Carolina 28110
     United States of America
@@ -21,7 +21,7 @@ License:
     (https://github.com/tcameronwaller/partner/).
 
     Partner supports data analysis in multiple other projects.
-    Copyright (C) 2023 Thomas Cameron Waller
+    Copyright (C) 2024 Thomas Cameron Waller
 
     Partner is free software: you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by the Free
@@ -65,7 +65,7 @@ import numpy
 import statsmodels.api
 
 # Custom
-import partner.utility as utility # this import path for subpackage
+import partner.utility as putility # this import path for subpackage
 
 #dir()
 #importlib.reload()
@@ -76,6 +76,11 @@ import partner.utility as utility # this import path for subpackage
 
 # TODO: TCW; 12 December 2022; 7 August 2023
 # Use the new utility function to calculate and organize 95% and 99% confidence intervals and ranges.
+
+##########
+# Extraction and collection of relevant information from the logs from
+# Linkage Disequilibrium Score Regression (LDSC)
+
 
 def read_extract_ldsc_heritability(
     path_file=None,
@@ -114,7 +119,7 @@ def read_extract_ldsc_heritability(
     ratio_error = float("nan")
 
     # Read relevant lines of character strings from file.
-    lines = utility.read_file_text_lines(
+    lines = putility.read_file_text_lines(
         path_file=path_file,
         start=22,
         stop=30,
@@ -265,7 +270,7 @@ def read_extract_ldsc_correlation(
     # Determine whether report has a summary table.
     # Keep index of prefix title.
     # Read relevant lines from file.
-    #lines = utility.read_file_text_lines(
+    #lines = putility.read_file_text_lines(
     #    path_file=path_file,
     #    start=50,
     #    stop=250,
@@ -305,7 +310,7 @@ def read_extract_ldsc_correlation(
     p_not_zero = float("nan")
 
     # Read relevant lines of character strings from file.
-    lines = utility.read_file_text_lines(
+    lines = putility.read_file_text_lines(
         path_file=path_file,
         start=25,
         stop=57,
@@ -509,7 +514,7 @@ def read_extract_from_all_ldsc_files_in_directory(
     """
 
     # Read names of relevant files within parent directory.
-    names_files = utility.extract_directory_file_names_filter_by_name(
+    names_files = putility.extract_directory_file_names_filter_by_name(
         path=path_directory,
         name=file_name_pattern,
         name_not=file_name_pattern_not,
@@ -544,7 +549,7 @@ def read_extract_from_all_ldsc_files_in_directory(
         counter += 1
         pass
     # Organize table.
-    table = utility.convert_records_to_dataframe(
+    table = putility.convert_records_to_dataframe(
         records=records
     )
     table.reset_index(
@@ -567,16 +572,16 @@ def read_extract_from_all_ldsc_files_in_directory(
     )
     # Report.
     if report:
-        utility.print_terminal_partition(level=3)
+        putility.print_terminal_partition(level=3)
         print("report: ")
         name_function = (
             "read_extract_from_all_ldsc_files_in_directory()"
         )
         print(name_function)
-        utility.print_terminal_partition(level=4)
+        putility.print_terminal_partition(level=4)
         print("Names of relevant files within parent directory:")
         print(names_files)
-        utility.print_terminal_partition(level=5)
+        putility.print_terminal_partition(level=5)
         print("Table after collection:")
         print(table)
         pass
@@ -584,8 +589,232 @@ def read_extract_from_all_ldsc_files_in_directory(
     return table
 
 
+##########
+# Organization of information from the extraction, collection tables for
+# subsequent integration and analysis.
+
+
+def read_organize_table_ldsc_correlation_single(
+    path_file_table=None,
+    types_columns=None,
+    report=None,
+):
+    """
+    Reads from file and organizes a table as a Pandas data frame. The original
+    source table is in a tab-delimited text file.
+
+    The source table represents information about genetic correlations between
+    primary and secondary genome-wide association studies (GWAS's) after
+    extraction of this information from individual text logs created by the tool
+    Linkage Disequilibrium Score Regression (LDSC). This function handles a
+    table from a single file that represents indentifier information about both
+    primary and secondary studies within the table's column 'name_file'.
+
+    arguments:
+        path_file_table (str): path to file for original source table
+        types_columns (dict<str>): types of variables in each column
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    # Read information from file.
+    table_raw = pandas.read_csv(
+        path_file_table,
+        sep="\t",
+        header=0,
+        dtype=types_columns,
+        na_values=["nan", "na", "NAN", "NA", "<nan>", "<na>", "<NAN>", "<NA>",],
+    )
+
+    # Copy information in table.
+    table = table_raw.copy(deep=True)
+    # Extract names of primary and secondary studies.
+    table["study_primary"] = table.apply(
+        lambda row:
+            str(row["name_file"]).strip().replace(".log", "").split("_-_")[0],
+        axis="columns", # apply function to each row
+    )
+    table["study_secondary"] = table.apply(
+        lambda row:
+            str(row["name_file"]).strip().replace(".log", "").split("_-_")[1],
+        axis="columns", # apply function to each row
+    )
+    # Remove unnecessary columns.
+    table.drop(
+        labels=[
+            "path_directory",
+            "name_file",
+            "summary_correlation_error",
+            "summary_correlation_ci95",
+            "summary_correlation_ci99",
+            "covariance",
+            "covariance_error",
+            "z_score",
+            "correlation_ci95_not_zero",
+            "correlation_ci95_not_one",
+            "correlation_absolute",
+            "correlation_ci95_low",
+            "correlation_ci95_high",
+            "correlation_ci99_low",
+            "correlation_ci99_high",
+        ],
+        axis="columns",
+        inplace=True
+    )
+
+    # Report.
+    if report:
+        putility.print_terminal_partition(level=4)
+        print("Source table before organization:")
+        print(table_raw)
+        print("Column labels:")
+        labels_columns = table_raw.columns.to_list()
+        print(labels_columns)
+        putility.print_terminal_partition(level=4)
+        print("Source table after organization:")
+        print(table)
+        print("Column labels:")
+        labels_columns = table.columns.to_list()
+        print(labels_columns)
+        putility.print_terminal_partition(level=4)
+
+    # Return information.
+    return table
+
+
+def read_organize_table_ldsc_correlation_multiple(
+    path_directory_parent=None,
+    types_columns=None,
+    report=None,
+):
+    """
+    Reads from file and organizes a table as a Pandas data frame. The original
+    source tables are in a tab-delimited text file.
+
+    The source tables represent information about genetic correlations between
+    primary and secondary genome-wide association studies (GWAS's) after
+    extraction of this information from individual text logs created by the tool
+    Linkage Disequilibrium Score Regression (LDSC). This function handles tables
+    from multiple files that represents indentifier information about the
+    primary study in the name of the file for the original table and about the
+    secondary study within the table's column 'name_file'.
+
+    arguments:
+        path_directory_parent (str): path to parent director for original source
+            files
+        types_columns (dict<str>): types of variables in each column
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    # Read all matching files within parent directory and organize paths to
+    # these files.
+    paths = putility.read_paths_match_child_files_within_parent_directory(
+        path_directory_parent=path_directory_parent,
+        name_file_child_prefix="table_",
+        name_file_child_suffix=".tsv",
+        name_file_child_not="blabbergaster",
+        report=report,
+    )
+
+    # Read files as Pandas dataframe tables.
+    # Iterate on names of files to read and organize tables.
+    # Collect tables.
+    switch = 0
+    pail = dict()
+    for path in paths:
+        # Extract name of file and table that distinguishes it from all others.
+        name_file = os.path.basename(path)
+        name_table = name_file.replace(str(".tsv"), "")
+        name_study_primary = name_table.replace(str("table_"), "")
+        # Read information from file.
+        table_raw = pandas.read_csv(
+            path,
+            sep="\t",
+            header=0,
+            dtype=types_columns,
+            na_values=[
+                "nan", "na", "NAN", "NA", "<nan>", "<na>", "<NAN>", "<NA>",
+            ],
+        )
+        # Store information about primary study.
+        table_raw["study_primary"] = name_study_primary
+        # Extract names of primary and secondary studies.
+        table_raw["study_secondary"] = table_raw.apply(
+            lambda row:
+                str(row["name_file"]).strip().replace(".log", ""),
+            axis="columns", # apply function to each row
+        )
+        # Remove unnecessary columns.
+        table_raw.drop(
+            labels=[
+                "path_directory",
+                "name_file",
+                "summary_correlation_error",
+                "summary_correlation_ci95",
+                "summary_correlation_ci99",
+                "covariance",
+                "covariance_error",
+                "z_score",
+                "correlation_ci95_not_zero",
+                "correlation_ci95_not_one",
+                "correlation_absolute",
+                "correlation_ci95_low",
+                "correlation_ci95_high",
+                "correlation_ci99_low",
+                "correlation_ci99_high",
+            ],
+            axis="columns",
+            inplace=True
+        )
+        # Concatenate new table with aggregation table.
+        if switch == 1:
+            # Concatenate new table with aggregation table.
+            table = pandas.concat(
+                [table, table_raw,],
+                axis="index",
+                join="outer",
+                ignore_index=True,
+                copy=True,
+            )
+        else:
+            # Copy information in table.
+            table = table_raw.copy(deep=True)
+            # Change switch for all instances after first.
+            switch = 1
+            pass
+        pass
+
+    # Report.
+    if report:
+        putility.print_terminal_partition(level=4)
+        print("Concatenation table after organization:")
+        print(table)
+        print("Column labels:")
+        labels_columns = table.columns.to_list()
+        print(labels_columns)
+        putility.print_terminal_partition(level=4)
+    # Return information.
+    return table
+
+
+
+
+
 
 
 ###############################################################################
 # Procedure
 # Currently, this module is not executable.
+
+##########
