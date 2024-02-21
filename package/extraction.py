@@ -808,6 +808,34 @@ def read_organize_table_ldsc_correlation_multiple(
     return table
 
 
+def filter_table_ldsc_correlation_studies(
+    table=None,
+    studies_keep=None,
+    threshold_p=None,
+    report=None,
+):
+    """
+    Filters the genetic correlations that a Pandas data-frame table represents.
+
+    arguments:
+        table (object): Pandas data-frame table
+        studies_keep (list<str>): identifiers or names of primary and or
+            secondary studies for which to keep information in table
+        threshold_p (float): threshold on p-values in table's column
+            'p_not_zero' below which to keep information in table
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    pass
+
+
+
 
 
 
