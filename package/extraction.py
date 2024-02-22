@@ -65,7 +65,7 @@ import numpy
 import statsmodels.api
 
 # Custom
-import partner.utility as putility # this import path for subpackage
+import partner.utility as putly # this import path for subpackage
 
 #dir()
 #importlib.reload()
@@ -119,7 +119,7 @@ def read_extract_ldsc_heritability(
     ratio_error = float("nan")
 
     # Read relevant lines of character strings from file.
-    lines = putility.read_file_text_lines(
+    lines = putly.read_file_text_lines(
         path_file=path_file,
         start=22,
         stop=30,
@@ -270,7 +270,7 @@ def read_extract_ldsc_correlation(
     # Determine whether report has a summary table.
     # Keep index of prefix title.
     # Read relevant lines from file.
-    #lines = putility.read_file_text_lines(
+    #lines = putly.read_file_text_lines(
     #    path_file=path_file,
     #    start=50,
     #    stop=250,
@@ -310,7 +310,7 @@ def read_extract_ldsc_correlation(
     p_not_zero = float("nan")
 
     # Read relevant lines of character strings from file.
-    lines = putility.read_file_text_lines(
+    lines = putly.read_file_text_lines(
         path_file=path_file,
         start=25,
         stop=57,
@@ -514,7 +514,7 @@ def read_extract_from_all_ldsc_files_in_directory(
     """
 
     # Read names of relevant files within parent directory.
-    names_files = putility.extract_directory_file_names_filter_by_name(
+    names_files = putly.extract_directory_file_names_filter_by_name(
         path=path_directory,
         name=file_name_pattern,
         name_not=file_name_pattern_not,
@@ -549,7 +549,7 @@ def read_extract_from_all_ldsc_files_in_directory(
         counter += 1
         pass
     # Organize table.
-    table = putility.convert_records_to_dataframe(
+    table = putly.convert_records_to_dataframe(
         records=records
     )
     table.reset_index(
@@ -572,16 +572,16 @@ def read_extract_from_all_ldsc_files_in_directory(
     )
     # Report.
     if report:
-        putility.print_terminal_partition(level=3)
+        putly.print_terminal_partition(level=3)
         print("report: ")
         name_function = (
             "read_extract_from_all_ldsc_files_in_directory()"
         )
         print(name_function)
-        putility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
         print("Names of relevant files within parent directory:")
         print(names_files)
-        putility.print_terminal_partition(level=5)
+        putly.print_terminal_partition(level=5)
         print("Table after collection:")
         print(table)
         pass
@@ -669,19 +669,19 @@ def read_organize_table_ldsc_correlation_single(
 
     # Report.
     if report:
-        putility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
         print("Source table before organization:")
         print(table_raw)
         print("Column labels:")
         labels_columns = table_raw.columns.to_list()
         print(labels_columns)
-        putility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
         print("Source table after organization:")
         print(table)
         print("Column labels:")
         labels_columns = table.columns.to_list()
         print(labels_columns)
-        putility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
 
     # Return information.
     return table
@@ -719,7 +719,7 @@ def read_organize_table_ldsc_correlation_multiple(
 
     # Read all matching files within parent directory and organize paths to
     # these files.
-    paths = putility.read_paths_match_child_files_within_parent_directory(
+    paths = putly.read_paths_match_child_files_within_parent_directory(
         path_directory_parent=path_directory_parent,
         name_file_child_prefix="table_",
         name_file_child_suffix=".tsv",
@@ -797,183 +797,15 @@ def read_organize_table_ldsc_correlation_multiple(
 
     # Report.
     if report:
-        putility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
         print("Concatenation table after organization:")
         print(table)
         print("Column labels:")
         labels_columns = table.columns.to_list()
         print(labels_columns)
-        putility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
     # Return information.
     return table
-
-
-# If the primary-secondary combination is redundant,
-# Then need to determine whether the redundant occurrence is the first or subsequent
-
-
-
-
-
-def determine_table_redundancy_primary_secondary_study(
-    table=None,
-    value_index=None,
-    study_primary=None,
-    study_secondary=None,
-    report=None,
-):
-    """
-    Determines whether the current row is redundant with a previous row.
-
-    arguments:
-        table (object): Pandas data-frame table from which the row-specific
-            values originated
-        value_index (int): value of index of current row
-        study_primary (str): identifier or name of primary study
-        study_secondary (str): identifier or name of secondary study
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (int): binary representation of whether the current row is redundant
-
-    """
-
-    # Copy information in table.
-    table_check = table.copy(deep=True)
-    # Organize information in table.
-    table_check.reset_index(
-        level=None,
-        inplace=True,
-        drop=True, # remove index; do not move to regular columns
-    )
-    table_check.set_index(
-        ["study_primary", "study_secondary",],
-        append=False,
-        drop=True,
-        inplace=True,
-    )
-    index_match_1_2 = table_check.index.isin([(study_primary, study_secondary)])
-    index_match_2_1 = table_check.index.isin([(study_secondary, study_primary)])
-    table_match_1_2 = table_check[index_match_1_2]
-    table_match_2_1 = table_check[index_match_2_1]
-    values_index_match_1_2 = table_match_1_2["index"].to_list()
-    values_index_match_2_1 = table_match_2_1["index"].to_list()
-    values_index_match = (values_index_match_1_2 + values_index_match_2_1)
-    indicator = 0
-    if (table_match_1_2.shape[0] > 0):
-        if int(value_index) > min(values_index_match):
-            indicator = 1
-            pass
-        pass
-    if (table_match_2_1.shape[0] > 0):
-        if int(value_index) > min(values_index_match):
-            indicator = 1
-            pass
-        pass
-
-
-    # Report.
-    if report:
-        print("Report.")
-        print("value_index: " + str(value_index))
-        print(table_match_1_2)
-        print(table_match_2_1)
-        print(values_index_match)
-        print(min(values_index_match))
-    return indicator
-
-
-
-
-def old_determine_table_redundancy_primary_secondary_study(
-    table=None,
-    value_index=None,
-    study_primary=None,
-    study_secondary=None,
-    report=None,
-):
-    """
-    Determines whether the current row is redundant with a previous row.
-
-    arguments:
-        table (object): Pandas data-frame table from which the row-specific
-            values originated
-        value_index (int): value of index of current row
-        study_primary (str): identifier or name of primary study
-        study_secondary (str): identifier or name of secondary study
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (int): binary representation of whether the current row is redundant
-
-    """
-
-    indicator = 0
-    #table_previous = table.iloc[0:(value_index - 1)]
-    table_previous = table.loc[
-        (table["index"] <= value_index), :
-    ]
-    previous_primaries = table_previous["study_primary"].to_list()
-    previous_secondaries = table_previous["study_secondary"].to_list()
-    if (study_primary in previous_primaries):
-        #index_curr1_matches_prev1 = previous_primaries.index(study_primary)
-        # previous_secondaries[index_curr1_matches_prev1]
-        index_curr1_match_prev1 = table[
-            (table["study_primary"] == study_primary)
-        ].index.to_list()
-        if (study_secondary == table.loc[
-            index_curr1_match_prev1[0],
-            "study_secondary"
-        ]):
-            indicator = 1
-            pass
-        pass
-    #if (study_primary in previous_secondaries):
-    #    row_match_curr = table.loc[
-    #        (table["index"] == value_index), :
-    #    ]
-    #    if (study_secondary == row_match_curr["study_primary"][0]):
-    #        indicator = 1
-    #        pass
-    #    pass
-
-    if False:
-        index_curr2_matches_prev1 = previous_primaries.index(study_secondary)
-        index_curr1_matches_prev2 = previous_secondaries.index(study_primary)
-        index_curr2_matches_prev2 = previous_secondaries.index(study_secondary)
-
-        if (
-            (
-                (study_primary in previous_primaries) and
-                (study_secondary == previous_secondaries[index_curr1_matches_prev1])
-            ) or
-            (
-                (study_primary in previous_secondaries) and
-                (study_secondary == previous_primaries[index_curr1_matches_prev2])
-            ) or
-            (
-                (study_secondary in previous_primaries) and
-                (study_primary == previous_secondaries[index_curr2_matches_prev1])
-            ) or
-            (
-                (study_secondary in previous_secondaries) and
-                (study_primary == previous_primaries[index_curr2_matches_prev2])
-            )
-        ):
-            indicator = 1
-        else:
-            indicator = 0
-    # Report.
-    if report:
-        print("Here is the table considered previous.")
-        print(table_previous)
-        print("Here is the match index: ")
-        print(index_curr1_match_prev1)
-    return indicator
 
 
 def filter_table_ldsc_correlation_studies(
@@ -1029,11 +861,14 @@ def filter_table_ldsc_correlation_studies(
     if True:
         table_filter["redundancy_studies"] = table_filter.apply(
             lambda row:
-                determine_table_redundancy_primary_secondary_study(
+                putly.check_table_row_redundancy_primary_secondary_identifiers(
                     table=table_filter,
-                    value_index=row["index"],
-                    study_primary=row["study_primary"],
-                    study_secondary=row["study_secondary"],
+                    name_index="index",
+                    name_primary="study_primary",
+                    name_secondary="study_secondary",
+                    row_index=row["index"],
+                    row_primary=row["study_primary"],
+                    row_secondary=row["study_secondary"],
                     report=False,
                 ),
             axis="columns", # apply function to each row
@@ -1054,7 +889,7 @@ def filter_table_ldsc_correlation_studies(
 
     # Report.
     if report:
-        putility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
         count_rows_table_source = (table.shape[0])
         count_rows_table_product = (table_filter.shape[0])
         print("Count of rows in source table: " + str(count_rows_table_source))
@@ -1062,17 +897,17 @@ def filter_table_ldsc_correlation_studies(
             "Count of rows in product table: " +
             str(count_rows_table_product)
         )
-        putility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
         print("Count of studies told to keep: " + str(len(studies_keep)))
         print("List of primary and or secondary studies for which to keep")
         print("genetic correlations:")
         print(studies_keep)
-        putility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
         print("Threshold on p-value: " + str(threshold_p))
-        putility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
         print("Table after filters: ")
         print(table_filter)
-        putility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
     # Return information.
     return table_filter
 

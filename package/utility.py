@@ -2731,6 +2731,96 @@ def read_table_multiindex_columns_transform_calculate_q_values(
     return pail
 
 
+def check_table_row_redundancy_primary_secondary_identifiers(
+    table=None,
+    name_index=None,
+    name_primary=None,
+    name_secondary=None,
+    row_index=None,
+    row_primary=None,
+    row_secondary=None,
+    report=None,
+):
+    """
+    Dependency:
+    This function is a dependency of the function below.
+    partner.extraction.filter_table_ldsc_correlation_studies()
+
+    Determines whether values of two interchangeable identifiers from a single
+    row in a table are either irrelevant or redundant with identifiers from a
+    previous row in the original table. An irrelevant combination has identical
+    values
+
+    arguments:
+        table (object): Pandas data-frame table from which the row-specific
+            values originated
+        name_index (str): name of column for sequential index
+        name_primary (str): name of column for primary identifier
+        name_secondary (str): name of column for secondary identifier
+        row_index (int): current row's value of sequential index
+        row_primary (str): current row's value of primary identifier
+        row_secondary (str): current row's value of secondary identifier
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (int): binary representation of whether the current row is either
+            irrelevant or redundant
+
+    """
+
+    # Copy information in table.
+    table_check = table.copy(deep=True)
+    # Organize information in table.
+    table_check.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    table_check.set_index(
+        [name_primary, name_secondary,],
+        append=False,
+        drop=True,
+        inplace=True,
+    )
+    # Find redundant records in table.
+    index_match_1_2 = table_check.index.isin([(row_primary, row_secondary)])
+    index_match_2_1 = table_check.index.isin([(row_secondary, row_primary)])
+    table_match_1_2 = table_check[index_match_1_2]
+    table_match_2_1 = table_check[index_match_2_1]
+    values_index_match_1_2 = table_match_1_2[name_index].to_list()
+    values_index_match_2_1 = table_match_2_1[name_index].to_list()
+    values_index_match = (values_index_match_1_2 + values_index_match_2_1)
+    # Determine whether the current combination of primary and secondary studies
+    # is either irrelevant if both are identical or redundant with a previous
+    # combination in the table.
+    indicator = 0
+    if (row_primary == row_secondary):
+        indicator = 1
+        pass
+    elif (table_match_1_2.shape[0] > 0):
+        if int(row_index) > min(values_index_match):
+            indicator = 1
+            pass
+        pass
+    elif (table_match_2_1.shape[0] > 0):
+        if int(row_index) > min(values_index_match):
+            indicator = 1
+            pass
+        pass
+
+    # Report.
+    if report:
+        print("Report.")
+        print("row_index: " + str(row_index))
+        print(table_match_1_2)
+        print(table_match_2_1)
+        print(values_index_match)
+        print(min(values_index_match))
+    return indicator
+
+
 def write_product_table_tab(
     table=None,
     name_file=None,
