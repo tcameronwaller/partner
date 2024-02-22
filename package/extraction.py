@@ -808,10 +808,179 @@ def read_organize_table_ldsc_correlation_multiple(
     return table
 
 
+# If the primary-secondary combination is redundant,
+# Then need to determine whether the redundant occurrence is the first or subsequent
+
+
+
+
+
+def determine_table_redundancy_primary_secondary_study(
+    table=None,
+    value_index=None,
+    study_primary=None,
+    study_secondary=None,
+    report=None,
+):
+    """
+    Determines whether the current row is redundant with a previous row.
+
+    arguments:
+        table (object): Pandas data-frame table from which the row-specific
+            values originated
+        value_index (int): value of index of current row
+        study_primary (str): identifier or name of primary study
+        study_secondary (str): identifier or name of secondary study
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (int): binary representation of whether the current row is redundant
+
+    """
+
+    # Copy information in table.
+    table_check = table.copy(deep=True)
+    # Organize information in table.
+    table_check.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    table_check.set_index(
+        ["study_primary", "study_secondary",],
+        append=False,
+        drop=True,
+        inplace=True,
+    )
+    index_match_1_2 = table_check.index.isin([(study_primary, study_secondary)])
+    index_match_2_1 = table_check.index.isin([(study_secondary, study_primary)])
+    table_match_1_2 = table_check[index_match_1_2]
+    table_match_2_1 = table_check[index_match_2_1]
+    values_index_match_1_2 = table_match_1_2["index"].to_list()
+    values_index_match_2_1 = table_match_2_1["index"].to_list()
+    values_index_match = (values_index_match_1_2 + values_index_match_2_1)
+    indicator = 0
+    if (table_match_1_2.shape[0] > 0):
+        if int(value_index) > min(values_index_match):
+            indicator = 1
+            pass
+        pass
+    if (table_match_2_1.shape[0] > 0):
+        if int(value_index) > min(values_index_match):
+            indicator = 1
+            pass
+        pass
+
+
+    # Report.
+    if report:
+        print("Report.")
+        print("value_index: " + str(value_index))
+        print(table_match_1_2)
+        print(table_match_2_1)
+        print(values_index_match)
+        print(min(values_index_match))
+    return indicator
+
+
+
+
+def old_determine_table_redundancy_primary_secondary_study(
+    table=None,
+    value_index=None,
+    study_primary=None,
+    study_secondary=None,
+    report=None,
+):
+    """
+    Determines whether the current row is redundant with a previous row.
+
+    arguments:
+        table (object): Pandas data-frame table from which the row-specific
+            values originated
+        value_index (int): value of index of current row
+        study_primary (str): identifier or name of primary study
+        study_secondary (str): identifier or name of secondary study
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (int): binary representation of whether the current row is redundant
+
+    """
+
+    indicator = 0
+    #table_previous = table.iloc[0:(value_index - 1)]
+    table_previous = table.loc[
+        (table["index"] <= value_index), :
+    ]
+    previous_primaries = table_previous["study_primary"].to_list()
+    previous_secondaries = table_previous["study_secondary"].to_list()
+    if (study_primary in previous_primaries):
+        #index_curr1_matches_prev1 = previous_primaries.index(study_primary)
+        # previous_secondaries[index_curr1_matches_prev1]
+        index_curr1_match_prev1 = table[
+            (table["study_primary"] == study_primary)
+        ].index.to_list()
+        if (study_secondary == table.loc[
+            index_curr1_match_prev1[0],
+            "study_secondary"
+        ]):
+            indicator = 1
+            pass
+        pass
+    #if (study_primary in previous_secondaries):
+    #    row_match_curr = table.loc[
+    #        (table["index"] == value_index), :
+    #    ]
+    #    if (study_secondary == row_match_curr["study_primary"][0]):
+    #        indicator = 1
+    #        pass
+    #    pass
+
+    if False:
+        index_curr2_matches_prev1 = previous_primaries.index(study_secondary)
+        index_curr1_matches_prev2 = previous_secondaries.index(study_primary)
+        index_curr2_matches_prev2 = previous_secondaries.index(study_secondary)
+
+        if (
+            (
+                (study_primary in previous_primaries) and
+                (study_secondary == previous_secondaries[index_curr1_matches_prev1])
+            ) or
+            (
+                (study_primary in previous_secondaries) and
+                (study_secondary == previous_primaries[index_curr1_matches_prev2])
+            ) or
+            (
+                (study_secondary in previous_primaries) and
+                (study_primary == previous_secondaries[index_curr2_matches_prev1])
+            ) or
+            (
+                (study_secondary in previous_secondaries) and
+                (study_primary == previous_primaries[index_curr2_matches_prev2])
+            )
+        ):
+            indicator = 1
+        else:
+            indicator = 0
+    # Report.
+    if report:
+        print("Here is the table considered previous.")
+        print(table_previous)
+        print("Here is the match index: ")
+        print(index_curr1_match_prev1)
+    return indicator
+
+
 def filter_table_ldsc_correlation_studies(
     table=None,
     studies_keep=None,
     threshold_p=None,
+    order_columns=None,
     report=None,
 ):
     """
@@ -823,6 +992,7 @@ def filter_table_ldsc_correlation_studies(
             secondary studies for which to keep information in table
         threshold_p (float): threshold on p-values in table's column
             'p_not_zero' below which to keep information in table
+        order_columns (list<str>): names of columns in order for sort
         report (bool): whether to print reports
 
     raises:
@@ -832,6 +1002,7 @@ def filter_table_ldsc_correlation_studies(
 
     """
 
+    # Filter table's rows.
     table_filter = table.loc[
         (
             table["study_primary"].isin(studies_keep) &
@@ -841,6 +1012,45 @@ def filter_table_ldsc_correlation_studies(
     table_filter = table_filter.loc[
         table_filter["p_not_zero"] < threshold_p, :
     ]
+    # Sort table's rows.
+    table_filter.sort_values(
+        by=["study_primary", "study_secondary",],
+        axis="index",
+        ascending=True,
+        inplace=True,
+    )
+    # Organize information in table.
+    table_filter.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
+    # Remove redundant entries for inverse primary and secondary studies.
+    if True:
+        table_filter["redundancy_studies"] = table_filter.apply(
+            lambda row:
+                determine_table_redundancy_primary_secondary_study(
+                    table=table_filter,
+                    value_index=row["index"],
+                    study_primary=row["study_primary"],
+                    study_secondary=row["study_secondary"],
+                    report=False,
+                ),
+            axis="columns", # apply function to each row
+        )
+        table_filter = table_filter.loc[
+            (table_filter["redundancy_studies"] == 0), :
+        ]
+
+    # Filter and sort table's columns.
+    #table_filter = table_filter.loc[
+    #    :, table_filter.columns.isin(order_columns)
+    #]
+    table_filter = table_filter.filter(
+        items=order_columns,
+        axis="columns",
+    )
+    table_filter = table_filter[[*order_columns]]
 
     # Report.
     if report:
