@@ -657,7 +657,7 @@ def read_organize_table_ldsc_correlation_single(
             "z_score",
             "correlation_ci95_not_zero",
             "correlation_ci95_not_one",
-            "correlation_absolute",
+            #"correlation_absolute",
             "correlation_ci95_low",
             "correlation_ci95_high",
             "correlation_ci99_low",
@@ -768,7 +768,7 @@ def read_organize_table_ldsc_correlation_multiple(
                 "z_score",
                 "correlation_ci95_not_zero",
                 "correlation_ci95_not_one",
-                "correlation_absolute",
+                #"correlation_absolute",
                 "correlation_ci95_low",
                 "correlation_ci95_high",
                 "correlation_ci99_low",
@@ -832,7 +832,39 @@ def filter_table_ldsc_correlation_studies(
 
     """
 
-    pass
+    table_filter = table.loc[
+        (
+            table["study_primary"].isin(studies_keep) &
+            table["study_secondary"].isin(studies_keep)
+        ), :
+    ]
+    table_filter = table_filter.loc[
+        table_filter["p_not_zero"] < threshold_p, :
+    ]
+
+    # Report.
+    if report:
+        putility.print_terminal_partition(level=4)
+        count_rows_table_source = (table.shape[0])
+        count_rows_table_product = (table_filter.shape[0])
+        print("Count of rows in source table: " + str(count_rows_table_source))
+        print(
+            "Count of rows in product table: " +
+            str(count_rows_table_product)
+        )
+        putility.print_terminal_partition(level=4)
+        print("Count of studies told to keep: " + str(len(studies_keep)))
+        print("List of primary and or secondary studies for which to keep")
+        print("genetic correlations:")
+        print(studies_keep)
+        putility.print_terminal_partition(level=4)
+        print("Threshold on p-value: " + str(threshold_p))
+        putility.print_terminal_partition(level=4)
+        print("Table after filters: ")
+        print(table_filter)
+        putility.print_terminal_partition(level=4)
+    # Return information.
+    return table_filter
 
 
 
