@@ -811,7 +811,7 @@ def read_organize_table_ldsc_correlation_multiple(
 def filter_table_ldsc_correlation_studies(
     table=None,
     studies_keep=None,
-    threshold_p=None,
+    threshold_q=None,
     order_columns=None,
     report=None,
 ):
@@ -822,8 +822,8 @@ def filter_table_ldsc_correlation_studies(
         table (object): Pandas data-frame table
         studies_keep (list<str>): identifiers or names of primary and or
             secondary studies for which to keep information in table
-        threshold_p (float): threshold on p-values in table's column
-            'p_not_zero' below which to keep information in table
+        threshold_q (float): threshold on q-values in table's new column
+            'q_not_zero' below which to keep information in table
         order_columns (list<str>): names of columns in order for sort
         report (bool): whether to print reports
 
@@ -834,23 +834,13 @@ def filter_table_ldsc_correlation_studies(
 
     """
 
-    # Filter table's rows.
+    # Filter table's rows by identifiers of studies.
     table_filter = table.loc[
         (
             table["study_primary"].isin(studies_keep) &
             table["study_secondary"].isin(studies_keep)
         ), :
     ]
-    table_filter = table_filter.loc[
-        table_filter["p_not_zero"] < threshold_p, :
-    ]
-    # Sort table's rows.
-    table_filter.sort_values(
-        by=["study_primary", "study_secondary",],
-        axis="index",
-        ascending=True,
-        inplace=True,
-    )
     # Organize information in table.
     table_filter.reset_index(
         level=None,
@@ -876,22 +866,46 @@ def filter_table_ldsc_correlation_studies(
         table_filter = table_filter.loc[
             (table_filter["redundancy_studies"] == 0), :
         ]
-
+    # Calculate Benjamini-Hochberg q-values for False Discovery Rate (FDR).
+    table_filter_q = putly.calculate_table_false_discovery_rate_q_values(
+        threshold=0.05,
+        name_column_p_value="p_not_zero",
+        name_column_q_value="q_not_zero",
+        name_column_significance="q_significance",
+        table=table_filter,
+    )
+    # Remove unnecessary columns.
+    table_filter_q.drop(
+        labels=["q_significance",],
+        axis="columns",
+        inplace=True
+    )
+    # Filter by Benjamini-Hochberg q-value for False Discovery Rate (FDR).
+    table_filter_q = table_filter_q.loc[
+        table_filter_q["q_not_zero"] < threshold_q, :
+    ]
+    # Sort table's rows.
+    table_filter_q.sort_values(
+        by=["study_primary", "study_secondary",],
+        axis="index",
+        ascending=True,
+        inplace=True,
+    )
     # Filter and sort table's columns.
     #table_filter = table_filter.loc[
     #    :, table_filter.columns.isin(order_columns)
     #]
-    table_filter = table_filter.filter(
+    table_filter_q = table_filter_q.filter(
         items=order_columns,
         axis="columns",
     )
-    table_filter = table_filter[[*order_columns]]
+    table_filter_q = table_filter_q[[*order_columns]]
 
     # Report.
     if report:
         putly.print_terminal_partition(level=4)
         count_rows_table_source = (table.shape[0])
-        count_rows_table_product = (table_filter.shape[0])
+        count_rows_table_product = (table_filter_q.shape[0])
         print("Count of rows in source table: " + str(count_rows_table_source))
         print(
             "Count of rows in product table: " +
@@ -903,13 +917,13 @@ def filter_table_ldsc_correlation_studies(
         print("genetic correlations:")
         print(studies_keep)
         putly.print_terminal_partition(level=4)
-        print("Threshold on p-value: " + str(threshold_p))
+        print("Threshold on q-value: " + str(threshold_q))
         putly.print_terminal_partition(level=4)
         print("Table after filters: ")
-        print(table_filter)
+        print(table_filter_q)
         putly.print_terminal_partition(level=4)
     # Return information.
-    return table_filter
+    return table_filter_q
 
 
 
