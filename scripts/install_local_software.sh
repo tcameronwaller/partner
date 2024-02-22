@@ -26,6 +26,20 @@ sudo add-apt-repository "deb [arch=amd64] https://packagecloud.io/AtomEditor/ato
 sudo apt update
 sudo apt install atom
 
+# Cytoscape
+# site: https://cytoscape.org/index.html
+# last installation: TCW; 22 February 2024
+# 1. Install Java 17
+apt update
+apt upgrade
+apt install openjdk-17-jdk openjdk-17-jre
+java -version
+# 2. Install Cytoscape
+cd ~/Downloads
+wget https://github.com/cytoscape/cytoscape/releases/download/3.10.1/Cytoscape_3_10_1_unix.sh
+bash ~/Downloads/Cytoscape_3_10_1_unix.sh
+# installation path: /home/tcameronwaller/Cytoscape_v3.10.1
+
 # Discord
 # Or use the web browser application.
 cd ~/Downloads
