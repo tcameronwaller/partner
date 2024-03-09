@@ -40,6 +40,12 @@ License:
 ###############################################################################
 # Notes
 
+# TODO: TCW; 6 March 2024
+# TODO: If the genetic correlation estimate is missing ("nan") with the explanation
+# "rg out of bounds", then access the rg, se, p-value, z-score, etc from the
+# tab-delimited summary information at the bottom of the report log.
+
+
 ###############################################################################
 # Installation and importation
 
@@ -66,6 +72,7 @@ import statsmodels.api
 
 # Custom
 import partner.utility as putly # this import path for subpackage
+import partner.scale as pale
 
 #dir()
 #importlib.reload()
@@ -243,6 +250,110 @@ def read_extract_ldsc_heritability(
     return pail
 
 
+def read_extract_ldsc_correlation_values_body(
+    path_file=None,
+):
+    """
+    Reads and extracts information from log file of LDSC for estimation of
+    genetic correlation between two sets of GWAS summary statistics.
+
+    This function specifically extracts values from the main lines of the text
+    log report. This function recognizes the relevant lines by specific,
+    consistent text prefixes.
+
+    https://github.com/bulik/ldsc/wiki/Heritability-and-Genetic-Correlation
+    https://github.com/bulik/ldsc/blob/master/munge_sumstats.py
+    https://github.com/bulik/ldsc/wiki/Summary-Statistics-File-Format
+
+    https://www.mathsisfun.com/data/confidence-interval.html
+
+    arguments:
+        path_file (str): full path to file that contains information from a
+            genetic correlation analysis in LDSC
+
+    raises:
+
+    returns:
+        (dict): information about LDSC analysis
+
+    """
+
+    # Initialize variables for extraction.
+    covariance = float("nan")
+    covariance_error = float("nan")
+    correlation = float("nan")
+    correlation_error = float("nan")
+    z_statistic_ldsc = float("nan")
+    p_value_ldsc = float("nan")
+
+    # Read relevant lines of character strings from file.
+    lines_covariance = putly.read_file_text_lines(
+        path_file=path_file,
+        start=45,
+        stop=51,
+    )
+    # Define character strings that indicate relevant information.
+    prefix_covariance = "Total Observed scale gencov: "
+    # Extract information from lines.
+    for line in lines_covariance:
+        if (prefix_covariance in line):
+            content = line.replace(prefix_covariance, "")
+            contents = content.split(" (")
+            covariance_test = contents[0]
+            if (not "NA" in covariance_test):
+                covariance = float(contents[0].strip())
+                covariance_error = float(
+                    contents[1].replace(")", "").strip()
+                )
+            pass
+        pass
+
+    # Read relevant lines of character strings from file.
+    lines_correlation = putly.read_file_text_lines(
+        path_file=path_file,
+        start=51,
+        stop=60,
+    )
+    # Define character strings that indicate relevant information.
+    prefix_correlation = "Genetic Correlation: "
+    prefix_z = "Z-score: "
+    prefix_p = "P: "
+    # Extract information from lines.
+    for line in lines_correlation:
+        if prefix_correlation in line:
+            content = line.replace(prefix_correlation, "")
+            contents = content.split(" (")
+            correlation_test = contents[0]
+            if (not "nan" in correlation_test):
+                correlation = float(contents[0].strip())
+                correlation_error = float(contents[1].replace(")", "").strip())
+            pass
+        elif (
+            (not math.isnan(correlation)) and
+            (prefix_z in line)
+        ):
+            z_statistic_ldsc = float(line.replace(prefix_z, "").strip())
+            pass
+        elif (
+            (not math.isnan(correlation)) and
+            (prefix_p in line)
+        ):
+            p_value_ldsc = float(line.replace(prefix_p, "").strip())
+            pass
+        pass
+
+    # Collect information.
+    pail = dict()
+    pail["covariance"] = covariance
+    pail["covariance_error"] = covariance_error
+    pail["correlation"] = correlation
+    pail["correlation_error"] = correlation_error
+    pail["z_statistic_ldsc"] = z_statistic_ldsc
+    pail["p_value_ldsc"] = p_value_ldsc
+    # Return information.
+    return pail
+
+
 def read_extract_ldsc_correlation(
     path_file=None,
 ):
@@ -255,6 +366,19 @@ def read_extract_ldsc_correlation(
     https://github.com/bulik/ldsc/wiki/Summary-Statistics-File-Format
 
     https://www.mathsisfun.com/data/confidence-interval.html
+
+    LDSC reports the Z-statistic and p-value corresponding to the null
+    hypothesis that the genetic correlation is zero. For a reference on how to
+    calculate Z-statistics and p-values for whether the genetic correlation is
+    not zero or less than one respectively, refer to the Supplement and
+    Supplemental Table 5 in Blokland et al, Biological Psychiatry, 2022
+    (PubMed:34099189).
+
+    Alternative hypotheses for genetic correlation (rg):
+    1. rg is significantly less than or greater than zero (two-tailed test)
+       Z = (rg) / (standard error of rg)
+    2. rg is less than one (one-tailed test)
+       Z = (1 - rg) / (standard error of rg)
 
     arguments:
         path_file (str): full path to file that contains information from a
@@ -299,6 +423,13 @@ def read_extract_ldsc_correlation(
     covariance_error = float("nan")
     correlation = float("nan")
     correlation_error = float("nan")
+    z_statistic_ldsc = float("nan")
+    p_value_ldsc = float("nan")
+    z_statistic_not_zero = float("nan")
+    p_value_not_zero = float("nan")
+    z_statistic_less_one = float("nan")
+    p_value_less_one = float("nan")
+
     correlation_ci95_low = float("nan")
     correlation_ci95_high = float("nan")
     correlation_ci99_low = float("nan")
@@ -306,68 +437,59 @@ def read_extract_ldsc_correlation(
     correlation_ci95_not_zero = float("nan")
     correlation_ci95_not_one = float("nan")
     correlation_absolute = float("nan")
-    z_score = float("nan")
-    p_not_zero = float("nan")
 
-    # Read relevant lines of character strings from file.
-    lines = putly.read_file_text_lines(
+    # Extract information from main body of report log.
+    pail_body = read_extract_ldsc_correlation_values_body(
         path_file=path_file,
-        start=25,
-        stop=57,
     )
 
+    # Read relevant lines of character strings from file.
+    lines_variants = putly.read_file_text_lines(
+        path_file=path_file,
+        start=25,
+        stop=29,
+    )
     # Define character strings that indicate relevant information.
     prefix_variants = "After merging with summary statistics, "
     suffix_variants = " SNPs remain."
     prefix_variants_valid = ""
     suffix_variants_valid = " SNPs with valid alleles."
-    prefix_covariance = "Total Observed scale gencov: "
-    prefix_correlation = "Genetic Correlation: "
-    prefix_z_score = "Z-score: "
-    prefix_p = "P: "
-
     # Extract information from lines.
-    for line in lines:
+    for line in lines_variants:
         if prefix_variants in line:
             variants = int(
                 line.replace(prefix_variants, "").replace(suffix_variants, "")
             )
         elif suffix_variants_valid in line:
             variants_valid = int(
-                line.replace(suffix_variants_valid, "")
+                line.replace(suffix_variants_valid, "").strip()
             )
-        elif prefix_correlation in line:
-            content = line.replace(prefix_correlation, "")
-            contents = content.split(" (")
-            correlation_test = contents[0]
-            if (not "nan" in correlation_test):
-                correlation = float(contents[0])
-                correlation_error = float(contents[1].replace(")", ""))
-            pass
-        elif (
-            (not math.isnan(correlation)) and
-            (prefix_covariance in line)
-        ):
-            content = line.replace(prefix_covariance, "")
-            contents = content.split(" (")
-            covariance_test = contents[0]
-            if (not "NA" in covariance_test):
-                covariance = float(contents[0])
-                covariance_error = float(
-                    contents[1].replace(")", "")
-                )
-            pass
-        elif (
-            (not math.isnan(correlation)) and
-            (prefix_z_score in line)
-        ):
-            z_score = float(line.replace(prefix_z_score, ""))
-            pass
-        elif (
-            (not math.isnan(correlation)) and
-            (prefix_p in line)
-        ):
-            p_not_zero = float(line.replace(prefix_p, ""))
+        pass
+
+    # Determine whether to use values extracted from main body or summary.
+    covariance = pail_body["covariance"]
+    covariance_error = pail_body["covariance_error"]
+    if (
+        (not pandas.isna(pail_body["correlation"])) and
+        (not pandas.isna(pail_body["correlation_error"]))
+    ):
+        correlation = pail_body["correlation"]
+        correlation_error = pail_body["correlation_error"]
+        z_statistic_ldsc = pail_body["z_statistic_ldsc"]
+        p_value_ldsc = pail_body["p_value_ldsc"]
+    else:
+        # Extract information from summary of report log.
+        summary_check = "Summary of Genetic Correlation Results"
+        with open(path_file, 'r') as file:
+            line_summary_check = file.readlines()[-6]
+        with open(path_file, 'r') as file:
+            line_summary_values = file.readlines()[-4]
+        if (summary_check in line_summary_check):
+            summary_values = line_summary_values.split()
+            correlation = float(summary_values[2].strip())
+            correlation_error = float(summary_values[3].strip())
+            z_statistic_ldsc = float(summary_values[4].strip())
+            p_value_ldsc = float(summary_values[5].strip())
             pass
         pass
 
@@ -376,11 +498,24 @@ def read_extract_ldsc_correlation(
         (not pandas.isna(correlation)) and
         (not pandas.isna(correlation_error))
     ):
-        correlation_absolute = math.fabs(correlation)
+        # Determine Z-statistics and p-values for null hypotheses.
+        z_statistic_not_zero = (correlation / correlation_error)
+        p_value_not_zero = pale.calculate_p_value_from_z_statistic(
+            z_statistic=z_statistic_not_zero,
+            tail_factor=2.0, # two-tailed test; less than or greater than zero
+        )
+        z_statistic_less_one = ((1 - correlation) / correlation_error)
+        p_value_less_one = pale.calculate_p_value_from_z_statistic(
+            z_statistic=z_statistic_less_one,
+            tail_factor=1.0, # one-tailed test; less than one
+        )
+        # Determine confidence intervals.
         correlation_ci95_low = (correlation - (1.960 * correlation_error))
         correlation_ci95_high = (correlation + (1.960 * correlation_error))
         correlation_ci99_low = (correlation - (2.576 * correlation_error))
         correlation_ci99_high = (correlation + (2.576 * correlation_error))
+        # Determine absolute value of correlation.
+        correlation_absolute = math.fabs(correlation)
         # Determine whether confidence interval crosses zero or one.
         if (
             ((correlation_ci95_low > 0) and (correlation_ci95_high > 0)) or
@@ -416,69 +551,57 @@ def read_extract_ldsc_correlation(
 
     # Collect information.
     record = dict()
-    record["summary_correlation_error"] = summary_correlation_error
-    record["summary_correlation_ci95"] = summary_correlation_ci95
-    record["summary_correlation_ci99"] = summary_correlation_ci99
     record["variants"] = variants
     record["variants_valid"] = variants_valid
-    record["covariance"] = correlation
-    record["covariance_error"] = correlation_error
-    record["z_score"] = z_score
-    record["p_not_zero"] = p_not_zero
-    record["correlation_ci95_not_zero"] = correlation_ci95_not_zero
-    record["correlation_ci95_not_one"] = correlation_ci95_not_one
-    record["correlation_absolute"] = correlation_absolute
+    record["covariance"] = covariance
+    record["covariance_error"] = covariance_error
     record["correlation"] = correlation
     record["correlation_error"] = correlation_error
+    record["z_statistic_ldsc"] = z_statistic_ldsc
+    record["p_value_ldsc"] = p_value_ldsc
+    record["z_statistic_not_zero"] = z_statistic_not_zero
+    record["p_value_not_zero"] = p_value_not_zero
+    record["z_statistic_less_one"] = z_statistic_less_one
+    record["p_value_less_one"] = p_value_less_one
     record["correlation_ci95_low"] = correlation_ci95_low
     record["correlation_ci95_high"] = correlation_ci95_high
     record["correlation_ci99_low"] = correlation_ci99_low
     record["correlation_ci99_high"] = correlation_ci99_high
+    record["correlation_absolute"] = correlation_absolute
+    record["correlation_ci95_not_zero"] = correlation_ci95_not_zero
+    record["correlation_ci95_not_one"] = correlation_ci95_not_one
+    record["summary_correlation_error"] = summary_correlation_error
+    record["summary_correlation_ci95"] = summary_correlation_ci95
+    record["summary_correlation_ci99"] = summary_correlation_ci99
     # Define list of variables in order.
     variables = [
-        "summary_correlation_error",
-        "summary_correlation_ci95",
-        "summary_correlation_ci99",
         "variants",
         "variants_valid",
         "covariance",
         "covariance_error",
-        "z_score",
-        "p_not_zero",
-        "correlation_ci95_not_zero",
-        "correlation_ci95_not_one",
-        "correlation_absolute",
         "correlation",
         "correlation_error",
+        "z_statistic_ldsc",
+        "p_value_ldsc",
+        "z_statistic_not_zero",
+        "p_value_not_zero",
+        "z_statistic_less_one",
+        "p_value_less_one",
         "correlation_ci95_low",
         "correlation_ci95_high",
         "correlation_ci99_low",
         "correlation_ci99_high",
-    ]
-    variables_convenience = [
-        "correlation",
-        "p_not_zero",
+        "correlation_absolute",
+        "correlation_ci95_not_zero",
+        "correlation_ci95_not_one",
         "summary_correlation_error",
         "summary_correlation_ci95",
         "summary_correlation_ci99",
-        "variants",
-        "variants_valid",
-        "covariance",
-        "covariance_error",
-        "z_score",
-        "correlation_ci95_not_zero",
-        "correlation_ci95_not_one",
-        "correlation_absolute",
-        "correlation_error",
-        "correlation_ci95_low",
-        "correlation_ci95_high",
-        "correlation_ci99_low",
-        "correlation_ci99_high",
     ]
     # Return information.
     pail = dict()
     pail["record"] = record
-    pail["variables"] = variables_convenience
+    pail["variables"] = variables
     return pail
 
 
@@ -823,7 +946,7 @@ def filter_table_ldsc_correlation_studies(
         studies_keep (list<str>): identifiers or names of primary and or
             secondary studies for which to keep information in table
         threshold_q (float): threshold on q-values in table's new column
-            'q_not_zero' below which to keep information in table
+            'q_value' below which to keep information in table
         order_columns (list<str>): names of columns in order for sort
         report (bool): whether to print reports
 
@@ -869,8 +992,8 @@ def filter_table_ldsc_correlation_studies(
     # Calculate Benjamini-Hochberg q-values for False Discovery Rate (FDR).
     table_filter_q = putly.calculate_table_false_discovery_rate_q_values(
         threshold=0.05,
-        name_column_p_value="p_not_zero",
-        name_column_q_value="q_not_zero",
+        name_column_p_value="p_value",
+        name_column_q_value="q_value",
         name_column_significance="q_significance",
         table=table_filter,
     )

@@ -309,6 +309,45 @@ def drive_transform_variables_distribution_scale_z_score(
     return table_scale
 
 
+
+def calculate_p_value_from_z_statistic(
+    z_statistic=None,
+    tail_factor=None,
+):
+    """
+    Calculate the p-value from the Z-statistic corresponding to a null
+    hypothesis.
+
+    continuous normal random distribution: "scipy.stats.norm()" in Python SciPy
+    probability density function (PDF): "dnorm()" in R; "pdf()" in Python SciPy
+    cumulative density function (CDF): "pnorm()" in R; "cdf()" in Python SciPy
+    quantile inverse CDF: "qnorm()" in R; "ppf()" in Python SciPy
+
+    The SciPy implementation of the Cumulative Density Function (CDF) apparently
+    returns the probability that a random variable would take a value less than
+    or equal to the given value (the left tail). Hence it is necessary to
+    multiply the Z-statistic by negative one in order to obtain the correct
+    probability.
+
+    arguments:
+        z_statistic (float): value of Z-statistic for null hypothesis
+        tail_factor (float): 1.0 for one-tailed test or 2.0 for two-tailed test
+
+    raises:
+
+    returns:
+        (float): value of heritability or standard error on liability scale
+
+    """
+
+    # Calculate p-value from Z-statistic, assuming normal distribution.
+    distribution = scipy.stats.norm() # continuous normal random distribution
+    p_value = float(distribution.cdf(-1 * z_statistic) * tail_factor)
+    # Return information.
+    return p_value
+
+
+
 # Rank-Based Inverse Normalization
 
 

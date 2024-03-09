@@ -39,6 +39,13 @@ License:
 ###############################################################################
 # Notes
 
+# TODO: TCW; 1 March 2024
+# Plan to learn and implement more advanced designs that include groups of
+# variables (especially on boxplots, dotplots, and forestplots) with labels
+# for clarity. Also, Forest Plots look especially good when integrated with
+# tables that align. PyPi forestplot has an implementation for Forest Plots
+# aligned within a table of values.
+
 
 
 ###############################################################################
@@ -485,23 +492,31 @@ def define_color_properties():
     blue_navy_light = (0.118, 0.314, 0.706, 1.0) # (r: 30; g: 80; b: 180)
     blue_sky = (0.196, 0.588, 1.0, 1.0) # (red: 50; green: 150; blue: 255)
     blue_navy_bright = (0.784, 0.824, 1.0, 1.0) # (r: 200; g: 210; b: 255)
+    blue_periwinkle = (0.667, 0.667, 1.0, 1.0) # (red: 170; green: 170; blue: 255)
+    blue_indigo = (0.196, 0.0, 0.588, 1.0) # (red: 50; green: 0; blue: 150)
 
     purple = (0.510, 0.039, 0.510, 1.0) # (red: 130; green: 10; blue: 130)
     purple_light = (0.588, 0.196, 0.588, 1.0) # (red: 150; green: 50; blue: 150)
     magenta = (0.784, 0.275, 0.784, 1.0) # (red: 200; green: 70; blue: 200)
+    purple_lavender = (0.784, 0.784, 1.0, 1.0) # (red: 200; green: 200; blue: 255)
+    purple_lilac = (0.784, 0.667, 0.784, 1.0) # (red: 200; green: 170; blue: 200)
 
     red_brick = (0.667, 0.196, 0.039, 1.0) # (red: 170; green: 50; blue: 10)
     red_burgundy = (0.510, 0.039, 0.118, 1.0) # (red: 130; green: 10; blue: 30)
     red_crimson = (0.784, 0.118, 0.196, 1.0) # (red: 200; green: 30; blue: 50)
 
-
-    orange = (1.0, 0.588, 0.039, 1.0) # (red: 255; green: 150; blue: 10)
+    orange = (1.0, 0.667, 0.039, 1.0) # (red: 255; green: 170; blue: 10)
+    orange_burnt = (0.902, 0.510, 0.039, 1.0) # (red: 230; green: 130; blue: 10)
     orange_faint = (1.0, 0.588, 0.039, 0.75)
 
-    # Green (red: 64; green: 191; blue: 64).
-    green = (0.25, 0.75, 0.25, 1.0) # a brighter green, similar to "Malachite"
-    # Yellow.
-    yellow = (1.0, 0.8, 0.0, 1.0)
+    yellow = (1.0, 0.8, 0.0, 1.0) # (red: 255; green: 200; blue: 0)
+    yellow_sunshine = (1.0, 1.0, 0.196, 1.0) # (red: 255; green: 255; blue: 50)
+    yellow_sunflower = (1.0, 0.784, 0.0, 1.0) # (red: 255; green: 200; blue: 0)
+    yellow_butter = (1.0, 1.0, 0.392, 1.0) # (red: 255; green: 255; blue: 100)
+    yellow_cream = (1.0, 1.0, 0.784, 1.0) # (red: 255; green: 255; blue: 200)
+
+
+    green = (0.25, 0.75, 0.25, 1.0) # (red: 64; green: 191; blue: 64)
     # Compile and return references.
     return {
         "black": black,
