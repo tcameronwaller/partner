@@ -8,6 +8,10 @@ This module within subpackage 'partner' provides executable functionality under
 the management of a higher level package. Importation paths must represent this
 hierarchy.
 
+Review:
+On 11 March 2024, TCW checked that the extraction values matched those in the
+raw reports from LDSC for SNP heritability and genetic correlation.
+
 Author:
 
     T. Cameron Waller, Ph.D.
