@@ -10,7 +10,7 @@ hierarchy.
 
 Review:
 On 11 March 2024, TCW checked that the extraction values matched those in the
-raw reports from LDSC for SNP heritability and genetic correlation.
+raw report text logs from LDSC for SNP heritability and genetic correlation.
 
 Author:
 
