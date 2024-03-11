@@ -2829,6 +2829,10 @@ def write_product_table_tab(
     """
     Writes product information to file.
 
+    Before calling this function, return any relevant indices across rows to
+    columns. This function does not write indices across rows to the
+    tab-delimited text file.
+
     arguments:
         table (object): table of information to write to file
         name_file (str): base name for file
@@ -2841,10 +2845,14 @@ def write_product_table_tab(
     """
 
     # Reset index.
-    table.reset_index(
-        level=None,
-        inplace=True,
-        drop=False, # remove index; do not move to regular columns
+    #table.reset_index(
+    #    level=None,
+    #    inplace=True,
+    #    drop=False, # remove index; do not move to regular columns
+    #)
+    # Initialize directories.
+    create_directories(
+        path=path_directory,
     )
     # Specify directories and files.
     path_file_table = os.path.join(
@@ -2861,6 +2869,44 @@ def write_product_table_tab(
     pass
 
 
+def write_product_tables(
+    pail_write=None,
+    path_directory=None,
+):
+    """
+    Writes product information to file.
+
+    First and only dictionary tier names the file.
+
+    Before calling this function, return any relevant indices across rows to
+    columns. This function does not write indices across rows to the
+    tab-delimited text file.
+
+    arguments:
+        pail_write (dict<object>): collection of information to write to file
+        path_directory_parent (str): path to directory within which to write
+            information to files
+
+    raises:
+
+    returns:
+
+    """
+
+    # Structure of "pail_write" collection is "dict<object>".
+    # First and only tier of dictionary tree gives names of files.
+    # Iterate across charts.
+    for name_file in pail_write.keys():
+        # Write chart object to file in child directory.
+        write_product_table_tab(
+            table=pail_write[name_file],
+            name_file=name_file,
+            path_directory=path_directory,
+        )
+        pass
+    pass
+
+
 def write_product_tables_child_directories(
     pail_write=None,
     path_directory_parent=None,
@@ -2870,6 +2916,10 @@ def write_product_tables_child_directories(
 
     First dictionary tier names the child directory.
     Second dictionary tier names the file.
+
+    Before calling this function, return any relevant indices across rows to
+    columns. This function does not write indices across rows to the
+    tab-delimited text file.
 
     arguments:
         pail_write (dict<dict<object>>): collection of information to write to
@@ -2882,28 +2932,20 @@ def write_product_tables_child_directories(
 
     """
 
-    # Structure of "plots" collection is "dict<dict<object>>".
-    # First level of plots dictionary tree gives names for child directories.
-    # Second level of plots dictionary tree gives names of plots.
+    # Structure of "pail_write" collection is "dict<dict<object>>".
+    # First tier of dictionary tree gives names for child directories.
+    # Second tier of dictionary tree gives names of files.
     # Iterate across child directories.
     for name_directory in pail_write.keys():
         # Define paths to directories.
         path_directory_child = os.path.join(
             path_directory_parent, name_directory
         )
-        # Initialize directories.
-        create_directories(
-            path=path_directory_child
+        # Iterate across files.
+        write_product_tables(
+            pail_write=pail_write[name_directory],
+            path_directory=path_directory_child,
         )
-        # Iterate across charts.
-        for name_file in pail_write[name_directory].keys():
-            # Write chart object to file in child directory.
-            write_product_table_tab(
-                table=pail_write[name_directory][name_file],
-                name_file=name_file,
-                path_directory=path_directory_child,
-            )
-            pass
         pass
     pass
 
