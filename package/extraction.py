@@ -325,6 +325,8 @@ def read_extract_ldsc_correlation_values_body(
     # Initialize variables for extraction.
     covariance = float("nan")
     covariance_error = float("nan")
+    intercept = float("nan")
+    intercept_error = float("nan")
     correlation = float("nan")
     correlation_error = float("nan")
     z_statistic_ldsc = float("nan")
@@ -338,6 +340,7 @@ def read_extract_ldsc_correlation_values_body(
     )
     # Define character strings that indicate relevant information.
     prefix_covariance = "Total Observed scale gencov: "
+    prefix_intercept = "Intercept: "
     # Extract information from lines.
     for line in lines_covariance:
         if (prefix_covariance in line):
@@ -350,6 +353,19 @@ def read_extract_ldsc_correlation_values_body(
             ):
                 covariance = float(contents[0].strip())
                 covariance_error = float(
+                    contents[1].replace(")", "").strip()
+                )
+            pass
+        elif (prefix_intercept in line):
+            content = line.replace(prefix_intercept, "")
+            contents = content.split(" (")
+            intercept_test = contents[0]
+            if (
+                (not "nan" in intercept_test) and
+                (not "NA" in intercept_test)
+            ):
+                intercept = float(contents[0].strip())
+                intercept_error = float(
                     contents[1].replace(")", "").strip()
                 )
             pass
@@ -396,6 +412,8 @@ def read_extract_ldsc_correlation_values_body(
     pail = dict()
     pail["covariance"] = covariance
     pail["covariance_error"] = covariance_error
+    pail["intercept"] = intercept
+    pail["intercept_error"] = intercept_error
     pail["correlation"] = correlation
     pail["correlation_error"] = correlation_error
     pail["z_statistic_ldsc"] = z_statistic_ldsc
@@ -484,6 +502,8 @@ def read_extract_ldsc_correlation(
 
     covariance = float("nan")
     covariance_error = float("nan")
+    intercept = float("nan")
+    intercept_error = float("nan")
     correlation_absolute = float("nan")
     correlation_ci95_not_zero = float("nan")
     correlation_ci95_not_one = float("nan")
@@ -522,6 +542,8 @@ def read_extract_ldsc_correlation(
     # Determine whether to use values extracted from main body or summary.
     covariance = pail_body["covariance"]
     covariance_error = pail_body["covariance_error"]
+    intercept = pail_body["intercept"]
+    intercept_error = pail_body["intercept_error"]
     if (
         (not pandas.isna(pail_body["correlation"])) and
         (not pandas.isna(pail_body["correlation_error"]))
@@ -627,6 +649,8 @@ def read_extract_ldsc_correlation(
     record["correlation_ci99_high"] = correlation_ci99_high
     record["covariance"] = covariance
     record["covariance_error"] = covariance_error
+    record["intercept"] = intercept
+    record["intercept_error"] = intercept_error
     record["correlation_absolute"] = correlation_absolute
     record["correlation_ci95_not_zero"] = correlation_ci95_not_zero
     record["correlation_ci95_not_one"] = correlation_ci95_not_one
@@ -651,6 +675,8 @@ def read_extract_ldsc_correlation(
         "correlation_ci99_high",
         "covariance",
         "covariance_error",
+        "intercept",
+        "intercept_error",
         "correlation_absolute",
         "correlation_ci95_not_zero",
         "correlation_ci95_not_one",
