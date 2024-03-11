@@ -519,6 +519,10 @@ def read_extract_ldsc_correlation(
             estimate=correlation,
             standard_error=correlation_error,
         )
+        correlation_ci95_low = pail_ci["range_95_low"]
+        correlation_ci95_high = pail_ci["range_95_high"]
+        correlation_ci99_low = pail_ci["range_99_low"]
+        correlation_ci99_high = pail_ci["range_99_high"]
         # Create text summaries.
         summary_correlation_error = str(
             str(correlation) + " (" + str(round(correlation_error, 4)) + ")"
@@ -568,10 +572,10 @@ def read_extract_ldsc_correlation(
     record["z_statistic_less_one"] = z_statistic_less_one
     record["p_value_less_one"] = p_value_less_one
     record["correlation_absolute"] = correlation_absolute
-    record["correlation_ci95_low"] = pail_ci["range_95_low"]
-    record["correlation_ci95_high"] = pail_ci["range_95_high"]
-    record["correlation_ci99_low"] = pail_ci["range_99_low"]
-    record["correlation_ci99_high"] = pail_ci["range_99_high"]
+    record["correlation_ci95_low"] = correlation_ci95_low
+    record["correlation_ci95_high"] = correlation_ci95_high
+    record["correlation_ci99_low"] = correlation_ci99_low
+    record["correlation_ci99_high"] = correlation_ci99_high
     record["correlation_ci95_not_zero"] = correlation_ci95_not_zero
     record["correlation_ci95_not_one"] = correlation_ci95_not_one
     record["summary_correlation_error"] = summary_correlation_error
