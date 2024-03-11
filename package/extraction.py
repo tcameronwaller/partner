@@ -468,12 +468,12 @@ def read_extract_ldsc_correlation(
         pass
 
     # Determine whether to use values extracted from main body or summary.
+    covariance = pail_body["covariance"]
+    covariance_error = pail_body["covariance_error"]
     if (
         (not pandas.isna(pail_body["correlation"])) and
         (not pandas.isna(pail_body["correlation_error"]))
     ):
-        covariance = pail_body["covariance"]
-        covariance_error = pail_body["covariance_error"]
         correlation = pail_body["correlation"]
         correlation_error = pail_body["correlation_error"]
         z_statistic_ldsc = pail_body["z_statistic_ldsc"]
