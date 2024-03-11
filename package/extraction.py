@@ -119,53 +119,92 @@ def read_extract_ldsc_heritability(
     heritability_ci95_high = float("nan")
     heritability_ci99_low = float("nan")
     heritability_ci99_high = float("nan")
+    lambda_gc = float("nan")
     chi_square = float("nan")
+    intercept = float("nan")
+    intercept_error = float("nan")
     ratio = float("nan")
     ratio_error = float("nan")
+    summary_heritability_error = str("NA (NA)")
+    summary_heritability_ci95 = str("(h2: NA; 95% CI: NA ... NA)")
+    summary_heritability_ci99 = str("(h2: NA; 99% CI: NA ... NA)")
 
     # Read relevant lines of character strings from file.
     lines = putly.read_file_text_lines(
         path_file=path_file,
         start=22,
-        stop=30,
+        stop=35,
     )
 
     # Define character strings that indicate relevant information.
     prefix_variants = "After merging with regression SNP LD, "
     suffix_variants = " SNPs remain."
-    #prefix_heritability = "Total Observed scale h2: "
+    prefix_lambda_gc = "Lambda GC: "
+    prefix_chi_square = "Mean Chi^2: "
+    prefix_intercept = "Intercept: "
+    prefix_ratio = "Ratio: "
     prefix_heritability_observed = "Total Observed scale h2: "
     prefix_heritability_liability = "Total Liability scale h2: "
-    prefix_chi_square = "Mean Chi^2: "
-    prefix_ratio = "Ratio: "
 
     # Extract information from lines.
     for line in lines:
         if prefix_variants in line:
             variants = int(
-                line.replace(prefix_variants, "").replace(suffix_variants, "")
+                line.replace(prefix_variants, "").replace(
+                    suffix_variants, ""
+                ).strip()
             )
-        elif prefix_heritability_observed in line:
+        pass
+    for line in lines:
+        if prefix_heritability_observed in line:
             content = line.replace(prefix_heritability_observed, "")
             contents = content.split(" (")
             heritability_test = contents[0]
-            if (not "NA" in heritability_test):
-                heritability = float(contents[0])
-                heritability_error = float(contents[1].replace(")", ""))
+            if (
+                (not "nan" in heritability_test) and
+                (not "NA" in heritability_test)
+            ):
+                heritability = float(contents[0].strip())
+                heritability_error = float(contents[1].replace(")", "").strip())
             pass
         elif prefix_heritability_liability in line:
             content = line.replace(prefix_heritability_liability, "")
             contents = content.split(" (")
             heritability_test = contents[0]
-            if (not "NA" in heritability_test):
-                heritability = float(contents[0])
-                heritability_error = float(contents[1].replace(")", ""))
+            if (
+                (not "nan" in heritability_test) and
+                (not "NA" in heritability_test)
+            ):
+                heritability = float(contents[0].strip())
+                heritability_error = float(contents[1].replace(")", "").strip())
+            pass
+        pass
+    for line in lines:
+        if (
+            (not math.isnan(heritability)) and
+            (prefix_lambda_gc in line)
+        ):
+            lambda_gc = float(line.replace(prefix_lambda_gc, "").strip())
             pass
         elif (
             (not math.isnan(heritability)) and
             (prefix_chi_square in line)
         ):
-            chi_square = float(line.replace(prefix_chi_square, ""))
+            chi_square = float(line.replace(prefix_chi_square, "").strip())
+            pass
+        elif (
+            (not math.isnan(heritability)) and
+            (prefix_intercept in line)
+        ):
+            content = line.replace(prefix_intercept, "")
+            contents = content.split(" (")
+            intercept_test = contents[0]
+            if (
+                (not "nan" in intercept_test) and
+                (not "NA" in intercept_test)
+            ):
+                intercept = float(contents[0].strip())
+                intercept_error = float(contents[1].replace(")", "").strip())
             pass
         elif (
             (not math.isnan(heritability)) and
@@ -174,11 +213,12 @@ def read_extract_ldsc_heritability(
             content = line.replace(prefix_ratio, "")
             contents = content.split(" (")
             ratio_test = contents[0]
-            if (not "NA" in ratio_test):
-                ratio = float(contents[0])
-                ratio_error = float(
-                    contents[1].replace(")", "")
-                )
+            if (
+                (not "nan" in ratio_test) and
+                (not "NA" in ratio_test)
+            ):
+                ratio = float(contents[0].strip())
+                ratio_error = float(contents[1].replace(")", "").strip())
             pass
         pass
 
@@ -187,59 +227,65 @@ def read_extract_ldsc_heritability(
         (not pandas.isna(heritability)) and
         (not pandas.isna(heritability_error))
     ):
-        heritability_ci95_low = (heritability - (1.960 * heritability_error))
-        heritability_ci95_high = (heritability + (1.960 * heritability_error))
-        heritability_ci99_low = (heritability - (2.576 * heritability_error))
-        heritability_ci99_high = (heritability + (2.576 * heritability_error))
+        # Determine confidence intervals.
+        pail_ci = pdesc.determine_95_99_confidence_intervals_ranges(
+            estimate=heritability,
+            standard_error=heritability_error,
+        )
+        heritability_ci95_low = pail_ci["range_95_low"]
+        heritability_ci95_high = pail_ci["range_95_high"]
+        heritability_ci99_low = pail_ci["range_99_low"]
+        heritability_ci99_high = pail_ci["range_99_high"]
+        # Create text summaries.
+        summary_heritability_error = str(
+            str(heritability) + " (" + str(round(heritability_error, 4)) + ")"
+        )
+        summary_heritability_ci95 = str(
+            "(h2: " + str(heritability) +
+            "; 95% CI: " + str(pail_ci["range_95"]) + ")"
+        )
+        summary_heritability_ci99 = str(
+            "(h2: " + str(heritability) +
+            "; 99% CI: " + str(pail_ci["range_99"]) + ")"
+        )
         pass
-    heritability_ci95 = str(
-        str(round(heritability_ci95_low, 4)) + " ... " +
-        str(round(heritability_ci95_high, 4))
-    )
-    heritability_ci99 = str(
-        str(round(heritability_ci99_low, 4)) + " ... " +
-        str(round(heritability_ci99_high, 4))
-    )
-    summary_heritability_error = str(
-        str(heritability) + " (" + str(round(heritability_error, 4)) + ")"
-    )
-    summary_heritability_ci95 = str(
-        "(h2: " + str(heritability) + "; 95% CI: " + str(heritability_ci95) + ")"
-    )
-    summary_heritability_ci99 = str(
-        "(h2: " + str(heritability) + "; 99% CI: " + str(heritability_ci99) + ")"
-    )
 
     # Collect information.
     record = dict()
-    record["summary_heritability_error"] = summary_heritability_error
-    record["summary_heritability_ci95"] = summary_heritability_ci95
-    record["summary_heritability_ci99"] = summary_heritability_ci99
     record["variants"] = variants
-    record["chi_square"] = chi_square
-    record["ratio"] = ratio
-    record["ratio_error"] = ratio_error
     record["heritability"] = heritability
     record["heritability_error"] = heritability_error
     record["heritability_ci95_low"] = heritability_ci95_low
     record["heritability_ci95_high"] = heritability_ci95_high
     record["heritability_ci99_low"] = heritability_ci99_low
     record["heritability_ci99_high"] = heritability_ci99_high
+    record["lambda_gc"] = lambda_gc
+    record["chi_square"] = chi_square
+    record["intercept"] = intercept
+    record["intercept_error"] = intercept_error
+    record["ratio"] = ratio
+    record["ratio_error"] = ratio_error
+    record["summary_heritability_error"] = summary_heritability_error
+    record["summary_heritability_ci95"] = summary_heritability_ci95
+    record["summary_heritability_ci99"] = summary_heritability_ci99
     # Define list of variables in order.
     variables = [
-        "summary_heritability_error",
-        "summary_heritability_ci95",
-        "summary_heritability_ci99",
         "variants",
-        "chi_square",
-        "ratio",
-        "ratio_error",
         "heritability",
         "heritability_error",
         "heritability_ci95_low",
         "heritability_ci95_high",
         "heritability_ci99_low",
         "heritability_ci99_high",
+        "lambda_gc",
+        "chi_square",
+        "intercept",
+        "intercept_error",
+        "ratio",
+        "ratio_error",
+        "summary_heritability_error",
+        "summary_heritability_ci95",
+        "summary_heritability_ci99",
     ]
     # Return information.
     pail = dict()
@@ -298,7 +344,10 @@ def read_extract_ldsc_correlation_values_body(
             content = line.replace(prefix_covariance, "")
             contents = content.split(" (")
             covariance_test = contents[0]
-            if (not "NA" in covariance_test):
+            if (
+                (not "nan" in covariance_test) and
+                (not "NA" in covariance_test)
+            ):
                 covariance = float(contents[0].strip())
                 covariance_error = float(
                     contents[1].replace(")", "").strip()
@@ -322,7 +371,10 @@ def read_extract_ldsc_correlation_values_body(
             content = line.replace(prefix_correlation, "")
             contents = content.split(" (")
             correlation_test = contents[0]
-            if (not "nan" in correlation_test):
+            if (
+                (not "nan" in correlation_test) and
+                (not "NA" in correlation_test)
+            ):
                 correlation = float(contents[0].strip())
                 correlation_error = float(contents[1].replace(")", "").strip())
             pass
@@ -417,8 +469,6 @@ def read_extract_ldsc_correlation(
     # Initialize variables for extraction.
     variants = float("nan")
     variants_valid = float("nan")
-    covariance = float("nan")
-    covariance_error = float("nan")
     correlation = float("nan")
     correlation_error = float("nan")
     z_statistic_ldsc = float("nan")
@@ -427,11 +477,13 @@ def read_extract_ldsc_correlation(
     p_value_not_zero = float("nan")
     z_statistic_less_one = float("nan")
     p_value_less_one = float("nan")
-
     correlation_ci95_low = float("nan")
     correlation_ci95_high = float("nan")
     correlation_ci99_low = float("nan")
     correlation_ci99_high = float("nan")
+
+    covariance = float("nan")
+    covariance_error = float("nan")
     correlation_absolute = float("nan")
     correlation_ci95_not_zero = float("nan")
     correlation_ci95_not_one = float("nan")
@@ -561,8 +613,6 @@ def read_extract_ldsc_correlation(
     record = dict()
     record["variants"] = variants
     record["variants_valid"] = variants_valid
-    record["covariance"] = covariance
-    record["covariance_error"] = covariance_error
     record["correlation"] = correlation
     record["correlation_error"] = correlation_error
     record["z_statistic_ldsc"] = z_statistic_ldsc
@@ -575,6 +625,8 @@ def read_extract_ldsc_correlation(
     record["correlation_ci95_high"] = correlation_ci95_high
     record["correlation_ci99_low"] = correlation_ci99_low
     record["correlation_ci99_high"] = correlation_ci99_high
+    record["covariance"] = covariance
+    record["covariance_error"] = covariance_error
     record["correlation_absolute"] = correlation_absolute
     record["correlation_ci95_not_zero"] = correlation_ci95_not_zero
     record["correlation_ci95_not_one"] = correlation_ci95_not_one
@@ -585,8 +637,6 @@ def read_extract_ldsc_correlation(
     variables = [
         "variants",
         "variants_valid",
-        "covariance",
-        "covariance_error",
         "correlation",
         "correlation_error",
         "z_statistic_ldsc",
@@ -599,6 +649,8 @@ def read_extract_ldsc_correlation(
         "correlation_ci95_high",
         "correlation_ci99_low",
         "correlation_ci99_high",
+        "covariance",
+        "covariance_error",
         "correlation_absolute",
         "correlation_ci95_not_zero",
         "correlation_ci95_not_one",
