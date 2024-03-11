@@ -502,12 +502,12 @@ def read_extract_ldsc_correlation(
     ):
         # Determine Z-statistics and p-values for null hypotheses, respectively.
         # Do not round Z-statistics or p-values to avoid loss of information.
-        z_statistic_not_zero = float(correlation / correlation_error))
+        z_statistic_not_zero = float(correlation / correlation_error)
         p_value_not_zero = pale.calculate_p_value_from_z_statistic(
             z_statistic=z_statistic_not_zero,
             tail_factor=2.0, # two-tailed test; less than or greater than zero
         )
-        z_statistic_less_one = float((1 - correlation) / correlation_error))
+        z_statistic_less_one = float((1 - correlation) / correlation_error)
         p_value_less_one = pale.calculate_p_value_from_z_statistic(
             z_statistic=z_statistic_less_one,
             tail_factor=1.0, # one-tailed test; less than one
