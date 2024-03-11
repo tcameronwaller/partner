@@ -487,9 +487,9 @@ def determine_range_text(
     """
 
     range = str(
-        str(round((float(minimum)), 5)) +
+        str(round((float(minimum)), 4)) +
         " ... " +
-        str(round((float(maximum)), 5))
+        str(round((float(maximum)), 4))
     )
     return range
 
@@ -572,6 +572,12 @@ def determine_95_99_confidence_intervals_ranges(
     """
     Determines information about 95% and 99% confidence intervals and their
         ranges
+
+    95% Confidence Interval:
+    qnorm(0.975) = 1.960
+
+    99% Confidence Interval:
+    qnorm(0.995) = 2.576
 
     arguments:
         estimate (float): value of estimate

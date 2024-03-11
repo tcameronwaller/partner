@@ -73,6 +73,7 @@ import statsmodels.api
 # Custom
 import partner.utility as putly # this import path for subpackage
 import partner.scale as pale
+import partner.description as pdesc
 
 #dir()
 #importlib.reload()
@@ -80,9 +81,6 @@ import partner.scale as pale
 ###############################################################################
 # Functionality
 
-
-# TODO: TCW; 12 December 2022; 7 August 2023
-# Use the new utility function to calculate and organize 95% and 99% confidence intervals and ranges.
 
 ##########
 # Extraction and collection of relevant information from the logs from
@@ -430,13 +428,16 @@ def read_extract_ldsc_correlation(
     z_statistic_less_one = float("nan")
     p_value_less_one = float("nan")
 
+    correlation_absolute = float("nan")
     correlation_ci95_low = float("nan")
     correlation_ci95_high = float("nan")
     correlation_ci99_low = float("nan")
     correlation_ci99_high = float("nan")
     correlation_ci95_not_zero = float("nan")
     correlation_ci95_not_one = float("nan")
-    correlation_absolute = float("nan")
+    summary_correlation_error = str("NA (NA)")
+    summary_correlation_ci95 = str("(rg: NA; 95% CI: NA ... NA)")
+    summary_correlation_ci99 = str("(rg: NA; 99% CI: NA ... NA)")
 
     # Extract information from main body of report log.
     pail_body = read_extract_ldsc_correlation_values_body(
@@ -450,15 +451,15 @@ def read_extract_ldsc_correlation(
         stop=29,
     )
     # Define character strings that indicate relevant information.
-    prefix_variants = "After merging with summary statistics, "
-    suffix_variants = " SNPs remain."
+    prefix_vars = "After merging with summary statistics, "
+    suffix_vars = " SNPs remain."
     prefix_variants_valid = ""
     suffix_variants_valid = " SNPs with valid alleles."
     # Extract information from lines.
     for line in lines_variants:
-        if prefix_variants in line:
+        if prefix_vars in line:
             variants = int(
-                line.replace(prefix_variants, "").replace(suffix_variants, "")
+                line.replace(prefix_vars, "").replace(suffix_vars, "").strip()
             )
         elif suffix_variants_valid in line:
             variants_valid = int(
@@ -467,18 +468,19 @@ def read_extract_ldsc_correlation(
         pass
 
     # Determine whether to use values extracted from main body or summary.
-    covariance = pail_body["covariance"]
-    covariance_error = pail_body["covariance_error"]
     if (
         (not pandas.isna(pail_body["correlation"])) and
         (not pandas.isna(pail_body["correlation_error"]))
     ):
+        covariance = pail_body["covariance"]
+        covariance_error = pail_body["covariance_error"]
         correlation = pail_body["correlation"]
         correlation_error = pail_body["correlation_error"]
         z_statistic_ldsc = pail_body["z_statistic_ldsc"]
         p_value_ldsc = pail_body["p_value_ldsc"]
     else:
         # Extract information from summary of report log.
+        # This block only assigns new, non-missing values if the summary exists.
         summary_check = "Summary of Genetic Correlation Results"
         with open(path_file, 'r') as file:
             line_summary_check = file.readlines()[-6]
@@ -498,7 +500,7 @@ def read_extract_ldsc_correlation(
         (not pandas.isna(correlation)) and
         (not pandas.isna(correlation_error))
     ):
-        # Determine Z-statistics and p-values for null hypotheses.
+        # Determine Z-statistics and p-values for null hypotheses, respectively.
         z_statistic_not_zero = (correlation / correlation_error)
         p_value_not_zero = pale.calculate_p_value_from_z_statistic(
             z_statistic=z_statistic_not_zero,
@@ -509,45 +511,46 @@ def read_extract_ldsc_correlation(
             z_statistic=z_statistic_less_one,
             tail_factor=1.0, # one-tailed test; less than one
         )
-        # Determine confidence intervals.
-        correlation_ci95_low = (correlation - (1.960 * correlation_error))
-        correlation_ci95_high = (correlation + (1.960 * correlation_error))
-        correlation_ci99_low = (correlation - (2.576 * correlation_error))
-        correlation_ci99_high = (correlation + (2.576 * correlation_error))
         # Determine absolute value of correlation.
         correlation_absolute = math.fabs(correlation)
+        # Determine confidence intervals.
+        pail_ci = pdesc.determine_95_99_confidence_intervals_ranges(
+            estimate=correlation,
+            standard_error=correlation_error,
+        )
+        # Create text summaries.
+        summary_correlation_error = str(
+            str(correlation) + " (" + str(round(correlation_error, 4)) + ")"
+        )
+        summary_correlation_ci95 = str(
+            "(rg: " + str(correlation) +
+            "; 95% CI: " + str(pail_ci["range_95"]) + ")"
+        )
+        summary_correlation_ci99 = str(
+            "(rg: " + str(correlation) +
+            "; 99% CI: " + str(pail_ci["range_99"]) + ")"
+        )
         # Determine whether confidence interval crosses zero or one.
         if (
-            ((correlation_ci95_low > 0) and (correlation_ci95_high > 0)) or
-            ((correlation_ci95_low < 0) and (correlation_ci95_high < 0))
+            (
+                (pail_ci["range_95_low"] > 0) and (pail_ci["range_95_high"] > 0)
+            ) or
+            (
+                (pail_ci["range_95_low"] < 0) and (pail_ci["range_95_high"] < 0)
+            )
         ):
             correlation_ci95_not_zero = 1
         else:
             correlation_ci95_not_zero = 0
             pass
-        if ((correlation_ci95_low < 1.0) and (correlation_ci95_high < 1.0)):
+        if (
+            (pail_ci["range_95_low"] < 1.0) and (pail_ci["range_95_high"] < 1.0)
+        ):
             correlation_ci95_not_one = 1
         else:
             correlation_ci95_not_one = 0
             pass
         pass
-    correlation_ci95 = str(
-        str(round(correlation_ci95_low, 4)) + " ... " +
-        str(round(correlation_ci95_high, 4))
-    )
-    correlation_ci99 = str(
-        str(round(correlation_ci99_low, 4)) + " ... " +
-        str(round(correlation_ci99_high, 4))
-    )
-    summary_correlation_error = str(
-        str(correlation) + " (" + str(round(correlation_error, 4)) + ")"
-    )
-    summary_correlation_ci95 = str(
-        "(rg: " + str(correlation) + "; 95% CI: " + str(correlation_ci95) + ")"
-    )
-    summary_correlation_ci99 = str(
-        "(rg: " + str(correlation) + "; 99% CI: " + str(correlation_ci99) + ")"
-    )
 
     # Collect information.
     record = dict()
@@ -563,11 +566,11 @@ def read_extract_ldsc_correlation(
     record["p_value_not_zero"] = p_value_not_zero
     record["z_statistic_less_one"] = z_statistic_less_one
     record["p_value_less_one"] = p_value_less_one
-    record["correlation_ci95_low"] = correlation_ci95_low
-    record["correlation_ci95_high"] = correlation_ci95_high
-    record["correlation_ci99_low"] = correlation_ci99_low
-    record["correlation_ci99_high"] = correlation_ci99_high
     record["correlation_absolute"] = correlation_absolute
+    record["correlation_ci95_low"] = pail_ci["range_95_low"]
+    record["correlation_ci95_high"] = pail_ci["range_95_high"]
+    record["correlation_ci99_low"] = pail_ci["range_99_low"]
+    record["correlation_ci99_high"] = pail_ci["range_99_high"]
     record["correlation_ci95_not_zero"] = correlation_ci95_not_zero
     record["correlation_ci95_not_one"] = correlation_ci95_not_one
     record["summary_correlation_error"] = summary_correlation_error
@@ -587,11 +590,11 @@ def read_extract_ldsc_correlation(
         "p_value_not_zero",
         "z_statistic_less_one",
         "p_value_less_one",
+        "correlation_absolute",
         "correlation_ci95_low",
         "correlation_ci95_high",
         "correlation_ci99_low",
         "correlation_ci99_high",
-        "correlation_absolute",
         "correlation_ci95_not_zero",
         "correlation_ci95_not_one",
         "summary_correlation_error",
@@ -1047,11 +1050,6 @@ def filter_table_ldsc_correlation_studies(
         putly.print_terminal_partition(level=4)
     # Return information.
     return table_filter_q
-
-
-
-
-
 
 
 

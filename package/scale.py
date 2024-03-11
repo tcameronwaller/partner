@@ -309,7 +309,6 @@ def drive_transform_variables_distribution_scale_z_score(
     return table_scale
 
 
-
 def calculate_p_value_from_z_statistic(
     z_statistic=None,
     tail_factor=None,
