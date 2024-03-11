@@ -341,7 +341,9 @@ def calculate_p_value_from_z_statistic(
 
     # Calculate p-value from Z-statistic, assuming normal distribution.
     distribution = scipy.stats.norm() # continuous normal random distribution
-    p_value = float(distribution.cdf(-1 * z_statistic) * tail_factor)
+    p_value = round(
+        (float(distribution.cdf(-1 * z_statistic) * tail_factor)), 4
+    )
     # Return information.
     return p_value
 

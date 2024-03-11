@@ -559,8 +559,12 @@ def calculate_confidence_interval_range(
     # Calculate confidence interval.
     pail["interval"] = float(factor * standard_error)
     # Calculate confidence_range.
-    pail["minimum"] = float(float(estimate) - float(pail["interval"]))
-    pail["maximum"] = float(float(estimate) + float(pail["interval"]))
+    pail["minimum"] = round(
+        (float(float(estimate) - float(pail["interval"]))), 4
+    )
+    pail["maximum"] = round(
+        (float(float(estimate) + float(pail["interval"]))), 4
+    )
     # Return information.
     return pail
 
