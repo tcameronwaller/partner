@@ -65,9 +65,11 @@ import numpy
 import statsmodels.api
 
 # Custom
-
+import partner.description as pdesc
 #dir()
 #importlib.reload()
+
+
 
 ###############################################################################
 # Functionality
@@ -2541,7 +2543,7 @@ def read_table_multiindex_columns_transform_calculate_q_values(
         inplace=True,
     )
     # Calculate Benjamini-Hochberg False Discovery Rate q-values.
-    table_q = calculate_table_false_discovery_rate_q_values(
+    table_q = pdesc.calculate_table_false_discovery_rate_q_values(
         threshold=0.05,
         name_column_p_value="p_value",
         name_column_q_value="q_value",
@@ -2745,7 +2747,7 @@ def check_table_row_unique_interchangeable_identifiers_a_b(
     """
     Dependency:
     This function is a dependency of the function below.
-    partner.extraction.filter_table_ldsc_correlation_studies()
+    partner.extraction.filter_table_rows_ldsc_correlation()
 
     Determines whether values of two interchangeable identifiers from a single
     row in a table are either irrelevant or redundant with identifiers from a
@@ -3015,6 +3017,64 @@ def sort_table_rows_by_list_indices(
     )
     # Return information.
     return table
+
+
+def filter_sort_table_columns(
+    table=None,
+    columns_sequence=None,
+    report=None,
+):
+    """
+    Filters and sorts the columns within a Pandas data-frame table.
+
+    arguments:
+        table (object): Pandas data-frame table
+        columns_sequence (list<str>): identifiers or names of columns to keep
+            in sort sequence
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    # Copy information in table.
+    table_filter_sort = table.copy(deep=True)
+
+    # Remove unnecessary columns.
+    #table_filter_sort.drop(
+    #    labels=["test", "blah", "q_significance",],
+    #    axis="columns",
+    #    inplace=True
+    #)
+
+    # Filter and sort table's columns.
+    #table_filter_sort = table_filter_sort.loc[
+    #    :, table_filter_sort.columns.isin(columns_sequence)
+    #]
+    table_filter_sort = table_filter_sort.filter(
+        items=columns_sequence,
+        axis="columns",
+    )
+    table_filter_sort = table_filter_sort[[*columns_sequence]]
+
+    # Report.
+    if report:
+        print_terminal_partition(level=4)
+        count_columns_source = (table.shape[1])
+        count_columns_product = (table_filter_sort.shape[1])
+        print("Count of columns in source table: " + str(count_columns_source))
+        print(
+            "Count of columns in product table: " +
+            str(count_columns_product)
+        )
+        print("Table")
+        print(table_filter_sort)
+        print_terminal_partition(level=4)
+    # Return information.
+    return table_filter_sort
 
 
 def calculate_sum_row_column_values(
@@ -3328,79 +3388,6 @@ def filter_rows_columns_by_threshold_outer_proportion(
     elif dimension == "column":
         data_pass = data.loc[:, data_count]
     return data_pass
-
-
-def calculate_table_false_discovery_rate_q_values(
-    threshold=None,
-    name_column_p_value=None,
-    name_column_q_value=None,
-    name_column_significance=None,
-    table=None,
-):
-    """
-    Calculates Benjamini-Hochberg q-values to indicate false discovery rates
-    (FDRs) from original p-values.
-
-    arguments:
-        threshold (float): value of alpha, or family-wise error rate of false
-            discoveries
-        name_column_p_value (str): name of table's column of p-values
-        name_column_q_value (str): name for table's column of q-values
-        name_column_significance (str): name for table's column of FDR
-            indication that null hypothesis can be rejected
-        table (object): Pandas data frame with column of probabilities across
-            observations in rows
-
-    raises:
-
-    returns:
-        (object): Pandas data frame of original p-values and novel q-values to
-            indicate false discovery rates
-
-    """
-
-    # Copy information.
-    table = table.copy(deep=True)
-
-    # False name_column_q_value rate method cannot accommodate missing values.
-    # Remove null values.
-    table_null_boolean = pandas.isna(table[name_column_p_value])
-    table_null = table.loc[table_null_boolean]
-    table_valid = table.dropna(
-        axis="index",
-        how="any",
-        subset=[name_column_p_value],
-        inplace=False,
-    )
-    # Calculate false name_column_q_value rates from probabilities.
-    p_values = copy.deepcopy(table_valid[name_column_p_value].to_numpy())
-    if len(p_values) > 3:
-        report = statsmodels.stats.multitest.multipletests(
-            p_values,
-            alpha=threshold,
-            method="fdr_bh", # use Benjamini-Hochberg False name_column_q_value Rate (FDR)
-            is_sorted=False,
-            #return_sorted=False, # keep q-values in original sequence
-        )
-        significances = report[0] # valid to reject null hypothesis
-        #significances = numpy.invert(rejects)
-        q_values = report[1]
-        table_valid[name_column_significance] = significances
-        table_valid[name_column_q_value] = q_values
-    else:
-        table_valid[name_column_significance] = float("nan")
-        table_valid[name_column_q_value] = float("nan")
-        pass
-    table_null[name_column_significance] = False
-    table_null[name_column_q_value] = float("nan")
-
-    # Combine null and valid portions of data.
-    table_discoveries = table_valid.append(
-        table_null,
-        ignore_index=False,
-    )
-    # Return information.
-    return table_discoveries
 
 
 def impute_continuous_variables_missing_values_half_minimum(

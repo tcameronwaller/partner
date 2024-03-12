@@ -852,6 +852,67 @@ def define_genetic_correlation_table_column_types():
     return types_columns
 
 
+def define_genetic_correlation_table_column_sequence():
+    """
+    Defines the columns in sequence within table for genetic correlations.
+
+    arguments:
+
+    raises:
+
+    returns:
+        (dict<str>): variable types of columns within table
+
+    """
+
+    # Specify sequence of columns within table.
+    columns_sequence = [
+        #"path_directory",
+        #"name_file",
+        #"sort_primary",
+        #"sort_secondary",
+        "study_primary",
+        "study_secondary",
+        "abbreviation_primary",
+        "abbreviation_secondary",
+        "trait_primary",
+        "trait_secondary",
+        #"variants",
+        "variants_valid",
+        "correlation",
+        "correlation_error",
+        "z_score", # <-- obsolete after extraction update
+        "p_not_zero", # <-- obsolete after extraction update
+        "q_not_zero", # <-- obsolete after extraction update
+        #"z_statistic_ldsc", #           <-- activate after extraction update
+        #"p_value_ldsc", #           <-- activate after extraction update
+        #"q_value_ldsc", #           <-- activate after extraction update
+        #"z_statistic_not_zero", #           <-- activate after extraction update
+        #"p_value_not_zero", #           <-- activate after extraction update
+        #"q_value_not_zero", #           <-- activate after extraction update
+        #"z_statistic_less_one", #           <-- activate after extraction update
+        #"p_value_less_one", #           <-- activate after extraction update
+        #"q_value_less_one", #           <-- activate after extraction update
+        #"q_significance",
+        "correlation_ci95_low",
+        "correlation_ci95_high",
+        "correlation_ci99_low",
+        "correlation_ci99_high",
+        #"covariance",
+        #"covariance_error",
+        #"intercept",
+        #"intercept_error",
+        #"correlation_absolute",
+        #"correlation_ci95_not_zero",
+        #"correlation_ci95_not_one",
+        "summary_correlation_error",
+        "summary_correlation_ci95",
+        "summary_correlation_ci99",
+    ]
+    # Return information.
+    return columns_sequence
+
+
 def read_organize_table_ldsc_correlation_single(
     path_file_table=None,
     report=None,
@@ -1068,19 +1129,20 @@ def read_organize_table_ldsc_correlation_multiple(
     return table
 
 
-def filter_table_ldsc_correlation_studies(
+def filter_table_rows_ldsc_correlation(
     table=None,
     studies_primary_keep=None,
     studies_secondary_keep=None,
     name_primary=None,
     name_secondary=None,
+    remove_redundancy=None,
     remove_self_pair=None,
     report=None,
 ):
     """
-    Filters the genetic correlations within a Pandas data-frame table on the
-    basis of pairs of primary and secondary studies, which can optionally be
-    considered as interchangeable, depending on the application.
+    Filters rows within a Pandas data-frame table of LDSC genetic correlations
+    on the basis of pairs of primary and secondary studies, which can optionally
+    be considered as interchangeable, depending on the application.
 
     arguments:
         table (object): Pandas data-frame table
@@ -1090,8 +1152,11 @@ def filter_table_ldsc_correlation_studies(
             studies for which to keep information in table
         name_primary (str): name of column for primary identifier
         name_secondary (str): name of column for secondary identifier
-        remove_self_pair (bool): whether to remove pairs of identical primary
+        remove_redundancy (bool): whether to remove redundant pairs of primary
             and secondary studies
+        remove_self_pair (bool): whether to remove all self pairs of identical
+            primary and secondary studies; otherwise only remove the redundant
+            occurrences if 'remove_redundancy' is True
         report (bool): whether to print reports
 
     raises:
@@ -1110,15 +1175,16 @@ def filter_table_ldsc_correlation_studies(
             table_filter[name_secondary].isin(studies_secondary_keep)
         ), :
     ]
-    # Organize information in table.
-    # This action creates the "index" column necessary for the next filter step.
-    table_filter.reset_index(
-        level=None,
-        inplace=True,
-        drop=False, # remove index; do not move to regular columns
-    )
     # Remove redundant pairs of interchangeable primary and secondary studies.
-    if True:
+    if remove_redundancy:
+        # Organize information in table.
+        # This action creates the "index" column necessary for the next filter step.
+        table_filter.reset_index(
+            level=None,
+            inplace=True,
+            drop=False, # remove index; do not move to regular columns
+        )
+        # Filter redundancy.
         table_filter["redundancy_studies"] = table_filter.apply(
             lambda row:
                 putly.check_table_row_unique_interchangeable_identifiers_a_b(
@@ -1137,12 +1203,13 @@ def filter_table_ldsc_correlation_studies(
         table_filter = table_filter.loc[
             (table_filter["redundancy_studies"] == 0), :
         ]
-    # Remove unnecessary columns.
-    table_filter.drop(
-        labels=["redundancy_studies",],
-        axis="columns",
-        inplace=True
-    )
+        # Remove unnecessary columns.
+        table_filter.drop(
+            labels=["index", "redundancy_studies",],
+            axis="columns",
+            inplace=True
+        )
+        pass
     # Report.
     if report:
         putly.print_terminal_partition(level=4)
@@ -1168,7 +1235,219 @@ def filter_table_ldsc_correlation_studies(
     return table_filter
 
 
+def transfer_study_attributes_table_ldsc_rg(
+    table=None,
+    name_primary=None,
+    name_secondary=None,
+    table_attribute_primary=None,
+    table_attribute_secondary=None,
+    attributes=None,
+    report=None,
+):
+    """
+    Transfer attributes of primary and secondary studies to a Pandas data-frame
+    table of LDSC genetic correlations.
 
+    arguments:
+        table (object): Pandas data-frame table
+        name_primary (str): name of column for primary identifier
+        name_secondary (str): name of column for secondary identifier
+        table_attribute_primary (object): table of study attributes
+        table_attribute_secondary (object): table of study attributes
+        attributes (list<str>): names of attributes to transfer
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    # Copy information in table.
+    table_attribute_primary = table_attribute_primary.copy(deep=True)
+    table_attribute_secondary = table_attribute_secondary.copy(deep=True)
+    # Create dictionaries for sort sequences of studies.
+    table_attribute_primary.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    table_attribute_secondary.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    table_attribute_primary.set_index(
+        ["study",],
+        append=False,
+        drop=True,
+        inplace=True,
+    )
+    table_attribute_secondary.set_index(
+        ["study",],
+        append=False,
+        drop=True,
+        inplace=True,
+    )
+    attribute_primary = table_attribute_primary.to_dict("index")
+    attribute_secondary = table_attribute_secondary.to_dict("index")
+
+    # Copy information in table.
+    table_attribute = table.copy(deep=True)
+    # Organize information in table.
+    table_attribute.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    # Transfer attributes to the table of genetic correlations.
+    for attribute in attributes:
+        novel_primary = str(attribute + "_primary")
+        novel_secondary = str(attribute + "_secondary")
+        table_attribute[novel_primary] = table_attribute.apply(
+            lambda row: (
+                attribute_primary[row[name_primary]][attribute]
+            ),
+            axis="columns", # apply function to each row
+        )
+        table_attribute[novel_secondary] = table_attribute.apply(
+            lambda row: (
+                attribute_secondary[row[name_secondary]][attribute]
+            ),
+            axis="columns", # apply function to each row
+        )
+        pass
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=4)
+        count_columns_source = (table.shape[1])
+        count_columns_product = (table_attribute.shape[1])
+        print("Count of columns in source table: " + str(count_columns_source))
+        print(
+            "Count of columns in product table: " +
+            str(count_columns_product)
+        )
+        print("Table")
+        print(table_attribute)
+        putly.print_terminal_partition(level=4)
+    # Return information.
+    return table_attribute
+
+
+def sort_table_rows_ldsc_correlation(
+    table=None,
+    name_primary=None,
+    name_secondary=None,
+    table_sort_primary=None,
+    table_sort_secondary=None,
+    name_sort_sequence=None,
+    name_sort_study=None,
+    report=None,
+):
+    """
+    Sorts rows within a Pandas data-frame table of LDSC genetic correlations
+    on the basis of sort sequence of primary and secondary studies.
+
+    arguments:
+        table (object): Pandas data-frame table
+        name_primary (str): name of column for primary identifier
+        name_secondary (str): name of column for secondary identifier
+        table_sort_primary (object): table of study sort sequence
+        table_sort_secondary (object): table of study sort sequence
+        name_sort_sequence (str): name of column for sort sequence
+        name_sort_study (str): name of column for sort study
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    # Copy information in table.
+    table_sort_primary = table_sort_primary.copy(deep=True)
+    table_sort_secondary = table_sort_secondary.copy(deep=True)
+    # Create dictionaries for sort sequences of studies.
+    table_sort_primary.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    table_sort_secondary.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    table_sort_primary.set_index(
+        [name_sort_study],
+        append=False,
+        drop=True,
+        inplace=True,
+    )
+    table_sort_secondary.set_index(
+        [name_sort_study],
+        append=False,
+        drop=True,
+        inplace=True,
+    )
+    sort_primary = table_sort_primary.to_dict("index")
+    sort_secondary = table_sort_secondary.to_dict("index")
+
+    # Copy information in table.
+    table_sort = table.copy(deep=True)
+    # Organize information in table.
+    table_sort.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    # Determine sort sequences for primary and secondary studies.
+    table_sort["sort_primary"] = table_sort.apply(
+        lambda row: (
+            sort_primary[row[name_primary]][name_sort_sequence]
+        ),
+        axis="columns", # apply function to each row
+    )
+    table_sort["sort_secondary"] = table_sort.apply(
+        lambda row: (
+            sort_secondary[row[name_secondary]][name_sort_sequence]
+        ),
+        axis="columns", # apply function to each row
+    )
+    # Sort rows within table.
+    table_sort.sort_values(
+        by=["sort_primary", "sort_secondary",],
+        axis="index",
+        ascending=True,
+        inplace=True,
+    )
+    table_sort.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    # Remove unnecessary columns.
+    if False:
+        table_sort.drop(
+            labels=["sort_primary", "sort_secondary"],
+            axis="columns",
+            inplace=True
+        )
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=4)
+        count_rows_table_source = (table.shape[0])
+        count_rows_table_product = (table_sort.shape[0])
+        print("Count of rows in source table: " + str(count_rows_table_source))
+        print(
+            "Count of rows in product table: " +
+            str(count_rows_table_product)
+        )
+        putly.print_terminal_partition(level=4)
+    # Return information.
+    return table_sort
 
 
 

@@ -219,6 +219,12 @@ sudo apt install fldigi
 # http://www.w1hkj.com/files/AndFlmsg/AndFlmsg_V1.5.0-20210812.apk
 
 
+##########
+# Git, GitHub
+# site: https://github.com/
+# After renaming a repository, redirect git commits to new repository on GitHub.
+git remote set-url origin {URL to new repository name on GitHub}
+
 
 ##########
 # BGZip

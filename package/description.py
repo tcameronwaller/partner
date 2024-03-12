@@ -629,6 +629,85 @@ def determine_95_99_confidence_intervals_ranges(
 
 
 ##########
+# Benjamini-Hochberg False-Discovery Rate (FDR) q-value
+
+
+def calculate_table_false_discovery_rate_q_values(
+    threshold=None,
+    name_column_p_value=None,
+    name_column_q_value=None,
+    name_column_significance=None,
+    table=None,
+):
+    """
+    Calculates Benjamini-Hochberg q-values to indicate false discovery rates
+    (FDRs) from original p-values.
+
+    arguments:
+        threshold (float): value of alpha, or family-wise error rate of false
+            discoveries
+        name_column_p_value (str): name of table's column of p-values
+        name_column_q_value (str): name for table's column of q-values
+        name_column_significance (str): name for table's column of FDR
+            indication that null hypothesis can be rejected
+        table (object): Pandas data frame with column of probabilities across
+            observations in rows
+
+    raises:
+
+    returns:
+        (object): Pandas data frame of original p-values and novel q-values to
+            indicate false discovery rates
+
+    """
+
+    # Copy information.
+    table = table.copy(deep=True)
+
+    # False name_column_q_value rate method cannot accommodate missing values.
+    # Remove null values.
+    table_null_boolean = pandas.isna(table[name_column_p_value])
+    table_null = table.loc[table_null_boolean]
+    table_valid = table.dropna(
+        axis="index",
+        how="any",
+        subset=[name_column_p_value],
+        inplace=False,
+    )
+    # Calculate false name_column_q_value rates from probabilities.
+    p_values = copy.deepcopy(table_valid[name_column_p_value].to_numpy())
+    if len(p_values) > 3:
+        report = statsmodels.stats.multitest.multipletests(
+            p_values,
+            alpha=threshold,
+            method="fdr_bh", # use Benjamini-Hochberg False-Discovery Rate (FDR)
+            is_sorted=False,
+            #return_sorted=False, # keep q-values in original sequence
+        )
+        significances = report[0] # whether valid to reject null hypothesis
+        #significances = numpy.invert(rejects)
+        q_values = report[1]
+        table_valid[name_column_significance] = significances
+        table_valid[name_column_q_value] = q_values
+    else:
+        table_valid[name_column_significance] = float("nan")
+        table_valid[name_column_q_value] = float("nan")
+        pass
+    table_null[name_column_significance] = False
+    table_null[name_column_q_value] = float("nan")
+
+    # Combine null and valid portions of data.
+    table_discoveries = table_valid.append(
+        table_null,
+        ignore_index=False,
+    )
+    # Return information.
+    return table_discoveries
+
+
+
+
+##########
 # Write
 
 
