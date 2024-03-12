@@ -807,9 +807,53 @@ def read_extract_from_all_ldsc_files_in_directory(
 # subsequent integration and analysis.
 
 
+def define_genetic_correlation_table_column_types():
+    """
+    Defines the variable types of columns within table for genetic correlations.
+
+    arguments:
+
+    raises:
+
+    returns:
+        (dict<str>): variable types of columns within table
+
+    """
+
+    # Specify variable types of columns within table.
+    types_columns = dict()
+    types_columns["path_directory"] = "string"
+    types_columns["name_file"] = "string"
+    types_columns["variants"] = "float"
+    types_columns["variants_valid"] = "float"
+    types_columns["correlation"] = "float"
+    types_columns["correlation_error"] = "float"
+    types_columns["z_statistic_ldsc"] = "float"
+    types_columns["p_value_ldsc"] = "float"
+    types_columns["z_statistic_not_zero"] = "float"
+    types_columns["p_value_not_zero"] = "float"
+    types_columns["z_statistic_less_one"] = "float"
+    types_columns["p_value_less_one"] = "float"
+    types_columns["correlation_ci95_low"] = "float"
+    types_columns["correlation_ci95_high"] = "float"
+    types_columns["correlation_ci99_low"] = "float"
+    types_columns["correlation_ci99_high"] = "float"
+    types_columns["covariance"] = "float"
+    types_columns["covariance_error"] = "float"
+    types_columns["intercept"] = "float"
+    types_columns["intercept_error"] = "float"
+    types_columns["correlation_absolute"] = "float"
+    types_columns["correlation_ci95_not_zero"] = "float"
+    types_columns["correlation_ci95_not_one"] = "float"
+    types_columns["summary_correlation_error"] = "string"
+    types_columns["summary_correlation_ci95"] = "string"
+    types_columns["summary_correlation_ci99"] = "string"
+    # Return information.
+    return types_columns
+
+
 def read_organize_table_ldsc_correlation_single(
     path_file_table=None,
-    types_columns=None,
     report=None,
 ):
     """
@@ -825,7 +869,6 @@ def read_organize_table_ldsc_correlation_single(
 
     arguments:
         path_file_table (str): path to file for original source table
-        types_columns (dict<str>): types of variables in each column
         report (bool): whether to print reports
 
     raises:
@@ -835,6 +878,8 @@ def read_organize_table_ldsc_correlation_single(
 
     """
 
+    # Define variable types of columns within table.
+    types_columns = define_genetic_correlation_table_column_types()
     # Read information from file.
     table_raw = pandas.read_csv(
         path_file_table,
@@ -858,27 +903,28 @@ def read_organize_table_ldsc_correlation_single(
         axis="columns", # apply function to each row
     )
     # Remove unnecessary columns.
-    table.drop(
-        labels=[
-            "path_directory",
-            "name_file",
-            "summary_correlation_error",
-            "summary_correlation_ci95",
-            "summary_correlation_ci99",
-            "covariance",
-            "covariance_error",
-            "z_score",
-            "correlation_ci95_not_zero",
-            "correlation_ci95_not_one",
-            #"correlation_absolute",
-            "correlation_ci95_low",
-            "correlation_ci95_high",
-            "correlation_ci99_low",
-            "correlation_ci99_high",
-        ],
-        axis="columns",
-        inplace=True
-    )
+    if False:
+        table.drop(
+            labels=[
+                "path_directory",
+                "name_file",
+                "summary_correlation_error",
+                "summary_correlation_ci95",
+                "summary_correlation_ci99",
+                "covariance",
+                "covariance_error",
+                "z_score",
+                "correlation_ci95_not_zero",
+                "correlation_ci95_not_one",
+                "correlation_absolute",
+                "correlation_ci95_low",
+                "correlation_ci95_high",
+                "correlation_ci99_low",
+                "correlation_ci99_high",
+            ],
+            axis="columns",
+            inplace=True
+        )
 
     # Report.
     if report:
@@ -902,7 +948,6 @@ def read_organize_table_ldsc_correlation_single(
 
 def read_organize_table_ldsc_correlation_multiple(
     path_directory_parent=None,
-    types_columns=None,
     report=None,
 ):
     """
@@ -920,7 +965,6 @@ def read_organize_table_ldsc_correlation_multiple(
     arguments:
         path_directory_parent (str): path to parent director for original source
             files
-        types_columns (dict<str>): types of variables in each column
         report (bool): whether to print reports
 
     raises:
@@ -930,6 +974,8 @@ def read_organize_table_ldsc_correlation_multiple(
 
     """
 
+    # Define variable types of columns within table.
+    types_columns = define_genetic_correlation_table_column_types()
     # Read all matching files within parent directory and organize paths to
     # these files.
     paths = putly.read_paths_match_child_files_within_parent_directory(
@@ -969,27 +1015,28 @@ def read_organize_table_ldsc_correlation_multiple(
             axis="columns", # apply function to each row
         )
         # Remove unnecessary columns.
-        table_raw.drop(
-            labels=[
-                "path_directory",
-                "name_file",
-                "summary_correlation_error",
-                "summary_correlation_ci95",
-                "summary_correlation_ci99",
-                "covariance",
-                "covariance_error",
-                "z_score",
-                "correlation_ci95_not_zero",
-                "correlation_ci95_not_one",
-                #"correlation_absolute",
-                "correlation_ci95_low",
-                "correlation_ci95_high",
-                "correlation_ci99_low",
-                "correlation_ci99_high",
-            ],
-            axis="columns",
-            inplace=True
-        )
+        if False:
+            table_raw.drop(
+                labels=[
+                    "path_directory",
+                    "name_file",
+                    "summary_correlation_error",
+                    "summary_correlation_ci95",
+                    "summary_correlation_ci99",
+                    "covariance",
+                    "covariance_error",
+                    "z_score",
+                    "correlation_ci95_not_zero",
+                    "correlation_ci95_not_one",
+                    #"correlation_absolute",
+                    "correlation_ci95_low",
+                    "correlation_ci95_high",
+                    "correlation_ci99_low",
+                    "correlation_ci99_high",
+                ],
+                axis="columns",
+                inplace=True
+            )
         # Concatenate new table with aggregation table.
         if switch == 1:
             # Concatenate new table with aggregation table.
@@ -1137,6 +1184,14 @@ def filter_table_ldsc_correlation_studies(
         putly.print_terminal_partition(level=4)
     # Return information.
     return table_filter_q
+
+
+##########
+# Queries on tables of information about genetic correlations.
+
+# 1. source table of genetic correlations, already filtered, sorted, with q-values
+
+
 
 
 
