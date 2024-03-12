@@ -1070,6 +1070,110 @@ def read_organize_table_ldsc_correlation_multiple(
 
 def filter_table_ldsc_correlation_studies(
     table=None,
+    studies_primary_keep=None,
+    studies_secondary_keep=None,
+    name_primary=None,
+    name_secondary=None,
+    remove_self_pair=None,
+    report=None,
+):
+    """
+    Filters the genetic correlations within a Pandas data-frame table on the
+    basis of pairs of primary and secondary studies, which can optionally be
+    considered as interchangeable, depending on the application.
+
+    arguments:
+        table (object): Pandas data-frame table
+        studies_primary_keep (list<str>): identifiers or names of primary
+            studies for which to keep information in table
+        studies_secondary_keep (list<str>): identifiers or names of secondary
+            studies for which to keep information in table
+        name_primary (str): name of column for primary identifier
+        name_secondary (str): name of column for secondary identifier
+        remove_self_pair (bool): whether to remove pairs of identical primary
+            and secondary studies
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    # Copy information in table.
+    table_filter = table.copy(deep=True)
+    # Filter table's rows by identifiers of studies.
+    table_filter = table_filter.loc[
+        (
+            table_filter[name_primary].isin(studies_primary_keep) &
+            table_filter[name_secondary].isin(studies_secondary_keep)
+        ), :
+    ]
+    # Organize information in table.
+    # This action creates the "index" column necessary for the next filter step.
+    table_filter.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
+    # Remove redundant pairs of interchangeable primary and secondary studies.
+    if True:
+        table_filter["redundancy_studies"] = table_filter.apply(
+            lambda row:
+                putly.check_table_row_unique_interchangeable_identifiers_a_b(
+                    table=table_filter,
+                    name_index="index",
+                    name_primary="study_primary",
+                    name_secondary="study_secondary",
+                    row_index=row["index"],
+                    row_primary=row["study_primary"],
+                    row_secondary=row["study_secondary"],
+                    match_self_pair=remove_self_pair, # return 1 for self pairs
+                    report=False,
+                ),
+            axis="columns", # apply function to each row
+        )
+        table_filter = table_filter.loc[
+            (table_filter["redundancy_studies"] == 0), :
+        ]
+    # Remove unnecessary columns.
+    table_filter.drop(
+        labels=["redundancy_studies",],
+        axis="columns",
+        inplace=True
+    )
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=4)
+        count_rows_table_source = (table.shape[0])
+        count_rows_table_product = (table_filter.shape[0])
+        print("Count of rows in source table: " + str(count_rows_table_source))
+        print(
+            "Count of rows in product table: " +
+            str(count_rows_table_product)
+        )
+        putly.print_terminal_partition(level=4)
+        print("Primary studies to keep: ")
+        print("Count: " + str(len(studies_primary_keep)))
+        print("Studies: ")
+        print(studies_primary_keep)
+        putly.print_terminal_partition(level=4)
+        print("Secondary studies to keep: ")
+        print("Count: " + str(len(studies_secondary_keep)))
+        print("Studies: ")
+        print(studies_secondary_keep)
+        putly.print_terminal_partition(level=4)
+    # Return information.
+    return table_filter
+
+
+
+
+
+
+def filter_table_ldsc_correlation_studies_old_includes_sort(
+    table=None,
     studies_keep=None,
     threshold_q=None,
     order_columns=None,
@@ -1102,16 +1206,17 @@ def filter_table_ldsc_correlation_studies(
         ), :
     ]
     # Organize information in table.
+    # This action creates the "index" column necessary for the next filter step.
     table_filter.reset_index(
         level=None,
         inplace=True,
         drop=False, # remove index; do not move to regular columns
     )
-    # Remove redundant entries for inverse primary and secondary studies.
+    # Remove redundant pairs of interchangeable primary and secondary studies.
     if True:
         table_filter["redundancy_studies"] = table_filter.apply(
             lambda row:
-                putly.check_table_row_redundancy_primary_secondary_identifiers(
+                putly.check_table_row_unique_interchangeable_identifiers_a_b(
                     table=table_filter,
                     name_index="index",
                     name_primary="study_primary",
@@ -1119,6 +1224,7 @@ def filter_table_ldsc_correlation_studies(
                     row_index=row["index"],
                     row_primary=row["study_primary"],
                     row_secondary=row["study_secondary"],
+                    match_self_pair=True, # whether to return 1 for self pairs
                     report=False,
                 ),
             axis="columns", # apply function to each row

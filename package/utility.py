@@ -2731,7 +2731,7 @@ def read_table_multiindex_columns_transform_calculate_q_values(
     return pail
 
 
-def check_table_row_redundancy_primary_secondary_identifiers(
+def check_table_row_unique_interchangeable_identifiers_a_b(
     table=None,
     name_index=None,
     name_primary=None,
@@ -2739,6 +2739,7 @@ def check_table_row_redundancy_primary_secondary_identifiers(
     row_index=None,
     row_primary=None,
     row_secondary=None,
+    match_self_pair=None,
     report=None,
 ):
     """
@@ -2748,8 +2749,9 @@ def check_table_row_redundancy_primary_secondary_identifiers(
 
     Determines whether values of two interchangeable identifiers from a single
     row in a table are either irrelevant or redundant with identifiers from a
-    previous row in the original table. An irrelevant combination has identical
-    values
+    previous row in the original table. A self pair of identical primary and
+    secondary identifiers may or may not be relevant depending on the
+    "match_self_pair" argument.
 
     arguments:
         table (object): Pandas data-frame table from which the row-specific
@@ -2760,6 +2762,7 @@ def check_table_row_redundancy_primary_secondary_identifiers(
         row_index (int): current row's value of sequential index
         row_primary (str): current row's value of primary identifier
         row_secondary (str): current row's value of secondary identifier
+        match_self_pair (bool): whether to match pair of identical a and b
         report (bool): whether to print reports
 
     raises:
@@ -2796,10 +2799,7 @@ def check_table_row_redundancy_primary_secondary_identifiers(
     # is either irrelevant if both are identical or redundant with a previous
     # combination in the table.
     indicator = 0
-    if (row_primary == row_secondary):
-        indicator = 1
-        pass
-    elif (table_match_1_2.shape[0] > 0):
+    if (table_match_1_2.shape[0] > 0):
         if int(row_index) > min(values_index_match):
             indicator = 1
             pass
@@ -2808,6 +2808,11 @@ def check_table_row_redundancy_primary_secondary_identifiers(
         if int(row_index) > min(values_index_match):
             indicator = 1
             pass
+        pass
+    elif ((row_primary == row_secondary) and (match_self_pair)):
+        # Place this condition last so that any redundant self pairs are
+        # removed regardless of whether to remove all self pairs.
+        indicator = 1
         pass
 
     # Report.
