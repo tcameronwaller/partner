@@ -40,7 +40,8 @@ License:
 ###############################################################################
 # Notes
 
-
+# An older-version example of calling some of the functionality from this module
+# is in the scrap code for the 'psychiatry_biomarkers' project.
 
 ###############################################################################
 # Installation and importation

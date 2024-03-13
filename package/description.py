@@ -67,7 +67,7 @@ import numpy
 import statsmodels.api
 
 # Custom
-import partner.utility as utility # this import path for subpackage
+import partner.utility as putly # this import path for subpackage
 
 #dir()
 #importlib.reload()
@@ -206,10 +206,10 @@ def drive_assemble_attribution_table(
     table = pandas.DataFrame(data=records_description)
     # Report.
     if report:
-        utility.print_terminal_partition(level=2)
+        putly.print_terminal_partition(level=2)
         print("report: ")
         print("drive_assemble_attribution_table()")
-        utility.print_terminal_partition(level=3)
+        putly.print_terminal_partition(level=3)
         print(table)
         pass
     # Return information.
@@ -453,10 +453,10 @@ def drive_assemble_quantitation_table(
     table = table[[*columns]]
     # Report.
     if report:
-        utility.print_terminal_partition(level=2)
+        putly.print_terminal_partition(level=2)
         print("report: ")
         print("drive_assemble_quantitation_table()")
-        utility.print_terminal_partition(level=3)
+        putly.print_terminal_partition(level=3)
         print(table)
         pass
     # Return information.
@@ -488,7 +488,7 @@ def determine_range_text(
 
     range = str(
         str(round((float(minimum)), 4)) +
-        " ... " +
+        str(delimiter) +
         str(round((float(maximum)), 4))
     )
     return range
@@ -704,6 +704,50 @@ def calculate_table_false_discovery_rate_q_values(
     # Return information.
     return table_discoveries
 
+
+##########
+# Report ranges of variables from table
+
+
+def report_table_range_variables(
+    table=None,
+    variables=None,
+):
+    """
+    Reports the ranges of quantitative, continuous variables in table.
+
+    arguments:
+        table (object): Pandas data-frame table
+        variables (list<str>): name of column for primary identifier
+
+    raises:
+
+    returns:
+
+    """
+
+    # Copy information in table.
+    table = table.copy(deep=True)
+    # Report.
+    putly.print_terminal_partition(level=5)
+    # Transfer attributes to the table of genetic correlations.
+    for variable in variables:
+        array = copy.deepcopy(table[variable].dropna().to_numpy()) # non-missing
+        count_values = int(array.size)
+        if (count_values > 1):
+            minimum = numpy.nanmin(array)
+            maximum = numpy.nanmax(array)
+        elif (count_values == 1):
+            minimum = array[0]
+            maximum = array[0]
+        # Report.
+        putly.print_terminal_partition(level=5)
+        print("Variable: " + str(variable))
+        print("Count non-missing values: " + str(count_values))
+        print("Minimum: " + str(minimum))
+        print("Maximum: " + str(maximum))
+        pass
+    pass
 
 
 

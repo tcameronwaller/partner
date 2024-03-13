@@ -21,24 +21,25 @@ Author:
 
 License:
 
-    This file is part of Partner
+    This file is part of project 'partner'
     (https://github.com/tcameronwaller/partner/).
 
-    Partner supports data analysis in multiple other projects.
+    Project 'partner' supports data analysis in multiple other projects.
     Copyright (C) 2024 Thomas Cameron Waller
 
-    Partner is free software: you can redistribute it and/or modify it
-    under the terms of the GNU General Public License as published by the Free
-    Software Foundation, either version 3 of the License, or (at your option)
-    any later version.
+    Project 'partner' is free software: you can redistribute it
+    and/or modify it under the terms of the GNU General Public License as
+    published by the Free Software Foundation, either version 3 of the License,
+    or (at your option) any later version.
 
-    Partner is distributed in the hope that it will be useful, but WITHOUT
-    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-    FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
-    more details.
+    Project 'partner' is distributed in the hope that it will be
+    useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+    Public License for more details.
 
     You should have received a copy of the GNU General Public License along
-    with Partner. If not, see <http://www.gnu.org/licenses/>.
+    with project 'partner'.
+    If not, see <http://www.gnu.org/licenses/>.
 """
 
 ###############################################################################
@@ -877,6 +878,8 @@ def define_genetic_correlation_table_column_sequence():
         "abbreviation_secondary",
         "trait_primary",
         "trait_secondary",
+        "sex_primary",
+        "sex_secondary",
         #"variants",
         "variants_valid",
         "correlation",
@@ -1187,7 +1190,7 @@ def filter_table_rows_ldsc_correlation(
         # Filter redundancy.
         table_filter["redundancy_studies"] = table_filter.apply(
             lambda row:
-                putly.check_table_row_unique_interchangeable_identifiers_a_b(
+                putly.match_table_row_unique_interchangeable_identifiers_a_b(
                     table=table_filter,
                     name_index="index",
                     name_primary="study_primary",
@@ -1495,7 +1498,7 @@ def filter_table_ldsc_correlation_studies_old_includes_sort(
     if True:
         table_filter["redundancy_studies"] = table_filter.apply(
             lambda row:
-                putly.check_table_row_unique_interchangeable_identifiers_a_b(
+                putly.match_table_row_unique_interchangeable_identifiers_a_b(
                     table=table_filter,
                     name_index="index",
                     name_primary="study_primary",
@@ -1574,7 +1577,176 @@ def filter_table_ldsc_correlation_studies_old_includes_sort(
 ##########
 # Queries on tables of information about genetic correlations.
 
-# 1. source table of genetic correlations, already filtered, sorted, with q-values
+
+def match_table_row_exclusion_identifiers_primary_secondary(
+    row_primary=None,
+    row_secondary=None,
+    exclusions=None,
+):
+    """
+    Dependency:
+    This function is a dependency of the function below.
+    partner.extraction.query_table_correlation_range_variables()
+
+    Determines whether values of two interchangeable identifiers from a single
+    row in a table match a list of exclusions.
+
+    arguments:
+        row_primary (str): current row's value of primary identifier
+        row_secondary (str): current row's value of secondary identifier
+        exclusions (list<dict<str>>): pairs of specific primary and secondary
+            studies to exclude from the query
+
+    raises:
+
+    returns:
+        (int): binary representation of whether the current row matches
+            exclusions
+
+    """
+
+    # Determine whether the current combination of primary and secondary studies
+    # matches any exclusions.
+    indicator = 0
+    for exclusion in exclusions:
+        if (
+            (row_primary == exclusion["primary"]) and
+            (row_secondary == exclusion["secondary"])
+        ):
+            indicator = 1
+            pass
+        pass
+    return indicator
+
+
+def query_table_correlation_range_variables(
+    table=None,
+    label=None,
+    studies_primary=None,
+    studies_secondary=None,
+    name_primary=None,
+    name_secondary=None,
+    exclusions=None,
+    variables=None,
+    remove_self_pair=None,
+    report=None,
+):
+    """
+    Queries information within a Pandas data-frame table of LDSC genetic
+    correlations. Filters by a selection of primary and secondary studies and
+    then describes ranges of a selection of continuous, quantitative variables.
+
+    arguments:
+        table (object): Pandas data-frame table
+        label (str): character string to print at top of report
+        studies_primary (list<str>): identifiers or names of primary
+            studies for which to describe information in table
+        studies_secondary (list<str>): identifiers or names of secondary
+            studies for which to describe information in table
+        name_primary (str): name of column for primary identifier
+        name_secondary (str): name of column for secondary identifier
+        exclusions (list<dict<str>>): pairs of specific primary and secondary
+            studies to exclude from the query
+        variables (list<str>): name of column for primary identifier
+        remove_self_pair (bool): whether to remove all self pairs of identical
+            primary and secondary studies
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    # Copy information in table.
+    table_query = table.copy(deep=True)
+    # Filter table's rows by identifiers of studies.
+    table_query = table_query.loc[
+        (
+            table_query[name_primary].isin(studies_primary) &
+            table_query[name_secondary].isin(studies_secondary)
+        ), :
+    ]
+    # Remove self pairs of identical primary and secondary studies.
+    if remove_self_pair:
+        table_query = table_query.loc[
+            (
+                table_query[name_primary] != table_query[name_secondary]
+            ), :
+        ]
+        pass
+    # Exclude specific pairs of primary and secondary studies from the query.
+    if (len(exclusions) > 0):
+        # Filter pairs for exclusion.
+        table_query["exclusion"] = table_query.apply(
+            lambda row:
+                match_table_row_exclusion_identifiers_primary_secondary(
+                    row_primary=row["study_primary"],
+                    row_secondary=row["study_secondary"],
+                    exclusions=exclusions,
+                ),
+            axis="columns", # apply function to each row
+        )
+        table_query = table_query.loc[
+            (table_query["exclusion"] == 0), :
+        ]
+        # Remove unnecessary columns.
+        table_query.drop(
+            labels=["exclusion",],
+            axis="columns",
+            inplace=True
+        )
+        pass
+    # Organize information in table.
+    table_query.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print(label)
+        putly.print_terminal_partition(level=5)
+        print("Primary studies in query: ")
+        print("Count: " + str(len(studies_primary)))
+        print("Studies: ")
+        print(studies_primary)
+        putly.print_terminal_partition(level=5)
+        print("Secondary studies in query: ")
+        print("Count: " + str(len(studies_secondary)))
+        print("Studies: ")
+        print(studies_secondary)
+        putly.print_terminal_partition(level=5)
+        check_exclusions = (len(exclusions) > 0)
+        print("Exclusions: " + str(check_exclusions))
+        putly.print_terminal_partition(level=5)
+        count_rows_table_source = (table.shape[0])
+        count_rows_table_product = (table_query.shape[0])
+        print("Count of rows in source table: " + str(count_rows_table_source))
+        print(
+            "Count of rows in product table: " +
+            str(count_rows_table_product)
+        )
+        #putly.print_terminal_partition(level=5)
+        #print("Table after query filters: ")
+        #print(table_query)
+
+    # Describe ranges of variables within filtered, query table.
+    # Report.
+    if report:
+        pdesc.report_table_range_variables(
+            table=table_query,
+            variables=variables,
+        )
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=4)
+    # Return information.
+    return table_query
+
+
 
 
 

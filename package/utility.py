@@ -2733,7 +2733,7 @@ def read_table_multiindex_columns_transform_calculate_q_values(
     return pail
 
 
-def check_table_row_unique_interchangeable_identifiers_a_b(
+def match_table_row_unique_interchangeable_identifiers_a_b(
     table=None,
     name_index=None,
     name_primary=None,
