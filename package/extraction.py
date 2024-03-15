@@ -431,14 +431,11 @@ def read_extract_ldsc_correlation(
     path_file=None,
 ):
     """
-    Reads and extracts information from log file of LDSC for estimation of
-    genetic correlation between two sets of GWAS summary statistics.
+    Reads and extracts information from text log file that LDSC creates to
+    report estimates of genetic correlation between two sets of GWAS summary
+    statistics.
 
-    https://github.com/bulik/ldsc/wiki/Heritability-and-Genetic-Correlation
-    https://github.com/bulik/ldsc/blob/master/munge_sumstats.py
-    https://github.com/bulik/ldsc/wiki/Summary-Statistics-File-Format
-
-    https://www.mathsisfun.com/data/confidence-interval.html
+    Hypothesis Tests
 
     LDSC reports the Z-statistic and p-value corresponding to the null
     hypothesis that the genetic correlation is zero. For a reference on how to
@@ -448,10 +445,17 @@ def read_extract_ldsc_correlation(
     (PubMed:34099189).
 
     Alternative hypotheses for genetic correlation (rg):
-    1. rg is significantly less than or greater than zero (two-tailed test)
+    1. rg is either less than or greater than zero (two-tailed test)
        Z = (rg) / (standard error of rg)
-    2. rg is less than one (one-tailed test)
+    2. rg is less than positive one (one-tailed test; right tail)
        Z = (1 - rg) / (standard error of rg)
+
+    References
+
+    https://github.com/bulik/ldsc/wiki/Heritability-and-Genetic-Correlation
+    https://github.com/bulik/ldsc/blob/master/munge_sumstats.py
+    https://github.com/bulik/ldsc/wiki/Summary-Statistics-File-Format
+    https://www.mathsisfun.com/data/confidence-interval.html
 
     arguments:
         path_file (str): full path to file that contains information from a
@@ -584,12 +588,12 @@ def read_extract_ldsc_correlation(
         z_statistic_not_zero = float(correlation / correlation_error)
         p_value_not_zero = pale.calculate_p_value_from_z_statistic(
             z_statistic=z_statistic_not_zero,
-            tail_factor=2.0, # two-tailed test; less than or greater than zero
+            tail="both", # two-tailed test; less than or greater than zero
         )
         z_statistic_less_one = float((1 - correlation) / correlation_error)
         p_value_less_one = pale.calculate_p_value_from_z_statistic(
             z_statistic=z_statistic_less_one,
-            tail_factor=1.0, # one-tailed test; less than one
+            tail="right", # one-tailed test; less than positive one
         )
         # Determine confidence intervals.
         pail_ci = pdesc.determine_95_99_confidence_intervals_ranges(

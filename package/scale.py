@@ -311,37 +311,68 @@ def drive_transform_variables_distribution_scale_z_score(
 
 def calculate_p_value_from_z_statistic(
     z_statistic=None,
-    tail_factor=None,
+    tail=None,
 ):
     """
     Calculate the p-value from the Z-statistic corresponding to a null
-    hypothesis.
+    hypothesis, assuming a normal distribution of potential values for the
+    Z-statistic.
 
     continuous normal random distribution: "scipy.stats.norm()" in Python SciPy
     probability density function (PDF): "dnorm()" in R; "pdf()" in Python SciPy
     cumulative density function (CDF): "pnorm()" in R; "cdf()" in Python SciPy
     quantile inverse CDF: "qnorm()" in R; "ppf()" in Python SciPy
 
-    The SciPy implementation of the Cumulative Density Function (CDF) apparently
-    returns the probability that a random variable would take a value less than
-    or equal to the given value (the left tail). Hence it is necessary to
-    multiply the Z-statistic by negative one in order to obtain the correct
-    probability.
+    The SciPy implementation and standard definition of the Cumulative Density
+    Function (CDF) returns the probability that a random variable would take a
+    value less than or equal to the given value (the left tail under the
+    normal-distribution bell curve).
+
+    Another condition of which to be aware is whether the distribution of
+    potential values for the Z-statistic is symmetric about zero. If this
+    distribution is symmetric about zero, then the two-tailed test p-value
+    equals twice the CDF of negative one times the absolute value of the
+    Z-statistic (p-value = 2 * CDF(-1 * abs(Z))).
+
+                  .|.
+                .  |  .
+               .   |   .
+              .    |    .
+            .      |      .
+         .         |         .
+    .****          |          ****.
+
+    Review: TCW; 15 March 2024
 
     arguments:
         z_statistic (float): value of Z-statistic for null hypothesis
-        tail_factor (float): 1.0 for one-tailed test or 2.0 for two-tailed test
+        tail (str): 'left', 'right', or 'both' for tail selection
 
     raises:
 
     returns:
-        (float): value of heritability or standard error on liability scale
+        (float): value of p-value assuming a normal distribution of potential
+            values for the Z-statistic
 
     """
 
     # Calculate p-value from Z-statistic, assuming normal distribution.
     distribution = scipy.stats.norm() # continuous normal random distribution
-    p_value = float(distribution.cdf(-1 * z_statistic) * tail_factor)
+    if (tail == "left"):
+        # Left tail.
+        p_value = float(distribution.cdf(z_statistic))
+    elif (tail == "right"):
+        # Right tail.
+        p_value = float(1 - distribution.cdf(z_statistic))
+    if (tail == "both"):
+        # Both tails.
+        # Only if symmetric.
+        #p_value = 2 * float(distribution.cdf(-1 * abs(z_statistic)))
+        # More general.
+        p_value = 2 * min(
+            float(distribution.cdf(z_statistic)),
+            float(1 - distribution.cdf(z_statistic)),
+        )
     # Return information.
     return p_value
 
