@@ -888,18 +888,15 @@ def define_genetic_correlation_table_column_sequence():
         "variants_valid",
         "correlation",
         "correlation_error",
-        "z_score", # <-- obsolete after extraction update
-        "p_not_zero", # <-- obsolete after extraction update
-        "q_not_zero", # <-- obsolete after extraction update
-        #"z_statistic_ldsc", #           <-- activate after extraction update
-        #"p_value_ldsc", #           <-- activate after extraction update
-        #"q_value_ldsc", #           <-- activate after extraction update
-        #"z_statistic_not_zero", #           <-- activate after extraction update
-        #"p_value_not_zero", #           <-- activate after extraction update
-        #"q_value_not_zero", #           <-- activate after extraction update
-        #"z_statistic_less_one", #           <-- activate after extraction update
-        #"p_value_less_one", #           <-- activate after extraction update
-        #"q_value_less_one", #           <-- activate after extraction update
+        "z_statistic_ldsc",
+        "p_value_ldsc",
+        "q_value_ldsc",
+        "z_statistic_not_zero",
+        "p_value_not_zero",
+        "q_value_not_zero",
+        "z_statistic_less_one",
+        "p_value_less_one",
+        "q_value_less_one",
         #"q_significance",
         "correlation_ci95_low",
         "correlation_ci95_high",
@@ -976,19 +973,18 @@ def read_organize_table_ldsc_correlation_single(
             labels=[
                 "path_directory",
                 "name_file",
-                "summary_correlation_error",
-                "summary_correlation_ci95",
-                "summary_correlation_ci99",
-                "covariance",
-                "covariance_error",
-                "z_score",
-                "correlation_ci95_not_zero",
-                "correlation_ci95_not_one",
-                "correlation_absolute",
                 "correlation_ci95_low",
                 "correlation_ci95_high",
                 "correlation_ci99_low",
                 "correlation_ci99_high",
+                "covariance",
+                "covariance_error",
+                "correlation_ci95_not_zero",
+                "correlation_ci95_not_one",
+                "correlation_absolute",
+                "summary_correlation_error",
+                "summary_correlation_ci95",
+                "summary_correlation_ci99",
             ],
             axis="columns",
             inplace=True
@@ -1084,23 +1080,22 @@ def read_organize_table_ldsc_correlation_multiple(
         )
         # Remove unnecessary columns.
         if False:
-            table_raw.drop(
+            table.drop(
                 labels=[
                     "path_directory",
                     "name_file",
-                    "summary_correlation_error",
-                    "summary_correlation_ci95",
-                    "summary_correlation_ci99",
-                    "covariance",
-                    "covariance_error",
-                    "z_score",
-                    "correlation_ci95_not_zero",
-                    "correlation_ci95_not_one",
-                    #"correlation_absolute",
                     "correlation_ci95_low",
                     "correlation_ci95_high",
                     "correlation_ci99_low",
                     "correlation_ci99_high",
+                    "covariance",
+                    "covariance_error",
+                    "correlation_ci95_not_zero",
+                    "correlation_ci95_not_one",
+                    "correlation_absolute",
+                    "summary_correlation_error",
+                    "summary_correlation_ci95",
+                    "summary_correlation_ci99",
                 ],
                 axis="columns",
                 inplace=True
@@ -1457,8 +1452,7 @@ def sort_table_rows_ldsc_correlation(
     return table_sort
 
 
-
-def filter_table_ldsc_correlation_studies_old_includes_sort(
+def needs_update_filter_table_ldsc_correlation_studies(
     table=None,
     studies_keep=None,
     threshold_q=None,
