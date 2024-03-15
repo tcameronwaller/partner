@@ -223,8 +223,8 @@ sudo apt install fldigi
 # Git, GitHub
 # site: https://github.com/
 # After renaming a repository, redirect git commits to new repository on GitHub.
-git remote set-url origin {URL to new repository name on GitHub}
-
+git remote set-url origin https://github.com/tcameronwaller/partner.git
+git remote set-url origin https://github.com/tcameronwaller/psychiatry_biomarkers.git
 
 ##########
 # BGZip
