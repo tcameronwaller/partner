@@ -1,6 +1,5 @@
 """
-Supply functionality for extraction and organization of information from
-reports of other tools.
+Supply functionality for extraction of information from reports of other tools.
 
 This module is not directly executable.
 
@@ -1189,7 +1188,7 @@ def filter_table_rows_ldsc_correlation(
         # Filter redundancy.
         table_filter["redundancy_studies"] = table_filter.apply(
             lambda row:
-                putly.match_table_row_unique_interchangeable_identifiers_a_b(
+                porg.match_table_row_unique_interchangeable_identifiers_a_b(
                     table=table_filter,
                     name_index="index",
                     name_primary="study_primary",
@@ -1237,6 +1236,9 @@ def filter_table_rows_ldsc_correlation(
     return table_filter
 
 
+
+# TODO: TCW; 27 March 2024
+# TODO: make this more versatile and move to partner.organization
 def transfer_study_attributes_table_ldsc_rg(
     table=None,
     name_primary=None,
@@ -1337,6 +1339,10 @@ def transfer_study_attributes_table_ldsc_rg(
     return table_attribute
 
 
+# TODO: TCW; 26 March 2024
+# TODO: function "sort_table_rows_ldsc_correlation()" is now obsolete, but I
+# still need to test.
+# TODO: a more versatile implementation is now in partner.organization
 def sort_table_rows_ldsc_correlation(
     table=None,
     name_primary=None,
@@ -1496,7 +1502,7 @@ def needs_update_filter_table_ldsc_correlation_studies(
     if True:
         table_filter["redundancy_studies"] = table_filter.apply(
             lambda row:
-                putly.match_table_row_unique_interchangeable_identifiers_a_b(
+                porg.match_table_row_unique_interchangeable_identifiers_a_b(
                     table=table_filter,
                     name_index="index",
                     name_primary="study_primary",

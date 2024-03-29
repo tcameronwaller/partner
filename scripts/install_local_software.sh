@@ -49,6 +49,12 @@ wget https://dl.discordapp.net/apps/linux/0.0.40/discord-0.0.40.deb
 sudo apt install ./discord-0.0.40.deb
 sudo apt remove discord
 
+# Spotify
+# https://www.spotify.com/de-en/download/linux/
+# version: spotify 1.2.31.1205.g4d59ad7c
+# date, installation: 26 March 2024
+snap install spotify
+
 # Zoom
 # "W: Repository is broken: zoom:amd64 (= 5.7.31792.0820) has no Size information"
 # https://zoom.us/download

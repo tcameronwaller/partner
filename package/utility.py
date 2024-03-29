@@ -2314,6 +2314,9 @@ def read_table_multiindex_columns_transpose(
     return pail
 
 
+# TODO: TCW; 26 March 2024
+# TODO: Make the calculation of q-values optional.
+
 def read_table_multiindex_columns_transform_calculate_q_values(
     path_file_table=None,
     row_index_place_holder=None,
@@ -2733,105 +2736,11 @@ def read_table_multiindex_columns_transform_calculate_q_values(
     return pail
 
 
-def match_table_row_unique_interchangeable_identifiers_a_b(
-    table=None,
-    name_index=None,
-    name_primary=None,
-    name_secondary=None,
-    row_index=None,
-    row_primary=None,
-    row_secondary=None,
-    match_self_pair=None,
-    report=None,
-):
-    """
-    Dependency:
-    This function is a dependency of the function below.
-    partner.extraction.filter_table_rows_ldsc_correlation()
-
-    Determines whether values of two interchangeable identifiers from a single
-    row in a table are either irrelevant or redundant with identifiers from a
-    previous row in the original table. A self pair of identical primary and
-    secondary identifiers may or may not be relevant depending on the
-    "match_self_pair" argument.
-
-    arguments:
-        table (object): Pandas data-frame table from which the row-specific
-            values originated
-        name_index (str): name of column for sequential index
-        name_primary (str): name of column for primary identifier
-        name_secondary (str): name of column for secondary identifier
-        row_index (int): current row's value of sequential index
-        row_primary (str): current row's value of primary identifier
-        row_secondary (str): current row's value of secondary identifier
-        match_self_pair (bool): whether to match pair of identical a and b
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (int): binary representation of whether the current row is either
-            irrelevant or redundant
-
-    """
-
-    # Copy information in table.
-    table_check = table.copy(deep=True)
-    # Organize information in table.
-    table_check.reset_index(
-        level=None,
-        inplace=True,
-        drop=True, # remove index; do not move to regular columns
-    )
-    table_check.set_index(
-        [name_primary, name_secondary,],
-        append=False,
-        drop=True,
-        inplace=True,
-    )
-    # Find redundant records in table.
-    index_match_1_2 = table_check.index.isin([(row_primary, row_secondary)])
-    index_match_2_1 = table_check.index.isin([(row_secondary, row_primary)])
-    table_match_1_2 = table_check[index_match_1_2]
-    table_match_2_1 = table_check[index_match_2_1]
-    values_index_match_1_2 = table_match_1_2[name_index].to_list()
-    values_index_match_2_1 = table_match_2_1[name_index].to_list()
-    values_index_match = (values_index_match_1_2 + values_index_match_2_1)
-    # Determine whether the current combination of primary and secondary studies
-    # is either irrelevant if both are identical or redundant with a previous
-    # combination in the table.
-    indicator = 0
-    if (table_match_1_2.shape[0] > 0):
-        if int(row_index) > min(values_index_match):
-            indicator = 1
-            pass
-        pass
-    elif (table_match_2_1.shape[0] > 0):
-        if int(row_index) > min(values_index_match):
-            indicator = 1
-            pass
-        pass
-    elif ((row_primary == row_secondary) and (match_self_pair)):
-        # Place this condition last so that any redundant self pairs are
-        # removed regardless of whether to remove all self pairs.
-        indicator = 1
-        pass
-
-    # Report.
-    if report:
-        print("Report.")
-        print("row_index: " + str(row_index))
-        print(table_match_1_2)
-        print(table_match_2_1)
-        print(values_index_match)
-        print(min(values_index_match))
-    return indicator
-
-
-def write_product_table_tab(
+def write_product_table(
     table=None,
     name_file=None,
     path_directory=None,
+    type="text",
 ):
     """
     Writes product information to file.
@@ -2844,6 +2753,7 @@ def write_product_table_tab(
         table (object): table of information to write to file
         name_file (str): base name for file
         path_directory (str): path to directory within which to write file
+        type (str): type of file to save, 'text' or 'pickle'
 
     raises:
 
@@ -2861,24 +2771,36 @@ def write_product_table_tab(
     create_directories(
         path=path_directory,
     )
-    # Specify directories and files.
-    path_file_table = os.path.join(
-        path_directory, str(name_file + ".tsv")
-    )
-    # Write information to file.
-    table.to_csv(
-        path_or_buf=path_file_table,
-        sep="\t",
-        na_rep="NA",
-        header=True,
-        index=False,
-    )
+    # Determine type of file to which to save.
+    if (type == "text"):
+        # Specify directories and files.
+        path_file_table = os.path.join(
+            path_directory, str(name_file + ".tsv")
+        )
+        # Write information to file.
+        table.to_csv(
+            path_or_buf=path_file_table,
+            sep="\t",
+            na_rep="NA",
+            header=True,
+            index=False,
+        )
+    elif (type == "pickle"):
+        # Specify directories and files.
+        path_file_table = os.path.join(
+            path_directory, str(name_file + ".pickle")
+        )
+        # Write information to file.
+        table.to_pickle(
+            path_file_table,
+        )
     pass
 
 
 def write_product_tables(
     pail_write=None,
     path_directory=None,
+    type="text",
 ):
     """
     Writes product information to file.
@@ -2893,6 +2815,7 @@ def write_product_tables(
         pail_write (dict<object>): collection of information to write to file
         path_directory_parent (str): path to directory within which to write
             information to files
+        type (str): type of file to save, 'text' or 'pickle'
 
     raises:
 
@@ -2905,10 +2828,11 @@ def write_product_tables(
     # Iterate across charts.
     for name_file in pail_write.keys():
         # Write chart object to file in child directory.
-        write_product_table_tab(
+        write_product_table(
             table=pail_write[name_file],
             name_file=name_file,
             path_directory=path_directory,
+            type=type,
         )
         pass
     pass
@@ -2917,6 +2841,7 @@ def write_product_tables(
 def write_product_tables_child_directories(
     pail_write=None,
     path_directory_parent=None,
+    type="text",
 ):
     """
     Writes product information to file.
@@ -2932,6 +2857,7 @@ def write_product_tables_child_directories(
         pail_write (dict<dict<object>>): collection of information to write to
             file
         path_directory_parent (str): path to parent directory
+        type (str): type of file to save, 'text' or 'pickle'
 
     raises:
 
@@ -2952,129 +2878,10 @@ def write_product_tables_child_directories(
         write_product_tables(
             pail_write=pail_write[name_directory],
             path_directory=path_directory_child,
+            type=type,
         )
         pass
     pass
-
-
-def sort_table_rows_by_list_indices(
-    table=None,
-    list_sort=None,
-    name_column=None,
-    report=None,
-):
-    """
-    Merges a list of indices as a new column to a Pandas data-frame table, sorts
-    rows in the table by the new indices, and then removes the sort column.
-
-    It would be useful to implement a conceptually similar function that
-    concatenates multiple columns from a secondary table to the primary table
-    and then uses those multiple columns for an hierarchical sort.
-
-    arguments:
-        table (object): Pandas data-frame table
-        list_sort (list<str>): list of string integer indices for sort
-        name_column (str): name for new column of indices for sort
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (object): Pandas data-frame table after sort on rows
-
-    """
-
-    # Copy information in table.
-    table = table.copy(deep=True)
-    # Convert strings in list to integers.
-    list_sort_integer = copy.deepcopy(list(map(
-        lambda value: int(value), list_sort
-    )))
-    # Check that the count of indices matches the count of rows in the table.
-    count_list_elements = len(list_sort_integer)
-    count_table_rows = (table.shape[0])
-    if (count_list_elements != count_table_rows):
-        #list_sort_integer = list_sort_integer[0:count_table_rows:1]
-        print_terminal_partition(level=4)
-        print(
-            "ERROR: Count of indices for sort does not match count of rows!"
-        )
-        print_terminal_partition(level=4)
-    # Introduce list of indices to the data-frame table.
-    table[name_column] = list_sort_integer
-    # Sort rows in table.
-    table.sort_values(
-        by=[name_column],
-        axis="index",
-        ascending=True,
-        inplace=True,
-    )
-    # Remove the temporary column of indices for sort.
-    table.drop(
-        labels=[name_column],
-        axis=1, # axis 0: rows; axis 1: columns
-        inplace=True,
-    )
-    # Return information.
-    return table
-
-
-def filter_sort_table_columns(
-    table=None,
-    columns_sequence=None,
-    report=None,
-):
-    """
-    Filters and sorts the columns within a Pandas data-frame table.
-
-    arguments:
-        table (object): Pandas data-frame table
-        columns_sequence (list<str>): identifiers or names of columns to keep
-            in sort sequence
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (object): Pandas data-frame table
-
-    """
-
-    # Copy information in table.
-    table_filter_sort = table.copy(deep=True)
-
-    # Remove unnecessary columns.
-    #table_filter_sort.drop(
-    #    labels=["test", "blah", "q_significance",],
-    #    axis="columns",
-    #    inplace=True
-    #)
-
-    # Filter and sort table's columns.
-    #table_filter_sort = table_filter_sort.loc[
-    #    :, table_filter_sort.columns.isin(columns_sequence)
-    #]
-    table_filter_sort = table_filter_sort.filter(
-        items=columns_sequence,
-        axis="columns",
-    )
-    table_filter_sort = table_filter_sort[[*columns_sequence]]
-
-    # Report.
-    if report:
-        print_terminal_partition(level=4)
-        count_columns_source = (table.shape[1])
-        count_columns_product = (table_filter_sort.shape[1])
-        print("Count of columns in source table: " + str(count_columns_source))
-        print(
-            "Count of columns in product table: " +
-            str(count_columns_product)
-        )
-        print("Table")
-        print(table_filter_sort)
-        print_terminal_partition(level=4)
-    # Return information.
-    return table_filter_sort
 
 
 def calculate_sum_row_column_values(
