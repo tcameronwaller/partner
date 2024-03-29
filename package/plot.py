@@ -599,7 +599,9 @@ def initialize_matplotlib_figure_aspect(
 # Heatmap plots with few cells
 # These heatmap plots support options such as text labels on the cells.
 
-# Marker: BLARG
+# TODO: TCW; 29 March 2024
+# TODO: I still need to change the plotting function to represent only the
+# q-values on the heatmaps, not p-values.
 
 
 def plot_heat_map_few_signal_significance_labels(
