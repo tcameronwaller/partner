@@ -1155,6 +1155,181 @@ def transform_table_quadruple_index_long_to_wide_square(
     return table_wide
 
 
+# Cluster.
+
+
+def cluster_data_columns(
+    data=None,
+):
+    """
+    Clusters features on columns by their similarities across instances on
+    rows.
+
+    arguments:
+        data (object): Pandas data frame of values
+
+    raises:
+
+    returns:
+        (object): Pandas data frame of values
+
+    """
+
+    data = data.copy(deep=True)
+    # Cluster.
+    columns = data.columns.to_numpy()#.tolist()
+    rows = data.index.to_numpy()#.tolist()
+    index_name = data.index.name
+    # Plan to cluster across columns.
+    # Organize columns across dimension zero.
+    matrix = numpy.transpose(data.to_numpy())
+    linkage = scipy.cluster.hierarchy.linkage(
+        matrix,
+        method="average", # "single", "complete", "average"
+        metric="euclidean",
+        optimal_ordering=True,
+    )
+    dendrogram = scipy.cluster.hierarchy.dendrogram(
+        linkage,
+    )
+    # Access seriation from dendrogram leaves.
+    leaves = dendrogram["leaves"]
+    # Sort matrix row and column labels.
+    indices = range(0, len(matrix))
+    matrix_cluster = list(map(
+        lambda index: matrix[leaves[index]],
+        indices
+    ))
+    columns_sort = list(map(
+        lambda index: columns[leaves[index]],
+        indices
+    ))
+    # Organize data.
+    data_cluster = pandas.DataFrame(
+        data=numpy.transpose(matrix_cluster),
+        index=rows,
+        columns=columns_sort,
+    )
+    data_cluster.rename_axis(
+        index_name,
+        axis="index",
+        inplace=True,
+    )
+    # Return information.
+    return data_cluster
+
+
+def cluster_data_rows(
+    data=None,
+):
+    """
+    Clusters instances on rows by their similarities across features on
+    columns.
+
+    arguments:
+        data (object): Pandas data frame of values
+
+    raises:
+
+    returns:
+        (object): Pandas data frame of values
+
+    """
+
+    data = data.copy(deep=True)
+    # Cluster.
+    columns = data.columns.to_numpy()#.tolist()
+    rows = data.index.to_numpy()#.tolist()
+    index_name = data.index.name
+    # Plan to cluster across columns.
+    # Organize rows across dimension zero.
+    matrix = data.to_numpy()
+    linkage = scipy.cluster.hierarchy.linkage(
+        matrix,
+        method="average", # "single", "complete", "average"
+        metric="euclidean",
+        optimal_ordering=True,
+    )
+    dendrogram = scipy.cluster.hierarchy.dendrogram(
+        linkage,
+    )
+    # Access seriation from dendrogram leaves.
+    leaves = dendrogram["leaves"]
+    # Sort matrix row and column labels.
+    indices = range(0, len(matrix))
+    matrix_cluster = list(map(
+        lambda index: matrix[leaves[index]],
+        indices
+    ))
+    rows_sort = list(map(
+        lambda index: rows[leaves[index]],
+        indices
+    ))
+    # Organize data.
+    data_cluster = pandas.DataFrame(
+        data=matrix_cluster,
+        index=rows_sort,
+        columns=columns,
+    )
+    data_cluster.rename_axis(
+        index_name,
+        axis="index",
+        inplace=True,
+    )
+    # Return information.
+    return data_cluster
+
+
+def cluster_data_rows_by_group(
+    group=None,
+    index=None,
+    data=None,
+):
+    """
+    Clusters instances on rows by their similarities across features on
+    columns.
+
+    arguments:
+        group (str): name of column to use for groups
+        index (str): name of column to use for index during cluster
+        data (object): Pandas data frame of values
+
+    raises:
+
+    returns:
+        (object): Pandas data frame of values
+
+    """
+
+    data = data.copy(deep=True)
+    groups = data.groupby(
+        level=[group],
+    )
+    data_collection = pandas.DataFrame()
+    for name, data_group in groups:
+        data_group = data_group.copy(deep=True)
+        data_group.reset_index(
+            level=None,
+            inplace=True
+        )
+        data_group.set_index(
+            [index],
+            append=False,
+            drop=True,
+            inplace=True
+        )
+        data_cluster = cluster_data_rows(
+            data=data_group,
+        )
+        data_collection = data_collection.append(
+            data_cluster,
+            ignore_index=False,
+        )
+    # Return information.
+    return data_collection
+
+
+
 
 
 

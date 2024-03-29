@@ -752,6 +752,84 @@ def report_table_range_variables(
 
 
 ##########
+# Split and apply operation to groups
+
+
+def template_split_apply_table_groups(
+    factors=None,
+    table=None,
+    report=None,
+):
+    """
+    Splits rows within table by groups of factor columns.
+    Applies procedure to to each group of rows.
+
+    The function serves as a sort of template.
+
+    arguments:
+        factors (list<str>): names of columns in table by which to split groups
+        table (object): Pandas data-frame table of columns for feature variables
+            across rows for observation records
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+
+    """
+
+    # Copy information in table.
+    table = table.copy(deep=True)
+    # Organize table.
+    table.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # do not remove index; move to regular columns
+    )
+    table.drop_duplicates(
+        subset=None,
+        keep="first",
+        inplace=True,
+    )
+    table.set_index(
+        factors,
+        append=False,
+        drop=True,
+        inplace=True
+    )
+    # Split rows within table by factor columns.
+    groups = table.groupby(
+        level=[factors],
+    )
+    for name, table_group in groups:
+        # Copy information in table.
+        table_group = table_group.copy(deep=True)
+        # Organize table.
+        table_group.reset_index(
+            level=None,
+            inplace=True,
+            drop=False, # do not remove index; move to regular columns
+        )
+        # Complete further organization on each group table after split,
+        # such as setting new index.
+        # Report.
+        if report:
+            print_terminal_partition(level=4)
+            print("Name of group:")
+            print(name)
+            print("Table for group after split:")
+            print(table_group)
+            print_terminal_partition(level=4)
+        # Complete procedures on each group table after split.
+        # For example, calculate summary statistics on each group and then
+        # collect within a new summary table.
+        pass
+    # Return information.
+    pass
+
+
+
+##########
 # Write
 
 
