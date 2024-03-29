@@ -73,7 +73,8 @@ import matplotlib.lines
 #import sklearn
 
 # Custom
-import partner.utility as utility
+import partner.utility as putly
+import partner.organization as porg
 
 #dir()
 #importlib.reload()
@@ -598,10 +599,14 @@ def initialize_matplotlib_figure_aspect(
 # Heatmap plots with few cells
 # These heatmap plots support options such as text labels on the cells.
 
+# Marker: BLARG
+
 
 def plot_heat_map_few_signal_significance_labels(
     table=None,
     transpose_table=None,
+    index_group_columns=None,
+    index_group_rows=None,
     fill_missing=None,
     value_missing_fill=None,
     constrain_signal_values=None,
@@ -639,14 +644,23 @@ def plot_heat_map_few_signal_significance_labels(
     and p-values organized with categorical indices across columns and rows
     that will serve as labels:
 
-    group secondary               group_2_a   group_2_b   group_2_c
-    group_primary       type
-    group_1_a           signal    -0.15       -0.2        -0.25
-    group_1_a           p_value   0.001       0.001       0.001
-    group_1_a           q_value   0.001       0.001       0.001
-    group_1_b           signal    0.15        0.2         0.25
-    group_1_b           p_value   0.001       0.001       0.001
-    group_1_b           q_value   0.001       0.001       0.001
+    group secondary                group_2_a   group_2_b   group_2_c
+    group_primary       type_value
+    group_1_a           signal     -0.15       -0.2        -0.25
+    group_1_a           p_value    0.001       0.001       0.001
+    group_1_a           q_value    0.01        0.01        0.01
+    group_1_b           signal     0.15        0.2         0.25
+    group_1_b           p_value    0.001       0.001       0.001
+    group_1_b           q_value    0.01        0.01        0.01
+
+    This function does not support the transposed shape below.
+
+    group secondary     group_1_a                    ...
+    type_value          signal   p_value   q_value   ...
+    group_primary                                    ...
+    group_2_a           -0.15    0.001     0.01      ...
+    group_2_b           -0.2     0.001     0.01      ...
+    group_2_c           -0.25    0.001     0.01      ...
 
     This function creates labels on cells of the heatmap to indicate
     significance on the basis of the either the q-value or the p-value.
@@ -672,6 +686,12 @@ def plot_heat_map_few_signal_significance_labels(
         table (object): Pandas data-frame table in long format with
             floating-point values of signal and p-values.
         transpose_table (bool): whether to transpose matrix from table
+        index_group_columns (str): name of index across table's columns that
+            provides labels for groups across horizontal axis (abscissa) after
+            any transpose on the table
+        index_group_rows (str): name of index across table's rows that provides
+            labels for groups across vertical axis (ordinate) after any
+            transpose on the table
         fill_missing (bool): whether to fill any missing values in every element
             of matrix
         value_missing_fill (float): value with which to fill any missing values
@@ -720,43 +740,67 @@ def plot_heat_map_few_signal_significance_labels(
 
     ##########
     # Organize information for figure.
-
-    # Separate signals from p-values.
-    #table_signal = table.loc[
-    #    (table["type_value"] == "signal"), :
-    #].copy(deep=True)
-    table_signal = table[
-        table.index.get_level_values("type_value").isin(["signal"])
-    ].copy(deep=True)
-    table_p = table[
-        table.index.get_level_values("type_value").isin(["p_value"])
-    ].copy(deep=True)
-    table_q = table[
-        table.index.get_level_values("type_value").isin(["q_value"])
-    ].copy(deep=True)
-
+    # Copy information in table.
+    table = table.copy(deep=True)
+    # Separate relevant information.
+    if True:
+        # Extract relevant information.
+        # Extract values.
+        # For this extraction, the "type_value" index must be oriented across the
+        # table's rows.
+        #table_signal = table.loc[
+        #    (table["type_value"] == "signal"), :
+        #].copy(deep=True)
+        table_signal = table[
+            table.index.get_level_values("type_value").isin(["signal"])
+        ].copy(deep=True)
+        table_p = table[
+            table.index.get_level_values("type_value").isin(["p_value"])
+        ].copy(deep=True)
+        table_q = table[
+            table.index.get_level_values("type_value").isin(["q_value"])
+        ].copy(deep=True)
+    else:
+        # For this extraction, the "type_value" index must be oriented across
+        # the table's columns.
+        #table_signal = table.loc[
+        #    (table["type_value"] == "signal"), :
+        #].copy(deep=True)
+        table_signal = table[
+            table.columns.get_level_values("type_value").isin(["signal"])
+        ].copy(deep=True)
+        table_p = table[
+            table.columns.get_level_values("type_value").isin(["p_value"])
+        ].copy(deep=True)
+        table_q = table[
+            table.columns.get_level_values("type_value").isin(["q_value"])
+        ].copy(deep=True)
+        pass
+    # Transpose table.
+    if (transpose_table):
+        table_signal = table_signal.transpose(copy=True)
+        table_p = table_p.transpose(copy=True)
+        table_q = table_q.transpose(copy=True)
+        pass
     # Report.
     if report:
-        utility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
         print("Rows in table of signals: " + str(table_signal.shape[0]))
         print("Columns in table of signals: " + str(table_signal.shape[1]))
-        utility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
         print("Rows in table of p-values or q-values: " + str(table_p.shape[0]))
         print(
             "Columns in table of p-values or q-values: "
             + str(table_p.shape[1])
         )
-        utility.print_terminal_partition(level=4)
-
+        putly.print_terminal_partition(level=4)
     # Extract values.
-    if (transpose_table):
-        matrix_signal = numpy.transpose(numpy.copy(table_signal.to_numpy()))
-        matrix_p = numpy.transpose(numpy.copy(table_p.to_numpy()))
-        matrix_q = numpy.transpose(numpy.copy(table_q.to_numpy()))
-    else:
-        matrix_signal = numpy.copy(table_signal.to_numpy())
-        matrix_p = numpy.copy(table_p.to_numpy())
-        matrix_q = numpy.copy(table_q.to_numpy())
+    #matrix_signal = numpy.transpose(numpy.copy(table_signal.to_numpy()))
+    #matrix_p = numpy.transpose(numpy.copy(table_p.to_numpy()))
+    #matrix_q = numpy.transpose(numpy.copy(table_q.to_numpy()))
+    matrix_signal = numpy.copy(table_signal.to_numpy())
+    matrix_p = numpy.copy(table_p.to_numpy())
+    matrix_q = numpy.copy(table_q.to_numpy())
 
     # Organize signals in matrix.
     # Replace missing values.
@@ -775,13 +819,13 @@ def plot_heat_map_few_signal_significance_labels(
 
     # Report.
     if report:
-        utility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
         print("Matrix of signals:")
         count_rows = copy.deepcopy(matrix_signal.shape[0])
         count_columns = copy.deepcopy(matrix_signal.shape[1])
         print("Matrix rows (dimension 0): " + str(count_rows))
         print("Matrix columns (dimension 1): " + str(count_columns))
-        utility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
 
     # Extract categorical names for labels.
     if (
@@ -794,29 +838,34 @@ def plot_heat_map_few_signal_significance_labels(
             (len(labels_abscissa_categories) < 2)
         )
     ):
-        labels_columns = copy.deepcopy(table_signal.columns.to_list())
-        table_signal.reset_index(
-            level=None,
-            inplace=True,
-            drop=False, # remove index; do not move to regular columns
-        )
+        #labels_columns = copy.deepcopy(table_signal.columns.to_list())
+        #table_signal.reset_index(
+        #    level=None,
+        #    inplace=True,
+        #    drop=False, # remove index; do not move to regular columns
+        #)
         #labels_rows = table.index.to_list()
-        labels_rows = table_signal["group_primary"].to_list()
-        if (transpose_table):
-            labels_ordinate_categories = labels_columns
-            labels_abscissa_categories = labels_rows
-        else:
-            labels_ordinate_categories = labels_rows
-            labels_abscissa_categories = labels_columns
-
+        #labels_rows = table_signal["group_primary"].to_list()
+        labels_columns = copy.deepcopy(
+            table_signal.columns.get_level_values(
+                index_group_columns
+            ).unique().to_list()
+        )
+        labels_rows = copy.deepcopy(
+            table_signal.index.get_level_values(
+                index_group_rows
+            ).unique().to_list()
+        )
+        labels_ordinate_categories = labels_rows # vertical axis
+        labels_abscissa_categories = labels_columns # horizontal axis
     # Report.
     if report:
-        utility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
         print("Column labels:")
         print(labels_ordinate_categories)
         print("Row labels:")
         print(labels_abscissa_categories)
-        utility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
 
     ##########
     # Create figure.
@@ -1447,7 +1496,7 @@ def organize_data_master_main_sort_cluster(
             ascending=True,
             inplace=True,
         )
-        data_cluster_columns = utility.cluster_data_columns(
+        data_cluster_columns = porg.cluster_data_columns(
             data=data,
         )
         data_cluster_columns.reset_index(
@@ -1471,7 +1520,7 @@ def organize_data_master_main_sort_cluster(
                 drop=True,
                 inplace=True
             )
-            data_cluster_rows = utility.cluster_data_rows_by_group(
+            data_cluster_rows = porg.cluster_data_rows_by_group(
                 group="master",
                 index=index,
                 data=data_cluster_columns,
@@ -1491,10 +1540,10 @@ def organize_data_master_main_sort_cluster(
         else:
             data_sequence = data_cluster_columns.copy(deep=True)
     elif (sequence == "cluster"):
-        data_cluster_columns = utility.cluster_data_columns(
+        data_cluster_columns = porg.cluster_data_columns(
             data=data,
         )
-        data_cluster_rows = utility.cluster_data_rows(
+        data_cluster_rows = porg.cluster_data_rows(
             data=data_cluster_columns,
         )
         data_sequence = data_cluster_rows.copy(deep=True)
@@ -1667,7 +1716,7 @@ def organize_heatmap_asymmetric_master_main_data(
     data_main = data.copy(deep=True)
     # Groups.
     values_master = data_master["master"].to_list()
-    values_master_unique = utility.collect_unique_elements(
+    values_master_unique = putly.collect_unique_elements(
         elements_original=values_master,
     )
     # Map data's columns to heatmap's rows.
@@ -3974,7 +4023,7 @@ def plot_scatter_threshold(
         inplace=True,
     )
     # Divide values by whether they pass thresholds on both dimensions.
-    collection = utility.segregate_data_two_thresholds(
+    collection = putly.segregate_data_two_thresholds(
         data=data,
         abscissa=abscissa,
         ordinate=ordinate,
@@ -4464,7 +4513,7 @@ def write_product_plots_child_directories(
             path_parent, name_directory
         )
         # Initialize directories.
-        utility.create_directories(
+        putly.create_directories(
             path=path_child
         )
         # Iterate across charts.
@@ -4514,7 +4563,7 @@ def write_product_plots_child_child_directories(
             path_parent, name_directory
         )
         # Initialize directories.
-        utility.create_directories(
+        putly.create_directories(
             path=path_child
         )
         # Parse the second level and write files.
