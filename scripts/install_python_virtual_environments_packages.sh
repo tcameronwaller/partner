@@ -255,6 +255,15 @@ source "${path_environment_main}/bin/activate"
 which python3 # "${path_environment_main}/bin/python3" TCW, 28 July 2021
 # Pip installation within virtual environment should not require "sudo" root user permissions.
 # Documentation: https://docs.python.org/3/installing/index.html
+
+# halyard; TCW; 1 May 2024
+python3 -m pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org pip setuptools
+python3 -m pip --version # "pip 22.0.4 from ${path_environment_main}/lib/python3.9/site-packages/pip (python 3.9)"; halyard; TCW; 1 May 2024
+python3 -m pip install --upgrade pip
+python3 -m pip --version # "pip 24.0 from ${path_environment_main}/lib/python3.9/site-packages/pip (python 3.9)"; halyard; TCW; 1 May 2024
+python3 -m pip install --upgrade statsmodels # "Successfully installed numpy-1.26.4 pandas-2.2.2 patsy-0.5.6 scipy-1.13.0 statsmodels-0.14.2 tzdata-2024.1"; halyard; TCW; 1 May 2024
+
+# halyard; TCW; 28 July 2021
 python3 -m pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org pip setuptools
 python3 -m pip --version # "pip 21.1.3 from ${path_environment_main}/lib/python3.9/site-packages/pip (python 3.9)" TCW, 28 July 2021
 python3 -m pip install --upgrade pip

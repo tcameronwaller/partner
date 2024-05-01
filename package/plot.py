@@ -614,10 +614,12 @@ def plot_heat_map_few_signal_significance_labels(
     constrain_signal_values=None,
     value_minimum=None,
     value_maximum=None,
-    significance_q=None,
     significance_p=None,
-    thresholds_q=None,
+    significance_q=None,
     thresholds_p=None,
+    thresholds_q=None,
+    show_legend=None,
+    show_scale_bar=None,
     label_legend=None,
     labels_ordinate_categories=None,
     labels_abscissa_categories=None,
@@ -625,7 +627,8 @@ def plot_heat_map_few_signal_significance_labels(
     title_ordinate=None,
     title_abscissa=None,
     title_bar=None,
-    size_label_significance=None,
+    size_label_sig_p=None,
+    size_label_sig_q=None,
     size_title_ordinate=None,
     size_title_abscissa=None,
     size_label_ordinate=None,
@@ -633,7 +636,6 @@ def plot_heat_map_few_signal_significance_labels(
     size_label_legend=None,
     size_title_bar=None,
     size_label_bar=None,
-    scale_bar=None,
     aspect=None,
     fonts=None,
     colors=None,
@@ -700,16 +702,19 @@ def plot_heat_map_few_signal_significance_labels(
         constrain_signal_values (bool): whether to constrain all values in matrix
         value_minimum (float): minimal value for constraint on signals and scale
         value_maximum (float): maximal value for constraint on signals and scale
-        significance_q (bool): whether to consider q-values to indicate
-            significance in labels on the heatmap
         significance_p (bool): whether to consider p-values to indicate
             significance in labels on the heatmap
-        thresholds_q (list<float>): values of thresholds on q-values for
-            determination of significance, or actually whether to draw the
-            labels on the heatmap
+        significance_q (bool): whether to consider q-values to indicate
+            significance in labels on the heatmap
         thresholds_p (list<float>): values of thresholds on p-values for
             determination of significance, or actually whether to draw the
             labels on the heatmap
+        thresholds_q (list<float>): values of thresholds on q-values for
+            determination of significance, or actually whether to draw the
+            labels on the heatmap
+        show_legend (bool): whether to create and show legend for significnce
+            labels
+        show_scale_bar (bool): whether to create scale bar
         label_legend (str): text character string for legend label
         labels_ordinate_categories (list<str>): optional, explicit labels for
             ordinate or vertical axis
@@ -719,15 +724,15 @@ def plot_heat_map_few_signal_significance_labels(
         title_ordinate (str):
         title_abscissa (str):
         title_bar (str): title for scale bar
-        size_label_significance (str): Font size
-        size_title_ordinate (str): Font size
-        size_title_abscissa (str): Font size
-        size_label_ordinate (str): Font size
-        size_label_abscissa (str): Font size
-        size_label_legend (str): Font size
-        size_title_bar (str): Font size
-        size_label_bar (str): Font size
-        scale_bar (bool): whether to create scale bar
+        size_label_sig_p (str): font size
+        size_label_sig_q (str): font size
+        size_title_ordinate (str): font size
+        size_title_abscissa (str): font size
+        size_label_ordinate (str): font size
+        size_label_abscissa (str): font size
+        size_label_legend (str): font size
+        size_title_bar (str): font size
+        size_label_bar (str): font size
         aspect (str): aspect ratio for MatPlotLib figure
         fonts (dict<object>): references to definitions of font properties
         colors (dict<tuple>): references to definitions of color properties
@@ -886,22 +891,24 @@ def plot_heat_map_few_signal_significance_labels(
     # Create labels or titles on figure.
     # https://stackoverflow.com/questions/34937048/make-part-of-a-title-bold-and-a-different-color
     # ... how to make part of the title string bold-face
-    axes.set_title(
-        str(label_legend),
-        #loc="right",
-        x=1.050, # 1.0 - 1.2; 1 unit is horizontal dimension of 1 cell?
-        y=0.000, # 1.0 - 1.3; 1 unit is vertical dimension of 1 cell? 0.985
-        ha="left",
-        va="top", # top, center, bottom
-        backgroundcolor=colors["white"],
-        color=colors["black"],
-        fontproperties=fonts["properties"][size_label_legend],
-        bbox=dict(
-            facecolor="none",
-            edgecolor="black",
-            boxstyle="round",
+    if show_legend:
+        axes.set_title(
+            str(label_legend),
+            #loc="right",
+            x=1.050, # 1.0 - 1.2; 1 unit is horizontal dimension of 1 cell?
+            y=0.080, # 1.0 - 1.3; 1 unit is vertical dimension of 1 cell? 0.985
+            ha="left",
+            va="top", # top, center, bottom
+            backgroundcolor=colors["white"],
+            color=colors["black"],
+            fontproperties=fonts["properties"][size_label_legend],
+            bbox=dict(
+                facecolor="none",
+                edgecolor="black",
+                boxstyle="round",
+            )
         )
-    )
+    # This scrap is obsolete and for reference only.
     if False:
         text = axes.text(
             ((matrix_signal.shape[1]) + 0.75),
@@ -933,11 +940,6 @@ def plot_heat_map_few_signal_significance_labels(
             backgroundcolor=colors["white"],
             color=colors["black"],
         )
-    #
-    #
-    #
-    #
-    #
 
     # Plot values as a color grid.
     # This function represents values acros matrix dimension 0 as vertical rows.
@@ -979,9 +981,9 @@ def plot_heat_map_few_signal_significance_labels(
     axes.tick_params(
         axis="both", # "y", "x", or "both"
         which="both", # "major", "minor", or "both"
-        length=5.0,
-        width=3.5,
-        pad=7.5,
+        length=7.5, # 5.0
+        width=5, # 3.5
+        pad=10, # 7.5
         direction="out",
         color=colors["black"],
         labelcolor=colors["black"],
@@ -1042,61 +1044,34 @@ def plot_heat_map_few_signal_significance_labels(
             signal_text = "{:.2f}".format(round(signal_value, 2))
             p_value = matrix_p[index_row, index_column]
             q_value = matrix_q[index_row, index_column]
-            if ((signal_value > 0.5) or (signal_value < -0.5)):
+            if ((signal_value > 0.6) or (signal_value < -0.6)):
                 color="white"
             else:
                 color="black"
-            # Determine whether to create labels on cells.
+                pass
+
+            # Create labels on cells to represent p-values and q-values.
             #str("$\u2020$") # dagger U+2020
             #str("$\u2021$") # double dagger U+2021
             #str("$\u002A$") # asterisk U+002A
             #str("$\u2051$") # double asterisk U+2051
+
+            # Determine whether to create labels for p-values on cells.
             if (
-                (significance_q) and
-                (not numpy.isnan(q_value)) and
-                (q_value < thresholds_q[1])
-            ):
-                #label_cell = str(str(signal_text) + "**")
-                label_cell = str("$\u2021$")
-                text = axes.text(
-                    index_column,
-                    index_row,
-                    label_cell,
-                    horizontalalignment="center",
-                    verticalalignment="center",
-                    fontproperties=fonts["properties"][size_label_significance],
-                    backgroundcolor=colors["clear"],
-                    color=colors[color],
-                )
-            elif (
-                (significance_q) and
-                (not numpy.isnan(q_value)) and
-                (q_value < thresholds_q[0])
-            ):
-                label_cell = str("$\u2020$")
-                text = axes.text(
-                    index_column,
-                    index_row,
-                    label_cell,
-                    horizontalalignment="center",
-                    verticalalignment="center",
-                    fontproperties=fonts["properties"][size_label_significance],
-                    backgroundcolor=colors["clear"],
-                    color=colors[color],
-                )
-            elif (
                 (significance_p) and
                 (not numpy.isnan(p_value)) and
                 (p_value < thresholds_p[1])
             ):
-                label_cell = str("$\u2051$")
+                #label_cell = str(str(signal_text) + "**")
+                label_cell = str("$\u2021$") # double dagger U+2021
                 text = axes.text(
                     index_column,
                     index_row,
                     label_cell,
                     horizontalalignment="center",
                     verticalalignment="center",
-                    fontproperties=fonts["properties"][size_label_significance],
+                    fontproperties=fonts["properties"][size_label_sig_p],
+                    fontweight="extra bold",
                     backgroundcolor=colors["clear"],
                     color=colors[color],
                 )
@@ -1105,14 +1080,57 @@ def plot_heat_map_few_signal_significance_labels(
                 (not numpy.isnan(p_value)) and
                 (p_value < thresholds_p[0])
             ):
-                label_cell = str("$\u002A$")
+                label_cell = str("$\u2020$") # dagger U+2020
                 text = axes.text(
                     index_column,
                     index_row,
                     label_cell,
                     horizontalalignment="center",
                     verticalalignment="center",
-                    fontproperties=fonts["properties"][size_label_significance],
+                    fontproperties=fonts["properties"][size_label_sig_p],
+                    fontweight="extra bold",
+                    backgroundcolor=colors["clear"],
+                    color=colors[color],
+                )
+                pass
+
+            # Determine whether to create labels for q-values on cells.
+            # Use the 'annotate' method for more versatility in position.
+            if (
+                False and
+                (significance_q) and
+                (not numpy.isnan(q_value)) and
+                (q_value < thresholds_q[1])
+            ):
+                #label_cell = str(str(signal_text) + "**")
+                label_cell = str("$\u2051$") # double asterisk U+2051
+                text = axes.annotate(
+                    label_cell,
+                    xy=(index_column,index_row),
+                    xycoords="data", # use coordinate system of object
+                    xytext=(10,15), # coordinates for offset of text from main
+                    textcoords="offset points", # coordinates for 'xytext'
+                    horizontalalignment="center",
+                    verticalalignment="center",
+                    fontproperties=fonts["properties"][size_label_sig_q],
+                    backgroundcolor=colors["clear"],
+                    color=colors[color],
+                )
+            elif (
+                (significance_q) and
+                (not numpy.isnan(q_value)) and
+                (q_value < thresholds_q[0])
+            ):
+                label_cell = str("$\u002A$") # asterisk U+002A
+                text = axes.annotate(
+                    label_cell,
+                    xy=(index_column,index_row),
+                    xycoords="data", # use coordinate system of object
+                    xytext=(10,15), # coordinates for offset of text from main
+                    textcoords="offset points", # coordinates for 'xytext'
+                    horizontalalignment="center",
+                    verticalalignment="center",
+                    fontproperties=fonts["properties"][size_label_sig_q],
                     backgroundcolor=colors["clear"],
                     color=colors[color],
                 )
@@ -1121,13 +1139,13 @@ def plot_heat_map_few_signal_significance_labels(
         pass
 
     # Create legend for scale of color grid.
-    if scale_bar:
+    if show_scale_bar:
         bar = axes.figure.colorbar(
             image,
             orientation="vertical",
             ax=axes,
             location="right",
-            shrink=0.7, # Factor for dimensions of the Scale Bar.
+            shrink=0.7, # 0.7; factor for dimensions of the Scale Bar.
         )
         if (len(title_bar) > 0):
             bar.ax.set_ylabel(
@@ -1144,10 +1162,10 @@ def plot_heat_map_few_signal_significance_labels(
             axis="both",
             which="both", # major, minor, or both
             direction="out",
-            length=5.0, # 7.5
-            width=2.5,
+            length=5.0, # 5.0, 7.5
+            width=2.5, # 2.5, 5.0
             color=colors["black"],
-            pad=5,
+            pad=5, # 5, 7
             labelsize=fonts["values"][size_label_bar]["size"],
             labelcolor=colors["black"],
         )
@@ -4388,17 +4406,17 @@ def write_figure(
     figure=None,
     format=None,
     resolution=None,
-    path=None,
+    path_file=None,
 ):
     """
     Writes figure to file.
 
     arguments:
         figure (object): figure object
-        format (str): format suffix, "svg", "png"
-        resolution (int): dots per inch (dpi) density for bitmap image, set to
-            "None" with format "svg", otherwise "300" or "600"
-        path (str): path to directory and file
+        format (str): format suffix, 'svg', 'pdf', 'png'
+        resolution (int): dots per inch (dpi) density for raster image; set to
+            '300' or '600' for raster or 'None' for format 'svg' or 'pdf'
+        path_file (str): path to directory and file
 
     raises:
 
@@ -4408,7 +4426,7 @@ def write_figure(
 
     # Write information to file.
     figure.savefig(
-        path,
+        path_file,
         format=format,
         dpi=resolution,
         facecolor="w",
@@ -4419,16 +4437,21 @@ def write_figure(
 
 
 def write_product_plot_figure(
-    name=None,
     figure=None,
+    format=None,
+    resolution=None,
+    name_file=None,
     path_directory=None,
 ):
     """
     Writes product information to file.
 
     arguments:
-        name (str): base name for file
         figure (object): figure object to write to file
+        format (str): format suffix, 'svg', 'pdf', 'png'
+        resolution (int): dots per inch (dpi) density for raster image; set to
+            '300' or '600' for raster or 'None' for format 'svg' or 'pdf'
+        name_file (str): base name for file
         path_parent (str): path to parent directory
 
     raises:
@@ -4439,15 +4462,15 @@ def write_product_plot_figure(
 
     # Specify directories and files.
     path_file = os.path.join(
-        path_directory, str(name + ".png")
+        path_directory, str(name_file + "." + str(format))
     )
     # Write information to file.
     write_figure(
         figure=figure,
-        format="png",
-        resolution=300, # dots per inch: 100, 150, 300, 600
+        format=format,
+        resolution=resolution, # dots per inch: 100, 150, 300, 600
         #transparent=True,
-        path=path_file,
+        path_file=path_file,
     )
     pass
 

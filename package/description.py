@@ -643,9 +643,14 @@ def calculate_table_false_discovery_rate_q_values(
     Calculates Benjamini-Hochberg q-values to indicate false discovery rates
     (FDRs) from original p-values.
 
+    References:
+    Benjamini, Krieger, Yekutieli; Biometrika; 2006
+    (https://doi.org/10.1093/biomet/93.3.491)
+    Benjamini, Hochberg; Journal of the Royal Statistical Society; 1995
+
     arguments:
-        threshold (float): value of alpha, or family-wise error rate of false
-            discoveries
+        threshold (float): value of alpha, or family-wise error rate in
+            calculation of false discovery rate
         name_column_p_value (str): name of table's column of p-values
         name_column_q_value (str): name for table's column of q-values
         name_column_significance (str): name for table's column of FDR
@@ -677,13 +682,28 @@ def calculate_table_false_discovery_rate_q_values(
     # Calculate false name_column_q_value rates from probabilities.
     p_values = copy.deepcopy(table_valid[name_column_p_value].to_numpy())
     if len(p_values) > 3:
-        report = statsmodels.stats.multitest.multipletests(
+        # Benjamini, Hochberg; 1995
+        #report = statsmodels.stats.multitest.multipletests(
+        #    p_values,
+        #    alpha=threshold, # family-wise error rate
+        #    method="fdr_bh", # fdr_bh use Benjamini-Hochberg False-Discovery Rate (FDR)
+        #    is_sorted=False,
+        #    #return_sorted=False, # keep q-values in original sequence
+        #)
+        report = statsmodels.stats.multitest.fdrcorrection(
             p_values,
-            alpha=threshold,
-            method="fdr_bh", # use Benjamini-Hochberg False-Discovery Rate (FDR)
+            alpha=threshold, # family-wise error rate
+            method="indep", # independent tests
             is_sorted=False,
-            #return_sorted=False, # keep q-values in original sequence
-        )
+        ) # Benjamini, Hochberg, 1995
+        # Benjamini, Krieger, Yekutieli; 2006
+        #report = statsmodels.stats.multitest.fdrcorrection_twostage(
+        #    p_values,
+        #    alpha=threshold, # family-wise error rate
+        #    method="bky", # bky: Benjamini, Krieger, Yekuteli Definition 6
+        #    maxiter=1, # 1: two-stage method
+        #    is_sorted=False,
+        #) # Benjamini, Krieger, Yekutieli; 2006
         significances = report[0] # whether valid to reject null hypothesis
         #significances = numpy.invert(rejects)
         q_values = report[1]
@@ -697,8 +717,8 @@ def calculate_table_false_discovery_rate_q_values(
     table_null[name_column_q_value] = float("nan")
 
     # Combine null and valid portions of data.
-    table_discoveries = table_valid.append(
-        table_null,
+    table_discoveries = pandas.concat(
+        [table_valid, table_null],
         ignore_index=False,
     )
     # Return information.

@@ -1321,8 +1321,8 @@ def cluster_data_rows_by_group(
         data_cluster = cluster_data_rows(
             data=data_group,
         )
-        data_collection = data_collection.append(
-            data_cluster,
+        data_collection = pandas.concat(
+            [data_collection, data_cluster],
             ignore_index=False,
         )
     # Return information.
