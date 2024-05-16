@@ -643,10 +643,22 @@ def calculate_table_false_discovery_rate_q_values(
     Calculates Benjamini-Hochberg q-values to indicate false discovery rates
     (FDRs) from original p-values.
 
+    Implementations in R:
+    p.adjust
+
+    Implementations in Python:
+    scipy.stats.false_discovery_control
+    statsmodels.stats.multitest.multipletests
+    statsmodels.stats.multitest.fdrcorrection
+    statsmodels.stats.multitest.fdrcorrection_twostage
+
     References:
     Benjamini, Krieger, Yekutieli; Biometrika; 2006
     (https://doi.org/10.1093/biomet/93.3.491)
     Benjamini, Hochberg; Journal of the Royal Statistical Society; 1995
+    site: https://www.r-bloggers.com/2023/07/
+    the-benjamini-hochberg-procedure-fdr-and-p-value-adjusted-explained/
+    site: https://www.statisticshowto.com/benjamini-hochberg-procedure/
 
     arguments:
         threshold (float): value of alpha, or family-wise error rate in
@@ -725,6 +737,108 @@ def calculate_table_false_discovery_rate_q_values(
     return table_discoveries
 
 
+def calculate_q_values_in_table_groups(
+    factors=None,
+    threshold=None,
+    name_column_p_value=None,
+    name_column_q_value=None,
+    name_column_significance=None,
+    table=None,
+    report=None,
+):
+    """
+    Calculates Benjamini-Hochberg q-values to indicate false discovery rates
+    (FDRs) from original p-values within stratification groups.
+
+    arguments:
+        factors (list<str>): names of columns in table by which to split groups
+        threshold (float): value of alpha, or family-wise error rate in
+            calculation of false discovery rate
+        name_column_p_value (str): name of table's column of p-values
+        name_column_q_value (str): name for table's column of q-values
+        name_column_significance (str): name for table's column of FDR
+            indication that null hypothesis can be rejected
+        table (object): Pandas data frame with column of probabilities across
+            observations in rows
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data frame of original p-values and novel q-values to
+            indicate false discovery rates
+
+    """
+
+    # Copy information in table.
+    table = table.copy(deep=True)
+    # Organize table.
+    table.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # do not remove index; move to regular columns
+    )
+    #table.drop_duplicates(
+    #    subset=None,
+    #    keep="first",
+    #    inplace=True,
+    #)
+    table.set_index(
+        factors,
+        append=False,
+        drop=True,
+        inplace=True
+    )
+    # Split rows within table by factor columns.
+    groups = table.groupby(
+        level=factors,
+    )
+    # Initiate table for collection of group tables after any transformations.
+    table_collection = pandas.DataFrame()
+    # Iterate on groups.
+    for name, table_group in groups:
+        # Copy information in table.
+        table_group = table_group.copy(deep=True)
+        # Organize table.
+        table_group.reset_index(
+            level=None,
+            inplace=True,
+            drop=False, # do not remove index; move to regular columns
+        )
+        # Complete further organization on each group table after split,
+        # such as setting new index.
+        # Report.
+        if report:
+            print_terminal_partition(level=4)
+            print("Name of group:")
+            print(name)
+            print("Table for group after split:")
+            print(table_group)
+            print_terminal_partition(level=4)
+        # Complete procedures on each group table after split.
+        # For example, calculate summary statistics on each group and then
+        # collect within a new summary table.
+
+        # Transformations to group tables.
+        table_q = calculate_table_false_discovery_rate_q_values(
+            threshold=threshold, # alpha; family-wise error rate
+            name_column_p_value=name_column_p_value,
+            name_column_q_value=name_column_q_value,
+            name_column_significance=name_column_significance,
+            table=table_group,
+        )
+        # Collect group tables.
+        table_collection = pandas.concat(
+            [table_collection, table_q],
+            ignore_index=False,
+        )
+        pass
+    # Return information.
+    return table_collection
+
+
+
+
 ##########
 # Report ranges of variables from table
 
@@ -772,7 +886,7 @@ def report_table_range_variables(
 
 
 ##########
-# Split and apply operation to groups
+# Split and apply operation or transformation to groups within table
 
 
 def template_split_apply_table_groups(
@@ -819,8 +933,11 @@ def template_split_apply_table_groups(
     )
     # Split rows within table by factor columns.
     groups = table.groupby(
-        level=[factors],
+        level=factors,
     )
+    # Initiate table for collection of group tables after any transformations.
+    table_collection = pandas.DataFrame()
+    # Iterate on groups.
     for name, table_group in groups:
         # Copy information in table.
         table_group = table_group.copy(deep=True)
@@ -843,9 +960,18 @@ def template_split_apply_table_groups(
         # Complete procedures on each group table after split.
         # For example, calculate summary statistics on each group and then
         # collect within a new summary table.
+
+        # Transformations to group tables.
+        # Do something...
+
+        # Collect group tables.
+        table_collection = pandas.concat(
+            [table_collection, table_group],
+            ignore_index=False,
+        )
         pass
     # Return information.
-    pass
+    return table_collection
 
 
 

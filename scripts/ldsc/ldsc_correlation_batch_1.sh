@@ -105,7 +105,8 @@ if false; then
 fi
 
 
-# NCSA implementation of SLURM has value of "MaxArraySize" of 4,000.
+# NCSA implementation of SLURM has value of "MaxArraySize" of 10,000
+# as confirmed by TCW on 14 May 2024.
 # Find the value of "MaxArraySize" within the text file at path "/etc/slurm/slurm.conf".
 # SLURM will not allow an array index greater than "MaxArraySize".
 # It is necessary to split larger jobs.
