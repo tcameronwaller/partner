@@ -3,7 +3,7 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 6 August 2022
-# Date, last execution: 15 March 2024
+# Date, last execution: 16 May 2024
 # Review: TCW; 15 March 2024
 ################################################################################
 # Note
@@ -35,10 +35,10 @@ path_directory_partner="${path_directory_process}/partner"
 path_directory_batch_1="${path_directory_batch}/batch_1"
 path_directory_batch_2="${path_directory_batch}/batch_2"
 path_directory_batch_3="${path_directory_batch}/batch_3"
-path_directory_batch_4="${path_directory_batch}/batch_4"
-path_directory_batch_5="${path_directory_batch}/batch_5"
-path_directory_batch_6="${path_directory_batch}/batch_6"
-path_directory_batch_7="${path_directory_batch}/batch_7"
+#path_directory_batch_4="${path_directory_batch}/batch_4"
+#path_directory_batch_5="${path_directory_batch}/batch_5"
+#path_directory_batch_6="${path_directory_batch}/batch_6"
+#path_directory_batch_7="${path_directory_batch}/batch_7"
 
 # Files.
 #path_file_batch_instances="${path_directory_product}/batch_instances.txt"
@@ -54,10 +54,10 @@ cd $path_directory_batch # execute batch from within this directory
 mkdir -p $path_directory_batch_1
 mkdir -p $path_directory_batch_2
 mkdir -p $path_directory_batch_3
-mkdir -p $path_directory_batch_4
-mkdir -p $path_directory_batch_5
-mkdir -p $path_directory_batch_6
-mkdir -p $path_directory_batch_7
+#mkdir -p $path_directory_batch_4
+#mkdir -p $path_directory_batch_5
+#mkdir -p $path_directory_batch_6
+#mkdir -p $path_directory_batch_7
 
 ################################################################################
 # Organize batch job instances.
@@ -141,11 +141,11 @@ if false; then
 fi
 
 
+# TCW; 16 May 2024
+if false; then
 
-if true; then
-
-  # instances: 0 - 3,999
-  sbatch --array 0-3999:1 --chdir $path_directory_batch_1 \
+  # instances: 0 - 9,999
+  sbatch --array 0-9999:1 --chdir $path_directory_batch_1 \
   $path_script_batch_2 \
   $path_file_batch_instances \
   $batch_instances_count \
@@ -156,73 +156,25 @@ if true; then
   $report \
   $path_script_batch_3
 
-  # instances: 4,000 - 7,999
-  sbatch --array 0-3999:1 --chdir $path_directory_batch_2 \
+  # instances: 10,000 - 19,999
+  sbatch --array 0-9999:1 --chdir $path_directory_batch_2 \
   $path_script_batch_2 \
   $path_file_batch_instances \
   $batch_instances_count \
-  4000 \
+  10000 \
   $path_directory_product \
   $path_directory_disequilibrium \
   $threads \
   $report \
   $path_script_batch_3
 
-  # instances: 8,000 - 11,999
-  sbatch --array 0-3999:1 --chdir $path_directory_batch_3 \
-  $path_script_batch_2 \
-  $path_file_batch_instances \
-  $batch_instances_count \
-  8000 \
-  $path_directory_product \
-  $path_directory_disequilibrium \
-  $threads \
-  $report \
-  $path_script_batch_3
-
-  # instances: 12,000 - 15,999
-  sbatch --array 0-3999:1 --chdir $path_directory_batch_4 \
-  $path_script_batch_2 \
-  $path_file_batch_instances \
-  $batch_instances_count \
-  12000 \
-  $path_directory_product \
-  $path_directory_disequilibrium \
-  $threads \
-  $report \
-  $path_script_batch_3
-
-  # instances: 16,000 - 19,999
-  sbatch --array 0-3999:1 --chdir $path_directory_batch_5 \
-  $path_script_batch_2 \
-  $path_file_batch_instances \
-  $batch_instances_count \
-  16000 \
-  $path_directory_product \
-  $path_directory_disequilibrium \
-  $threads \
-  $report \
-  $path_script_batch_3
-
-  # instances: 20,000 - 23,999
-  sbatch --array 0-3999:1 --chdir $path_directory_batch_6 \
+  # instances: 20,000 - maximum
+  # 26,896 - 20,000 = 6,896
+  sbatch --array 0-$((index_array_maximum - 20000)):1 --chdir $path_directory_batch_3 \
   $path_script_batch_2 \
   $path_file_batch_instances \
   $batch_instances_count \
   20000 \
-  $path_directory_product \
-  $path_directory_disequilibrium \
-  $threads \
-  $report \
-  $path_script_batch_3
-
-  # instances: 24,000 - maximum
-  # 26,896 - 24,000 = 2,896
-  sbatch --array 0-$((index_array_maximum - 24000)):1 --chdir $path_directory_batch_7 \
-  $path_script_batch_2 \
-  $path_file_batch_instances \
-  $batch_instances_count \
-  24,000 \
   $path_directory_product \
   $path_directory_disequilibrium \
   $threads \
