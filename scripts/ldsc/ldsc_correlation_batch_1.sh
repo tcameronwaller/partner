@@ -4,7 +4,7 @@
 # Author: T. Cameron Waller
 # Date, first execution: 6 August 2022
 # Date, last execution: 16 May 2024
-# Review: TCW; 15 March 2024
+# Review: TCW; 16 May 2024
 ################################################################################
 # Note
 
@@ -142,7 +142,7 @@ fi
 
 
 # TCW; 16 May 2024
-if false; then
+if true; then
 
   # instances: 0 - 9,999
   sbatch --array 0-9999:1 --chdir $path_directory_batch_1 \
@@ -170,6 +170,9 @@ if false; then
 
   # instances: 20,000 - maximum
   # 26,896 - 20,000 = 6,896
+  # Remember that the actual indices of the array initiate at zero, such that
+  # the maximal value of the array index in actually one less than the array's
+  # length.
   sbatch --array 0-$((index_array_maximum - 20000)):1 --chdir $path_directory_batch_3 \
   $path_script_batch_2 \
   $path_file_batch_instances \
