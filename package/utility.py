@@ -192,13 +192,46 @@ def extract_filter_child_file_names(
     # Filter names of child files.
     # This filter could become more sophisticated by ensuring that the prefix
     # and suffix occurred at beginning or end of string, respectively.
-    names_files_keep = list(filter(
-        lambda name_file: (
-            (str(name_file_prefix) in str(name_file)) and
-            (str(name_file_suffix) in str(name_file)) and
-            (str(name_file_not) not in str(name_file))
-        ), names_files
-    ))
+    #names_files_keep = list(filter(
+    #    lambda name_file: (
+    #        (str(name_file_prefix) in str(name_file)) and
+    #        (str(name_file_suffix) in str(name_file)) and
+    #        (str(name_file_not) not in str(name_file))
+    #    ), names_files
+    #))
+    if (
+        (len(str(name_file_prefix).strip()) > 0) and
+        (str(name_file_prefix).strip() != "none") and
+        (str(name_file_prefix).strip() != "None")
+    ):
+        names_files_keep = list(filter(
+            lambda name_file: (
+                (str(name_file_prefix) in str(name_file))
+            ), names_files
+        ))
+    else:
+        names_files_keep = names_files
+    if (
+        (len(str(name_file_suffix).strip()) > 0) and
+        (str(name_file_suffix).strip() != "none") and
+        (str(name_file_suffix).strip() != "None")
+    ):
+        names_files_keep = list(filter(
+            lambda name_file: (
+                (str(name_file_suffix) in str(name_file))
+            ), names_files_keep
+        ))
+    if (
+        (len(str(name_file_not).strip()) > 0) and
+        (str(name_file_not).strip() != "none") and
+        (str(name_file_not).strip() != "None")
+    ):
+        names_files_keep = list(filter(
+            lambda name_file: (
+                (str(name_file_not) not in str(name_file))
+            ), names_files_keep
+        ))
+    # Return information.
     return names_files_keep
 
 
