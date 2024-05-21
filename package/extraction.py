@@ -741,6 +741,14 @@ def read_extract_from_all_ldsc_files_in_directory(
         name_file_suffix=name_file_suffix,
         name_file_not=name_file_not,
     )
+    putly.print_terminal_partition(level=4)
+    putly.print_terminal_partition(level=4)
+    putly.print_terminal_partition(level=4)
+    print(len(names_files))
+    putly.print_terminal_partition(level=4)
+    putly.print_terminal_partition(level=4)
+    putly.print_terminal_partition(level=4)
+    
     # Collect information from analysis on each study.
     records = list()
     # Iterate on files for each study.
