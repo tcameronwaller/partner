@@ -60,7 +60,7 @@ threads=2
 # Execute procedure.
 
 # Organize package directory.
-cp $path_directory_package_source $path_directory_package_product_parent
+cp -r $path_directory_package_source $path_directory_package_product_parent
 mv $path_directory_package_source_copy $path_directory_package_product
 cp "${path_directory_package_product}/__init__.py" "${path_directory_package_product_parent}/__init__.py"
 
