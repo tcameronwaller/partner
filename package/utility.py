@@ -150,12 +150,12 @@ def extract_child_file_names(path_directory=None):
     """
 
     # Read names of child files and subdirectories within parent directory.
-    contents = os.listdir(path=path)
+    contents = os.listdir(path=path_directory)
     # Filter to names of existant child files.
     names_files = list(filter(
         lambda content: (
-            (os.path.isfile(os.path.join(path, content))) and
-            (not os.path.isdir(os.path.join(path, content)))
+            (os.path.isfile(os.path.join(path_directory, content))) and
+            (not os.path.isdir(os.path.join(path_directory, content)))
         ), contents
     ))
     return names_files
