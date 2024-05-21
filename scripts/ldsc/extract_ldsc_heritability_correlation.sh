@@ -3,7 +3,7 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 17 May 2024
-# Date, last execution: 17 May 2024
+# Date, last execution: 21 May 2024
 # Review: TCW; __ May 2024
 ################################################################################
 # Note
@@ -62,6 +62,7 @@ threads=2
 # Organize package directory.
 cp $path_directory_package_source $path_directory_package_product_parent
 mv $path_directory_package_source_copy $path_directory_package_product
+cp "${path_directory_package_product}/__init__.py" "${path_directory_package_product_parent}/__init__.py"
 
 # Copy Python script to package directory.
 cp $path_file_script_source $path_file_script_product
