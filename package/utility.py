@@ -1024,7 +1024,7 @@ def parse_text_boolean(
         (str(string).strip() == "True") or
         (str(string).strip() == "TRUE") or
         (str(string).strip() == "t") or
-        (str(string).strip() == "T") or
+        (str(string).strip() == "T")
     ):
         value = True
     elif (
@@ -1032,7 +1032,7 @@ def parse_text_boolean(
         (str(string).strip() == "False") or
         (str(string).strip() == "FALSE") or
         (str(string).strip() == "f") or
-        (str(string).strip() == "F") or
+        (str(string).strip() == "F")
     ):
         value = False
     else:
