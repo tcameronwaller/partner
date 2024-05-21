@@ -2,9 +2,9 @@
 
 ################################################################################
 # Author: T. Cameron Waller
-# Date, first execution: 17 May 2024
+# Date, first execution: 21 May 2024
 # Date, last execution: 21 May 2024
-# Review: TCW; __ May 2024
+# Review: TCW; 21 May 2024
 ################################################################################
 # Note
 
@@ -60,6 +60,8 @@ threads=2
 # Execute procedure.
 
 # Organize package directory.
+# Directories of main and subordinate packages must have the initiation file for
+# Python to recognize them as packages.
 cp -r $path_directory_package_source $path_directory_package_product_parent
 mv $path_directory_package_source_copy $path_directory_package_product
 cp "${path_directory_package_product}/__init__.py" "${path_directory_package_product_parent}/__init__.py"

@@ -106,86 +106,161 @@ def convert_string_low_alpha_num(characters):
     return characters_novel
 
 
-def extract_subdirectory_names(path=None):
+def extract_child_directory_names(path_directory=None):
     """
-    Extracts names of subdirectories.
+    Extracts names of child subdirectories within a parent directory.
 
     Reads all contents of a directory and returns only those of subdirectories.
 
     arguments:
-        path (str): path to directory
+        path_directory (str): path to parent directory
 
     raises:
 
     returns:
-        (list<str>): names of subdirectories
+        (list<str>): names of child subdirectories within the parent directory
 
     """
 
-    contents = os.listdir(path=path)
-    names = list(filter(
-        lambda content: os.path.isdir(os.path.join(path, content)),
+    # Read names of child files and subdirectories within parent directory.
+    contents = os.listdir(path=path_directory)
+    # Filter to names of existant child subdirectories.
+    names_directories = list(filter(
+        lambda content: os.path.isdir(os.path.join(path_directory, content)),
         contents
     ))
-    return names
+    return names_directories
 
 
-def extract_directory_file_names(path=None):
+def extract_child_file_names(path_directory=None):
     """
-    Extracts names of files within a directory.
+    Extracts names of child files within a parent directory.
 
     Reads all contents of a directory and returns only those of files (not
     directories).
 
     arguments:
-        path (str): path to directory
+        path_directory (str): path to parent directory
 
     raises:
 
     returns:
-        (list<str>): names of files within the parent directory
+        (list<str>): names of child files within the parent directory
 
     """
 
+    # Read names of child files and subdirectories within parent directory.
     contents = os.listdir(path=path)
-    files = list(filter(
+    # Filter to names of existant child files.
+    names_files = list(filter(
         lambda content: (
             (os.path.isfile(os.path.join(path, content))) and
             (not os.path.isdir(os.path.join(path, content)))
         ), contents
     ))
-    return files
+    return names_files
 
 
-def extract_directory_file_names_filter_by_name(
-    path=None,
-    name=None,
-    name_not=None,
+def extract_filter_child_file_names(
+    path_directory=None,
+    name_file_prefix=None,
+    name_file_suffix=None,
+    name_file_not=None,
 ):
     """
-    Extracts the names of all files within a parent directory and then filters
-    these file names by whether they include a specific string.
+    Extracts the names of all child  files within a parent directory and then
+    filters these file names by whether they include a specific string.
 
     arguments:
-        path (str): path to directory
-        name (str): characters within names of files to keep
-        name_not (str): characters not within names of files to keep
+        path_directory (str): path to parent directory
+        name_file_prefix (str): string prefix in names of relevant child files
+            within parent directory
+        name_file_suffix (str): string suffix in names of relevant child files
+            within parent directory
+        name_file_not (str): string not in names of relevant child files within
+            parent directory
 
     raises:
 
     returns:
-        (list<str>): names of files within the parent directory
+        (list<str>): names of relevant child files within the parent directory
 
     """
 
-    names_files = extract_directory_file_names(path=path)
+    # Extract names of child files within parent directory.
+    names_files = extract_child_file_names(path_directory=path_directory)
+    # Filter names of child files.
+    # This filter could become more sophisticated by ensuring that the prefix
+    # and suffix occurred at beginning or end of string, respectively.
     names_files_keep = list(filter(
         lambda name_file: (
-            (str(name) in str(name_file)) and
-            (str(name_not) not in str(name_file))
+            (str(name_file_prefix) in str(name_file)) and
+            (str(name_file_suffix) in str(name_file)) and
+            (str(name_file_not) not in str(name_file))
         ), names_files
     ))
     return names_files_keep
+
+
+def extract_filter_child_file_names_paths(
+    path_directory=None,
+    name_file_prefix=None,
+    name_file_suffix=None,
+    name_file_not=None,
+    report=None,
+):
+    """
+    Extracts and filters the names of all child Reads all files within a parent
+    directory and then returns complete paths to each relevant child file.
+
+    arguments:
+        path_directory (str): path to parent directory
+        name_file_prefix (str): string prefix in names of relevant child files
+            within parent directory
+        name_file_suffix (str): string suffix in names of relevant child files
+            within parent directory
+        name_file_not (str): string not in names of relevant child files within
+            parent directory
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (list<str>): list of paths to child files within parent directory that
+            match prefix and suffix
+
+    """
+
+    # Extract and filter names of child files within parent directory.
+    names_files = extract_filter_child_file_names(
+        path_directory=path_directory,
+        name_file_prefix=name_file_prefix,
+        name_file_suffix=name_file_suffix,
+        name_file_not=name_file_not,
+    )
+    # Iterate on names of child files to assemble paths.
+    # Collect paths to relevant child files.
+    paths_files = list()
+    for name_file in names_files:
+        # Assemble path.
+        path = os.path.join(
+            path_directory,
+            name_file,
+        )
+        # Collect path.
+        paths_files.append(path)
+        pass
+    # Report.
+    if report:
+        print_terminal_partition(level=5)
+        print("Names of relevant child files within parent directory:")
+        print(names_files)
+        print("Count of relevant child files within parent directory:")
+        #print(len(names_files_match))
+        print(len(paths_files))
+        print_terminal_partition(level=5)
+    # Return information.
+    return paths_files
 
 
 def create_directories(path=None):
@@ -1028,7 +1103,7 @@ def parse_text_boolean(
     ):
         value = True
     elif (
-        (str(string).strip() == "fa;se") or
+        (str(string).strip() == "false") or
         (str(string).strip() == "False") or
         (str(string).strip() == "FALSE") or
         (str(string).strip() == "f") or
@@ -1326,83 +1401,6 @@ def read_file_text_lines_elements(
             count += 1
     # Return information.
     return elements
-
-
-def read_paths_match_child_files_within_parent_directory(
-    path_directory_parent=None,
-    name_file_child_prefix=None,
-    name_file_child_suffix=None,
-    name_file_child_not=None,
-    report=None,
-):
-    """
-    Reads all files within parent directory as Pandas data-frame tables and
-    organizes these within a dictionary collection with entry names from the
-    original file names.
-
-    Notice that Pandas does not accommodate missing values within series of
-    integer variable types.
-
-    arguments:
-        path_directory_parent (str): path to parent directory in which to find
-            child files
-        name_file_child_prefix (str): prefix in name by which to recognize
-            relevant child files within parent directory
-        name_file_child_suffix (str): suffix in name by which to recognize
-            relevant child files within parent directory
-        name_file_child_not (str): string not in name by which to recognize
-            relevant child files within parent directory
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (list<str>): list of paths to child files within parent directory that
-            match prefix and suffix
-
-    """
-
-    # Read names of child files from parent directory.
-    contents = os.listdir(path=path_directory_parent)
-    # Filter to names of existant files.
-    names_files = list(filter(
-        lambda content: (os.path.isfile(os.path.join(
-            path_directory_parent, content
-        ))),
-        contents
-    ))
-    # Filter to names of files that match name prefix and suffix.
-    names_files_match = list(filter(
-        lambda name_file: (
-            (str(name_file_child_prefix) in str(name_file)) and
-            (str(name_file_child_suffix) in str(name_file)) and
-            (str(name_file_child_not) not in str(name_file))
-        ),
-        names_files
-    ))
-    # Iterate on names of child files to assemble paths.
-    # Collect paths to relevant child files.
-    paths = list()
-    for name_file in names_files_match:
-        # Assemble path.
-        path = os.path.join(
-            path_directory_parent,
-            name_file,
-        )
-        # Collect path.
-        paths.append(path)
-        pass
-    # Report.
-    if report:
-        print_terminal_partition(level=5)
-        print("Names of relevant child files within parent directory:")
-        print(names_files_match)
-        print("Count of relevant child files within parent directory:")
-        #print(len(names_files_match))
-        print(len(paths))
-        print_terminal_partition(level=5)
-    # Return information.
-    return paths
 
 
 def read_all_pandas_tables_files_within_parent_directory(

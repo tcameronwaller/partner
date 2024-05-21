@@ -5,6 +5,12 @@
 ################################################################################
 # Notes
 
+# TODO: TCW; 21 May 2024
+# TODO: need to update execution structure and context to resemble the cleaner
+# convention from "extract_ldsc_heritability_correlation.py"
+
+
+
 ################################################################################
 # Installation and importation
 
@@ -177,13 +183,12 @@ def read_source_directory_files_polygenic_scores(
 
     """
 
-    # Read all matching files within parent directory and organize paths to
-    # these files.
-    paths = utility.read_paths_match_child_files_within_parent_directory(
-        path_directory_parent=path_directory_parent,
-        name_file_child_prefix=name_file_source_prefix,
-        name_file_child_suffix=name_file_source_suffix,
-        name_file_child_not=name_file_child_not,
+    # Extract and filter complete paths to child files within parent directory.
+    paths = utility.extract_filter_child_file_names_paths(
+        path_directory=path_directory_parent,
+        name_file_prefix=name_file_child_prefix,
+        name_file_suffix=name_file_child_suffix,
+        name_file_not=name_file_child_not,
         report=report,
     )
     # Read files as Pandas dataframe tables.

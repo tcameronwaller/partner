@@ -5,6 +5,12 @@
 ################################################################################
 # Notes
 
+# TODO: TCW; 21 May 2024
+# TODO: need to update execution structure and context to resemble the cleaner
+# convention from "extract_ldsc_heritability_correlation.py"
+
+
+
 ################################################################################
 # Installation and importation
 

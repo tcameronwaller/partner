@@ -701,9 +701,10 @@ def read_extract_ldsc_correlation(
 
 def read_extract_from_all_ldsc_files_in_directory(
     path_directory=None,
-    file_name_pattern=None,
-    file_name_pattern_not=None,
-    analysis=None,
+    name_file_prefix=None,
+    name_file_suffix=None,
+    name_file_not=None,
+    type_analysis=None,
     report=None,
 ):
     """
@@ -715,11 +716,14 @@ def read_extract_from_all_ldsc_files_in_directory(
     arguments:
         path_directory (str): full path to parent directory that contains
             relevant files
-        file_name_pattern (str): character string in names of relevant files
-        file_name_pattern_not (str): character string not in names of relevant
-            files
-        analysis (str): type of analysis in LDSC, either 'heritability' or
-            'correlation'
+        name_file_prefix (str): string prefix in names of relevant child files
+            within parent directory
+        name_file_suffix (str): string suffix in names of relevant child files
+            within parent directory
+        name_file_not (str): string not in names of relevant child files within
+            parent directory
+        type_analysis (str): type of analysis in LDSC, either 'heritability' or
+            'correlation', corresponding to information for extraction
         report (bool): whether to print reports
 
     raises:
@@ -730,13 +734,13 @@ def read_extract_from_all_ldsc_files_in_directory(
 
     """
 
-    # Read names of relevant files within parent directory.
-    names_files = putly.extract_directory_file_names_filter_by_name(
-        path=path_directory,
-        name=file_name_pattern,
-        name_not=file_name_pattern_not,
+    # Extract and filter names of child files within parent directory.
+    names_files = putly.extract_filter_child_file_names(
+        path_directory=path_directory,
+        name_file_prefix=name_file_prefix,
+        name_file_suffix=name_file_suffix,
+        name_file_not=name_file_not,
     )
-
     # Collect information from analysis on each study.
     records = list()
     # Iterate on files for each study.
@@ -745,11 +749,11 @@ def read_extract_from_all_ldsc_files_in_directory(
         # Define full path to file.
         path_file = os.path.join(path_directory, name_file,)
         # Extract information from LDSC analysis.
-        if (str(analysis).strip() == "heritability"):
+        if (str(type_analysis).strip() == "heritability"):
             pail = read_extract_ldsc_heritability(
                 path_file=path_file,
             )
-        elif (str(analysis).strip() == "correlation"):
+        elif (str(type_analysis).strip() == "correlation"):
             pail = read_extract_ldsc_correlation(
                 path_file=path_file,
             )
@@ -757,8 +761,9 @@ def read_extract_from_all_ldsc_files_in_directory(
         # Collect and organize information about study.
         # Extraction functions return the relevant variables for each type of
         # analysis.
-        pail["record"]["path_directory"] = str(path_directory)
-        pail["record"]["name_file"] = str(name_file)
+        pail["record"]["path_directory"] = str(path_directory).strip()
+        pail["record"]["name_file"] = str(name_file).strip()
+        pail["record"]["type_analysis"] = str(type_analysis).strip()
         records.append(pail["record"])
         if (counter == 0):
             variables = pail["variables"]
@@ -775,7 +780,7 @@ def read_extract_from_all_ldsc_files_in_directory(
         drop=True, # remove index; do not move to regular columns
     )
     # columns.insert(0, dependence)
-    columns = ["path_directory", "name_file",]
+    columns = ["path_directory", "name_file", "type_analysis",]
     columns.extend(variables)
     table = table.loc[
         :, table.columns.isin(columns)
