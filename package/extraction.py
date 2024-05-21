@@ -744,6 +744,7 @@ def read_extract_from_all_ldsc_files_in_directory(
     putly.print_terminal_partition(level=4)
     putly.print_terminal_partition(level=4)
     putly.print_terminal_partition(level=4)
+    print("From extraction driver function")
     print(len(names_files))
     putly.print_terminal_partition(level=4)
     putly.print_terminal_partition(level=4)
