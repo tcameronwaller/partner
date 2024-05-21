@@ -959,8 +959,6 @@ def interpret_character_to_float_one_zero_match_missing_any_other(
     return match
 
 
-
-
 def interpret_float_to_one_match_zero_any_other(
     value=None,
     matches_one=None,
@@ -1001,6 +999,47 @@ def interpret_float_to_one_match_zero_any_other(
         match = 0
     # Return.
     return match
+
+
+def parse_text_boolean(
+    string=None,
+):
+    """
+    Parses a character string to interpret a Boolean value.
+
+    arguments:
+        string (str): character string corresponding to a Boolean value of
+            'true' or 'false'
+
+    raises:
+
+    returns:
+        (bool): whether the character string evaluates to Boolean true
+
+    """
+
+    # Parse character string.
+    if (
+        (str(string).strip() == "true") or
+        (str(string).strip() == "True") or
+        (str(string).strip() == "TRUE") or
+        (str(string).strip() == "t") or
+        (str(string).strip() == "T") or
+    ):
+        value = True
+    elif (
+        (str(string).strip() == "fa;se") or
+        (str(string).strip() == "False") or
+        (str(string).strip() == "FALSE") or
+        (str(string).strip() == "f") or
+        (str(string).strip() == "F") or
+    ):
+        value = False
+    else:
+        value = False
+    # Return.
+    return value
+
 
 
 
