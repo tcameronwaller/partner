@@ -189,7 +189,7 @@ def execute_procedure(
                 name_file_prefix=name_file_source_prefix,
                 name_file_suffix=name_file_source_suffix,
                 name_file_not=name_file_source_not,
-                analysis=type_analysis,
+                type_analysis=type_analysis,
                 report=report,
         ))
         pass
