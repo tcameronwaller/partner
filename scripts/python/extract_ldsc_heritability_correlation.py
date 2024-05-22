@@ -46,10 +46,10 @@ License:
 
 # An optional enhancement is to use the functions "putly.read_file_text_list()
 # and "putly.sort_table_rows_by_list_indices()" to sort rows in the extraction
-# tables according to parameter text files of indices.
-# As of 21 May 2024, my preferred alternative is to handle filters and sorts all
-# together in post-processing.
-
+# tables according to lists of indices in parameter text files.
+# As of 22 May 2024, TCW's preferred alternative is to handle filters and sorts
+# all together in post-processing of the tables that this extraction procedure
+# creates.
 
 ################################################################################
 # Installation and importation
