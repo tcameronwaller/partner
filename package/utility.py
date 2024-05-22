@@ -199,15 +199,6 @@ def extract_filter_child_file_names(
     #        (str(name_file_not) not in str(name_file))
     #    ), names_files
     #))
-    print_terminal_partition(level=4)
-    print_terminal_partition(level=4)
-    print_terminal_partition(level=4)
-    print("From utility function")
-    print(len(names_files))
-    print_terminal_partition(level=4)
-    print_terminal_partition(level=4)
-    print_terminal_partition(level=4)
-
     if (
         (len(str(name_file_prefix).strip()) > 0) and
         (str(name_file_prefix).strip() != "none") and
