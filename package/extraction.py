@@ -820,6 +820,8 @@ def define_genetic_correlation_table_column_types():
     """
     Defines the variable types of columns within table for genetic correlations.
 
+    Review: TCW; 28 May 2024
+
     arguments:
 
     raises:
@@ -833,6 +835,7 @@ def define_genetic_correlation_table_column_types():
     types_columns = dict()
     types_columns["path_directory"] = "string"
     types_columns["name_file"] = "string"
+    types_columns["type_analysis"] = "string"
     types_columns["variants"] = "float"
     types_columns["variants_valid"] = "float"
     types_columns["correlation"] = "float"
@@ -878,6 +881,7 @@ def define_genetic_correlation_table_column_sequence():
     columns_sequence = [
         #"path_directory",
         #"name_file",
+        #"type_analysis",
         #"sort_primary",
         #"sort_secondary",
         "study_primary",
@@ -936,6 +940,8 @@ def read_organize_table_ldsc_correlation_single(
     table from a single file that represents indentifier information about both
     primary and secondary studies within the table's column 'name_file'.
 
+    Review: TCW; 28 May 2024
+
     arguments:
         path_file_table (str): path to file for original source table
         report (bool): whether to print reports
@@ -977,6 +983,7 @@ def read_organize_table_ldsc_correlation_single(
             labels=[
                 "path_directory",
                 "name_file",
+                "type_analysis",
                 "correlation_ci95_low",
                 "correlation_ci95_high",
                 "correlation_ci99_low",
@@ -1030,6 +1037,8 @@ def read_organize_table_ldsc_correlation_multiple(
     primary study in the name of the file for the original table and about the
     secondary study within the table's column 'name_file'.
 
+    Review: TCW; 28 May 2024
+
     arguments:
         path_directory_parent (str): path to parent director for original source
             files
@@ -1046,11 +1055,11 @@ def read_organize_table_ldsc_correlation_multiple(
     types_columns = define_genetic_correlation_table_column_types()
     # Read all matching files within parent directory and organize paths to
     # these files.
-    paths = putly.read_paths_match_child_files_within_parent_directory(
-        path_directory_parent=path_directory_parent,
-        name_file_child_prefix="table_",
-        name_file_child_suffix=".tsv",
-        name_file_child_not="blabbergaster",
+    paths = putly.extract_filter_child_file_names_paths(
+        path_directory=path_directory_parent,
+        name_file_prefix="table_",
+        name_file_suffix=".tsv",
+        name_file_not="blabbergaster",
         report=report,
     )
 
@@ -1088,6 +1097,7 @@ def read_organize_table_ldsc_correlation_multiple(
                 labels=[
                     "path_directory",
                     "name_file",
+                    "type_analysis",
                     "correlation_ci95_low",
                     "correlation_ci95_high",
                     "correlation_ci99_low",

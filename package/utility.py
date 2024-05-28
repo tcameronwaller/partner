@@ -110,7 +110,10 @@ def extract_child_directory_names(path_directory=None):
     """
     Extracts names of child subdirectories within a parent directory.
 
-    Reads all contents of a directory and returns only those of subdirectories.
+    Reads all contents of a directory and returns only those that are
+    directories.
+
+    Review: TCW; 22 May 2024
 
     arguments:
         path_directory (str): path to parent directory
@@ -136,8 +139,10 @@ def extract_child_file_names(path_directory=None):
     """
     Extracts names of child files within a parent directory.
 
-    Reads all contents of a directory and returns only those of files (not
-    directories).
+    Reads all contents of a directory and returns only those that are
+    files (not directories).
+
+    Review: TCW; 22 May 2024
 
     arguments:
         path_directory (str): path to parent directory
@@ -170,6 +175,8 @@ def extract_filter_child_file_names(
     """
     Extracts the names of all child  files within a parent directory and then
     filters these file names by whether they include a specific string.
+
+    Review: TCW; 22 May 2024
 
     arguments:
         path_directory (str): path to parent directory
@@ -245,6 +252,8 @@ def extract_filter_child_file_names_paths(
     """
     Extracts and filters the names of all child Reads all files within a parent
     directory and then returns complete paths to each relevant child file.
+
+    Review: TCW; 22 May 2024
 
     arguments:
         path_directory (str): path to parent directory
