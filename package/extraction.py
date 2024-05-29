@@ -75,9 +75,14 @@ import numpy
 import statsmodels.api
 
 # Custom
-import partner.utility as putly # this import path for subpackage
-import partner.scale as pale
+import partner.utility as putly
+#import partner.extraction as pextr
+import partner.organization as porg
+#import partner.scale as pale
 import partner.description as pdesc
+#import partner.regression as preg
+#import partner.plot as pplot
+import partner.parallelization as prall
 
 #dir()
 #importlib.reload()
@@ -884,12 +889,15 @@ def define_genetic_correlation_table_column_sequence():
         #"type_analysis",
         #"sort_primary",
         #"sort_secondary",
+        #"group_analysis",
+        "group_primary",
+        "group_secondary",
         "study_primary",
         "study_secondary",
         "abbreviation_primary",
         "abbreviation_secondary",
-        "trait_primary",
-        "trait_secondary",
+        "description_primary",
+        "description_secondary",
         "sex_primary",
         "sex_secondary",
         #"variants",
