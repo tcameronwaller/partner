@@ -217,10 +217,9 @@ def sort_table_rows_primary_secondary_reference(
     Notice that the reference tables must include information for each and every
     unique value of the primary and secondary key factor variables.
 
-
     The implementation strategy of this function relates closely to the function
     below.
-    partner.transfer_table_rows_attributes_reference()
+    partner.organization.transfer_table_rows_attributes_reference()
 
     Review: TCW; 27 March 2024
 
