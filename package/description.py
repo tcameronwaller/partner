@@ -989,7 +989,7 @@ def calculate_table_long_false_discovery_rate_q_values(
         [table_source, table_q,],
         axis="index",
         join="outer",
-        ignore_index=True,
+        ignore_index=False,
         copy=True,
     )
     # Organize information in table.

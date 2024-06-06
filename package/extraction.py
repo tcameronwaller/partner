@@ -843,14 +843,14 @@ def define_genetic_correlation_table_column_types():
     types_columns["type_analysis"] = "string"
     types_columns["variants"] = "float"
     types_columns["variants_valid"] = "float"
-    types_columns["correlation"] = "float"
-    types_columns["correlation_error"] = "float"
-    types_columns["z_statistic_ldsc"] = "float"
-    types_columns["p_value_ldsc"] = "float"
-    types_columns["z_statistic_not_zero"] = "float"
-    types_columns["p_value_not_zero"] = "float"
-    types_columns["z_statistic_less_one"] = "float"
-    types_columns["p_value_less_one"] = "float"
+    types_columns["correlation"] = "float32"
+    types_columns["correlation_error"] = "float32"
+    types_columns["z_statistic_ldsc"] = "float32"
+    types_columns["p_value_ldsc"] = "float32"
+    types_columns["z_statistic_not_zero"] = "float32"
+    types_columns["p_value_not_zero"] = "float32"
+    types_columns["z_statistic_less_one"] = "float32"
+    types_columns["p_value_less_one"] = "float32"
     types_columns["correlation_ci95_low"] = "float"
     types_columns["correlation_ci95_high"] = "float"
     types_columns["correlation_ci99_low"] = "float"
@@ -1212,6 +1212,7 @@ def filter_table_rows_ldsc_correlation(
     studies_secondary_keep=None,
     name_primary=None,
     name_secondary=None,
+    keep_double=None,
     match_redundancy=None,
     match_self_pair=None,
     remove_else_null=None,
@@ -1233,6 +1234,8 @@ def filter_table_rows_ldsc_correlation(
             studies for which to keep information in table
         name_primary (str): name of column for primary identifier
         name_secondary (str): name of column for secondary identifier
+        keep_double (bool): whether to keep double redundant pairs for
+            symmetry
         match_redundancy (bool): whether to match redundant pairs of primary
             and secondary studies
         match_self_pair (bool): whether to match self pairs of identical
@@ -1265,6 +1268,11 @@ def filter_table_rows_ldsc_correlation(
         inplace=True,
         drop=False, # remove index; do not move to regular columns
     )
+    # Determine maximal count of matches to allow before indication.
+    if (keep_double):
+        match_count = 1
+    else:
+        match_count = 0
     # Determine pairs that match by redundancy.
     if (match_redundancy):
         table_filter["matches_redundancy"] = table_filter.apply(
@@ -1277,6 +1285,7 @@ def filter_table_rows_ldsc_correlation(
                     row_index=row["index"],
                     row_primary=row["study_primary"],
                     row_secondary=row["study_secondary"],
+                    match_count=match_count,
                     report=False,
                 ),
             axis="columns", # apply function to each row
@@ -1483,6 +1492,37 @@ def simplify_transform_genetic_correlation_table_long(
         drop=True,
         inplace=True,
     )
+
+    ##########
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=4)
+        print("pextr.simplify_transform_genetic_correlation_table_long()")
+        count_columns_source = (table_rg.shape[1])
+        count_rows_source = (table_rg.shape[0])
+        count_columns_product_1 = (table_simple.shape[1])
+        count_rows_product_1 = (table_simple.shape[0])
+        count_columns_product_2 = (table_long.shape[1])
+        count_rows_product_2 = (table_long.shape[0])
+        print("Count of columns in source table: " + str(count_columns_source))
+        print("Count of rows in source table: " + str(count_rows_source))
+        print(
+            "Count of columns in product table 1: " +
+            str(count_columns_product_1)
+        )
+        print(
+            "Count of rows in product table 1: " +
+            str(count_rows_product_1))
+        print(
+            "Count of columns in product table 2: " +
+            str(count_columns_product_2)
+        )
+        print(
+            "Count of rows in product table 2: " +
+            str(count_rows_product_2))
+        print("Table")
+        print(table_long)
+        putly.print_terminal_partition(level=4)
 
     ##########
     # Return information.

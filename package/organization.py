@@ -398,6 +398,9 @@ def sort_table_rows_by_list_indices(
 
 # Filter.
 
+# TODO: TCW; 6 June 2024
+# Simplify function 'match_table_row_redundant_interchangeable_pairs' to avoid
+# logical errors.
 
 def match_table_row_redundant_interchangeable_pairs(
     table=None,
@@ -407,6 +410,7 @@ def match_table_row_redundant_interchangeable_pairs(
     row_index=None,
     row_primary=None,
     row_secondary=None,
+    match_count=None,
     report=None,
 ):
     """
@@ -429,6 +433,7 @@ def match_table_row_redundant_interchangeable_pairs(
         row_index (int): current row's value of sequential index
         row_primary (str): current row's value of primary identifier
         row_secondary (str): current row's value of secondary identifier
+        match_count (str): maximal count of matches to allow before indication
         report (bool): whether to print reports
 
     raises:
@@ -464,13 +469,25 @@ def match_table_row_redundant_interchangeable_pairs(
     # Determine whether the current combination of primary and secondary studies
     # is either irrelevant if both are identical or redundant with a previous
     # combination in the table.
+    # Only keep one self pair regardless.
     indicator = 0
-    if (table_match_1_2.shape[0] > 0):
+    if (
+        (row_primary == row_secondary) and
+        (
+            (table_match_1_2.shape[0] > 0) or
+            (table_match_2_1.shape[0] > 0)
+        )
+    ):
         if int(row_index) > min(values_index_match):
             indicator = 1
             pass
         pass
-    elif (table_match_2_1.shape[0] > 0):
+    elif (table_match_1_2.shape[0] > 0):
+        if int(row_index) > min(values_index_match):
+            indicator = 1
+            pass
+        pass
+    elif (table_match_2_1.shape[0] > match_count):
         if int(row_index) > min(values_index_match):
             indicator = 1
             pass
@@ -554,7 +571,7 @@ def filter_symmetrical_table_half_diagonal_two_value_types(
 ):
     """
     This function filters two different types of values in a symmetrical table
-    to the lower half diagonal. The operation preserves the original multi-level
+    to the upper half diagonal. The operation preserves the original multi-level
     indices across rows and columns.
 
     Format of source table in partial long format:
@@ -616,7 +633,7 @@ def filter_symmetrical_table_half_diagonal_two_value_types(
     # Create a mask matrix for the lower half diagonal triangle of the table.
     # numpy.triu() # Upper half triangle.
     # numpy.tril() # Lower half triangle.
-    matrix_mask_half = numpy.tril(
+    matrix_mask_half = numpy.triu(
         numpy.ones(table_one.shape)
     ).astype(numpy.bool_)
     table_one_half = table_one.where(matrix_mask_half)
@@ -631,6 +648,28 @@ def filter_symmetrical_table_half_diagonal_two_value_types(
         ignore_index=False,
         copy=True,
     )
+
+    ##########
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=4)
+        print("porg.filter_symmetrical_table_half_diagonal_two_value_types()")
+        count_columns_source = (table_source.shape[1])
+        count_rows_source = (table_source.shape[0])
+        count_columns_product = (table_product.shape[1])
+        count_rows_product = (table_product.shape[0])
+        print("Count of columns in source table: " + str(count_columns_source))
+        print("Count of rows in source table: " + str(count_rows_source))
+        print(
+            "Count of columns in product table: " +
+            str(count_columns_product)
+        )
+        print(
+            "Count of rows in product table: " +
+            str(count_rows_product))
+        print("Table")
+        print(table_product)
+        putly.print_terminal_partition(level=4)
 
     ##########
     # Return information.
@@ -734,19 +773,25 @@ def transform_table_triple_quadruple_index_long_to_wide_partial(
     table_long_copy = table_long.copy(deep=True)
     # Extract original sequence of values for indices.
     sequence_index_pivot = copy.deepcopy(
-        table_long_copy.index.get_level_values(column_index_pivot).to_list()
+        table_long_copy.index.get_level_values(
+            column_index_pivot
+        ).unique().to_list()
     )
     sequence_index_stay_1 = copy.deepcopy(
-        table_long_copy.index.get_level_values(columns_index_stay[0]).to_list()
+        table_long_copy.index.get_level_values(
+            columns_index_stay[0]
+        ).unique().to_list()
     )
     sequence_index_stay_2 = copy.deepcopy(
-        table_long_copy.index.get_level_values(columns_index_stay[1]).to_list()
+        table_long_copy.index.get_level_values(
+            columns_index_stay[1]
+        ).unique().to_list()
     )
     if (len(columns_index_stay) == 3):
         sequence_index_stay_3 = copy.deepcopy(
             table_long_copy.index.get_level_values(
                 columns_index_stay[2]
-            ).to_list()
+            ).unique().to_list()
         )
         pass
 
@@ -1032,6 +1077,12 @@ def transform_table_triple_quadruple_index_long_to_wide(
     pail["table_wide_full"] = table_wide_full
     # Return information.
     return pail
+
+# TODO: TCW; 6 June 2024
+# Pay attention to the sort order of the columns from the 'pivot' operation in
+# function 'transform_table_quadruple_index_long_to_wide_square'.
+# It might be prudent to sort the columns similarly to in the function
+# 'transform_table_triple_quadruple_index_long_to_wide_partial'.
 
 
 def transform_table_quadruple_index_long_to_wide_square(
