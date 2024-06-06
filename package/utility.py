@@ -2292,12 +2292,20 @@ def write_product_table(
     )
     # Determine type of file to which to save.
     if (type == "text"):
+        # Copy information in table.
+        table_copy = table.copy(deep=True)
+        # Organize information in table.
+        table_copy.reset_index(
+            level=None,
+            inplace=True,
+            drop=False, # remove index; do not move to regular columns
+        )
         # Specify directories and files.
         path_file_table = os.path.join(
             path_directory, str(name_file + ".tsv")
         )
         # Write information to file.
-        table.to_csv(
+        table_copy.to_csv(
             path_or_buf=path_file_table,
             sep="\t",
             na_rep="NA",

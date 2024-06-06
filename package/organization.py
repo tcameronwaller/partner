@@ -1153,16 +1153,16 @@ def transform_table_quadruple_index_long_to_wide_square(
     # Copy information in table.
     table_long_copy = table_long.copy(deep=True)
     # Extract original sequence of values for indices.
-    #sequence_index_pivot_1 = copy.deepcopy(
-    #    table_long_copy.index.get_level_values(
-    #        columns_index_pivot[0]
-    #    ).to_list()
-    #)
-    #sequence_index_pivot_2 = copy.deepcopy(
-    #    table_long_copy.index.get_level_values(
-    #        columns_index_pivot[1]
-    #    ).to_list()
-    #)
+    sequence_index_pivot_1 = copy.deepcopy(
+        table_long_copy.index.get_level_values(
+            columns_index_pivot[0]
+        ).unique().to_list()
+    )
+    sequence_index_pivot_2 = copy.deepcopy(
+        table_long_copy.index.get_level_values(
+            columns_index_pivot[1]
+        ).unique().to_list()
+    )
     sequence_index_stay_1 = copy.deepcopy(
         table_long_copy.index.get_level_values(
             columns_index_stay[0]
