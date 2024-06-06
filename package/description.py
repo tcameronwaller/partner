@@ -633,11 +633,11 @@ def determine_95_99_confidence_intervals_ranges(
 
 
 def calculate_table_false_discovery_rate_q_values(
-    threshold=None,
+    table=None,
     name_column_p_value=None,
     name_column_q_value=None,
     name_column_significance=None,
-    table=None,
+    threshold=None,
 ):
     """
     Calculates Benjamini-Hochberg q-values to indicate false discovery rates
@@ -661,14 +661,14 @@ def calculate_table_false_discovery_rate_q_values(
     site: https://www.statisticshowto.com/benjamini-hochberg-procedure/
 
     arguments:
-        threshold (float): value of alpha, or family-wise error rate in
-            calculation of false discovery rate
+        table (object): Pandas data frame with column of probabilities across
+            observations in rows
         name_column_p_value (str): name of table's column of p-values
         name_column_q_value (str): name for table's column of q-values
         name_column_significance (str): name for table's column of FDR
             indication that null hypothesis can be rejected
-        table (object): Pandas data frame with column of probabilities across
-            observations in rows
+        threshold (float): value of alpha, or family-wise error rate in
+            calculation of false discovery rate
 
     raises:
 
@@ -835,6 +835,181 @@ def calculate_q_values_in_table_groups(
         pass
     # Return information.
     return table_collection
+
+
+def calculate_table_long_false_discovery_rate_q_values(
+    table=None,
+    name_index_type_value=None,
+    type_p_value=None,
+    threshold=None,
+    names_indices_rows=None,
+    report=None,
+):
+    """
+    Beginning with a table of values in long format, this function calculates
+    Benjamini-Hochberg q-values to control the False-Discovery Rate (FDR) for
+    testing multiple hypotheses.
+
+    Example of source table in long format:
+
+    group_1st     group_2nd     type_value     value
+    group_1_a     group_2_a     signal    -0.15
+    group_1_a     group_2_a     p_value   0.001
+    group_1_a     group_2_b     signal    0.25
+    group_1_a     group_2_b     p_value   0.001
+    group_1_a     group_2_c     signal    0.35
+    group_1_a     group_2_c     p_value   0.001
+    group_1_b     group_2_a     signal    0.75
+    group_1_b     group_2_a     p_value   0.001
+    group_1_b     group_2_b     signal    -0.35
+    group_1_b     group_2_b     p_value   0.001
+    group_1_b     group_2_c     signal    0.45
+    group_1_b     group_2_c     p_value   0.001
+
+    Example of product table in long format:
+
+    group_1st     group_2nd     type_value     value
+    group_1_a     group_2_a     signal    -0.15
+    group_1_a     group_2_a     p_value   0.001
+    group_1_a     group_2_a     q_value   0.01
+    group_1_a     group_2_b     signal    0.25
+    group_1_a     group_2_b     p_value   0.001
+    group_1_a     group_2_b     q_value   0.01
+    group_1_a     group_2_c     signal    0.35
+    group_1_a     group_2_c     p_value   0.001
+    group_1_a     group_2_c     q_value   0.01
+    group_1_b     group_2_a     signal    0.75
+    group_1_b     group_2_a     p_value   0.001
+    group_1_b     group_2_a     q_value   0.01
+    group_1_b     group_2_b     signal    -0.35
+    group_1_b     group_2_b     p_value   0.001
+    group_1_b     group_2_b     q_value   0.01
+    group_1_b     group_2_c     signal    0.45
+    group_1_b     group_2_c     p_value   0.001
+    group_1_b     group_2_c     q_value   0.01
+
+    Recommendations for names of indices:
+    name_index_type_value="type_value"
+
+    Recommendation for categorical name of p-values within index level
+    "type_value":
+    type_p_value="p_value"
+
+    Review: TCW; 6 June 2024
+
+    arguments:
+        table (object): Pandas data-frame table in long format with definitions
+            of indices across columns and rows
+        name_index_type_value (str): name of index across rows that designates
+            which of multiple types of values correspond to categorical indices
+            across columns and rows
+        type_p_value (str): name of category for p-values
+        threshold (float): value of alpha, or family-wise error rate in
+            calculation of false discovery rate
+        names_indices_rows (list<str>): names of columns for indices across rows
+            in original source table
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    ##########
+    # Copy information in table.
+    table_source = table.copy(deep=True)
+
+    ##########
+    # Separate the p-values from other types of values within the table.
+    #table_p = table_source.loc[
+    #    (table_source[name_index_type_value] == type_p_value), :
+    #].copy(deep=True)
+    table_p = table_source[
+        table_source.index.get_level_values(
+            name_index_type_value
+        ).isin([type_p_value])
+    ].copy(deep=True)
+    #matrix_p = numpy.copy(table_p.to_numpy())
+
+    ##########
+    # Translate names of columns.
+    translations = dict()
+    translations["value"] = "p_value"
+    table_p.rename(
+        columns=translations,
+        inplace=True,
+    )
+
+    ##########
+    # Calculate Benjamini-Hochberg False Discovery Rate q-values.
+    table_q = calculate_table_false_discovery_rate_q_values(
+        table=table_p,
+        name_column_p_value="p_value",
+        name_column_q_value="q_value",
+        name_column_significance="q_significance",
+        threshold=threshold, # alpha; family-wise error rate
+    )
+
+    ##########
+    # Organize table of q-values.
+    # Remove unnecessary columns.
+    table_q.drop(
+        labels=["p_value", "q_significance",],
+        axis="columns",
+        inplace=True
+    )
+    # Organize information in table.
+    table_q.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
+    table_q[name_index_type_value] = "q_value"
+    # Translate names of columns.
+    translations = dict()
+    translations["q_value"] = "value"
+    table_q.rename(
+        columns=translations,
+        inplace=True,
+    )
+
+    ##########
+    # Combine the novel q-values with the p-values and other information in the
+    # original table.
+    # Organize information in table.
+    table_source.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
+    # Concatenate tables.
+    table_product = pandas.concat(
+        [table_source, table_q,],
+        axis="index",
+        join="outer",
+        ignore_index=True,
+        copy=True,
+    )
+    # Organize information in table.
+    table_product.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    table_product.set_index(
+        names_indices_rows,
+        append=False,
+        drop=True,
+        inplace=True,
+    )
+
+    ##########
+    # Return information.
+    return table_product
+
+
 
 
 

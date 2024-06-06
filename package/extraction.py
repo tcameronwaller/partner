@@ -1343,6 +1343,152 @@ def filter_table_rows_ldsc_correlation(
     return table_filter
 
 
+def simplify_transform_genetic_correlation_table_long(
+    table_rg=None,
+    q_values=None,
+    report=None,
+):
+    """
+    This function simplifies the content of a table of genetic correlations and
+    transforms to long format.
+
+    Review: TCW; 5 June 2024
+
+    arguments:
+        table_rg (object): Pandas data-frame table of genetic correlations
+        q_values (bool): whether the table already includes q-values
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    ##########
+    # Simplify content of table.
+    # Copy information in table.
+    table_simple = table_rg.copy(deep=True)
+    # Determine appropriate procedure.
+    if q_values:
+        # Translate names of columns.
+        translations = dict()
+        #translations["group_analysis"] = "group_secondary"
+        #translations["outcome_abbreviation"] = "group_primary"
+        #translations["score_abbreviation"] = "group_tertiary"
+        translations["correlation"] = "signal"
+        translations["p_value_ldsc"] = "p_value"
+        translations["q_value_ldsc"] = "q_value"
+        table_simple.rename(
+            columns=translations,
+            inplace=True,
+        )
+        # Filter and sort table's columns.
+        table_simple = porg.filter_sort_table_columns(
+            table=table_simple,
+            columns_sequence=[
+                "group_analysis",
+                "abbreviation_primary",
+                "abbreviation_secondary",
+                "signal",
+                "p_value",
+                "q_value",
+            ],
+            report=report,
+        )
+    else:
+        # Translate names of columns.
+        translations = dict()
+        #translations["group_analysis"] = "group_secondary"
+        #translations["outcome_abbreviation"] = "group_primary"
+        #translations["score_abbreviation"] = "group_tertiary"
+        translations["correlation"] = "signal"
+        translations["p_value_ldsc"] = "p_value"
+        table_simple.rename(
+            columns=translations,
+            inplace=True,
+        )
+        # Filter and sort table's columns.
+        table_simple = porg.filter_sort_table_columns(
+            table=table_simple,
+            columns_sequence=[
+                "group_analysis",
+                "abbreviation_primary",
+                "abbreviation_secondary",
+                "signal",
+                "p_value",
+            ],
+            report=report,
+        )
+        pass
+    # Organize information in table.
+    table_simple.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    table_simple.set_index(
+        [
+            "group_analysis",
+            "abbreviation_primary",
+            "abbreviation_secondary",
+        ],
+        append=False,
+        drop=True,
+        inplace=True,
+    )
+    table_simple.columns.rename(
+        "type_value",
+        inplace=True,
+    ) # single-dimensional index
+
+    ##########
+    # Transform table from partial wide to full long format.
+    # Pandas dataframe methods "stack", "melt", and "wide_to_long", can all be
+    # useful in this context.
+    # Method "stack" converts to a multi-index series when the column index only
+    # has a single level.
+    # Method "wide_to_long" assumes that the information about multiple levels
+    # in the column index is stored in delimited strings of compound column
+    # names.
+    if False:
+        table_long = table_simple.stack(
+            level=name_row_index,
+            #future_stack=True,
+        )
+    table_long = table_simple.melt(
+        id_vars=None,
+        value_vars=None,
+        var_name="type_value",
+        value_name="value",
+        ignore_index=False,
+    )
+
+    ##########
+    # Organize information in table.
+    table_long.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
+    table_long.set_index(
+        [
+            "group_analysis",
+            "abbreviation_primary",
+            "abbreviation_secondary",
+            "type_value",
+        ],
+        append=False,
+        drop=True,
+        inplace=True,
+    )
+
+    ##########
+    # Return information.
+    return table_long
+
+
 def needs_update_filter_table_ldsc_correlation_studies(
     table=None,
     studies_keep=None,

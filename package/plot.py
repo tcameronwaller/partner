@@ -753,8 +753,8 @@ def plot_heat_map_few_signal_significance_labels(
     if True:
         # Extract relevant information.
         # Extract values.
-        # For this extraction, the "type_value" index must be oriented across the
-        # table's rows.
+        # For this extraction, the "type_value" index must be oriented across
+        # the table's rows.
         #table_signal = table.loc[
         #    (table["type_value"] == "signal"), :
         #].copy(deep=True)
