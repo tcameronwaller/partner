@@ -1197,7 +1197,7 @@ def remove_or_nullify_genetic_correlation_values_raw(
         for column_null in columns_null:
             table_filter[column_null] = table_filter.apply(
                 lambda row:
-                    pandas.NA if (row[column_match] == 1) else row[column_null],
+                    float("nan") if (row[column_match] == 1) else row[column_null],
                 axis="columns", # apply function to each row
             )
             pass

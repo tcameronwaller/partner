@@ -599,10 +599,6 @@ def initialize_matplotlib_figure_aspect(
 # Heatmap plots with few cells
 # These heatmap plots support options such as text labels on the cells.
 
-# TODO: TCW; 29 March 2024
-# TODO: I still need to change the plotting function to represent only the
-# q-values on the heatmaps, not p-values.
-
 
 def plot_heat_map_few_signal_significance_labels(
     table=None,
@@ -949,7 +945,7 @@ def plot_heat_map_few_signal_significance_labels(
     # Sequential color maps: "Reds", "Reds_r", "Oranges", "Oranges_r",
     image = axes.imshow(
         matrix_signal,
-        cmap=matplotlib.colormaps["RdBu_r"],
+        cmap=matplotlib.colormaps["PuOr_r"], # RdBu_r
         vmin=value_minimum,
         vmax=value_maximum,
         aspect="auto", # "auto", "equal",
@@ -1045,9 +1041,12 @@ def plot_heat_map_few_signal_significance_labels(
             p_value = matrix_p[index_row, index_column]
             q_value = matrix_q[index_row, index_column]
             if ((signal_value > 0.6) or (signal_value < -0.6)):
-                color="white"
+                #color="white"
+                color="gray_light"
             else:
-                color="black"
+                #color="black"
+                #color="gray_dark"
+                color="gray"
                 pass
 
             # Create labels on cells to represent p-values and q-values.
@@ -1126,7 +1125,7 @@ def plot_heat_map_few_signal_significance_labels(
                     label_cell,
                     xy=(index_column,index_row),
                     xycoords="data", # use coordinate system of object
-                    xytext=(10,15), # coordinates for offset of text from main
+                    xytext=(7,10), # coordinates for offset of text from main
                     textcoords="offset points", # coordinates for 'xytext'
                     horizontalalignment="center",
                     verticalalignment="center",
