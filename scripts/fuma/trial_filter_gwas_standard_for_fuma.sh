@@ -19,6 +19,11 @@
 # TODO: TCW; 12 June 2024
 # TODO: Still need to remove excess columns "Z", "INFO", "NCAS", and "NCONT".
 
+# TODO: down-sample the SNP rows in the sum stats for testing
+# zcat ./file | head -100000 > product_file.txt
+
+
+
 # Product Format (Concise for FUMA)
 # effect allele: "A1"
 # delimiter: white space
@@ -70,61 +75,52 @@ set +v
 # columns: "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT"
 
 ##########
-# 1. Filter records in GWAS summary statistics.
+# 1. Filter columns to remove those irrelevant for FUMA.
+echo "SNP CHR BP A1 A2 A1AF BETA SE P N" > $path_file_temporary_1
+# For conciseness, only support the conditions that are relevant.
+zcat $path_file_source | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
+  print $1, $2, $3, toupper($4), toupper($5), $6, $7, $8, $9, $10
+}' >> $path_file_temporary_1
+
+
+
+
+##########
+# 2. Filter records in GWAS summary statistics.
 # Note that AWK interprets a single space delimiter (FS=" ") as any white space.
-#echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_1
-zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_file_temporary_1
-zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
-  if ( NF != 14)
-    # Skip any of table rows with incorrect count of column fields, indicating empty cells.
-    next
-  else if ( ($4 == "") || (toupper($4) == "NA") || (toupper($4) == "NAN") )
-    # Skip any rows with missing effect allele.
-    next
-  else if ( (toupper($4) !~ /[TCGAtcga]*/) )
-    # Skip any rows with nonsense effect allele.
-    next
-  else if ( ($5 == "") || (toupper($5) == "NA") || (toupper($5) == "NAN") )
-    # Skip any rows with missing other allele.
-    next
-  else if ( (toupper($5) !~ /[TCGAtcga]*/) )
-    # Skip any rows with nonsense other allele.
-    next
-  else if ( ($6 == "") || (toupper($6) == "NA") || (toupper($6) == "NAN") || ( ($6 + 0) < 0 ) )
-    # Skip any rows with missing or nonsense allele frequency.
-    # Some subsequent analyses do not require this information, but in that case
-    # it is possible to fill missing allele frequency with value 0.5.
-    next
-  else if ( ($7 == "") || (toupper($7) == "NA") || (toupper($7) == "NAN") )
-    # Skip any rows with missing effect parameter.
-    # Remember that the effect parameter (beta) can be less than zero.
-    next
-  else if ( ($8 == "") || (toupper($8) == "NA") || (toupper($8) == "NAN") || ( ($8 + 0) < 0 ) )
-    # Skip any rows with missing or nonsense less than zero standard error.
-    next
-  else if ( ($9 == "") || (toupper($9) == "NA") || (toupper($9) == "NAN") || ( ($9 + 0) < 0 ) )
-    # Skip any rows with missing or nonsense probability.
-    next
-  else if ( ($10 == "") || (toupper($10) == "NA") || (toupper($10) == "NAN") || ( ($10 + 0) < 1.0 ) )
-    # Skip any rows with missing count of observations (sample size).
-    next
-  else if ( (toupper(substr($1, 1, 2)) !~ /[RS]/) )
+#echo "SNP CHR BP A1 A2 A1AF BETA SE P N" > $path_file_temporary_1
+cat $path_file_temporary_1 | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_file_temporary_2
+cat $path_file_temporary_1 | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
+  if ( (toupper(substr($1, 1, 2)) !~ /[RS]/) )
     # Skip any rows with invalid dbSNP reference SNP cluster identifiers (rsIDs).
     next
   else
     # Row passes all checks, filters, and constraints.
     # Print the row entirely.
     print $0
-  }' >> $path_file_temporary_1
+  }' >> $path_file_temporary_2
 
-
+##########
+# 3. Filter records in GWAS summary statistics by p-value.
+# Note that AWK interprets a single space delimiter (FS=" ") as any white space.
+#echo "SNP CHR BP A1 A2 A1AF BETA SE P N" > $path_file_temporary_3
+cat $path_file_temporary_2 | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_file_temporary_3
+cat $path_file_temporary_2 | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
+  if ( ($9 + 0) > 0.1 )
+    # Skip SNP record for large p-value.
+    next
+  else
+    # Row passes all checks, filters, and constraints.
+    # Print the row entirely.
+    print $0
+  }' >> $path_file_temporary_3
 
 
 ##########
 # Compression
 
 # Compress file format.
-gzip -cvf $path_file_temporary_1 > $path_file_product
+gzip -cvf $path_file_temporary_3 > $path_file_product
 
 
 
