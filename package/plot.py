@@ -941,11 +941,14 @@ def plot_heat_map_few_signal_significance_labels(
     # This function represents values acros matrix dimension 0 as vertical rows.
     # This function represents values across matrix dimension 1 as horizontal
     # columns.
+    # Diverging color maps: "PRGn", "PRGn_r", "PiYG", "PiYG_r",
+    # Diverging color maps: "PuOr", "PuOr_r",
     # Diverging color maps: "PuOr", "PuOr_r", "RdBu", "RdBu_r", "BrBG",
     # Sequential color maps: "Reds", "Reds_r", "Oranges", "Oranges_r",
+    # site: https://montoliu.naukas.com/2021/11/18/color-blindness-purple-and-orange-are-the-solution/
     image = axes.imshow(
         matrix_signal,
-        cmap=matplotlib.colormaps["PuOr_r"], # RdBu_r
+        cmap=matplotlib.colormaps["PuOr"], # RdBu_r, PuOr_r
         vmin=value_minimum,
         vmax=value_maximum,
         aspect="auto", # "auto", "equal",
@@ -1144,7 +1147,7 @@ def plot_heat_map_few_signal_significance_labels(
             orientation="vertical",
             ax=axes,
             location="right",
-            shrink=0.7, # 0.7; factor for dimensions of the Scale Bar.
+            shrink=1.0, # 0.7; factor for dimensions of the Scale Bar.
         )
         if (len(title_bar) > 0):
             bar.ax.set_ylabel(
@@ -1161,8 +1164,8 @@ def plot_heat_map_few_signal_significance_labels(
             axis="both",
             which="both", # major, minor, or both
             direction="out",
-            length=5.0, # 5.0, 7.5
-            width=2.5, # 2.5, 5.0
+            length=7.5, # 5.0, 7.5
+            width=3, # 2.5, 5.0
             color=colors["black"],
             pad=5, # 5, 7
             labelsize=fonts["values"][size_label_bar]["size"],

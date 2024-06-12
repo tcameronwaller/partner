@@ -2,27 +2,41 @@
 
 ################################################################################
 # Author: T. Cameron Waller
-# Date, first execution: 21 September 2023
-# Date, last execution: 29 November 2023
-# Date, review: 29 November 2023
+# Date, first execution: 12 June 2024
+# Date, last execution: 12 June 2024
+# Review: TCW; 12 June 2024
 ################################################################################
 # Note
 
-# This script accompanies script file "check_gwas_summary_values.sh".
-# This script ("filter_constrain_gwas_summary_values.sh") has the most
-# up-to-date implementation of the conditionals.
+# Trial script to prepare summary statistics that TCW ran on data from UK
+# Biobank for upload and analyses in FUMA.
 
-# The filters in this script are stringent. It is probably unnecessary to filter
-# on the letter designations of alleles (TCGA), as GWAS2VCF might fill these in
-# from SNP rsIDs, and LDSC does not use this information.
+# Source Format (standard for Psychiatric Genetics team)
+# effect allele: "A1"
+# delimiter: white space
+# columns: SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT
+
+# TODO: TCW; 12 June 2024
+# TODO: Still need to remove excess columns "Z", "INFO", "NCAS", and "NCONT".
+
+# Product Format (Concise for FUMA)
+# effect allele: "A1"
+# delimiter: white space
+# columns: SNP CHR BP A1 A2 A1AF BETA SE P N
+
+################################################################################
+
 
 
 ################################################################################
 # Organize arguments.
 
 path_file_source=${1} # full path to file for source GWAS summary statistics with GZip compression
-path_file_product=${2} # full path to file for product GWAS summary statistics with GZip compression
+path_file_product=${2} # full path to file for product GWAS summary statistics in format with GZip compression
 report=${3} # whether to print reports
+
+################################################################################
+# Organize paths.
 
 ################################################################################
 # Organize paths.
@@ -51,31 +65,9 @@ set +v
 ################################################################################
 # Execute procedure.
 
-##########
-# Notes
-
-# Here are some useful regular expressions to evaluate values in "awk".
-# ( $12 ~ /^[0-9]+$/ ); ( $12 ~ /^[[:alpha:]]+$/ ); ( $12 ~ /^[[:punct:]]+$/ )
-
-# The 64-bit floating point precision (double precision) can represent values
-# from +/- 2.23E-308 to +/- 1.80E308 (https://github.com/bulik/ldsc/issues/144).
-
-# ( (toupper($4) != "T") && (toupper($4) != "C") && (toupper($4) != "G") && (toupper($4) != "A") )
-
-#else if ( (toupper($4) !~ /^[TCGA]+$/) )
-#  # Check effect allele.
-#  print $0
-
-#else if ( (toupper($5) !~ /^[TCGA]+$/) )
-#  # Check other allele.
-#  print $0
-
-#else if ( ($3 == "") || (toupper($3) == "NA") || (toupper($3) == "NAN") || ( ($3 + 0) < 1.0 ) )
-#  # Skip any rows with missing base position coordinate.
-#  # Some subsequent analyses do not require this information.
-#  next
-
-
+# Source format of GWAS summary statistics was the standard of the Psychiatric
+# Genetics team in 2022.
+# columns: "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT"
 
 ##########
 # 1. Filter records in GWAS summary statistics.
@@ -116,6 +108,9 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
   else if ( ($10 == "") || (toupper($10) == "NA") || (toupper($10) == "NAN") || ( ($10 + 0) < 1.0 ) )
     # Skip any rows with missing count of observations (sample size).
     next
+  else if ( (toupper(substr($1, 1, 2)) !~ /[RS]/) )
+    # Skip any rows with invalid dbSNP reference SNP cluster identifiers (rsIDs).
+    next
   else
     # Row passes all checks, filters, and constraints.
     # Print the row entirely.
@@ -124,46 +119,12 @@ zcat $path_file_source | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
 
 
 
-##########
-# 2. Constrain values in GWAS summary statistics.
-
-#echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_check
-cat $path_file_temporary_1 | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_file_temporary_2
-cat $path_file_temporary_1 | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
-  if ( ( ($6 + 0) > 0 ) && ( ($6 + 0) < 1.0E-307 ) )
-    # Constrain allele frequency.
-    print $1, $2, $3, $4, $5, (1.0E-307), $7, $8, $9, $10, $11, $12, $13, $14
-  else if ( ($6 + 0) > 1.0 )
-    # Constrain allele frequency.
-    print $1, $2, $3, $4, $5, (1.0), $7, $8, $9, $10, $11, $12, $13, $14
-  else
-    # Row passes all checks, filters, and constraints.
-    # Print the row entirely.
-    print $0
-  }' >> $path_file_temporary_2
-
-#echo "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT" > $path_file_temporary_check
-cat $path_file_temporary_2 | awk 'BEGIN { FS=" "; OFS=" " } NR == 1' > $path_file_temporary_3
-cat $path_file_temporary_2 | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
-  if ( ( ($9 + 0) > 0 ) && ( ($9 + 0) < 1.0E-307 ) )
-    # Constrain probability.
-    print $1, $2, $3, $4, $5, $6, $7, $8, (1.0E-307), $10, $11, $12, $13, $14
-  else if ( ($9 + 0) > 1.0 )
-    # Constrain probability.
-    print $1, $2, $3, $4, $5, $6, $7, $8, (1.0), $10, $11, $12, $13, $14
-  else
-    # Row passes all checks, filters, and constraints.
-    # Print the row entirely.
-    print $0
-  }' >> $path_file_temporary_3
-
-
 
 ##########
 # Compression
 
 # Compress file format.
-gzip -cvf $path_file_temporary_3 > $path_file_product
+gzip -cvf $path_file_temporary_1 > $path_file_product
 
 
 
