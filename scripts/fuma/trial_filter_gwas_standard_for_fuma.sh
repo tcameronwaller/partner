@@ -31,7 +31,10 @@
 
 ################################################################################
 
+# $ zcat {path to file} | head -10000000 > {path to file}
 
+# {user}@{machine}:{path to current working directory}$ bash --help
+# $ bash {path to script file}
 
 ################################################################################
 # Organize arguments.
@@ -82,9 +85,6 @@ zcat $path_file_source | awk 'BEGIN {FS = " "; OFS = " "} NR > 1 {
   print $1, $2, $3, toupper($4), toupper($5), $6, $7, $8, $9, $10
 }' >> $path_file_temporary_1
 
-
-
-
 ##########
 # 2. Filter records in GWAS summary statistics.
 # Note that AWK interprets a single space delimiter (FS=" ") as any white space.
@@ -115,14 +115,11 @@ cat $path_file_temporary_2 | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
     print $0
   }' >> $path_file_temporary_3
 
-
 ##########
 # Compression
 
 # Compress file format.
 gzip -cvf $path_file_temporary_3 > $path_file_product
-
-
 
 ##########
 # Report.
