@@ -10,15 +10,19 @@
 
 # The Next Generation Sequencing Core Facility at Mayo Clinic delivers raw
 # sequence data along with a brief report of notes and sample descriptions in a
-# text file. This script parses the text file and extracts the sample
+# text file. This script parses the text file and extracts the table of sample
 # descriptions, which it then writes to a table in text format with delimiters
-# of tabls and new lines (tsv).
+# of tabs and new lines (tsv). This new file will be more convenient to read
+# into Python Pandas for subsequent data processing.
 
 # These sample descriptions will be necessary to map RNA sequence data to the
 # identifiers of the original samples from the experiment.
 
 # Product Format (table in text format with delimiters of tabs and new lines)
 # columns: identifier_sequence molecule type identifier_experiment
+
+# On 17 June 2024, TCW confirmed that this script kept the first and last lines
+# of information about samples.
 
 ################################################################################
 
