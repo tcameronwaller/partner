@@ -154,7 +154,6 @@ if [[ "$report" == "true" ]]; then
   echo "first batch instance: " ${batch_instances[0]} # notice base-zero indexing
   echo "last batch instance: " ${batch_instances[$index_array_maximum]}
   echo "----------"
-
 fi
 
 sleep 5s
