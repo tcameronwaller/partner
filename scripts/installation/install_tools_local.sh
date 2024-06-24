@@ -8,6 +8,12 @@ set -x
 # Set working directory.
 cd ~
 
+
+
+##################################################
+# Install tools for local personal and professional use
+##################################################
+
 # Install general tools.
 # "software-properties-common" increases "apt" functionality for commands such as "add-apt-repository".
 sudo apt install software-properties-common
@@ -25,20 +31,6 @@ wget -qO - https://packagecloud.io/AtomEditor/atom/gpgkey | sudo apt-key add -
 sudo add-apt-repository "deb [arch=amd64] https://packagecloud.io/AtomEditor/atom/any/ any main"
 sudo apt update
 sudo apt install atom
-
-# Cytoscape
-# site: https://cytoscape.org/index.html
-# last installation: TCW; 22 February 2024
-# 1. Install Java 17
-apt update
-apt upgrade
-apt install openjdk-17-jdk openjdk-17-jre
-java -version
-# 2. Install Cytoscape
-cd ~/Downloads
-wget https://github.com/cytoscape/cytoscape/releases/download/3.10.1/Cytoscape_3_10_1_unix.sh
-bash ~/Downloads/Cytoscape_3_10_1_unix.sh
-# installation path: /home/tcameronwaller/Cytoscape_v3.10.1
 
 # Discord
 # Or use the web browser application.
@@ -223,136 +215,6 @@ sudo apt install fldigi
 # https://sourceforge.net/projects/fldigi/files/AndFlmsg/
 # http://www.w1hkj.com/files/AndFlmsg/
 # http://www.w1hkj.com/files/AndFlmsg/AndFlmsg_V1.5.0-20210812.apk
-
-
-##########
-# Git, GitHub
-# site: https://github.com/
-# After renaming a repository, redirect git commits to new repository on GitHub.
-git remote set-url origin https://github.com/tcameronwaller/partner.git
-git remote set-url origin https://github.com/tcameronwaller/psychiatry_biomarkers.git
-
-##########
-# BGZip
-# Last installation: TCW; 15 February 2023 (on NCSA server)
-# A bioinformatics tool for compression in GZip format with Tabix index.
-# http://www.htslib.org/doc/bgzip.html
-# The HTSLib includes BGZip and Tabix.
-# http://www.htslib.org/download/
-wget https://github.com/samtools/htslib/releases/download/1.16/htslib-1.16.tar.bz2
-tar -xjvf ./htslib-1.16.tar.bz2 -C ./
-cd ./htslib-1.16
-./configure --prefix=../htslib/1.16 # requires absolute directory path
-make
-make install
-cd ../htslib/1.16/bin/
-./bgzip --help
-
-
-
-##########
-# BCFTools
-# Last installation: TCW; 15 February 2023 (on NCSA server)
-# A bioinformatic tool for tasks on genotype files in Variant Call Format (VCF).
-# Documentation from SamTools (https://samtools.github.io/bcftools/howtos/index.html).
-# Documentation manual (https://samtools.github.io/bcftools/bcftools.html).
-# https://samtools.github.io/bcftools/
-# http://www.htslib.org/download/
-wget https://github.com/samtools/bcftools/releases/download/1.16/bcftools-1.16.tar.bz2
-tar -xjvf ./bcftools-1.16.tar.bz2 -C ./
-cd ./bcftools-1.16
-./configure --prefix=../bcftools/1.16 # requires absolute directory path
-make
-make install
-cd ../bcftools/1.16/bin/
-./bcftools --help
-
-
-
-##########
-# GCTB
-# Installation date: TCW; 13 January 2023
-# A package of tools for Genome-wide Complex Trait Bayesian (GCTB) analysis
-# Includes the tool SBayesR for calculation of Polygenic Scores (PGS).
-# Authors provided a "statically linked 64-bit Linux executable, gctb".
-# Installation instructions for custom, local compilation (https://cnsgenomics.com/software/gctb/download/README.html).
-cd ./ # navigate to directory in which to install program.
-wget "https://cnsgenomics.com/software/gctb/download/gctb_2.04.3_Linux.zip"
-unzip "./gctb_2.04.3_Linux.zip"
-./gctb_2.04.3_Linux/gctb --help
-
-##########
-# LDSC
-# A package of tools to estimate autosome-wide (excluding sex chromosomes) SNP
-# heritability and genetic correlation by Linkage Disequilibrium (LD) Score
-# Regression.
-# PubMed: ___
-# documentation:
-# LDSC is a Python package, and it is necessary to run this program within a
-# special Python environment.
-# Refer to the script "install_python_virtual_environments_packages.sh".
-# Navigate to the directory in which to install program.
-cd ./ldsc/
-# Copy GitHub repository.
-git clone https://github.com/bulik/ldsc.git
-
-##########
-# PRS-CSX
-# Install PRS-CS and PRS-CSX.
-cd ./prs_cs/ # Navigate to the directory in which to install program.
-git clone https://github.com/getian107/PRScs.git
-git clone https://github.com/getian107/PRScsx.git
-
-
-
-
-##########
-# GWAS2VCF
-# Installation date: TCW; 23 January 2023
-# A package of tools to translate GWAS summary statistics to the GWAS-VCF
-# format.
-# PubMed: 33441155
-# GWAS-VCF format specification: https://github.com/MRCIEU/gwas-vcf-specification
-# Host of GWAS2VCF: https://github.com/MRCIEU/gwas2vcf
-# Documentation for GWAS2VCF: https://mrcieu.github.io/gwas2vcf/install/#dbsnp
-# GWAS2VCF is a Python package, and it is necessary to run this program within a
-# special Python environment.
-# Refer to the script "install_python_virtual_environments_packages.sh".
-# Access the GWAS2VCF package.
-cd ./tools
-mkdir -p ./gwas2vcf
-cd ./gwas2vcf # Navigate to the directory in which to install program.
-git clone https://github.com/MRCIEU/gwas2vcf.git
-python3 ./gwas2vcf/main.py # Execute within a Python virtual environment with dependencies.
-
-
-
-##########
-# GZ-Sort
-# Installation date: TCW; 7 February 2023
-# site: http://kmkeen.com/gz-sort/
-# repository: https://github.com/keenerd/gz-sort
-git clone https://github.com/keenerd/gz-sort; cd gz-sort; make; ./gz-sort -h
-
-
-
-##########
-# CrossMap
-# CrossMap is a Python package, and it is necessary to run this program within a
-# special Python environment.
-# Refer to the script "install_python_virtual_environments_packages.sh".
-
-
-##########
-# R for Statistical Computing
-# https://cran.r-project.org/
-# Install R from the CRAN Repository (not the Ubuntu repository).
-sudo apt update -qq
-sudo apt install --no-install-recommends software-properties-common dirmngr
-wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | sudo tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
-sudo add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
-sudo apt install --no-install-recommends r-base
-sudo add-apt-repository ppa:c2d4u.team/c2d4u4.0+
 
 
 

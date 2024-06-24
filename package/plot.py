@@ -1147,7 +1147,7 @@ def plot_heat_map_few_signal_significance_labels(
             orientation="vertical",
             ax=axes,
             location="right",
-            shrink=1.0, # 0.7; factor for dimensions of the Scale Bar.
+            shrink=0.7, # 0.7; factor for dimensions of the Scale Bar.
         )
         if (len(title_bar) > 0):
             bar.ax.set_ylabel(
@@ -4415,7 +4415,7 @@ def write_figure(
 
     arguments:
         figure (object): figure object
-        format (str): format suffix, 'svg', 'pdf', 'png'
+        format (str): format suffix, 'jpg', 'png', 'pdf', 'svg', etc
         resolution (int): dots per inch (dpi) density for raster image; set to
             '300' or '600' for raster or 'None' for format 'svg' or 'pdf'
         path_file (str): path to directory and file
