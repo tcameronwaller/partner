@@ -208,7 +208,7 @@ def transform_values_distribution_scale_standard_z_score(
     values_z_array = scipy.stats.zscore(
         values_array,
         axis=0,
-        ddof=1, # (N - 1) Degrees of Freedom for Sample Standard Deviation.
+        ddof=1, # divisor is (n - 1) for sample standard deviation
         nan_policy="omit", # Ignore missing values in calculation.
     )
     # Return information.
