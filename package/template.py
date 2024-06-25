@@ -1,24 +1,9 @@
 """
-Supply functionality to multiple other packages.
+Provide a template for new modules.
 
-Title:
-    partner
+This module 'template' is part of the 'partner' package.
 
-Subpackages:
-
-Modules:
-    decomposition:
-    description:
-    extraction:
-    interface:
-    organization:
-    parallelization
-    plot: functionality for plotting information on visual charts
-    polygenic_score:
-    regression: functionality for regression analysis
-    scale:
-    template:
-    utility: miscellaneous, general functionality
+This module is not directly executable.
 
 This subpackage 'partner' provides executable functionality under the
 management of a higher level package. Importation paths require this hierarchy.
@@ -32,7 +17,7 @@ Author:
 
 License:
 
-    This initialization file is part of the project package directory 'partner'
+    This module file is part of the project package directory 'partner'
     (https://github.com/tcameronwaller/partner/).
 
     Project 'partner' supports data analysis in multiple other projects.
@@ -55,13 +40,61 @@ License:
 ###############################################################################
 # Notes
 
-# Recommendation is to execute partner as a subpackage.
-
 ###############################################################################
 # Installation and importation
 
-# Standard.
+# Standard
 
-# Relevant.
+import os
+import math
+import statistics
+import pickle
+import copy
+import random
+import itertools
 
-# Custom.
+# Relevant
+
+import numpy
+import pandas
+import scipy.stats
+
+# Custom
+
+import distribution
+import plot
+import utility
+
+#dir()
+#importlib.reload()
+
+###############################################################################
+# Functionality
+
+
+
+
+###############################################################################
+# Procedure
+
+
+def execute_procedure(dock=None):
+    """
+    Function to execute module's main behavior.
+
+    arguments:
+        dock (str): path to root or dock directory for source and product
+            directories and files
+
+    raises:
+
+    returns:
+
+    """
+
+
+    pass
+
+
+if (__name__ == "__main__"):
+    execute_procedure()

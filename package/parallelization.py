@@ -1,40 +1,40 @@
 """
 Supply functionality for parallelization in Python.
 
+This module 'parallelization' is part of the 'partner' package.
+
 This module is not directly executable.
 
-This module within subpackage 'partner' provides executable functionality under
-the management of a higher level package. Importation paths must represent this
-hierarchy.
+This subpackage 'partner' provides executable functionality under the
+management of a higher level package. Importation paths require this hierarchy.
 
 Author:
 
     T. Cameron Waller, Ph.D.
     tcameronwaller@gmail.com
-    Monroe, North Carolina 28110
+    Rochester, Minnesota 55902
     United States of America
 
 License:
 
-    This file is part of project 'partner'
+    This module file is part of the project package directory 'partner'
     (https://github.com/tcameronwaller/partner/).
 
     Project 'partner' supports data analysis in multiple other projects.
     Copyright (C) 2024 Thomas Cameron Waller
 
-    Project 'partner' is free software: you can redistribute it
+    The code within project 'partner' is free software: you can redistribute it
     and/or modify it under the terms of the GNU General Public License as
-    published by the Free Software Foundation, either version 3 of the License,
-    or (at your option) any later version.
+    published by the Free Software Foundation, either version 3 of the GNU
+    General Public License, or (at your option) any later version.
 
-    Project 'partner' is distributed in the hope that it will be
+    The code within project 'partner' is distributed in the hope that it will be
     useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
     Public License for more details.
 
     You should have received a copy of the GNU General Public License along
-    with project 'partner'.
-    If not, see <http://www.gnu.org/licenses/>.
+    with project 'partner'. If not, see <http://www.gnu.org/licenses/>.
 """
 
 ###############################################################################
