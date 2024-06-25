@@ -38,7 +38,7 @@ License:
     with project 'partner'. If not, see <http://www.gnu.org/licenses/>.
 """
 
-###############################################################################
+################################################################################
 # Notes
 
 # TODO: TCW; 6 March 2024
@@ -47,7 +47,7 @@ License:
 # tab-delimited summary information at the bottom of the report log.
 
 
-###############################################################################
+################################################################################
 # Installation and importation
 
 # Standard
@@ -78,7 +78,7 @@ import partner.utility as putly # this import path for subpackage
 #dir()
 #importlib.reload()
 
-###############################################################################
+################################################################################
 # Functionality
 
 
@@ -1937,11 +1937,9 @@ def read_table_multiindex_columns_transform_calculate_q_values(
     return pail
 
 
-
-
-
-###############################################################################
+################################################################################
 # Procedure
-# Currently, this module is not executable.
+# Currently, this module is not directly executable.
 
-##########
+################################################################################
+# End
