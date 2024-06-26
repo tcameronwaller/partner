@@ -552,6 +552,9 @@ def scale_feature_values_between_observations_by_median_ratio(
     # Calculate the scale values via division by the median ratios for each
     # observation.
 
+    # TODO: use the same for-loop structure from above to iterate on columns
+    # and then pull the corresponding scale-factor from "median_ratios".
+
 
     # Organize information in tables.
 

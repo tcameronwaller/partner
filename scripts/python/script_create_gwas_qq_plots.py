@@ -244,9 +244,11 @@ def drive_read_gwas_create_write_qq_plots(
         )
         # Write product information to file.
         pplot.write_product_plot_figure(
-            name=name,
             figure=figure,
-            path_parent=path_directory_product,
+            format="jpg",
+            resolution=150,
+            name_file=name,
+            path_directory=path_directory_product,
         )
         pass
     # Return information.
