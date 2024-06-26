@@ -14,32 +14,30 @@ Author:
 
 License:
 
-    This file is part of project 'partner'
+    This module file is part of the project package directory 'partner'
     (https://github.com/tcameronwaller/partner/).
 
-    Project 'partner' supports data analysis for multiple projects in
-    biomedical research.
+    Project 'partner' supports data analysis in multiple other projects.
     Copyright (C) 2024 Thomas Cameron Waller
 
-    Project 'partner' is free software: you can redistribute it
+    The code within project 'partner' is free software: you can redistribute it
     and/or modify it under the terms of the GNU General Public License as
-    published by the Free Software Foundation, either version 3 of the License,
-    or (at your option) any later version.
+    published by the Free Software Foundation, either version 3 of the GNU
+    General Public License, or (at your option) any later version.
 
-    Project 'partner' is distributed in the hope that it will be
+    The code within project 'partner' is distributed in the hope that it will be
     useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
     Public License for more details.
 
     You should have received a copy of the GNU General Public License along
-    with project 'partner'.
-    If not, see <http://www.gnu.org/licenses/>.
+    with project 'partner'. If not, see <http://www.gnu.org/licenses/>.
 """
 
 ################################################################################
-# Author: T. Cameron Waller
+# Author: T. Cameron Waller, Ph.D.
 # Date, first execution: 21 May 2024
-# Date, last execution: 22 May 2024
+# Date, last execution or modification: 22 May 2024
 # Review: TCW; 22 May 2024
 ################################################################################
 # Note

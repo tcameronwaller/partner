@@ -18,6 +18,10 @@
 # sets up a dummy top-level package from which to execute Python scripts that in
 # turn use functionality from the 'partner' Python subpackage.
 
+# Another option is to set up the dummy top-level package within the Bash script
+# that actually calls the Python script. After execution, this script can
+# remove the dummy package to clean up. For an example, see the script
+# "/.../partner/scripts/ldsc/extract_ldsc_heritability_correlation.sh".
 
 ################################################################################
 # Organize paths.

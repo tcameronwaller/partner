@@ -1,15 +1,50 @@
 """
-...
+Organize procedural code for extraction of information from raw text report logs
+that the LDSC tool creates for estimates of SNP heritability (h2) and
+genetic correlation (rg).
+
+This module makes use of the 'extraction' module within the 'partner' package.
+
+Author:
+
+    T. Cameron Waller, Ph.D.
+    tcameronwaller@gmail.com
+    Rochester, Minnesota 55902
+    United States of America
+
+License:
+
+    This module file is part of the project package directory 'partner'
+    (https://github.com/tcameronwaller/partner/).
+
+    Project 'partner' supports data analysis in multiple other projects.
+    Copyright (C) 2024 Thomas Cameron Waller
+
+    The code within project 'partner' is free software: you can redistribute it
+    and/or modify it under the terms of the GNU General Public License as
+    published by the Free Software Foundation, either version 3 of the GNU
+    General Public License, or (at your option) any later version.
+
+    The code within project 'partner' is distributed in the hope that it will be
+    useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+    Public License for more details.
+
+    You should have received a copy of the GNU General Public License along
+    with project 'partner'. If not, see <http://www.gnu.org/licenses/>.
 """
 
 ################################################################################
-# Notes
+# Author: T. Cameron Waller, Ph.D.
+# Date, first execution: 1 June 2023 (approximate date)
+# Date, last execution: 26 June 2024
+# Review: 26 June 2024
+################################################################################
+# Note
 
 # TODO: TCW; 21 May 2024
 # TODO: need to update execution structure and context to resemble the cleaner
 # convention from "extract_ldsc_heritability_correlation.py"
-
-
 
 ################################################################################
 # Installation and importation
@@ -25,7 +60,7 @@ import scipy
 import numpy
 
 # Custom
-import partner.utility as utility
+import partner.utility as putly
 import partner.scale as pscale
 import partner.plot as pplot
 
@@ -63,22 +98,22 @@ def read_organize_probabilities_from_gwas_table(
 
     # Report.
     if report:
-        utility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
         print("Reading GWAS summary statistics:")
         print(path_table)
-        utility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
 
     # Set floating-point precision according to count of lines.
     # Count lines in text file.
     #path_table_temporary = str(path_table + ".temporary")
-    #utility.decompress_file_gzip(
+    #putly.decompress_file_gzip(
     #    path_file_source=path_table,
     #    path_file_product=path_table_temporary,
     #)
-    #count_lines = utility.count_file_text_lines(
+    #count_lines = putly.count_file_text_lines(
     #    path_file=path_table_temporary,
     #)
-    #utility.remove_file(path=path_table_temporary)
+    #putly.remove_file(path=path_table_temporary)
     # Determine extent of precision.
     #types_columns = dict()
     #if (count_lines > 1.3E7):
@@ -104,12 +139,12 @@ def read_organize_probabilities_from_gwas_table(
     )["P_NEG_LOG_10"].dropna().to_numpy()
     # Report.
     if report:
-        utility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
         #print("Count of lines in table:")
         #print(count_lines)
         print("Count of probabilities from GWAS summary statistics:")
         print(probabilities.size)
-        utility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
     # Return information.
     return probabilities
 
@@ -180,7 +215,7 @@ def drive_read_gwas_create_write_qq_plots(
     """
 
     # Extract and filter complete paths to child files within parent directory.
-    paths = utility.extract_filter_child_file_names_paths(
+    paths = putly.extract_filter_child_file_names_paths(
         path_directory=path_directory_parent,
         name_file_prefix=name_file_child_prefix,
         name_file_suffix=name_file_child_suffix,
@@ -259,7 +294,7 @@ def execute_procedure(
         report=True,
     )
     # Report.
-    utility.print_terminal_partition(level=4)
+    putly.print_terminal_partition(level=4)
     print("Base names of product files:")
     print(names_product)
     pass
