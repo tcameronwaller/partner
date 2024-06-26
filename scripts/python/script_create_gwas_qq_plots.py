@@ -25,9 +25,9 @@ import scipy
 import numpy
 
 # Custom
-import promiscuity.utility as utility
-import promiscuity.scale as pscale
-import promiscuity.plot as pplot
+import partner.utility as utility
+import partner.scale as pscale
+import partner.plot as pplot
 
 #dir()
 #importlib.reload()

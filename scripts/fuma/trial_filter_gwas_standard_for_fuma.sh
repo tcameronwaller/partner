@@ -22,6 +22,14 @@
 # TODO: down-sample the SNP rows in the sum stats for testing
 # zcat ./file | head -100000 > product_file.txt
 
+# TODO: TCW; 26 June 2024
+# Al Ashir Intisar implemented a solution using grep to filter SNPs to those within a HapMap3 reference file.
+# grep -Fwf {text_file_with_one_column_HapMap3_rsIDs.txt} {text_file_gwas_with_rsID_first_column.txt} {text_file_output.txt}
+# https://www.broadinstitute.org/medical-and-population-genetics/hapmap-3
+# wget https://www.broadinstitute.org/files/shared/mpg/hapmap3/hapmap3_r1_b36_fwd_consensus.qc.poly.recode.map.bz2
+#   - "map" file includes the rsID along with chromosome, base, and allele
+
+
 
 
 # Product Format (Concise for FUMA)
@@ -77,6 +85,7 @@ set +v
 # Genetics team in 2022.
 # columns: "SNP CHR BP A1 A2 A1AF BETA SE P N Z INFO NCASE NCONT"
 
+
 ##########
 # 1. Filter columns to remove those irrelevant for FUMA.
 echo "SNP CHR BP A1 A2 A1AF BETA SE P N" > $path_file_temporary_1
@@ -114,6 +123,7 @@ cat $path_file_temporary_2 | awk 'BEGIN { FS=" "; OFS=" " } NR > 1 {
     # Print the row entirely.
     print $0
   }' >> $path_file_temporary_3
+
 
 ##########
 # Compression

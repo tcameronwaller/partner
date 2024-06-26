@@ -57,8 +57,9 @@ sudo apt install libglib2.0-0 libxcb-shape0 libxcb-shm0 libxcb-xfixes0 libxcb-ra
 sudo apt install libxcb-cursor0 # TCW; 23 March 2023
 # libgstreamer-plugins-base0.10-0
 cd ~/Downloads
+wget https://zoom.us/client/6.1.0.198/zoom_amd64.deb
 #wget https://zoom.us/client/5.15.11.7239/zoom_amd64.deb
-wget https://zoom.us/client/5.17.10.3512/zoom_amd64.deb
+#wget https://zoom.us/client/5.17.10.3512/zoom_amd64.deb
 #wget https://zoom.us/client/latest/zoom_amd64.deb
 #wget https://zoom.us/linux/download/pubkey
 #rpm --import package-signing-key.pub

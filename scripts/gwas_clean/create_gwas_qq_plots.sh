@@ -42,17 +42,17 @@ path_directory_product=${5} # full path to product directory in which to write f
 # Organize paths.
 
 # Directories.
-cd ~/paths
-path_waller_tools=$(<"./waller_tools.txt")
+cd ~
+path_waller_tools=$(<"./paths/psychiatry/tool.txt")
 path_environment_main="${path_waller_tools}/python/environments/main"
-path_directory_process=$(<"./process_psychiatric_metabolism.txt")
-path_directory_package="${path_directory_process}/psychiatric_metabolism/psychiatric_metabolism"
+path_directory_process=$(<"./paths/psychiatry/process_aai.txt")
+path_directory_package="$path_directory_process/package_top_dummy"
 path_directory_temporary="${path_directory_product}/temporary_negative_log_probability" # hopefully unique
 
 
 # Scripts.
-path_file_script_logarithm="${path_directory_process}/promiscuity/scripts/gwas_clean/calculate_negative_logarithm_probability.sh"
-path_file_script_source="${path_directory_process}/promiscuity/scripts/python/script_create_gwas_qq_plots.py"
+path_file_script_logarithm="${path_directory_process}/partner/scripts/gwas_clean/calculate_negative_logarithm_probability.sh"
+path_file_script_source="${path_directory_process}/partner/scripts/python/script_create_gwas_qq_plots.py"
 path_file_script_product="${path_directory_package}/script_create_gwas_qq_plots.py"
 
 # Initialize directories.
