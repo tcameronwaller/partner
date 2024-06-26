@@ -29,7 +29,6 @@ path_directory_dock="$path_directory_process/dock"
 path_directory_data="$path_directory_dock/in_data"
 path_directory_parameters="$path_directory_dock/in_parameters"
 path_directory_package="$path_directory_process/package_top_dummy"
-
 path_directory_partner_product="$path_directory_process/partner"
 
 # Initialize directories.
