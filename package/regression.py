@@ -40,6 +40,16 @@ License:
 ###############################################################################
 # Notes
 
+# TODO: TCW; 26 June 2024
+# Support more regression models
+# Ordinary Least Squares
+#   - https://www.statsmodels.org/dev/examples/notebooks/generated/ols.html
+# Generalized Linear Models
+#   - https://www.statsmodels.org/stable/glm.html
+# ANOVA
+# ANCOVA
+
+
 ###############################################################################
 # Installation and importation
 

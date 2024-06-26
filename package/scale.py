@@ -65,7 +65,7 @@ import numpy
 import statsmodels.api
 
 # Custom
-import partner.utility as utility # this import path for subpackage
+import partner.utility as putly # this import path for subpackage
 
 #dir()
 #importlib.reload()
@@ -262,13 +262,13 @@ def drive_transform_variables_distribution_scale_z_score(
         pass
     # Report.
     if report:
-        utility.print_terminal_partition(level=2)
+        putly.print_terminal_partition(level=2)
         print("report: ")
         name_function = (
             "drive_transform_variables_distribution_scale_standard_z_score()"
         )
         print(name_function)
-        utility.print_terminal_partition(level=3)
+        putly.print_terminal_partition(level=3)
         table_report = table.copy(deep=True)
         table_report = table_report.loc[
             :, table_report.columns.isin(columns_relevant)
@@ -284,14 +284,14 @@ def drive_transform_variables_distribution_scale_z_score(
         )
         print("Mean")
         print(table_mean.iloc[0:25])
-        utility.print_terminal_partition(level=5)
+        putly.print_terminal_partition(level=5)
         table_deviation = table_report.aggregate(
             lambda series: series.std(),
             axis="index", # Apply function to each column of table.
         )
         print("Standard deviation")
         print(table_deviation.iloc[0:25])
-        utility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
         print("Summary statistics after standardization.")
         table_mean = table_scale_report.aggregate(
             lambda series: series.mean(),
@@ -299,7 +299,7 @@ def drive_transform_variables_distribution_scale_z_score(
         )
         print("Mean")
         print(table_mean.iloc[0:25])
-        utility.print_terminal_partition(level=5)
+        putly.print_terminal_partition(level=5)
         table_deviation = table_scale_report.aggregate(
             lambda series: series.std(),
             axis="index", # Apply function to each column of table.
@@ -376,6 +376,202 @@ def calculate_p_value_from_z_statistic(
         )
     # Return information.
     return p_value
+
+
+# Median-Ratio Scaling
+
+def shift_values_greater_zero_row(
+    row=None,
+):
+    """
+    Shifts values by minimum if necessary to ensure that all values are greater
+    that zero.
+
+    arguments:
+        row (object): Pandas series of values for observations of a single
+            feature
+
+    raises:
+
+    returns:
+        (object): Pandas series of values for observations of a single feature
+
+    """
+
+    # Copy information in row.
+    row = row.copy(deep=True)
+    # Extract information for current row from table.
+    values = row.to_numpy(
+        dtype="float64",
+        na_value=numpy.nan,
+        copy=True,
+    )
+    #array_intensities = array_intensities.astype(numpy.float32)
+    minimum = numpy.nanmin(values)
+    minimum_absolute = math.fabs(minimum)
+    # Determine whether it is necessary to shift values.
+    if (minimum < 0):
+        row_shift = row.add(minimum_absolute)
+    else:
+        row_shift = row
+        pass
+    # Return information.
+    return row_shift
+
+def scale_feature_values_between_observations_by_median_ratio(
+    table=None,
+    name_columns=None,
+    name_rows=None,
+    report=None,
+):
+    """
+    Scales values of features between observations by their observation-specific
+    median ratio to their geometric mean value across all observations.
+
+    This scaling method is defined for comparisons of very many features,
+    such as thousands to tens of thousands of genes or proteins, between
+    comparatively few observations or samples. The goal of this method is to
+    remove the influence of technical confounders so that comparisons between
+    observations are more relevant to real differences, such as those due to
+    biological regulation of expression of genes and proteins. An important
+    assumption of this scaling method is that between observations the vast
+    majority of features, such as genes or proteins, will have similar values.
+
+    References:
+    1. Anders et al, Genome Biology, 2010; PubMed:20979621
+    2. Bernstein, "Median-ratio normalization for bulk RNA-seq data", 2023;
+       <https://mbernste.github.io/posts/median_ratio_norm/>
+
+    Table's format and orientation
+
+    Table has values for each feature oriented across rows with their
+    observations oriented across columns. All values are on a continous ratio
+    scale of measurement and have the same type, such as corresponding to
+    intensities from a particular type of measurement.
+
+    The table must have an index with name "observations" across columns and an
+    index with name "features" across rows.
+
+    observations   observation_1 observation_2 observation_3 observation_4
+    features
+    feature_1      ...           ...           ...           ...
+    feature_2      ...           ...           ...           ...
+    feature_3      ...           ...           ...           ...
+    feature_4      ...           ...           ...           ...
+    feature_5      ...           ...           ...           ...
+    feature_6      ...           ...           ...           ...
+    feature_7      ...           ...           ...           ...
+    feature_8      ...           ...           ...           ...
+    feature_9      ...           ...           ...           ...
+    feature_10     ...           ...           ...           ...
+
+    This function does not modify the names of indices across columns or rows
+    from the original table.
+
+    In its implementation, this function attempts to prioritize clarity over
+    efficiency. While matrix transformations would be more efficient, they
+    would also be more difficult to follow and critique.
+
+    Review: 26 June 2024
+
+    arguments:
+        table (object): Pandas data-frame table of values for observations
+            across columns and for features across rows
+        name_columns (str): name of single-level index across columns
+        name_rows (str): name of single-level index across rows
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table of values across observations in
+            columns and across features in rows
+
+    """
+
+    # Copy information in table.
+    table = table.copy(deep=True)
+    # Copy names of columns in original table.
+    names_columns = copy.deepcopy(
+        table.columns.get_level_values(name_columns).to_list()
+    )
+    names_rows = copy.deepcopy(
+        table.index.get_level_values(name_rows).to_list()
+    )
+    names_columns_ratio = list(map(
+        lambda name: str(name + "_ratio"),
+        names_columns,
+    ))
+    # Shift values for each feature in all samples to make sure that there are
+    # not any negative values.
+    table = table.apply(
+        lambda row:
+            shift_values_greater_zero_row(
+                row=row,
+            ),
+        axis="columns", # apply function to each row
+    )
+    # Calculate geometric mean of values for each feature across all
+    # observations.
+    table["mean_geometric"] = table.apply(
+        lambda row:
+            scipy.stats.mstats.gmean(
+                row.to_numpy(
+                    dtype="float64",
+                    na_value=numpy.nan,
+                    copy=True,
+                ),
+                nan_policy="omit",
+            ),
+        axis="columns", # apply function to each row
+    )
+    # Calculate ratio of each observation of each feature to that feature's
+    # geometric mean value across all observations.
+    for column in names_columns:
+        table[str(column + "_ratio")] = table.apply(
+            lambda row:
+                (row[column] / row["mean_geometric"])
+                if row["mean_geometric"] != 0.0 else pandas.NA,
+            axis="columns", # apply function to each row
+        )
+        pass
+    # Calculate median value of feature ratios for each observation.
+    median_ratios = table[names_columns_ratio].aggregate(
+        lambda column: numpy.nanmedian(
+            column.to_numpy(
+                dtype="float64",
+                na_value=numpy.nan,
+                copy=True,
+            )
+        ),
+        axis="index", # apply function to each column
+    )
+    print("MEDIANS of Ratios!!!")
+    print(median_ratios)
+
+    # Calculate the scale values via division by the median ratios for each
+    # observation.
+
+
+    # Organize information in tables.
+
+
+    table_scale = table
+    # Remove unnecessary columns.
+    if False:
+        table_scale.drop(
+            labels=["mean_geometric",],
+            axis="columns",
+            inplace=True
+        )
+        pass
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=2)
+    # Return information.
+    return table_scale
+
+
 
 
 # Rank-Based Inverse Normalization
@@ -514,13 +710,13 @@ def apply_transformations_to_variable_distribution_scale(
 
     # Report.
     if report:
-        utility.print_terminal_partition(level=2)
+        putly.print_terminal_partition(level=2)
         print("report: ")
         name_function = (
             "apply_transformations_to_variable_distribution_scale()"
         )
         print(name_function)
-        utility.print_terminal_partition(level=3)
+        putly.print_terminal_partition(level=3)
         pass
     # Return information.
     return table
@@ -579,13 +775,13 @@ def drive_transformations_on_multiple_variables_in_cohorts(
         pass
     # Report.
     if report:
-        utility.print_terminal_partition(level=2)
+        putly.print_terminal_partition(level=2)
         print("report: ")
         name_function = (
             "drive_transformations_on_multiple_variables_in_cohorts()"
         )
         print(name_function)
-        utility.print_terminal_partition(level=3)
+        putly.print_terminal_partition(level=3)
         count_cohorts = int(len(records_cohorts))
         count_cohorts_scale = int(len(records_cohorts_scale))
         print("count of original cohorts: " + str(count_cohorts))
