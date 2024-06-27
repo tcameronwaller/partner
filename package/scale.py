@@ -418,6 +418,7 @@ def shift_values_greater_zero_row(
     # Return information.
     return row_shift
 
+
 def scale_feature_values_between_observations_by_median_ratio(
     table=None,
     name_columns=None,
@@ -472,7 +473,7 @@ def scale_feature_values_between_observations_by_median_ratio(
     efficiency. While matrix transformations would be more efficient, they
     would also be more difficult to follow and critique.
 
-    Review: 26 June 2024
+    Review: 27 June 2024
 
     arguments:
         table (object): Pandas data-frame table of values for observations
@@ -490,21 +491,25 @@ def scale_feature_values_between_observations_by_median_ratio(
     """
 
     # Copy information in table.
-    table = table.copy(deep=True)
+    table_scale = table.copy(deep=True)
     # Copy names of columns in original table.
     names_columns = copy.deepcopy(
-        table.columns.get_level_values(name_columns).to_list()
+        table_scale.columns.get_level_values(name_columns).to_list()
     )
     names_rows = copy.deepcopy(
-        table.index.get_level_values(name_rows).to_list()
+        table_scale.index.get_level_values(name_rows).to_list()
     )
     names_columns_ratio = list(map(
         lambda name: str(name + "_ratio"),
         names_columns,
     ))
+    names_columns_scale = list(map(
+        lambda name: str(name + "_scale"),
+        names_columns,
+    ))
     # Shift values for each feature in all samples to make sure that there are
     # not any negative values.
-    table = table.apply(
+    table_scale = table_scale.apply(
         lambda row:
             shift_values_greater_zero_row(
                 row=row,
@@ -513,7 +518,7 @@ def scale_feature_values_between_observations_by_median_ratio(
     )
     # Calculate geometric mean of values for each feature across all
     # observations.
-    table["mean_geometric"] = table.apply(
+    table_scale["mean_geometric"] = table_scale.apply(
         lambda row:
             scipy.stats.mstats.gmean(
                 row.to_numpy(
@@ -528,7 +533,7 @@ def scale_feature_values_between_observations_by_median_ratio(
     # Calculate ratio of each observation of each feature to that feature's
     # geometric mean value across all observations.
     for column in names_columns:
-        table[str(column + "_ratio")] = table.apply(
+        table_scale[str(column + "_ratio")] = table_scale.apply(
             lambda row:
                 (row[column] / row["mean_geometric"])
                 if row["mean_geometric"] != 0.0 else pandas.NA,
@@ -536,7 +541,8 @@ def scale_feature_values_between_observations_by_median_ratio(
         )
         pass
     # Calculate median value of feature ratios for each observation.
-    median_ratios = table[names_columns_ratio].aggregate(
+    # These median ratios will be the scaling factor for each observation.
+    median_ratios = table_scale[names_columns_ratio].aggregate(
         lambda column: numpy.nanmedian(
             column.to_numpy(
                 dtype="float64",
@@ -546,20 +552,33 @@ def scale_feature_values_between_observations_by_median_ratio(
         ),
         axis="index", # apply function to each column
     )
-    print("MEDIANS of Ratios!!!")
-    print(median_ratios)
+    # Calculate the scale values via division by the median-ratio scale factors
+    # for each observation.
+    for column in names_columns:
+        table_scale[str(column + "_scale")] = table_scale.apply(
+            lambda row:
+                (row[column] / median_ratios[str(column + "_ratio")])
+                if median_ratios[str(column + "_ratio")] != 0.0 else pandas.NA,
+            axis="columns", # apply function to each row
+        )
+        pass
 
-    # Calculate the scale values via division by the median ratios for each
-    # observation.
-
-    # TODO: use the same for-loop structure from above to iterate on columns
-    # and then pull the corresponding scale-factor from "median_ratios".
-
-
-    # Organize information in tables.
-
-
-    table_scale = table
+    # Organize information in table.
+    # Copy information in table.
+    table_scale_clean = table_scale[names_columns_scale].copy(deep=True)
+    # Translate names of columns.
+    translations = dict()
+    names_iterator = zip(
+        names_columns_scale,
+        names_columns,
+    )
+    for (column_scale, column) in names_iterator:
+        translations[column_scale] = column
+        pass
+    table_scale_clean.rename(
+        columns=translations,
+        inplace=True,
+    )
     # Remove unnecessary columns.
     if False:
         table_scale.drop(
@@ -571,8 +590,47 @@ def scale_feature_values_between_observations_by_median_ratio(
     # Report.
     if report:
         putly.print_terminal_partition(level=2)
+        print("Report:")
+        print("partner")
+        print("scale")
+        print("scale_feature_values_between_observations_by_median_ratio()")
+        putly.print_terminal_partition(level=4)
+        print(
+            "Original source table of values for observations across columns " +
+            "and for features across rows:")
+        print(table)
+        putly.print_terminal_partition(level=4)
+        print(
+            "Series of geometric means across all observations for each " +
+            "feature:"
+        )
+        print(table_scale["mean_geometric"])
+        putly.print_terminal_partition(level=4)
+        table_ratio = table_scale[names_columns_ratio]
+        print(
+            "Table of ratios between each original value and the geometric " +
+            "mean corresponding to each feature."
+        )
+        print(table_ratio)
+        putly.print_terminal_partition(level=4)
+        print(
+            "Series of median-ratio scale factors for each observation:"
+        )
+        print(median_ratios)
+        putly.print_terminal_partition(level=4)
+        table_scale_preliminary = table_scale[names_columns_scale]
+        print(
+            "Table of scaled values before organizing the novel product table:"
+        )
+        print(table_scale_preliminary)
+        putly.print_terminal_partition(level=4)
+        print(
+            "Novel product table of scaled values for observations across " +
+            "columns and for features across rows:"
+        )
+        print(table_scale_clean)
     # Return information.
-    return table_scale
+    return table_scale_clean
 
 
 
