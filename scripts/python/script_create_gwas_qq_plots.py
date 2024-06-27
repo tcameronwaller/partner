@@ -216,7 +216,7 @@ def drive_read_gwas_create_write_qq_plots(
 
     # Extract and filter complete paths to child files within parent directory.
     paths = putly.extract_filter_child_file_names_paths(
-        path_directory=path_directory_parent,
+        path_directory=path_directory_source,
         name_file_prefix=name_file_child_prefix,
         name_file_suffix=name_file_child_suffix,
         name_file_not=name_file_child_not,
