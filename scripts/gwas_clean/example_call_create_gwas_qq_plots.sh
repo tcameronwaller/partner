@@ -20,8 +20,9 @@
 cd ~
 path_directory_process=$(<"./paths/psychiatry/process_aai.txt")
 path_directory_dock="${path_directory_process}/dock"
-path_directory_source="${path_directory_dock}/in_data/gwas_priority_collection_format_team_2022-08-10_test"
-path_directory_product="${path_directory_dock}/plots_qq_gwas"
+#path_directory_source="${path_directory_dock}/in_data/gwas_priority_collection_format_team_2022-08-10_test"
+path_directory_source="${path_directory_dock}/in_data/gwas_test_ruth_2020"
+path_directory_product="${path_directory_dock}/plots_qq_gwas_test_ruth_2020"
 
 # Files.
 name_file_source_prefix="tcw_ukb_" # must not be empty string
