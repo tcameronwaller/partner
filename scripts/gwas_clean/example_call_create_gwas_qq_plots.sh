@@ -25,7 +25,8 @@ path_directory_source="${path_directory_dock}/in_data/gwas_test_ruth_2020"
 path_directory_product="${path_directory_dock}/plots_qq_gwas_test_ruth_2020"
 
 # Files.
-name_file_source_prefix="tcw_ukb_" # must not be empty string
+#name_file_source_prefix="tcw_ukb_" # must not be empty string
+name_file_source_prefix="test_" # must not be empty string
 name_file_source_suffix=".txt.gz" # must not be empty string
 name_file_source_not=".place_holder_blarg" # exclude any files that include this character string in file name
 
