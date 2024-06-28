@@ -2249,6 +2249,11 @@ def combine_unique_elements_pairwise_order(
     return pairs
 
 
+##################################################
+##########
+# NumPy and Pandas
+
+
 
 
 ##################################################

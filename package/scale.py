@@ -380,44 +380,6 @@ def calculate_p_value_from_z_statistic(
 
 # Median-Ratio Scaling
 
-def shift_values_greater_zero_row(
-    row=None,
-):
-    """
-    Shifts values by minimum if necessary to ensure that all values are greater
-    that zero.
-
-    arguments:
-        row (object): Pandas series of values for observations of a single
-            feature
-
-    raises:
-
-    returns:
-        (object): Pandas series of values for observations of a single feature
-
-    """
-
-    # Copy information in row.
-    row = row.copy(deep=True)
-    # Extract information for current row from table.
-    values = row.to_numpy(
-        dtype="float64",
-        na_value=numpy.nan,
-        copy=True,
-    )
-    #array_intensities = array_intensities.astype(numpy.float32)
-    minimum = numpy.nanmin(values)
-    minimum_absolute = math.fabs(minimum)
-    # Determine whether it is necessary to shift values.
-    if (minimum < 0):
-        row_shift = row.add(minimum_absolute)
-    else:
-        row_shift = row
-        pass
-    # Return information.
-    return row_shift
-
 
 def scale_feature_values_between_observations_by_median_ratio(
     table=None,
@@ -442,6 +404,11 @@ def scale_feature_values_between_observations_by_median_ratio(
     1. Anders et al, Genome Biology, 2010; PubMed:20979621
     2. Bernstein, "Median-ratio normalization for bulk RNA-seq data", 2023;
        <https://mbernste.github.io/posts/median_ratio_norm/>
+
+    It is important and necessary that there are not any values in the table
+    that are missing or less than zero. Careful and thorough filter and
+    imputation operations on the data ought to happen before calling this
+    function.
 
     Table's format and orientation
 
@@ -492,7 +459,7 @@ def scale_feature_values_between_observations_by_median_ratio(
 
     # Copy information in table.
     table_scale = table.copy(deep=True)
-    # Copy names of columns in original table.
+    # Copy names of columns and rows in original table.
     names_columns = copy.deepcopy(
         table_scale.columns.get_level_values(name_columns).to_list()
     )
@@ -507,15 +474,6 @@ def scale_feature_values_between_observations_by_median_ratio(
         lambda name: str(name + "_scale"),
         names_columns,
     ))
-    # Shift values for each feature in all samples to make sure that there are
-    # not any negative values.
-    table_scale = table_scale.apply(
-        lambda row:
-            shift_values_greater_zero_row(
-                row=row,
-            ),
-        axis="columns", # apply function to each row
-    )
     # Calculate geometric mean of values for each feature across all
     # observations.
     table_scale["mean_geometric"] = table_scale.apply(
@@ -631,8 +589,6 @@ def scale_feature_values_between_observations_by_median_ratio(
         print(table_scale_clean)
     # Return information.
     return table_scale_clean
-
-
 
 
 # Rank-Based Inverse Normalization

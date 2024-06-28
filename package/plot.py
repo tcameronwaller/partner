@@ -2258,6 +2258,7 @@ def plot_heatmap_asymmetric_master_main_top_bottom(
 ##########
 # Histogram
 
+
 def plot_distribution_histogram(
     array=None,
     title=None,
@@ -2285,7 +2286,7 @@ def plot_distribution_histogram(
         title (str): title for figure
         bin_method (str): method to define bins, "count" or "auto"
         bin_count (int): count of bins to define and populate
-        bar_width (float): proportional of width of bar relative to bin
+        bar_width (float): proportional width of bar relative to bin
         label_bins (str): label for bins
         label_counts (str): label for counts
         fonts (dict<object>): references to definitions of font properties
@@ -2320,10 +2321,10 @@ def plot_distribution_histogram(
     else:
         bin_edges = numpy.histogram_bin_edges(array, bins=bin_method)
 
+    ##########
     # Create figure.
-    figure = matplotlib.pyplot.figure(
-        figsize=(15.748, 11.811),
-        tight_layout=True
+    figure = initialize_matplotlib_figure_aspect(
+        aspect="landscape",
     )
     axes = matplotlib.pyplot.axes()
     values, bins, patches = axes.hist(
@@ -2348,7 +2349,7 @@ def plot_distribution_histogram(
             loc="upper right",
             markerscale=2.5,
             markerfirst=True,
-            prop=fonts["properties"]["one"],
+            prop=fonts["properties"]["five"], # one before
             edgecolor=colors["black"]
         )
     axes.set_xlabel(
@@ -2357,7 +2358,7 @@ def plot_distribution_histogram(
         alpha=1.0,
         backgroundcolor=colors["white"],
         color=colors["black"],
-        fontproperties=fonts["properties"]["two"]
+        fontproperties=fonts["properties"]["five"] # two before
     )
     axes.set_ylabel(
         ylabel=label_counts,
@@ -2365,7 +2366,7 @@ def plot_distribution_histogram(
         alpha=1.0,
         backgroundcolor=colors["white"],
         color=colors["black"],
-        fontproperties=fonts["properties"]["two"]
+        fontproperties=fonts["properties"]["five"] # two before
     )
     axes.tick_params(
         axis="both",
@@ -2375,7 +2376,7 @@ def plot_distribution_histogram(
         width=3.0,
         color=colors["black"],
         pad=5,
-        labelsize=fonts["values"]["two"]["size"],
+        labelsize=fonts["values"]["five"]["size"], # two before
         labelcolor=colors["black"]
     )
     if line:
@@ -2398,7 +2399,7 @@ def plot_distribution_histogram(
             transform=axes.transAxes,
             backgroundcolor=colors["white_faint"],
             color=colors["black"],
-            fontproperties=fonts["properties"]["four"]
+            fontproperties=fonts["properties"]["six"] # four before
         )
     if label_report:
         matplotlib.pyplot.text(
@@ -2410,7 +2411,7 @@ def plot_distribution_histogram(
             transform=axes.transAxes,
             backgroundcolor=colors["white_faint"],
             color=colors["black"],
-            fontproperties=fonts["properties"]["four"]
+            fontproperties=fonts["properties"]["seven"] # four before
         )
         matplotlib.pyplot.text(
             0.99,
@@ -2421,7 +2422,7 @@ def plot_distribution_histogram(
             transform=axes.transAxes,
             backgroundcolor=colors["white_faint"],
             color=colors["black"],
-            fontproperties=fonts["properties"]["four"]
+            fontproperties=fonts["properties"]["seven"] # four before
         )
         matplotlib.pyplot.text(
             0.99,
@@ -2432,13 +2433,14 @@ def plot_distribution_histogram(
             transform=axes.transAxes,
             backgroundcolor=colors["white_faint"],
             color=colors["black"],
-            fontproperties=fonts["properties"]["four"]
+            fontproperties=fonts["properties"]["seven"] # four before
         )
     return figure
 
 
 ##########
 # Bar Chart
+
 
 def plot_bar_stack(
     data=None,
