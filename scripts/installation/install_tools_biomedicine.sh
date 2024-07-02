@@ -71,12 +71,14 @@ bash ~/Downloads/Cytoscape_3_10_1_unix.sh
 
 ##########
 # name: STAR
-# GitHub: https://github.com/alexdobin/STAR
+# site: ___
 # documentation: https://github.com/alexdobin/STAR/blob/master/doc/STARmanual.pdf
+# GitHub: https://github.com/alexdobin/STAR
 # version, latest: v2.7.11b
-# date, release: 25 January 2024
-# version, installation: v2.7.11b
-# date, installation: 20 June 2024
+# - date, release: 25 January 2024
+# installation:
+# - date, installation: 20 June 2024
+# - version, installation: v2.7.11b
 wget https://github.com/alexdobin/STAR/archive/refs/tags/2.7.11b.tar.gz
 tar -xzvf ./2.7.11b.tar.gz -C ./
 rm ./2.7.11b.tar.gz
@@ -84,51 +86,86 @@ cd ./STAR-2.7.11b/source
 make
 make STAR # "make: 'STAR' is up to date."
 # Execution from compilation of source.
-./STAR-2.7.11b/source/STAR --help
+/.../tool/STAR-2.7.11b/source/STAR --help
 # Execution from pre-compiled version.
-./STAR-2.7.11b/bin/Linux_x86_64/STAR --help
+/.../tool/STAR-2.7.11b/bin/Linux_x86_64/STAR --help
 # Execution from pre-compiled version with static executables without external dependencies.
-./STAR-2.7.11b/bin/Linux_x86_64_static/STAR --help
+/.../tool/STAR-2.7.11b/bin/Linux_x86_64_static/STAR --help
 
 
 ##################################################
 # Genotype
 
-##########
-# name: BGZip
-# site: http://www.htslib.org/doc/bgzip.html
-# date, installation: 15 February 2023
-# date, review:
-# A bioinformatics tool for compression in GZip format with Tabix index.
-# The HTSLib includes BGZip and Tabix.
-# http://www.htslib.org/download/
-wget https://github.com/samtools/htslib/releases/download/1.16/htslib-1.16.tar.bz2
-tar -xjvf ./htslib-1.16.tar.bz2 -C ./
-cd ./htslib-1.16
-./configure --prefix=../htslib/1.16 # requires absolute directory path
-make
-make install
-cd ../htslib/1.16/bin/
-./bgzip --help
 
 ##########
-# BCFTools
-# site: https://samtools.github.io/bcftools/
-# date, installation: 15 February 2023
-# date, review:
-# Last installation: TCW; 15 February 2023 (on NCSA server)
-# A bioinformatic tool for tasks on genotype files in Variant Call Format (VCF).
-# Documentation from SamTools (https://samtools.github.io/bcftools/howtos/index.html).
-# Documentation manual (https://samtools.github.io/bcftools/bcftools.html).
-# http://www.htslib.org/download/
-wget https://github.com/samtools/bcftools/releases/download/1.16/bcftools-1.16.tar.bz2
-tar -xjvf ./bcftools-1.16.tar.bz2 -C ./
-cd ./bcftools-1.16
-./configure --prefix=../bcftools/1.16 # requires absolute directory path
+# name: SamTools
+# site: http://www.htslib.org/
+# documentation: http://www.htslib.org/doc/#manual-pages
+# GitHub: https://github.com/samtools/samtools
+# version, latest: v1.20
+# - date, release: 15 April 2024
+# installation:
+# - system: NCSA, mForge, endocrinology workspace
+# - date, installation: 1 July 2024
+# - version, installation: v1.20
+cd /.../tool
+wget https://github.com/samtools/samtools/releases/download/1.20/samtools-1.20.tar.bz2
+tar -xjvf ./samtools-1.20.tar.bz2 -C ./
+rm ./samtools-1.20.tar.bz2
+cd ./samtools-1.20
+pwd
+./configure --prefix="/.../tool/samtools-1.20" # requires full, absolute path to directory
 make
 make install
-cd ../bcftools/1.16/bin/
-./bcftools --help
+/.../tool/samtools-1.20/bin/samtools --help # must execute with path
+
+
+##########
+# name: BCFTools
+# site: http://www.htslib.org/
+# documentation: http://www.htslib.org/doc/#manual-pages
+# GitHub: http://github.com/samtools/bcftools
+# version, latest: v1.20
+# - date, release: 15 April 2024
+# installation:
+# - system: NCSA, mForge, endocrinology workspace
+# - date, installation: 1 July 2024
+# - version, installation: v1.20
+cd /.../tool
+wget https://github.com/samtools/bcftools/releases/download/1.20/bcftools-1.20.tar.bz2
+tar -xjvf ./bcftools-1.20.tar.bz2 -C ./
+rm ./bcftools-1.20.tar.bz2
+cd ./bcftools-1.20
+pwd
+./configure --prefix="/.../tool/bcftools-1.20" # requires full, absolute path to directory
+make
+make install
+/.../tool/bcftools-1.20/bin/bcftools --help # must execute with path
+
+
+##########
+# name: HTSLib (BGZip, Tabix, etc)
+# site: http://www.htslib.org/
+# documentation: http://www.htslib.org/doc/#manual-pages
+# GitHub: https://github.com/samtools/htslib
+# version, latest: v1.20
+# - date, release: 15 April 2024
+# installation:
+# - system: NCSA, mForge, endocrinology workspace
+# - date, installation: 1 July 2024
+# - version, installation: v1.20
+cd /.../tool
+wget https://github.com/samtools/htslib/releases/download/1.20/htslib-1.20.tar.bz2
+tar -xjvf ./htslib-1.20.tar.bz2 -C ./
+rm ./htslib-1.20.tar.bz2
+cd ./htslib-1.20
+pwd
+./configure --prefix="/.../tool/htslib-1.20" # requires full, absolute path to directory
+make
+make install
+/.../tool/htslib-1.20/bin/bgzip --help # must execute with path
+/.../tool/htslib-1.20/bin/tabix --help # must execute with path
+
 
 ##########
 # name: GCTB
@@ -143,6 +180,7 @@ cd ./ # navigate to directory in which to install program.
 wget "https://cnsgenomics.com/software/gctb/download/gctb_2.04.3_Linux.zip"
 unzip "./gctb_2.04.3_Linux.zip"
 ./gctb_2.04.3_Linux/gctb --help
+
 
 ##########
 # name: LDSC

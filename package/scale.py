@@ -54,6 +54,7 @@ import shutil
 import textwrap
 import itertools
 import math
+import functools
 
 # Relevant
 
@@ -381,6 +382,278 @@ def calculate_p_value_from_z_statistic(
 # Median-Ratio Scaling
 
 
+def calculate_ratios_to_geometric_mean_across_feature_observations(
+    table=None,
+    columns=None,
+):
+    """
+    Dependency:
+    This function is a dependency of the function below.
+    partner.scale.scale_feature_values_between_observations_by_median_ratio()
+
+    Calculates for each feature the ratio of observation values to the
+    geometric mean across all observations.
+
+    This function creates a new column named "mean_geometric". This function
+    also creates a new column with suffix "_ratio" for each column in the
+    original table. This function also creates a new column with suffix
+    "_ratio_log" for each column in the original table.
+
+    It is important and necessary that there are not any values in the table
+    that are missing or less than zero. Careful and thorough filter and
+    imputation operations on the data ought to happen before calling this
+    function.
+
+    Table's format and orientation
+
+    Table has values for each feature oriented across rows with their
+    observations oriented across columns. All values are on a continous ratio
+    scale of measurement and have the same type, such as corresponding to
+    intensities from a particular type of measurement.
+
+    The table must have a single-level index (potentially with name
+    "observations") across columns and a single-level index (potentially with
+    name "features") across rows.
+
+    observations   observation_1 observation_2 observation_3 observation_4
+    features
+    feature_1      ...           ...           ...           ...
+    feature_2      ...           ...           ...           ...
+    feature_3      ...           ...           ...           ...
+    feature_4      ...           ...           ...           ...
+    feature_5      ...           ...           ...           ...
+    feature_6      ...           ...           ...           ...
+    feature_7      ...           ...           ...           ...
+    feature_8      ...           ...           ...           ...
+    feature_9      ...           ...           ...           ...
+    feature_10     ...           ...           ...           ...
+
+    This function does not modify the names of indices across columns or rows
+    from the original table.
+
+    In its implementation, this function attempts to prioritize clarity over
+    efficiency. While matrix transformations would be more efficient, they
+    would also be more difficult to follow and critique.
+
+    Review: 2 July 2024
+
+    arguments:
+        table (object): Pandas data-frame table of values for observations
+            across columns and for features across rows
+        columns (list<str>): names of columns corresponding to values of
+            features across observations
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table of values across observations in
+            columns and across features in rows
+
+    """
+
+    # Copy information in table.
+    table = table.copy(deep=True)
+    # Calculate geometric mean of values for each feature across all
+    # observations.
+    table["mean_geometric"] = table.apply(
+        lambda row:
+            scipy.stats.mstats.gmean(
+                row[columns].to_numpy(
+                    dtype="float64",
+                    na_value=numpy.nan,
+                    copy=True,
+                ),
+                nan_policy="omit",
+            ),
+        axis="columns", # apply function to each row
+    )
+    # Calculate ratio of each observation of each feature to that feature's
+    # geometric mean value across all observations.
+    for column in columns:
+        table[str(column + "_ratio")] = table.apply(
+            lambda row:
+                (row[column] / row["mean_geometric"])
+                if row["mean_geometric"] != 0.0 else pandas.NA,
+            axis="columns", # apply function to each row
+        )
+        pass
+    # Calculate the logarithm of ratios.
+    for column in columns:
+        table[str(column + "_ratio_log")] = table.apply(
+            lambda row:
+                (numpy.log(row[str(column + "_ratio")]))
+                if row[str(column + "_ratio")] != 0.0 else pandas.NA,
+            axis="columns", # apply function to each row
+        )
+        pass
+    # Return information.
+    return table
+
+
+def filter_table_features_least_change_across_observations(
+    table=None,
+    name_columns=None,
+    name_rows=None,
+    count_quantile=None,
+    report=None,
+):
+    """
+    Filters rows in table to select features that demonstrate least change
+    across observations on the basis of the middle quantile.
+
+    This function is a handy companion to the function below.
+    partner.scale.scale_feature_values_between_observations_by_median_ratio()
+
+    Tables' format and orientation
+
+    Table has values for each feature oriented across rows with their
+    observations oriented across columns. All values are on a continous ratio
+    scale of measurement and have the same type, such as corresponding to
+    intensities from a particular type of measurement.
+
+    The table must have a single-level index (potentially with name
+    "observations") across columns and a single-level index (potentially with
+    name "features") across rows.
+
+    observations   observation_1 observation_2 observation_3 observation_4
+    features
+    feature_1      ...           ...           ...           ...
+    feature_2      ...           ...           ...           ...
+    feature_3      ...           ...           ...           ...
+    feature_4      ...           ...           ...           ...
+    feature_5      ...           ...           ...           ...
+    feature_6      ...           ...           ...           ...
+    feature_7      ...           ...           ...           ...
+    feature_8      ...           ...           ...           ...
+    feature_9      ...           ...           ...           ...
+    feature_10     ...           ...           ...           ...
+
+    This function does not modify the names of indices across columns or rows
+    from the original table.
+
+    In its implementation, this function attempts to prioritize clarity over
+    efficiency. While matrix transformations would be more efficient, they
+    would also be more difficult to follow and critique.
+
+    Review: 2 July 2024
+
+    arguments:
+        table (object): Pandas data-frame table of values for observations
+            across columns and for features across rows
+        name_columns (str): name of single-level index across columns
+        name_rows (str): name of single-level index across rows
+        count_quantile (int): odd count of quantiles, such as three for
+            tertiles
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table of values for observations across
+            columns and for features across rows
+
+    """
+
+    # Copy information in table.
+    table = table.copy(deep=True)
+    # Copy names of columns in original table.
+    columns = copy.deepcopy(
+        table.columns.get_level_values(name_columns).to_list()
+    )
+    # Determine names of derivative columns.
+    columns_ratio = list(map(
+        lambda name: str(name + "_ratio"),
+        columns,
+    ))
+    columns_ratio_log = list(map(
+        lambda name: str(name + "_ratio_log"),
+        columns,
+    ))
+    # Calculate geometric mean of values for each feature across all
+    # observations.
+    # Calculate ratio of each observation for each feature to that feature's
+    # geometric mean value across all observations.
+    table_ratio = (
+        calculate_ratios_to_geometric_mean_across_feature_observations(
+            table=table,
+            columns=columns,
+    ))
+    # Calculate mean of ratio values across all observations for each feature.
+    table_ratio["mean_ratio"] = table_ratio.apply(
+        lambda row:
+            numpy.nanmean(
+                row[columns_ratio].to_numpy(
+                    dtype="float64",
+                    na_value=numpy.nan,
+                    copy=True,
+                )
+            ),
+        axis="columns", # apply function to each row
+    )
+    table_ratio["mean_ratio_log"] = table_ratio.apply(
+        lambda row:
+            numpy.nanmean(
+                row[columns_ratio_log].to_numpy(
+                    dtype="float64",
+                    na_value=numpy.nan,
+                    copy=True,
+                )
+            ),
+        axis="columns", # apply function to each row
+    )
+    # Determine indices for quantiles.
+    indices = list(range(0, count_quantile, 1))
+    index_middle = indices[int(len(indices) // 2)]
+    # Determine ordinal sets of features.
+    table_ratio["quantile_mean_ratio"] = pandas.qcut(
+        table_ratio["mean_ratio"],
+        q=count_quantile,
+        labels=indices,
+    )
+    table_ratio["quantile_mean_ratio_log"] = pandas.qcut(
+        table_ratio["mean_ratio_log"],
+        q=count_quantile,
+        labels=indices,
+    )
+    # Filter table to rows of features in the middle quantile.
+    table_middle = table_ratio.loc[
+        (table_ratio["quantile_mean_ratio"] == index_middle), :
+    ]
+    # Determine counts and percentages.
+    count_rows_source = table.shape[0]
+    count_rows_product = table_middle.shape[0]
+    percentage = str(round(
+        float(100 * (count_rows_product / count_rows_source)), 2
+    ))
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=2)
+        print("Report:")
+        print("partner")
+        print("scale")
+        print(
+            "filter_table_features_least_change_across_observations()"
+        )
+        putly.print_terminal_partition(level=4)
+        print("Count of quantiles: " + str(count_quantile))
+        print("Quantile indices:")
+        print(indices)
+        print("Middle index: " + str(index_middle))
+        putly.print_terminal_partition(level=4)
+        print(
+            "Count of rows in original, source table: " +
+            str(count_rows_source)
+        )
+        print(
+            "Count of rows in novel, product table: " +
+            str(count_rows_product) + " (" + percentage + " %)"
+        )
+        print("Table of middle features that demonstrate least change")
+        print(table_middle)
+    # Return information.
+    return table_middle
+
+
 def scale_feature_values_between_observations_by_median_ratio(
     table=None,
     name_columns=None,
@@ -388,8 +661,9 @@ def scale_feature_values_between_observations_by_median_ratio(
     report=None,
 ):
     """
-    Scales values of features between observations by their observation-specific
-    median ratio to their geometric mean value across all observations.
+    Scales values of features between observations by their
+    observation-specific median ratio to their geometric mean value across all
+    observations.
 
     This scaling method is defined for comparisons of very many features,
     such as thousands to tens of thousands of genes or proteins, between
@@ -417,8 +691,9 @@ def scale_feature_values_between_observations_by_median_ratio(
     scale of measurement and have the same type, such as corresponding to
     intensities from a particular type of measurement.
 
-    The table must have an index with name "observations" across columns and an
-    index with name "features" across rows.
+    The table must have a single-level index (potentially with name
+    "observations") across columns and a single-level index (potentially with
+    name "features") across rows.
 
     observations   observation_1 observation_2 observation_3 observation_4
     features
@@ -476,30 +751,17 @@ def scale_feature_values_between_observations_by_median_ratio(
     ))
     # Calculate geometric mean of values for each feature across all
     # observations.
-    table_scale["mean_geometric"] = table_scale.apply(
-        lambda row:
-            scipy.stats.mstats.gmean(
-                row.to_numpy(
-                    dtype="float64",
-                    na_value=numpy.nan,
-                    copy=True,
-                ),
-                nan_policy="omit",
-            ),
-        axis="columns", # apply function to each row
-    )
     # Calculate ratio of each observation of each feature to that feature's
     # geometric mean value across all observations.
-    for column in names_columns:
-        table_scale[str(column + "_ratio")] = table_scale.apply(
-            lambda row:
-                (row[column] / row["mean_geometric"])
-                if row["mean_geometric"] != 0.0 else pandas.NA,
-            axis="columns", # apply function to each row
-        )
-        pass
+    table_scale = (
+        calculate_ratios_to_geometric_mean_across_feature_observations(
+            table=table_scale,
+            columns=names_columns,
+    ))
+
     # Calculate median value of feature ratios for each observation.
-    # These median ratios will be the scaling factor for each observation.
+    # These median ratios will be the scaling factor for each observation of
+    # all features.
     median_ratios = table_scale[names_columns_ratio].aggregate(
         lambda column: numpy.nanmedian(
             column.to_numpy(
@@ -554,8 +816,8 @@ def scale_feature_values_between_observations_by_median_ratio(
         print("scale_feature_values_between_observations_by_median_ratio()")
         putly.print_terminal_partition(level=4)
         print(
-            "Original source table of values for observations across columns " +
-            "and for features across rows:")
+            "Original source table of values for observations across " +
+            "columns and for features across rows:")
         print(table)
         putly.print_terminal_partition(level=4)
         print(
@@ -589,6 +851,336 @@ def scale_feature_values_between_observations_by_median_ratio(
         print(table_scale_clean)
     # Return information.
     return table_scale_clean
+
+
+def describe_variance_across_features_with_least_change(
+    table=None,
+    name_columns=None,
+    name_rows=None,
+    count_quantile=None,
+    report=None,
+):
+    """
+    Describes the variance of values across features with the least change as
+    calculated from the ratio of value for each individual observation relative
+    to the geometric mean of values across all observations.
+
+    This function is a handy companion to the function below.
+    partner.scale.scale_feature_values_between_observations_by_median_ratio()
+
+    Tables' format and orientation
+
+    Table has values for each feature oriented across rows with their
+    observations oriented across columns. All values are on a continous ratio
+    scale of measurement and have the same type, such as corresponding to
+    intensities from a particular type of measurement.
+
+    The table must have a single-level index (potentially with name
+    "observations") across columns and a single-level index (potentially with
+    name "features") across rows.
+
+    observations   observation_1 observation_2 observation_3 observation_4
+    features
+    feature_1      ...           ...           ...           ...
+    feature_2      ...           ...           ...           ...
+    feature_3      ...           ...           ...           ...
+    feature_4      ...           ...           ...           ...
+    feature_5      ...           ...           ...           ...
+    feature_6      ...           ...           ...           ...
+    feature_7      ...           ...           ...           ...
+    feature_8      ...           ...           ...           ...
+    feature_9      ...           ...           ...           ...
+    feature_10     ...           ...           ...           ...
+
+    This function does not modify the names of indices across columns or rows
+    from the original table.
+
+    In its implementation, this function attempts to prioritize clarity over
+    efficiency. While matrix transformations would be more efficient, they
+    would also be more difficult to follow and critique.
+
+    Review: 2 July 2024
+
+    arguments:
+        table (object): Pandas data-frame table of values for observations
+            across columns and for features across rows
+        name_columns (str): name of single-level index across columns
+        name_rows (str): name of single-level index across rows
+        count_quantile (int): odd count of quantiles, such as three for
+            tertiles
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict<object>): collection of information
+
+    """
+
+    # Copy information in table.
+    table = table.copy(deep=True)
+    # Calculate geometric mean of values for each feature across all
+    # observations.
+    # Calculate ratio of each observation for each feature to that feature's
+    # geometric mean value across all observations.
+    # Calculate mean of ratio values across all observations for each feature.
+    # Filter rows in table to select features that demonstrate least change
+    # across observations on the basis of the middle quantile.
+    table_middle = (
+        filter_table_features_least_change_across_observations(
+            table=table,
+            name_columns=name_columns,
+            name_rows=name_rows,
+            count_quantile=count_quantile,
+            report=report,
+    ))
+    # Describe the distribution of values for these sets of middle features
+    # that change the least.
+    values_middle = table_middle["mean_ratio_log"].to_numpy(
+        dtype="float64",
+        na_value=numpy.nan,
+        copy=True,
+    )
+    mean_middle = float(numpy.nanmean(values_middle))
+    error_middle = float(scipy.stats.sem(values_middle))
+    #mean_middle = round(float(numpy.nanmean(values_middle)), 7)
+    #error_middle = round(float(scipy.stats.sem(values_middle)), 7)
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=2)
+        print("Report:")
+        print("partner")
+        print("scale")
+        print(
+            "describe_variance_across_features_with_least_change()"
+        )
+        putly.print_terminal_partition(level=4)
+        print("Variance in the changeability across features with the least")
+        print("change across observations")
+        print("Mean across middle features: " + str(mean_middle))
+        print("Error across middle features: " + str(error_middle))
+    # Collect information.
+    pail = dict()
+    pail["mean"] = mean_middle
+    pail["error"] = error_middle
+    # Return information.
+    return pail
+
+
+def compare_middle_quantile_feature_sets_by_ratio_to_geometric_mean(
+    table_first=None,
+    table_second=None,
+    name_columns=None,
+    name_rows=None,
+    count_quantile=None,
+    report=None,
+):
+    """
+    Compares the set overlap of features from the middle quantile of their
+    ratios relative to the geometric mean across all samples. These features
+    demonstrated the least change. The two separate tables could have been
+    stratified on the basis of control and intervention samples from the same
+    experiment. The goal of this comparison is to evaluate the assumption that
+    most features do not change between the experimental groups.
+
+    This function is a handy companion to the function below.
+    partner.scale.scale_feature_values_between_observations_by_median_ratio()
+
+    Tables' format and orientation
+
+    Table has values for each feature oriented across rows with their
+    observations oriented across columns. All values are on a continous ratio
+    scale of measurement and have the same type, such as corresponding to
+    intensities from a particular type of measurement.
+
+    The table must have a single-level index (potentially with name
+    "observations") across columns and a single-level index (potentially with
+    name "features") across rows.
+
+    observations   observation_1 observation_2 observation_3 observation_4
+    features
+    feature_1      ...           ...           ...           ...
+    feature_2      ...           ...           ...           ...
+    feature_3      ...           ...           ...           ...
+    feature_4      ...           ...           ...           ...
+    feature_5      ...           ...           ...           ...
+    feature_6      ...           ...           ...           ...
+    feature_7      ...           ...           ...           ...
+    feature_8      ...           ...           ...           ...
+    feature_9      ...           ...           ...           ...
+    feature_10     ...           ...           ...           ...
+
+    This function does not modify the names of indices across columns or rows
+    from the original table.
+
+    In its implementation, this function attempts to prioritize clarity over
+    efficiency. While matrix transformations would be more efficient, they
+    would also be more difficult to follow and critique.
+
+    Review: 2 July 2024
+
+    arguments:
+        table_first (object): Pandas data-frame table of values for
+            observations across columns and for features across rows
+        table_second (object): Pandas data-frame table of values for
+            observations across columns and for features across rows
+        name_columns (str): name of single-level index across columns
+        name_rows (str): name of single-level index across rows
+        count_quantile (int): odd count of quantiles, such as three for
+            tertiles
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (list<str>): identifiers of features in the middle tertiles of both
+            tables
+
+    """
+
+    # Copy information in table.
+    table_first = table_first.copy(deep=True)
+    table_second = table_second.copy(deep=True)
+    # Calculate geometric mean of values for each feature across all
+    # observations.
+    # Calculate ratio of each observation for each feature to that feature's
+    # geometric mean value across all observations.
+    # Calculate mean of ratio values across all observations for each feature.
+    # Filter rows in table to select features that demonstrate least change
+    # across observations on the basis of the middle quantile.
+    table_first_middle = (
+        filter_table_features_least_change_across_observations(
+            table=table_first,
+            name_columns=name_columns,
+            name_rows=name_rows,
+            count_quantile=count_quantile,
+            report=False,
+    ))
+    table_second_middle = (
+        filter_table_features_least_change_across_observations(
+            table=table_second,
+            name_columns=name_columns,
+            name_rows=name_rows,
+            count_quantile=count_quantile,
+            report=False,
+    ))
+    # Extract identifiers of features from the middle quantile of each table.
+    features_first = copy.deepcopy(
+        table_first.index.get_level_values(
+            name_rows
+        ).unique().to_list()
+    )
+    features_first_middle = copy.deepcopy(
+        table_first_middle.index.get_level_values(
+            name_rows
+        ).unique().to_list()
+    )
+    features_second = copy.deepcopy(
+        table_second.index.get_level_values(
+            name_rows
+        ).unique().to_list()
+    )
+    features_second_middle = copy.deepcopy(
+        table_second_middle.index.get_level_values(
+            name_rows
+        ).unique().to_list()
+    )
+    # Determine overlap or union from complementary sets.
+    list_sets_original = [
+        set(features_first),
+        set(features_second),
+    ]
+    list_sets_middle = [
+        set(features_first_middle),
+        set(features_second_middle),
+    ]
+    #union_original = set()
+    #union_original = set(features_first).union(set(features_second))
+    union_original = functools.reduce(
+        lambda first, second: first.union(second),
+        list_sets_original,
+    )
+    union_middle = functools.reduce(
+        lambda first, second: first.union(second),
+        list_sets_middle,
+    )
+    # Determine counts of features from each group.
+    count_first = len(features_first)
+    count_first_middle = len(features_first_middle)
+    count_second = len(features_second)
+    count_second_middle = len(features_second_middle)
+    count_union_original = len(union_original)
+    count_union_middle = len(union_middle)
+    # Determine percentages.
+    percentage_first = str(round(
+        float(100 * (count_first_middle / count_first)), 2
+    ))
+    percentage_second = str(round(
+        float(100 * (count_second_middle / count_second)), 2
+    ))
+    # Determine proportion of similarity between the middle sets of features.
+    count_union_minimum = int(min([count_first_middle, count_second_middle]))
+    count_union_maximum = int(count_first_middle + count_second_middle)
+    range_union_middle = int(count_union_maximum - count_union_minimum)
+    scale_union_middle = int(count_union_middle - count_union_minimum)
+    proportion_union_middle = float(
+        scale_union_middle / range_union_middle
+    )
+    percentage_union_middle = str(round(
+        float(100 * proportion_union_middle), 2
+    ))
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=2)
+        print("Report:")
+        print("partner")
+        print("scale")
+        print(
+            "compare_middle_tertile_feature_sets_by_" +
+            "ratio_to_geometric_mean()"
+        )
+        putly.print_terminal_partition(level=4)
+        print("Counts of unique features in original tables")
+        print("First table: " + str(count_first))
+        print("Second table: " + str(count_second))
+        print("Union: " + str(count_union_original))
+        putly.print_terminal_partition(level=4)
+        print("Counts of unique features in middle quantile of tables")
+        print(
+            "First table: " + str(count_first_middle) +
+            " (" + percentage_first + " %)"
+        )
+        print(
+            "Second table: " + str(count_second_middle) +
+            " (" + percentage_second + " %)"
+        )
+        print("Union: " + str(count_union_middle))
+        putly.print_terminal_partition(level=4)
+        print(
+            "Expectable range of unique union features from middle quantiles"
+        )
+        print(
+            "Count of minimum possible unique union features: " +
+            str(count_union_minimum)
+        )
+        print("This count would correspond to 100% similarity.")
+        print(
+            "Count of maximum possible unique union features: " +
+            str(count_union_maximum)
+        )
+        print("This count would correspond to 0% similarity.")
+        putly.print_terminal_partition(level=4)
+        print(
+            "Percentage of similarity in the features from middle quantiles"
+        )
+        print("Percentage: " + percentage_union_middle + " %")
+        putly.print_terminal_partition(level=4)
+    # Collect information.
+    pail = dict()
+    pail["union_original"] = union_original
+    pail["union_middle"] = union_middle
+    # Return information.
+    return pail
 
 
 # Rank-Based Inverse Normalization

@@ -82,6 +82,80 @@ import partner.utility as putly # this import path for subpackage
 # Functionality
 
 
+# Indices.
+
+
+def change_names_table_indices_columns_rows(
+    table=None,
+    name_columns_novel=None,
+    name_rows_original=None,
+    name_rows_novel=None,
+    report=None,
+):
+    """
+    Change names of indices across columns and rows in a table.
+
+    Review: 2 July 2024
+
+    arguments:
+        table (object): Pandas data-frame table of values for observations
+            across columns and for features across rows
+        name_columns_novel (str): name of single-level index across columns
+        name_rows_original (str): name of single-level index across rows
+        name_rows_novel (str): name of single-level index across rows
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    # Copy information in table.
+    table_source = table.copy(deep=True)
+    table_product = table.copy(deep=True)
+    # Organize information in table.
+    table_product.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
+    # Translate names of columns.
+    translations = dict()
+    translations[name_rows_original] = name_rows_novel
+    table_product.rename(
+        columns=translations,
+        inplace=True,
+    )
+    table_product.set_index(
+        [name_rows_novel],
+        append=False,
+        drop=True,
+        inplace=True,
+    )
+    table_product.columns.rename(
+        name_columns_novel,
+        inplace=True,
+    ) # single-dimensional index
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=2)
+        print("Report:")
+        print("partner")
+        print("organization")
+        print("change_names_table_indices_columns_rows()")
+        putly.print_terminal_partition(level=4)
+        print("Source, original table:")
+        print(table_source)
+        putly.print_terminal_partition(level=4)
+        print("Product, novel table:")
+        print(table_product)
+        pass
+    # Return information.
+    return table_product
+
+
 # Merge, combine, transfer.
 
 
@@ -673,6 +747,288 @@ def filter_symmetrical_table_half_diagonal_two_value_types(
     ##########
     # Return information.
     return table_product
+
+
+# Combine tables.
+
+# TODO: TCW; 1 July 2024
+# From within these two "merge..." functions, call function "filter_sort_table_columns()"
+# to clean up the table after the combination.
+
+
+def merge_columns_tables_supplements_to_main(
+    identifier_main=None,
+    identifier_supplement=None,
+    table_main=None,
+    tables_supplements=None,
+    report=None,
+):
+    """
+    Merge columns from multiple source tables to columns of a single main table.
+
+    This function does not discard any existing indices of the main and
+    supplement tables. This behavior might produce redundant or unnecessary
+    columns.
+
+    arguments:
+        identifier_main (str): name of column in main table on which
+            to merge
+        identifier_supplement (str): name of column in supplement tables on
+            which to merge
+        table_main (object): Pandas data frame of information
+        tables_supplements (list<object>): collection of Pandas data frames of
+            information
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data frame of information
+
+    """
+
+    # Copy information in table.
+    table_main = table_main.copy(deep=True)
+
+    # Reset index in original main table.
+    table_main.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # move index to regular columns
+    )
+
+    # Collect columns in original main table.
+    # This collection must include the index.
+    columns_collection = copy.deepcopy(table_main.columns.to_list())
+
+    # Organize main table's index.
+    table_main[identifier_main] = table_main[identifier_main].astype(
+        "string",
+        copy=True,
+        errors="raise",
+    )
+    table_main.set_index(
+        identifier_main,
+        append=False,
+        drop=True, # move regular column to index; remove original column
+        inplace=True,
+    )
+
+    # Copy information in table.
+    table_merge = table_main.copy(deep=True)
+
+    # Iterate on tables for polygenic scores.
+    for table_supplement in tables_supplements:
+        # Reset index in original supplement table.
+        table_supplement.reset_index(
+            level=None,
+            inplace=True,
+            drop=False, # remove index; do not move to regular columns
+        )
+        # Collect columns in original supplement table.
+        # This collection must include the index.
+        columns_supplement = copy.deepcopy(table_supplement.columns.to_list())
+        columns_collection.extend(columns_supplement)
+        # Organize supplement table's index.
+        table_supplement[identifier_supplement] = (
+            table_supplement[identifier_supplement].astype(
+                "string",
+                copy=True,
+                errors="raise",
+        ))
+        table_supplement.set_index(
+            identifier_supplement,
+            append=False,
+            drop=True, # move regular column to index; remove original column
+            inplace=True
+        )
+        # Merge data tables using database-style join.
+        # Alternative is to use DataFrame.join().
+        table_merge = pandas.merge(
+            table_merge, # left table
+            table_supplement, # right table
+            left_on=None, # "identifier_main"
+            right_on=None, # "identifier_supplement"
+            left_index=True, # "identifier_main"
+            right_index=True, # "identifier_supplement"
+            how="outer", # keep union of keys from both tables
+            #suffixes=("_main", "_identifiers"), # deprecated?
+        )
+        pass
+    # Organize table's index.
+    table_merge.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
+    #table_merge.set_index(
+    #    "identifier_genotype",
+    #    append=False,
+    #    drop=True, # move regular column to index; remove original column
+    #    inplace=True
+    #)
+    # Determine unique columns from collection.
+    columns_collection = list(set(columns_collection))
+    # Remove unnecessary columns from transformations on tables.
+    # The goal is to avoid any columns from the merge operations themselves.
+    #table_merge.drop(
+    #    labels=["index_x", "index_y", "index",],
+    #    axis="columns",
+    #    inplace=True
+    #)
+    table_merge = table_merge.loc[
+        :, table_merge.columns.isin(columns_collection)
+    ]
+    # Report.
+    if report:
+        print_terminal_partition(level=2)
+        print("report: ")
+        print("merge_columns_tables_supplements_to_main()")
+        print_terminal_partition(level=3)
+        print("table columns: " + str(int(table_merge.shape[1])))
+        print("table rows: " + str(int(table_merge.shape[0])))
+        print("columns")
+        print(table_merge.columns.to_list())
+        print(table_merge)
+        pass
+    # Return information.
+    return table_merge
+
+
+def merge_columns_two_tables(
+    identifier_first=None,
+    identifier_second=None,
+    table_first=None,
+    table_second=None,
+    report=None,
+):
+    """
+    Merge columns from two tables.
+
+    This function does not discard any existing indices of the main and
+    supplement tables. This behavior might produce redundant or unnecessary
+    columns.
+
+    This function also does not check that columns in both tables have unique
+    names.
+
+    arguments:
+        identifier_first (str): name of column in first table on which to merge
+        identifier_second (str): name of column in second table on which to
+            merge
+        table_first (object): Pandas data frame of information
+        tables_second (object): Pandas data frame of information
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data frame of information
+
+    """
+
+    # Copy information in table.
+    table_first = table_first.copy(deep=True)
+    table_second = table_second.copy(deep=True)
+
+    # Reset indices in original tables.
+    table_first.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # do not remove index; move to regular columns
+    )
+    table_second.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # do not remove index; move to regular columns
+    )
+
+    # Collect columns in original tables.
+    # This collection must include the indices.
+    columns_collection = copy.deepcopy(table_first.columns.to_list())
+    columns_second = copy.deepcopy(table_second.columns.to_list())
+    columns_collection.extend(columns_second)
+
+    # Organize first table's index.
+    table_first[identifier_first] = table_first[identifier_first].astype(
+        "string",
+        copy=True,
+        errors="raise",
+    )
+    table_first.set_index(
+        identifier_first,
+        append=False,
+        drop=True, # move regular column to index; remove original column
+        inplace=True,
+    )
+    # Organize second table's index.
+    table_second[identifier_second] = table_second[identifier_second].astype(
+        "string",
+        copy=True,
+        errors="raise",
+    )
+    table_second.set_index(
+        identifier_second,
+        append=False,
+        drop=True, # move regular column to index; remove original column
+        inplace=True,
+    )
+
+    # Merge data tables using database-style join.
+    # Alternative is to use DataFrame.join().
+    table = pandas.merge(
+        table_first, # left table
+        table_second, # right table
+        left_on=None, # "identifier_first"
+        right_on=None, # "identifier_second"
+        left_index=True, # "identifier_first"
+        right_index=True, # "identifier_second"
+        how="outer", # keep union of keys from both tables
+        #suffixes=("_main", "_identifiers"), # deprecated?
+    )
+
+    # Organize table's index.
+    table.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
+    #table.set_index(
+    #    "identifier_genotype",
+    #    append=False,
+    #    drop=True, # move regular column to index; remove original column
+    #    inplace=True
+    #)
+    # Determine unique columns from collection.
+    columns_collection = list(set(columns_collection))
+    # Remove unnecessary columns from transformations on tables.
+    # The goal is to avoid any columns from the merge operations themselves.
+    #table_merge.drop(
+    #    labels=["index_x", "index_y", "index",],
+    #    axis="columns",
+    #    inplace=True
+    #)
+    table = table.loc[
+        :, table.columns.isin(columns_collection)
+    ]
+
+    # Report.
+    if report:
+        print_terminal_partition(level=2)
+        print("report: ")
+        print("merge_columns_two_tables()")
+        print_terminal_partition(level=3)
+        print("table columns: " + str(int(table.shape[1])))
+        print("table rows: " + str(int(table.shape[0])))
+        print("columns")
+        print(table.columns.to_list())
+        print(table)
+        pass
+    # Return information.
+    return table
+
+
+
 
 
 
