@@ -95,6 +95,8 @@ def change_names_table_indices_columns_rows(
     """
     Change names of indices across columns and rows in a table.
 
+    The table ought to have special, named indices.
+
     Review: 2 July 2024
 
     arguments:
@@ -182,7 +184,14 @@ def transfer_table_rows_attributes_reference(
     Notice that the reference table must include information for each and every
     unique value of the key factor variable.
 
-    Review: TCW; 27 March 2024
+    Unlike a merge operation on tables, this function requires the key factor
+    variable to become a unique, unambiguous index in the reference table but
+    does not require the key factor variable to be unique in the main table.
+
+    Neither the main table nor the reference table ought to have special,
+    named indices.
+
+    Review: TCW; 3 July 2024
 
     arguments:
         table_main (object): Pandas data-frame table

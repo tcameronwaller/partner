@@ -86,6 +86,8 @@ def transform_values_distribution_scale_logarithm(
 
     Logarithm does not have a definition for negative values.
 
+    WARNING: The shift to positive values might introduce errors.
+
     arguments:
         values_array (object): NumPy array of original values
         shift_minimum (float): scalar value for new minimum greater than zero
@@ -479,9 +481,11 @@ def calculate_ratios_to_geometric_mean_across_feature_observations(
         pass
     # Calculate the logarithm of ratios.
     for column in columns:
+        # math.log() # optimal for scalar values
+        # numpy.log() # optimal for array values
         table[str(column + "_ratio_log")] = table.apply(
             lambda row:
-                (numpy.log(row[str(column + "_ratio")]))
+                math.log(row[str(column + "_ratio")])
                 if row[str(column + "_ratio")] != 0.0 else pandas.NA,
             axis="columns", # apply function to each row
         )

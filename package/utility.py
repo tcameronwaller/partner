@@ -56,6 +56,7 @@ import shutil
 import textwrap
 import itertools
 import math
+import pickle
 
 # Relevant
 
@@ -1245,7 +1246,7 @@ def determine_human_physiology_body_mass_index(
 
 
 ##########
-# Read text from file
+# Read information from file
 
 
 def read_file_text_table(path_file=None, names=None, delimiter=None):
@@ -1516,6 +1517,89 @@ def read_all_pandas_tables_files_within_parent_directory(
     return pail
 
 
+##########
+# Write information to file
+
+
+def write_object_to_file_pickle(
+    object=None,
+    name_file=None,
+    path_directory=None,
+):
+    """
+    Writes information from a basic object in Python to file in pickle format.
+
+    arguments:
+        object (object): Python basic object information to write to file
+        name_file (str): base name for file
+        path_directory (str): path to directory within which to write file
+
+    returns:
+
+    raises:
+
+    """
+
+    # Initialize directories.
+    create_directories(
+        path=path_directory,
+    )
+    # Specify directories and files.
+    path_file = os.path.join(
+        path_directory, str(name_file + ".pickle")
+    )
+    # Write information to file
+    with open(path_file, "wb") as file_product:
+        pickle.dump(
+            object,
+            file_product,
+            protocol=pickle.HIGHEST_PROTOCOL
+        )
+        pass
+    # Return information
+    pass
+
+
+def write_product_objects_to_file_pickle(
+    pail_write=None,
+    path_directory=None,
+):
+    """
+    Writes product information to file.
+
+    First and only dictionary tier names the file.
+
+    Before calling this function, return any relevant indices across rows to
+    columns. This function does not write indices across rows to the
+    tab-delimited text file.
+
+    arguments:
+        pail_write (dict<object>): collection of information to write to file
+        path_directory (str): path to directory within which to write
+            information to files
+
+    raises:
+
+    returns:
+
+    """
+
+    # Structure of "pail_write" collection is "dict<object>".
+    # First and only tier of dictionary tree gives names of files.
+    # Iterate across charts.
+    for name_file in pail_write.keys():
+        # Write chart object to file in child directory.
+        write_object_to_file_pickle(
+            object=pail_write[name_file],
+            name_file=name_file,
+            path_directory=path_directory,
+        )
+        pass
+    pass
+
+
+
+
 def write_file_text_table(
     information=None,
     path_file=None,
@@ -1577,6 +1661,167 @@ def write_file_text_list(
         string = delimiter.join(elements)
         file_product.write(string)
     pass
+
+
+def write_product_table(
+    table=None,
+    name_file=None,
+    path_directory=None,
+    type="text",
+):
+    """
+    Writes product information to file.
+
+    Before calling this function, return any relevant indices across rows to
+    columns. This function does not write indices across rows to the
+    tab-delimited text file.
+
+    arguments:
+        table (object): table of information to write to file
+        name_file (str): base name for file
+        path_directory (str): path to directory within which to write file
+        type (str): type of file to save, 'text' or 'pickle'
+
+    raises:
+
+    returns:
+
+    """
+
+    # Reset index.
+    #table.reset_index(
+    #    level=None,
+    #    inplace=True,
+    #    drop=False, # remove index; do not move to regular columns
+    #)
+    # Initialize directories.
+    create_directories(
+        path=path_directory,
+    )
+    # Determine type of file to which to save.
+    if (type == "text"):
+        # Copy information in table.
+        table_copy = table.copy(deep=True)
+        # Organize information in table.
+        table_copy.reset_index(
+            level=None,
+            inplace=True,
+            drop=False, # remove index; do not move to regular columns
+        )
+        # Specify directories and files.
+        path_file_table = os.path.join(
+            path_directory, str(name_file + ".tsv")
+        )
+        # Write information to file.
+        table_copy.to_csv(
+            path_or_buf=path_file_table,
+            sep="\t",
+            na_rep="NA",
+            header=True,
+            index=False,
+        )
+    elif (type == "pickle"):
+        # Specify directories and files.
+        path_file_table = os.path.join(
+            path_directory, str(name_file + ".pickle")
+        )
+        # Write information to file.
+        table.to_pickle(
+            path_file_table,
+        )
+    pass
+
+
+def write_product_tables(
+    pail_write=None,
+    path_directory=None,
+    type="text",
+):
+    """
+    Writes product information to file.
+
+    First and only dictionary tier names the file.
+
+    Before calling this function, return any relevant indices across rows to
+    columns. This function does not write indices across rows to the
+    tab-delimited text file.
+
+    arguments:
+        pail_write (dict<object>): collection of information to write to file
+        path_directory (str): path to directory within which to write
+            information to files
+        type (str): type of file to save, 'text' or 'pickle'
+
+    raises:
+
+    returns:
+
+    """
+
+    # Structure of "pail_write" collection is "dict<object>".
+    # First and only tier of dictionary tree gives names of files.
+    # Iterate across charts.
+    for name_file in pail_write.keys():
+        # Write chart object to file in child directory.
+        write_product_table(
+            table=pail_write[name_file],
+            name_file=name_file,
+            path_directory=path_directory,
+            type=type,
+        )
+        pass
+    pass
+
+
+def write_product_tables_child_directories(
+    pail_write=None,
+    path_directory_parent=None,
+    type="text",
+):
+    """
+    Writes product information to file.
+
+    First dictionary tier names the child directory.
+    Second dictionary tier names the file.
+
+    Before calling this function, return any relevant indices across rows to
+    columns. This function does not write indices across rows to the
+    tab-delimited text file.
+
+    arguments:
+        pail_write (dict<dict<object>>): collection of information to write to
+            file
+        path_directory_parent (str): path to parent directory
+        type (str): type of file to save, 'text' or 'pickle'
+
+    raises:
+
+    returns:
+
+    """
+
+    # Structure of "pail_write" collection is "dict<dict<object>>".
+    # First tier of dictionary tree gives names for child directories.
+    # Second tier of dictionary tree gives names of files.
+    # Iterate across child directories.
+    for name_directory in pail_write.keys():
+        # Define paths to directories.
+        path_directory_child = os.path.join(
+            path_directory_parent, name_directory
+        )
+        # Iterate across files.
+        write_product_tables(
+            pail_write=pail_write[name_directory],
+            path_directory=path_directory_child,
+            type=type,
+        )
+        pass
+    pass
+
+
+
+
+
 
 
 def print_file_lines(path_file=None, start=None, stop=None):
@@ -2259,162 +2504,6 @@ def combine_unique_elements_pairwise_order(
 ##################################################
 ##########
 # Pandas
-
-
-def write_product_table(
-    table=None,
-    name_file=None,
-    path_directory=None,
-    type="text",
-):
-    """
-    Writes product information to file.
-
-    Before calling this function, return any relevant indices across rows to
-    columns. This function does not write indices across rows to the
-    tab-delimited text file.
-
-    arguments:
-        table (object): table of information to write to file
-        name_file (str): base name for file
-        path_directory (str): path to directory within which to write file
-        type (str): type of file to save, 'text' or 'pickle'
-
-    raises:
-
-    returns:
-
-    """
-
-    # Reset index.
-    #table.reset_index(
-    #    level=None,
-    #    inplace=True,
-    #    drop=False, # remove index; do not move to regular columns
-    #)
-    # Initialize directories.
-    create_directories(
-        path=path_directory,
-    )
-    # Determine type of file to which to save.
-    if (type == "text"):
-        # Copy information in table.
-        table_copy = table.copy(deep=True)
-        # Organize information in table.
-        table_copy.reset_index(
-            level=None,
-            inplace=True,
-            drop=False, # remove index; do not move to regular columns
-        )
-        # Specify directories and files.
-        path_file_table = os.path.join(
-            path_directory, str(name_file + ".tsv")
-        )
-        # Write information to file.
-        table_copy.to_csv(
-            path_or_buf=path_file_table,
-            sep="\t",
-            na_rep="NA",
-            header=True,
-            index=False,
-        )
-    elif (type == "pickle"):
-        # Specify directories and files.
-        path_file_table = os.path.join(
-            path_directory, str(name_file + ".pickle")
-        )
-        # Write information to file.
-        table.to_pickle(
-            path_file_table,
-        )
-    pass
-
-
-def write_product_tables(
-    pail_write=None,
-    path_directory=None,
-    type="text",
-):
-    """
-    Writes product information to file.
-
-    First and only dictionary tier names the file.
-
-    Before calling this function, return any relevant indices across rows to
-    columns. This function does not write indices across rows to the
-    tab-delimited text file.
-
-    arguments:
-        pail_write (dict<object>): collection of information to write to file
-        path_directory_parent (str): path to directory within which to write
-            information to files
-        type (str): type of file to save, 'text' or 'pickle'
-
-    raises:
-
-    returns:
-
-    """
-
-    # Structure of "pail_write" collection is "dict<object>".
-    # First and only tier of dictionary tree gives names of files.
-    # Iterate across charts.
-    for name_file in pail_write.keys():
-        # Write chart object to file in child directory.
-        write_product_table(
-            table=pail_write[name_file],
-            name_file=name_file,
-            path_directory=path_directory,
-            type=type,
-        )
-        pass
-    pass
-
-
-def write_product_tables_child_directories(
-    pail_write=None,
-    path_directory_parent=None,
-    type="text",
-):
-    """
-    Writes product information to file.
-
-    First dictionary tier names the child directory.
-    Second dictionary tier names the file.
-
-    Before calling this function, return any relevant indices across rows to
-    columns. This function does not write indices across rows to the
-    tab-delimited text file.
-
-    arguments:
-        pail_write (dict<dict<object>>): collection of information to write to
-            file
-        path_directory_parent (str): path to parent directory
-        type (str): type of file to save, 'text' or 'pickle'
-
-    raises:
-
-    returns:
-
-    """
-
-    # Structure of "pail_write" collection is "dict<dict<object>>".
-    # First tier of dictionary tree gives names for child directories.
-    # Second tier of dictionary tree gives names of files.
-    # Iterate across child directories.
-    for name_directory in pail_write.keys():
-        # Define paths to directories.
-        path_directory_child = os.path.join(
-            path_directory_parent, name_directory
-        )
-        # Iterate across files.
-        write_product_tables(
-            pail_write=pail_write[name_directory],
-            path_directory=path_directory_child,
-            type=type,
-        )
-        pass
-    pass
 
 
 def calculate_sum_row_column_values(
