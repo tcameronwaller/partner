@@ -28,40 +28,50 @@ path_file_reference_genome=${3} # full path to file for reference genome sequenc
 path_execution_samtools=${4} # full path to executable file for SamTools
 report=${5} # whether to print reports
 
+echo $path_file_source
+echo $path_file_product
+echo $path_file_reference_genome
+echo $path_execution_samtools
+echo $report
+
+
 ################################################################################
 # Organize paths.
 
 ################################################################################
 # Organize paths.
 
-stamp_date=$(date +%Y-%m-%d)
-name_base_file_product="$(basename $path_file_product .bam)"
-path_directory_product="$(dirname $path_file_product)"
-#path_directory_product_temporary="${path_directory_product}/temporary_${name_base_file_product}_${stamp_date}" # hopefully unique
-#path_file_temporary_1="${path_directory_product_temporary}/${name_base_file_product}_temporary_1.txt"
+if false; then
 
-# Initialize directory.
-mkdir -p $path_directory_product
-#rm -r $path_directory_product_temporary
-#mkdir -p $path_directory_product_temporary
+  stamp_date=$(date +%Y-%m-%d)
+  name_base_file_product="$(basename $path_file_product .bam)"
+  path_directory_product="$(dirname $path_file_product)"
+  #path_directory_product_temporary="${path_directory_product}/temporary_${name_base_file_product}_${stamp_date}" # hopefully unique
+  #path_file_temporary_1="${path_directory_product_temporary}/${name_base_file_product}_temporary_1.txt"
 
-# Remove any previous version of the product file.
-rm $path_file_product
+  # Initialize directory.
+  mkdir -p $path_directory_product
+  #rm -r $path_directory_product_temporary
+  #mkdir -p $path_directory_product_temporary
 
-###############################################################################
-# Organize parameters.
+  # Remove any previous version of the product file.
+  rm $path_file_product
+
+  ###############################################################################
+  # Organize parameters.
 
 
-###############################################################################
-# Execute procedure.
+  ###############################################################################
+  # Execute procedure.
 
-$path_execution_samtools \
-view \
--T $path_file_reference_genome \
--b \
--o $path_file_product \
-$path_file_source
+  $path_execution_samtools \
+  view \
+  -T $path_file_reference_genome \
+  -b \
+  -o $path_file_product \
+  $path_file_source
 
+fi
 
 ##########
 # Report.
