@@ -2,7 +2,11 @@
 
 #chmod u+x script.sh
 
-path_project="/media/tcameronwaller/primary/data/local/work/affiliation/general/promiscuity"
+# TODO: TCW; 5 July 2024
+# TODO: This is a very old script that is obsolete.
+
+
+path_project="/media/tcameronwaller/primary/data/local/work/affiliation/general/partner"
 #path_project="/media/tcameronwaller/primary/data/local/work/affiliation/mayo_clinic/projects/bipolar_metabolism"
 path_repository="${path_project}/repository"
 path_package="${path_repository}/package"
