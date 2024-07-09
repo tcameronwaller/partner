@@ -26,8 +26,9 @@ path_file_source=${1} # full path to file for source genomic or transcriptomic s
 path_file_product=${2} # full path to file for product genomic or transcriptomic sequence information in BAM format
 path_file_reference_genome=${3} # full path to file for reference genome sequence
 path_file_reference_genome_index=${4} # full path to file for reference genome sequence index
-path_execution_samtools=${5} # full path to executable file for SamTools
-report=${6} # whether to print reports
+threads=${5} # count of concurrent or parallel process threads on node cores
+report=${6} # whether to print reports to terminal
+path_execution_samtools=${7} # full path to executable file for SamTools
 
 ################################################################################
 # Organize paths.
@@ -58,6 +59,7 @@ rm $path_file_product
 
 $path_execution_samtools \
 view \
+--threads $threads \
 -T $path_file_reference_genome \
 -t $path_file_reference_genome_index \
 --bam \

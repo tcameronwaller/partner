@@ -15,8 +15,8 @@
 ################################################################################
 # Note.
 
-# This script must execute within a working directory set up as the batch
-# directory.
+# This script must execute within a working directory set up as the parent
+# directory of child directories and files for management of parallel batch.
 
 # NCSA mForge implementation of SLURM has value of "MaxArraySize" of 10,000
 # as confirmed by TCW on 14 May 2024.
@@ -30,16 +30,11 @@
 
 path_file_parallel_instances=${1} # full path to file in text format with list of information for each instance in parallel batch
 count_parallel_instances=${2} # count of instances in parallel batch
-shift_index=${3} # shift index necessary when count of instances exceeds variable "MaxArraySize"
-
-path_file_reference_genome=${3} # full path to file for reference genome sequence
-path_execution_samtools=${4} # full path to executable file for SamTools
-report=${5} # whether to print reports
-
-
-
-path_directory_product=${4} # full path to parent directory within which to write product directories and files
-path_directory_disequilibrium=${5} # full directory path to directory for LDSC reference on linkage disequilibrium
-threads=${6} # count of concurrent or parallel process threads on node cores
-report=${7} # whether to print reports
-path_script_parallel_3=${8} # full path to file of script for execution of job procedure
+path_directory_parallel=${3} # full path to directory for files relating to management of parallel batch
+shift_index=${4} # shift index necessary when count of instances exceeds system variable "MaxArraySize"
+path_file_reference_genome=${5} # full path to file for reference genome sequence
+path_file_reference_genome_index=${6} # full path to file for reference genome sequence index
+threads=${7} # count of concurrent or parallel process threads on node cores
+report=${8} # whether to print reports to terminal
+path_execution_samtools=${9} # full path to executable file for SamTools
+path_script_parallel_3=${10} # full path to file of script for execution of job procedure
