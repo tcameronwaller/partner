@@ -16,10 +16,8 @@
 # conversion from BAM format to CRAM format. Consult the header of the file in
 # CRAM format to confirm which reference genome sequence was used.
 
-################################################################################
 
-
-################################################################################
+###############################################################################
 # Organize arguments.
 
 path_file_source=${1} # full path to file for source genomic or transcriptomic sequence information in CRAM format
@@ -30,10 +28,7 @@ threads=${5} # count of concurrent or parallel process threads on node cores
 report=${6} # whether to print reports to terminal
 path_execution_samtools=${7} # full path to executable file for SamTools
 
-################################################################################
-# Organize paths.
-
-################################################################################
+###############################################################################
 # Organize paths.
 
 stamp_date=$(date +%Y-%m-%d)

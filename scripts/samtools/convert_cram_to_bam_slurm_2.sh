@@ -12,7 +12,7 @@
 #SBATCH --error ./%x.%A.%N.%j.%a.stderr
 #SBATCH --signal=USR1@60
 
-################################################################################
+###############################################################################
 # Note.
 
 # This script must execute within a working directory set up as the parent
@@ -25,16 +25,68 @@
 # SLURM will not allow an array index greater than "MaxArraySize".
 # It is necessary to split larger jobs.
 
-################################################################################
+###############################################################################
 # Organize arguments.
 
 path_file_parallel_instances=${1} # full path to file in text format with list of information for each instance in parallel batch
 count_parallel_instances=${2} # count of instances in parallel batch
 path_directory_parallel=${3} # full path to directory for files relating to management of parallel batch
-shift_index=${4} # shift index necessary when count of instances exceeds system variable "MaxArraySize"
+index_shift=${4} # shift index necessary when count of instances exceeds system variable "MaxArraySize"
 path_file_reference_genome=${5} # full path to file for reference genome sequence
 path_file_reference_genome_index=${6} # full path to file for reference genome sequence index
 threads=${7} # count of concurrent or parallel process threads on node cores
 report=${8} # whether to print reports to terminal
-path_execution_samtools=${9} # full path to executable file for SamTools
-path_script_parallel_3=${10} # full path to file of script for execution of job procedure
+path_script_parallel_3=${9} # full path to file of script for execution of job procedure
+path_execution_samtools=${10} # full path to executable file for SamTools
+
+###############################################################################
+# Organize parameters.
+
+# Determine current job instance of parallel batch.
+index_parallel=$((SLURM_ARRAY_TASK_ID + index_shift)) # indices start at zero in array of parallel batch job instances
+readarray -t instances_parallel < $path_file_parallel_instances
+instance=${instances_parallel[$index_parallel]}
+
+# Separate fields from instance.
+IFS=";" read -r -a array <<< "${instance}"
+path_file_source="${array[0]}"
+path_file_product="${array[1]}"
+
+###############################################################################
+# Report.
+
+if [[ "$report" == "true" ]]; then
+  echo "----------"
+  echo "script:"
+  echo $0 # Print full file path to script.
+  echo "convert_cram_to_bam_slurm_2.sh"
+  echo "----------"
+  echo "instance in parallel batch"
+  echo "Slurm job id: " $SLURM_JOB_ID
+  echo "SLURM_ARRAY_TASK_ID: " $SLURM_ARRAY_TASK_ID
+  echo "----------"
+  echo "path to source file:"
+  echo $path_file_source
+  echo "path to product file:"
+  echo $path_file_product
+  echo "----------"
+fi
+
+
+###############################################################################
+# Execute procedure.
+
+# Execute main procedure.
+if true; then
+  /usr/bin/bash $path_script_parallel_3 \
+  $path_file_source \
+  $path_file_product \
+  $path_file_reference_genome \
+  $path_file_reference_genome_index \
+  $threads \
+  $report \
+  $path_execution_samtools
+fi
+
+###############################################################################
+# End.
