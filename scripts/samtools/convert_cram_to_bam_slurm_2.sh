@@ -6,7 +6,7 @@
 #SBATCH --partition=cpu-short                # queue: cpu-short, cpu-med, cpu-long
 #SBATCH --nodes=1                            # count of cluster nodes (CPUs)
 #SBATCH --ntasks-per-node=2                  # count of CPU cores or threads on node
-#SBATCH --mem=1G                             # memory per node (per CPU)
+#SBATCH --mem=4G                             # memory per node (per CPU)
 #SBATCH --time=0-01:00:00                    # time allocation request (days-hours:minutes:seconds)
 #SBATCH --output ./%x.%A.%N.%j.%a.stdout
 #SBATCH --error ./%x.%A.%N.%j.%a.stderr
@@ -24,6 +24,10 @@
 # "/etc/slurm/slurm.conf".
 # SLURM will not allow an array index greater than "MaxArraySize".
 # It is necessary to split larger jobs.
+
+# Conversion of file from CRAM format to BAM format only requires about 200
+# Megabytes of memory per node.
+# Sort of file in BAM format requires more memory per node.
 
 # Check status in queue.
 # squeue -u {user}
