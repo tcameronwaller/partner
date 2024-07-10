@@ -70,7 +70,7 @@ fi
 # It is necessary to split larger jobs.
 index_shift=0
 
-if false; then
+if true; then
   sbatch \
   --array 0-${index_array_maximum}:1 \
   --chdir $path_directory_parallel \
