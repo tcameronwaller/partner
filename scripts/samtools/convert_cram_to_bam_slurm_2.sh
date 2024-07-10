@@ -25,6 +25,9 @@
 # SLURM will not allow an array index greater than "MaxArraySize".
 # It is necessary to split larger jobs.
 
+# Check status in queue.
+# squeue -u {user}
+
 ###############################################################################
 # Organize arguments.
 
