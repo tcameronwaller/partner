@@ -72,6 +72,7 @@ index_shift=0
 
 if true; then
   sbatch \
+  --exclude=mforge160 \
   --array 0-${index_array_maximum}:1 \
   --chdir $path_directory_parallel \
   $path_script_parallel_2 \
