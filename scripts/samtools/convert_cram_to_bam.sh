@@ -54,6 +54,7 @@ rm $path_file_product
 # Execute procedure.
 
 if false; then
+  # Convert file from CRAM format to BAM format.
   $path_execution_samtools \
   view \
   --threads $threads \

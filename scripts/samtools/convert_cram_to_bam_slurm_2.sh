@@ -27,7 +27,7 @@
 
 # Conversion of file from CRAM format to BAM format only requires about 200
 # Megabytes of memory per node.
-# Sort of file in BAM format requires more memory per node.
+# Sort of file in BAM format requires 2-4 Gigabytes of memory per node.
 
 # Check status in queue.
 # squeue -u {user}
