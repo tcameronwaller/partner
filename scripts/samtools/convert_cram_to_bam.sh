@@ -34,15 +34,16 @@ path_execution_samtools=${7} # full path to executable file for SamTools
 stamp_date=$(date +%Y-%m-%d)
 name_base_file_product="$(basename $path_file_product .bam)"
 path_directory_product="$(dirname $path_file_product)"
-#path_directory_product_temporary="${path_directory_product}/temporary_${name_base_file_product}_${stamp_date}" # hopefully unique
-#path_file_temporary_1="${path_directory_product_temporary}/${name_base_file_product}_temporary_1.txt"
+path_directory_temporary="${path_directory_product}/temporary_${name_base_file_product}_${stamp_date}" # hopefully unique
+path_file_temporary_1="${path_directory_temporary}/${name_base_file_product}_temporary_1.bam"
 
 # Initialize directory.
 mkdir -p $path_directory_product
-#rm -r $path_directory_product_temporary
-#mkdir -p $path_directory_product_temporary
+rm -r $path_directory_temporary
+mkdir -p $path_directory_temporary
 
 # Remove any previous version of the product file.
+rm $path_file_temporary_1
 rm $path_file_product
 
 ###############################################################################
@@ -52,14 +53,35 @@ rm $path_file_product
 ###############################################################################
 # Execute procedure.
 
-$path_execution_samtools \
-view \
---threads $threads \
--T $path_file_reference_genome \
--t $path_file_reference_genome_index \
---bam \
--o $path_file_product \
-$path_file_source
+if false; then
+  $path_execution_samtools \
+  view \
+  --threads $threads \
+  -T $path_file_reference_genome \
+  -t $path_file_reference_genome_index \
+  --bam \
+  -o $path_file_product \
+  $path_file_source
+fi
+
+if true; then
+  # Convert file from CRAM format to BAM format.
+  $path_execution_samtools \
+  view \
+  --threads $threads \
+  -T $path_file_reference_genome \
+  -t $path_file_reference_genome_index \
+  --bam \
+  -o $path_file_temporary_1 \
+  $path_file_source
+  # Sort coordinates of file in BAM format.
+  $path_execution_samtools \
+  sort \
+  -@ $threads \
+  -o $path_file_product \
+  $path_file_temporary_1
+fi
+
 
 ##########
 # Report.
@@ -79,7 +101,7 @@ fi
 
 ##########
 # Remove temporary, intermediate files.
-#rm -r $path_directory_product_temporary
+rm -r $path_directory_temporary
 
 ###############################################################################
 # End.

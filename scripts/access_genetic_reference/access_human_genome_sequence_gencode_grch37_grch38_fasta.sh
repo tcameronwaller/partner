@@ -17,6 +17,8 @@
 # the human reference genome.
 
 # The source for these accessions is GENCODE (https://www.gencodegenes.org/).
+# An alternative source is NCBI RefSeq
+# (https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_000001405.40/).
 
 # Genome Reference Consortium human genome assembly 38 (GRCh38)
 # - version, latest: GRCh38 patch 14 (GRCh38.p14), GENCODE release 46
