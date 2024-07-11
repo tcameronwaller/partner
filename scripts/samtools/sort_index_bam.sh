@@ -54,7 +54,7 @@ if true; then
   $path_execution_samtools \
   index \
   --bai \
-  -threads $threads \
+  --threads $threads \
   -o $path_file_product_index \
   $path_file_product
 fi
