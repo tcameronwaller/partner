@@ -81,9 +81,9 @@ fi
 # Accession.
 cd $path_directory
 # Primary assembly.
-wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_46/GRCh38.primary_assembly.genome.fa.gz # __ Megabytes
+wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_46/GRCh38.primary_assembly.genome.fa.gz # 807 Megabytes
 # Complete assembly.
-wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_46/GRCh38.p14.genome.fa.gz # __ Megabytes
+wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_46/GRCh38.p14.genome.fa.gz # 856 Megabytes
 
 
 

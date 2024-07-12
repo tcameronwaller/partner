@@ -25,6 +25,8 @@
 # name, using the "-n" parameter option. Then use the "--order=name" parameter
 # option of HTSeq's count method.
 
+# Deompress file format of the genome annotation.
+#gzip -dcvf $path_file_compressed > $path_file_decompressed
 
 
 # TODO: TCW; 11 July 2024
@@ -61,13 +63,27 @@
 # --order=pos, # specify that sort sequence is by alignment position
 
 python3 -m HTSeq.scripts.count \
---format=bam \
---idattr=gene_id \
---type=gene \
---order=pos \
---stranded=no \
---mode=union \
---nonunique=fraction \
+--format "bam" \
+--minaqual 10 \
+--idattr "gene_id" \
+--type "gene" \
+--order "pos" \
+--stranded "no" \
+--mode "union" \
+--nonunique "fraction" \
+--with-header \
+--additional-attr "gene_id" \
+--additional-attr "gene_name" \
+--additional-attr "exon_number" \
+--additional-attr "gene_type" \
+--add-chromosome-info \
+--delimiter "\t" \
+--counts_output $path_file_product \
+--quiet \
+--nprocesses $threads \
+$path_file_source_bam \
+$path_file_annotation_gtf
+
 
 ###############################################################################
 # End.

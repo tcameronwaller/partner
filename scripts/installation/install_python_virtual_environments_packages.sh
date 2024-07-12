@@ -9,6 +9,7 @@ echo "read private file path variables and organize paths..."
 cd ~/paths
 path_tools=$(<"./waller_tools.txt")
 path_python="${path_tools}/python"
+path_python_3124="${path_python}/python-3.12.4"
 path_python_3111="${path_python}/python_3.11.1"
 path_python_396="${path_python}/python_3.9.6"
 path_python_3816="${path_python}/python_3.8.16"
@@ -26,6 +27,8 @@ path_environment_ldsc="${path_tools}/python/environments/ldsc"
 
 # Initialize directories.
 mkdir -p $path_python
+mkdir -p $path_python_3124
+mkdir -p $path_python_3111
 mkdir -p $path_python_396
 mkdir -p $path_python_2718
 
@@ -67,26 +70,34 @@ sudo apt install libffi-dev libssl-dev openssl-devel
 sudo apt install python-dev python3-dev
 
 
-
 # Latest
 ##########
-# Python 3.11.1
-# Release date: 6 December 2022
-# Description: https://www.python.org/downloads/release/python-3111/
-# Installation date: _____ (on work server)
-# https://docs.python.org/3/using/unix.html#getting-and-installing-the-latest-version-of-python
-cd $path_python
-mkdir -p $path_python_3111
-cd $path_python_3111
-wget https://www.python.org/ftp/python/3.11.1/Python-3.11.1.tar.xz # _____
-tar -xJvf Python-3.11.1.tar.xz # Decompress from "xz" format.
-cd ./Python-3.11.1
-# Argument "--prefix" needs a full, explicit path.
-# This argument keeps each installation within a specific directory path.
-./configure --prefix=$path_python_3111 # _____
-make # _____
-make test # _____
-
+# Python v3.12.4
+# date, release: 6 June 2024
+# description: https://www.python.org/downloads/release/python-3124/
+# installation:
+# - system: NCSA, mForge, endocrinology workspace
+# - date, installation: 12 July 2024
+# - version, installation: v3.12.4
+# documentation: https://docs.python.org/3/using/unix.html#getting-and-installing-the-latest-version-of-python
+cd "${path_tool}/python"
+wget https://www.python.org/ftp/python/3.12.4/Python-3.12.4.tar.xz
+tar -xJvf Python-3.12.4.tar.xz # Extract from tar ball with "xz" compression.
+rm Python-3.12.4.tar.xz
+mv Python-3.12.4 python-3.12.4
+cd python-3.12.4
+pwd
+# Argument "--prefix" needs a full, explicit file path.
+# This argument keeps installation within the specific directory path.
+./configure --prefix="/.../tool/python/python-3.12.4" # requires full, absolute path to directory
+make
+make test
+# 468 tests OK.
+# 2 tests failed: test_pathlib test_zipfile
+make install # TCW; 12 July 2024
+"${path_tool}/python/python-3.12.4/bin/python3" -V # "Python 3.12.4"; TCW; 12 July 2024
+# Remove installation.
+#rm -rf $path_python_3124
 
 
 ##########
@@ -217,6 +228,44 @@ make install # TCW, 6 July 2021
 # deactivate
 # Delete virtual environment.
 # rm -rf [virtual environment path and name] # remove virtual environment
+
+##########
+# Python3 environment: "htseq"
+# source for HTSeq: https://github.com/htseq/htseq
+# documentation for HTSeq: https://htseq.readthedocs.io/en/latest/index.html
+# installation:
+# - system: NCSA, mForge, endocrinology workspace
+# - date, installation: 12 July 2024
+# - version, installation: v2.0.8
+# Initialize virtual environment for Python v3.12.4.
+# path to python installation: path_python_3124="${path_tool}/python/python-3.12.4"
+# path to environment: path_environment_htseq="${path_tool}/python/environments/htseq"
+# Notice that it is unnecessary to create the last directory ("htseq") before
+# creating the virtual environment.
+"${path_python_3124}/bin/python3" -m venv --help
+"${path_python_3124}/bin/python3" -m venv $path_environment_htseq # TCW; 12 July 2024
+source "${path_environment_htseq}/bin/activate"
+which python3 # "${path_tool}/python/environments/htseq/bin/python3"; TCW; 12 July 2024
+python3 -m pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org pip setuptools
+python3 -m pip install --upgrade pip # TCW; 12 July 2024
+python3 -m pip --version # "pip 24.1.2 from ${path_environment_htseq}/lib/python3.12/site-packages/pip (python 3.12)"; TCW; 12 July 2024
+python3 -m pip install --upgrade Cython # "Cython-3.0.10"; TCW; 12 July 2024
+python3 -m pip install --upgrade pytest # "dependencies ... pytest-8.2.2"; TCW; 12 July 2024
+python3 -m pip install --upgrade numpy # "numpy-2.0.0"; TCW; 12 July 2024
+python3 -m pip install --upgrade scipy # "scipy-1.14.0"; TCW; 12 July 2024
+python3 -m pip install --upgrade pandas # "dependencies ... pandas-2.2.2"; TCW; 12 July 2024
+python3 -m pip install --upgrade matplotlib # "dependencies ... matplotlib-3.9.1"; TCW; 12 July 2024
+python3 -m pip install --upgrade pysam # "pysam-0.22.1"; TCW; 12 July 2024
+python3 -m pip install --upgrade anndata # "dependencies ... anndata-0.10.8"; TCW; 12 July 2024
+python3 -m pip install --upgrade loompy # "dependencies ... loompy-3.0.7"; TCW; 12 July 2024
+python3 -m pip install --upgrade pyBigWig # "pyBigWig-0.3.23"; TCW; 12 July 2024
+python3 -m pip install --upgrade swig # "swig-4.2.1"; TCW; 12 July 2024
+python3 -m pip install --upgrade HTSeq # "2.0.8"; TCW; 12 July 2024
+python3 -m HTSeq.scripts.count --version # "2.0.8"; TCW; 12 July 2024
+python3 -m HTSeq.scripts.count --help
+deactivate
+which python3
+
 
 
 ##########

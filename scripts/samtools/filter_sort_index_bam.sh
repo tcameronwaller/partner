@@ -6,11 +6,13 @@
 ###############################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 11 July 2024
-# Date, last execution or modification: 11 July 2024
-# Review: TCW; 11 July 2024
+# Date, last execution or modification: 12 July 2024
+# Review: TCW; 12 July 2024
 ###############################################################################
 # Note
 
+# http://www.htslib.org/doc/samtools-view.html
+# http://www.htslib.org/doc/samtools-flags.html
 
 ###############################################################################
 # Organize arguments.
@@ -24,9 +26,11 @@ path_execution_samtools=${5} # full path to executable file for SamTools
 ###############################################################################
 # Organize paths.
 
-#stamp_date=$(date +%Y-%m-%d)
+stamp_date=$(date +%Y-%m-%d)
 name_base_file_product="$(basename $path_file_product .bam)"
 path_directory_product="$(dirname $path_file_product)"
+path_directory_temporary="${path_directory_product}/temporary_${name_base_file_product}_${stamp_date}" # hopefully unique
+path_file_temporary_1="${path_directory_temporary}/${name_base_file_product}_temporary_1.bam"
 path_file_product_index="${path_directory_product}/${name_base_file_product}.bam.bai"
 
 # Initialize directory.
@@ -44,12 +48,23 @@ rm $path_file_product_index
 # Execute procedure.
 
 if true; then
+  # Filter.
+  $path_execution_samtools \
+  view \
+  --bam \
+  --with-header \
+  --require-flags 0x1,0x2 \
+  --excl-flags 0x4,0x8,0x200 \
+  --threads $threads \
+  --output $path_file_temporary_1 \
+  $path_file_source
   # Sort coordinates of file in BAM format.
   $path_execution_samtools \
   sort \
+  -n \
   -@ $threads \
   -o $path_file_product \
-  $path_file_source
+  $path_file_temporary_1
   # Create index for file in BAM format.
   $path_execution_samtools \
   index \
@@ -76,6 +91,10 @@ if [ "$report" == "true" ]; then
   echo "path to product index file: " $path_file_product_index
   echo "----------"
 fi
+
+##########
+# Remove temporary, intermediate files.
+rm -r $path_directory_temporary
 
 ###############################################################################
 # End.

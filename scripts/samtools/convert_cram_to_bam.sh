@@ -69,11 +69,12 @@ if true; then
   # Convert file from CRAM format to BAM format.
   $path_execution_samtools \
   view \
+  --bam \
+  --with-header \
   --threads $threads \
   -T $path_file_reference_genome \
   -t $path_file_reference_genome_index \
-  --bam \
-  -o $path_file_temporary_1 \
+  --output $path_file_temporary_1 \
   $path_file_source
   # Sort coordinates of file in BAM format.
   $path_execution_samtools \
