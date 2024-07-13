@@ -35,8 +35,11 @@ path_file_product_index="${path_directory_product}/${name_base_file_product}.bam
 
 # Initialize directory.
 mkdir -p $path_directory_product
+rm -r $path_directory_temporary
+mkdir -p $path_directory_temporary
 
 # Remove any previous version of the product file.
+rm $path_file_temporary_1
 rm $path_file_product
 rm $path_file_product_index
 
