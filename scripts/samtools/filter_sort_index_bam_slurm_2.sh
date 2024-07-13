@@ -60,7 +60,7 @@ if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "script:"
   echo $0 # Print full file path to script.
-  echo "sort_index_bam_slurm_2.sh"
+  echo "filter_sort_index_bam_slurm_2.sh"
   echo "----------"
   echo "instance in parallel batch"
   echo "Slurm job id: " $SLURM_JOB_ID

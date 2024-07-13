@@ -84,7 +84,7 @@ if [ "$report" == "true" ]; then
   echo "----------"
   echo "Script:"
   echo $0 # Print full file path to script.
-  echo "Sort coordinates and create index for file in BAM format."
+  echo "Filter reads, sort reads by name, and create index for file in BAM format."
   echo "----------"
   echo "path to source file: " $path_file_source
   echo "path to product sort file: " $path_file_product

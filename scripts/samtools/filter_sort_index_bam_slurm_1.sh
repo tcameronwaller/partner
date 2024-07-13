@@ -44,7 +44,7 @@ if [[ "$report" == "true" ]]; then
   echo "----------"
   echo "script:"
   echo $0 # Print full file path to script.
-  echo "sort_index_bam_slurm_1.sh"
+  echo "filter_sort_index_bam_slurm_1.sh"
   echo "----------"
   echo "count of instances in parallel batch: " $count_parallel_instances
   echo "maximum index in array of instances: " $index_array_maximum
