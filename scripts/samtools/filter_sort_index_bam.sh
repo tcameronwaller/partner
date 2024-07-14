@@ -6,7 +6,7 @@
 ###############################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 11 July 2024
-# Date, last execution or modification: 13 July 2024
+# Date, last execution or modification: 12 July 2024
 # Review: TCW; 12 July 2024
 ###############################################################################
 # Note
@@ -17,7 +17,7 @@
 ###############################################################################
 # Organize arguments.
 
-path_file_source=${1} # full path to file for source genomic or transcriptomic sequence information in CRAM format
+path_file_source=${1} # full path to file for source genomic or transcriptomic sequence information in BAM format
 path_file_product=${2} # full path to file for product genomic or transcriptomic sequence information in BAM format
 threads=${3} # count of concurrent or parallel process threads on node cores
 report=${4} # whether to print reports to terminal

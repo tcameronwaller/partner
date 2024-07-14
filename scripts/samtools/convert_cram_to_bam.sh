@@ -22,8 +22,8 @@
 
 path_file_source=${1} # full path to file for source genomic or transcriptomic sequence information in CRAM format
 path_file_product=${2} # full path to file for product genomic or transcriptomic sequence information in BAM format
-path_file_reference_genome=${3} # full path to file for reference genome sequence
-path_file_reference_genome_index=${4} # full path to file for reference genome sequence index
+path_file_reference_genome=${3} # full path to file for sequence of reference genome
+path_file_reference_genome_index=${4} # full path to index file for sequence of reference genome
 threads=${5} # count of concurrent or parallel process threads on node cores
 report=${6} # whether to print reports to terminal
 path_execution_samtools=${7} # full path to executable file for SamTools
