@@ -119,7 +119,7 @@ if true; then
   --counts_output $path_file_product \
   --quiet \
   --nprocesses $threads \
-  "$path_directory_source/*.bam" \
+  $path_directory_source/*.bam \
   $path_file_temporary_1
 
   ##########
