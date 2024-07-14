@@ -74,17 +74,10 @@ rm $path_file_product
 # Organize parameters.
 
 
-
-
 ###############################################################################
 # Execute procedure.
 
-# TODO: need to activate appropriate Python environment
-# TODO: need to export global variables, including any necessary paths
-
-# --order=pos, # specify that sort sequence is by alignment position
-
-if false; then
+if true; then
 
   ##########
   # Deompress file format.
@@ -112,7 +105,7 @@ if false; then
   --minaqual 10 \
   --idattr "gene_id" \
   --type "gene" \
-  --order "pos" \
+  --order "name" \
   --stranded "no" \
   --mode "union" \
   --nonunique "fraction" \
