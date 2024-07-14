@@ -3,11 +3,11 @@
 #SBATCH --job-name=htseq                     # name of job
 #SBATCH --mail-user=waller.tcameron@mayo.edu # email address
 #SBATCH --mail-type=END,FAIL,TIME_LIMIT_50   # situations in which to send email
-#SBATCH --partition=cpu-short                # queue: cpu-short, cpu-med, cpu-long
+#SBATCH --partition=cpu-med                # queue: cpu-short, cpu-med, cpu-long
 #SBATCH --nodes=1                            # count of cluster nodes (CPUs)
-#SBATCH --ntasks-per-node=10                 # count of CPU cores or threads on node
-#SBATCH --mem=16G                            # memory per node (per CPU)
-#SBATCH --time=0-10:00:00                    # time allocation request (days-hours:minutes:seconds)
+#SBATCH --ntasks-per-node=16                 # count of CPU cores or threads on node
+#SBATCH --mem=10G                            # memory per node (per CPU)
+#SBATCH --time=0-48:00:00                    # time allocation request (days-hours:minutes:seconds)
 #SBATCH --output ./%x.%A.%N.%j.%a.stdout
 #SBATCH --error ./%x.%A.%N.%j.%a.stderr
 #SBATCH --signal=USR1@60

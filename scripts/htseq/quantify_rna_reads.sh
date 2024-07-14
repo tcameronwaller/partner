@@ -6,8 +6,8 @@
 ###############################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 13 July 2024
-# Date, last execution or modification: 13 July 2024
-# Review: TCW; 13 July 2024
+# Date, last execution or modification: 14 July 2024
+# Review: TCW; 14 July 2024
 ###############################################################################
 # Note
 
@@ -97,6 +97,12 @@ if true; then
   export MKL_NUM_THREADS=$threads
   export NUMEXPR_NUM_THREADS=$threads
   export OMP_NUM_THREADS=$threads
+
+  #paths_file_source=()
+  #while IFS= read -r -d $'\0'; do
+  #  paths_file_source+=("$REPLY")
+  #done < <(find $path_directory_source -maxdepth 1 -mindepth 1 -type f -name "*.bam" -print0)
+  #paths_file_source_epansion="${paths_file_source[*]}"
 
   ##########
   # Quantify reads allocatable to specific genomic features.
