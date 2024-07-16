@@ -48,8 +48,6 @@ rm $path_file_table_product
 ###############################################################################
 # Execute procedure.
 
-# TODO: IF the column name appears in the reference translations
-
 # Extract translations of header names for columns in table.
 declare -A translations # initialize an associative array
 input=$path_file_column_translations
