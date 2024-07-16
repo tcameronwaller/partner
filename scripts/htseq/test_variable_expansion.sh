@@ -17,7 +17,7 @@
 ###############################################################################
 # Organize arguments.
 
-#paths_file_source=${1} # full paths to files for source genomic or transcriptomic sequence information in BAM format
+paths_file_source=${1} # full paths to files for source genomic or transcriptomic sequence information in BAM format
 path_directory_source=${1} # full path to parent directory of files for source genomic or transcriptomic sequence information in BAM format
 
 ###############################################################################
@@ -31,8 +31,8 @@ path_directory_source=${1} # full path to parent directory of files for source g
 # Execute procedure.
 
 echo "...Test variable expansion in parameter to script..."
-#echo "Here are the expanded file paths from parameter 'paths_file_source'."
-#echo $paths_file_source
+echo "Here are the expanded file paths from parameter 'paths_file_source'."
+echo $paths_file_source
 echo "Here are the contents of the directory 'path_directory_source'."
 echo "File suffix is '.bam'."
 echo $path_directory_source/*.bam

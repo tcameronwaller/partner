@@ -26,10 +26,13 @@ path_execution_samtools=${5} # full path to executable file for SamTools
 ###############################################################################
 # Organize paths.
 
+# Directories.
 stamp_date=$(date +%Y-%m-%d)
 name_base_file_product="$(basename $path_file_product .bam)"
 path_directory_product="$(dirname $path_file_product)"
 path_directory_temporary="${path_directory_product}/temporary_${name_base_file_product}_${stamp_date}" # hopefully unique
+
+# Files.
 path_file_temporary_1="${path_directory_temporary}/${name_base_file_product}_temporary_1.bam"
 path_file_product_index="${path_directory_product}/${name_base_file_product}.bam.bai"
 
@@ -38,7 +41,7 @@ mkdir -p $path_directory_product
 rm -r $path_directory_temporary
 mkdir -p $path_directory_temporary
 
-# Remove any previous version of the product file.
+# Initialize file.
 rm $path_file_temporary_1
 rm $path_file_product
 rm $path_file_product_index
@@ -96,7 +99,7 @@ if [ "$report" == "true" ]; then
 fi
 
 ##########
-# Remove temporary, intermediate files.
+# Remove directory of temporary, intermediate files.
 rm -r $path_directory_temporary
 
 ###############################################################################

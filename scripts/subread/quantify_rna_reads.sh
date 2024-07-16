@@ -11,43 +11,14 @@
 ###############################################################################
 # Note
 
-# Notice that the default operation of the sort method in SamTools is to sort
-# aligned sequence reads by position coordinates and not by name. For paired
-# end sequence reads in sort sequence by position coordinates rather than by
-# name, it is necessary to specify the "--order=pos" option of HTSeq's count
-# method. For paired end sequence reads in sort sequence by name, it is
-# necessary to specify the "--order=name" option of HTSeq's count method. It
-# tends to be more efficient to sort reads by name so that paired end reads for
-# each fragment are more or less adjacent to each other in the BAM file.
-# Otherwise, HTSeq's count method can have unnecessary computational burden to
-# find paired end reads of either direction. Sort the records using the "-n"
-# parameter in SamTools' "sort" method.
 
-# For paired-end RNA sequence technologies, it is most accurate to quantify
-# fragments, each of which are represented by two reads in opposite directions.
-# Before quantification in HTSeq, use SamTools to filter to proper pairs of
-# paired end sequence reads for each fragment. These fragments will offer
-# greater confidence and accuracy in quantification.
+# Documentation for subread featureCounts
+# https://rdrr.io/bioc/Rsubread/man/featureCounts.html
+# https://rnnh.github.io/bioinfo-notebook/docs/featureCounts.html
 
-# Notice that it is necessary for the GTF file annotating genomic features to
-# use the same format of chromosome identifiers as were in the reference
-# genome used in prior alignment.
+# Publication
+# https://academic.oup.com/bioinformatics/article/30/7/923/232889?login=false
 
-# The HTSeq documentation specifies that it's necessary to use the
-# "end_included" argument of the "HTSeq.GFF_Reader()" to specify whether or not
-# the GTF file specifies position ranges that include the end position. It can
-# be ambiguous and difficult to determine whether the GTF annotation file even
-# uses a consistent criterion.
-
-# Deompress file format of the genome annotation.
-#gzip -dcvf $path_file_compressed > $path_file_decompressed
-
-# Documentation for htseq-count
-# https://htseq.readthedocs.io/en/latest/htseqcount.html#htseqcount
-# https://cloud.genepattern.org/gp/module/doc/urn:lsid:broad.mit.edu:cancer.software.genepattern.module.analysis:00412:3
-
-# Tools to merge together multiple reports of results from HTSeq Count.
-# https://www.genepattern.org/modules/docs/MergeHTSeqCounts/1#gsc.tab=0
 
 ###############################################################################
 # Organize arguments.
@@ -73,7 +44,7 @@ mkdir -p $path_directory_product
 rm -r $path_directory_temporary
 mkdir -p $path_directory_temporary
 
-# Initialize file.
+# Remove any previous version of the product file.
 rm $path_file_temporary_1
 rm $path_file_product
 
@@ -85,11 +56,41 @@ rm $path_file_product
 ###############################################################################
 # Execute procedure.
 
-if true; then
+##########
+# Deompress file format.
+gzip -dcvf $path_file_annotation_gtf_gzip > $path_file_temporary_1
 
-  ##########
-  # Deompress file format.
-  gzip -dcvf $path_file_annotation_gtf_gzip > $path_file_temporary_1
+# Quantify reads at genomic features.
+if true; then
+  # Filter.
+  $path_execution_featurecounts \
+  view \
+  --bam \
+  --with-header \
+  --require-flags 0x1,0x2 \
+  --excl-flags 0x4,0x8,0x200 \
+  --threads $threads \
+  --output $path_file_temporary_1 \
+  $path_file_source
+  # Sort coordinates of file in BAM format.
+  $path_execution_samtools \
+  sort \
+  -n \
+  -@ $threads \
+  -o $path_file_product \
+  $path_file_temporary_1
+  # Create index for file in BAM format.
+  $path_execution_samtools \
+  index \
+  --bai \
+  --threads $threads \
+  -o $path_file_product_index \
+  $path_file_product
+fi
+
+
+
+if true; then
 
   ##########
   # Activate Python Virtual Environment.
