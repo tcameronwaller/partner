@@ -11,7 +11,7 @@ United States of America
 
 ## License:
 
-This initialization file is part of the project package directory 'partner'
+This file is part of the project package directory 'partner'
 (https://github.com/tcameronwaller/partner/).
 
 Project 'partner' supports data analysis in multiple other projects.
