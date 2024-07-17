@@ -79,6 +79,10 @@ sudo apt install python-dev python3-dev
 # - system: NCSA, mForge, endocrinology workspace
 # - date, installation: 12 July 2024
 # - version, installation: v3.12.4
+# installation:
+# - system: halyard
+# - date, installation: 17 July 2024
+# - version, installation: v3.12.4
 # documentation: https://docs.python.org/3/using/unix.html#getting-and-installing-the-latest-version-of-python
 cd "${path_tool}/python"
 wget https://www.python.org/ftp/python/3.12.4/Python-3.12.4.tar.xz
@@ -92,63 +96,14 @@ pwd
 ./configure --prefix="/.../tool/python/python-3.12.4" # requires full, absolute path to directory
 make
 make test
-# 468 tests OK.
-# 2 tests failed: test_pathlib test_zipfile
-make install # TCW; 12 July 2024
+# mforge: 468 tests OK.
+# mforge: 2 tests failed: test_pathlib test_zipfile
+# halyard: 471 tests OK.
+# halyard: Result: SUCCESS
+make install # mforge: 12 July 2024; halyard: 17 July 2024
 "${path_tool}/python/python-3.12.4/bin/python3" -V # "Python 3.12.4"; TCW; 12 July 2024
 # Remove installation.
 #rm -rf $path_python_3124
-
-
-##########
-# Python 3.9.6
-# Release date: 28 June 2021
-# Installation date: TCW; 6 July 2021
-# Description: https://www.python.org/downloads/release/python-396/
-# https://www.python.org/ftp/python/3.9.6/Python-3.9.6.tgz
-cd $path_python_396
-wget https://www.python.org/ftp/python/3.9.6/Python-3.9.6.tgz # TCW, 6 July 2021
-tar -xzvf Python-3.9.6.tgz
-#find ~/python -type d | xargs chmod 0755
-cd ./Python-3.9.6
-# Argument "--prefix" needs a full, explicit path.
-./configure --prefix=$path_python_396 # TCW, 6 July 2021
-make # TCW, 6 July 2021
-make test # TCW, 6 July 2021
-# 409 tests OK.
-# 3 tests failed: test_pathlib, test_urllib2net, test_zipfile
-make install # TCW, 6 July 2021
-
-"${path_python_396}/bin/python3" -V # "Python 3.9.6", TCW, 6 July 2021
-
-# Remove installation.
-#rm -rf $path_python_396
-
-
-
-##########
-# Python 3.8.16
-# Release date: 6 December 2022 (security update)
-# Description: https://www.python.org/downloads/release/python-3816/
-# Installation date: _____ (on work server)
-cd $path_python
-mkdir -p $path_python_3816 # "${path_python}/python_3.8.16"
-cd $path_python_3816
-wget https://www.python.org/ftp/python/3.8.16/Python-3.8.16.tgz # TCW; 23 January 2023
-tar -xzvf Python-3.8.16.tgz # TCW; 23 January 2023
-cd ./Python-3.8.16
-# Argument "--prefix" needs a full, explicit path.
-./configure --prefix=$path_python_3816 # TCW; 23 January 2023
-make # TCW; 23 January 2023
-make test # TCW; 23 January 2023
-# "407 tests OK.""
-# "3 tests failed: test_pathlib test_urllib2net test_zipfile" # Maybe result of installation to specific directory path.
-make install # TCW; 23 January 2023; 17:15
-
-$path_python_3816/bin/python3 -V # "Python 3.8.16"; TCW; 23 January 2023
-
-# Remove installation.
-#rm -rf $path_python_3816
 
 
 
@@ -229,6 +184,42 @@ make install # TCW, 6 July 2021
 # Delete virtual environment.
 # rm -rf [virtual environment path and name] # remove virtual environment
 
+
+##########
+# Python3 environment: "main"
+# installation:
+# - system: halyard
+# - date, installation: 17 July 2024
+# - version, installation: v3.12.4
+# Initialize virtual environment for Python v3.12.4.
+# path to python installation: path_python_3124="${path_tool}/python/python-3.12.4"
+# path to environment: path_environment_htseq="${path_tool}/python/environments/main"
+# Notice that it is unnecessary to create the last directory ("main") before
+# creating the virtual environment.
+"${path_python_396}/bin/python3" -m venv --help
+"${path_python_396}/bin/python3" -m venv $path_environment_main # TCW; 17 July 2024
+# Activate virtual environment.
+source "${path_environment_main}/bin/activate"
+which python3 # "${path_tool}/python/environments/main/bin/python3"; TCW; 17 July 2024
+# Pip installation within virtual environment should not require "sudo" root user permissions.
+# Documentation: https://docs.python.org/3/installing/index.html
+python3 -m pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org pip setuptools
+python3 -m pip --version # pip 24.0
+python3 -m pip install --upgrade pip
+python3 -m pip --version # pip 24.1.2
+python3 -m pip install --upgrade pytest
+python3 -m pip install --upgrade testresources
+python3 -m pip install --upgrade numpy
+python3 -m pip install --upgrade scipy
+python3 -m pip install --upgrade pandas
+python3 -m pip install --upgrade scikit-learn
+python3 -m pip install --upgrade statsmodels
+python3 -m pip install --upgrade networkx
+python3 -m pip install --upgrade matplotlib
+deactivate
+which python3
+
+
 ##########
 # Python3 environment: "htseq"
 # source for HTSeq: https://github.com/htseq/htseq
@@ -288,43 +279,6 @@ python3 -m pip install --upgrade CrossMap # TCW; 10 March 2023
 CrossMap.py --help # call "CrossMap.py" directly as an executable
 CrossMap.py bed --help
 CrossMap.py vcf --help
-deactivate
-which python3
-
-
-
-##########
-# Python3 environment: "main"
-"${path_python_396}/bin/python3" -m venv --help # TCW, 28 July 2021
-"${path_python_396}/bin/python3" -m venv $path_environment_main # TCW, 28 July 2021
-# Activate virtual environment.
-# Unable to install with "--user" flag within virtual environment.
-# ERROR: Can not perform a '--user' install. User site-packages are not visible in this virtualenv.
-source "${path_environment_main}/bin/activate"
-which python3 # "${path_environment_main}/bin/python3" TCW, 28 July 2021
-# Pip installation within virtual environment should not require "sudo" root user permissions.
-# Documentation: https://docs.python.org/3/installing/index.html
-
-# halyard; TCW; 1 May 2024
-python3 -m pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org pip setuptools
-python3 -m pip --version # "pip 22.0.4 from ${path_environment_main}/lib/python3.9/site-packages/pip (python 3.9)"; halyard; TCW; 1 May 2024
-python3 -m pip install --upgrade pip
-python3 -m pip --version # "pip 24.0 from ${path_environment_main}/lib/python3.9/site-packages/pip (python 3.9)"; halyard; TCW; 1 May 2024
-python3 -m pip install --upgrade statsmodels # "Successfully installed numpy-1.26.4 pandas-2.2.2 patsy-0.5.6 scipy-1.13.0 statsmodels-0.14.2 tzdata-2024.1"; halyard; TCW; 1 May 2024
-
-# halyard; TCW; 28 July 2021
-python3 -m pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org pip setuptools
-python3 -m pip --version # "pip 21.1.3 from ${path_environment_main}/lib/python3.9/site-packages/pip (python 3.9)" TCW, 28 July 2021
-python3 -m pip install --upgrade pip
-python3 -m pip --version # "pip 22.0.4 from ${path_environment_main}/lib/python3.9/site-packages/pip (python 3.9)" TCW, 12 April 2022
-python3 -m pip install --upgrade numpy # "numpy-1.21.1" TCW, 28 July 2021
-python3 -m pip install --upgrade scipy # "scipy-1.7.0" TCW, 28 July 2021
-python3 -m pip install --upgrade testresources # "pbr-5.6.0 testresources-2.0.1" TCW, 28 July 2021
-python3 -m pip install --upgrade pandas # "pandas-1.3.1 python-dateutil-2.8.2 pytz-2021.1 six-1.16.0" TCW, 28 July 2021
-python3 -m pip install --upgrade sklearn # "joblib-1.0.1 scikit-learn-0.24.2 sklearn-0.0 threadpoolctl-2.2.0" TCW, 28 July 2021
-python3 -m pip install --upgrade statsmodels # "patsy-0.5.1 statsmodels-0.12.2" TCW, 28 July 2021
-python3 -m pip install --upgrade matplotlib # "cycler-0.10.0 kiwisolver-1.3.1 matplotlib-3.5.1 pillow-8.3.1 pyparsing-2.4.7" TCW, 12 April 2022
-python3 -m pip install --upgrade networkx # "networkx-2.6.2" TCW, 28 July 2021
 deactivate
 which python3
 
