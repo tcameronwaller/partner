@@ -56,7 +56,7 @@ sed -i 's%\\t%;%g' $path_file_temporary_1
 
 # Collect lines for product table.
 lines_product=()
-line="name_full;name_base"
+line="identifier_original;identifier_novel;identifier_original_simple"
 lines_product+=($line)
 # Read first line of header names for columns in table.
 IFS=$';' read -r -a array_line < $path_file_temporary_1
@@ -64,8 +64,10 @@ IFS=$';' read -r -a array_line < $path_file_temporary_1
 for name_full in "${array_line[@]}"; do
   # Extract base name of file.
   name_base="$(basename $name_full .bam)"
+  # Generate novel identifier.
+  identifier_novel=`cat /dev/urandom | tr -dc [:alpha:][:digit:] | head -c10`
   # Define line.
-  line="${name_full};${name_base}"
+  line="${name_full};${identifier_nove};${name_base}"
   lines_product+=($line)
 done
 
