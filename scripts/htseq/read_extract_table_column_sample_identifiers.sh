@@ -74,7 +74,7 @@ for name_full in "${array_line[@]}"; do
   # Extract keys of associative array the unique original header names.
   string_identifiers_check=${!identifiers_novel_unique[@]} # transfers a space-delimited list of keys
   # Generate novel and unique identifier.
-  while [ "${identifier_novel}" == "" ] || [ "${string_identifiers_check}" =~ "${identifier_novel}" ]; do
+  while [[ "${identifier_novel}" == "" || "${string_identifiers_check}" =~ "${identifier_novel}" ]]; do
     # Generate novel identifier.
     identifier_novel_prefix=`cat /dev/urandom | tr -dc [:upper:] | head -c3`
     identifier_novel_suffix=`cat /dev/urandom | tr -dc [:digit:] | head -c4`
