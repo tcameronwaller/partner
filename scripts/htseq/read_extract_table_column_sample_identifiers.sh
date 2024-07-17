@@ -52,7 +52,7 @@ rm $path_file_table_product
 head -1 $path_file_table_source > $path_file_temporary_1
 
 # Replace problematic delimiters.
-sed -i -e "s%\\t%;%g" $path_file_temporary_1
+sed -i -e "s%/\t%;%g" $path_file_temporary_1
 
 # Collect lines for product table.
 lines_product=()
