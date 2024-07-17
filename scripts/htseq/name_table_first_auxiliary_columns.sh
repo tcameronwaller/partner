@@ -63,10 +63,11 @@ cat $path_file_temporary_1 | awk -v start=7 'BEGIN {
 } NR==1 {
   columns=""; for (i=start; i<=NF; i++) columns=columns$i OFS; print "identifier_gene", "gene_id", "gene_name", "exon_number", "gene_type", "chromosome", columns
 }' > $path_file_table_product
-cat $path_file_temporary_1 | awk 'BEGIN {
+# To change the delimiters, print each column within each row.
+cat $path_file_temporary_1 | awk -v start=1 'BEGIN {
   FS=";"; OFS="\t"
 } NR > 1 {
-  print $0
+  columns=""; for (i=start; i<=NF; i++) columns=columns$i OFS; print columns
 }' >> $path_file_table_product
 
 
