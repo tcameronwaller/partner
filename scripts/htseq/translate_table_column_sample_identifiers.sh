@@ -81,7 +81,7 @@ cp $path_file_table_source $path_file_temporary_1
 # appear in the strings for replacement.
 # The second option is to replace the problematic delimiter temporarily and
 # then revert back after the main replacement.
-# For example: sed -i -e 's/\/foo-bar-blargh/g' $path_file_temporary
+# For example: sed -i -e 's/\/foo-bar-blargh/g' $path_file_temporary_1
 
 # Read first line of header names for columns in table.
 IFS=$'\t' read -r -a array_line < $path_file_table_source
