@@ -52,7 +52,7 @@ rm $path_file_table_product
 head -1 $path_file_table_source > $path_file_temporary_1
 
 # Replace problematic delimiters.
-sed -i -e "s%/\t%;%g" $path_file_temporary_1
+sed -i 's%/\t%;%g' $path_file_temporary_1
 
 # Collect lines for product table.
 lines_product=()
@@ -87,7 +87,7 @@ if [[ "$report" == "true" ]]; then
   head -1 $path_file_temporary_1
   echo "----------"
   echo "Product novel table:"
-  head -1 $path_file_table_product
+  head -10 $path_file_table_product
   echo "----------"
   echo "----------"
   echo "----------"
