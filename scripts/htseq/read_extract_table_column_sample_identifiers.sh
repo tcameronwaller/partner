@@ -63,7 +63,7 @@ IFS=$';' read -r -a array_line < $path_file_temporary_1
 # Iterate across header names of columns in table.
 for name_full in "${array_line[@]}"; do
   # Extract base name of file.
-  name_base="$(basename $name_full .tsv)"
+  name_base="$(basename $name_full .bam)"
   # Define line.
   line="${name_full};${name_base}"
   lines_product+=($line)
