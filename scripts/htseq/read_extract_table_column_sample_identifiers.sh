@@ -6,14 +6,15 @@
 ###############################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 16 July 2024
-# Date, last execution or modification: 16 July 2024
-# Review: TCW; 16 July 2024
+# Date, last execution or modification: 17 July 2024
+# Review: TCW; 17 July 2024
 ###############################################################################
 # Note
 
 # The goal of this script is to extract the original identifiers or names
 # across the headers of columns in a table report from quantification of
-# RNA sequence reads in HTSeq.
+# RNA sequence reads in HTSeq. This script also creates novel identifiers to
+# replace the originals for the sake of greater anonymity.
 
 ###############################################################################
 # Organize arguments.
@@ -52,7 +53,9 @@ rm $path_file_table_product
 head -1 $path_file_table_source > $path_file_temporary_1
 
 # Replace problematic delimiters.
-#sed -i 's%\\t%;%g' $path_file_temporary_1
+# Rather than a true tab delimiter, the tables in text format have delimiters
+# of literal "\t" string characters between columns in each row.
+sed -i 's%\\t%;%g' $path_file_temporary_1
 
 # Collect lines for product table.
 lines_product=()
@@ -61,27 +64,23 @@ lines_product+=($line)
 # Collect unique novel identifiers.
 declare -A identifiers_novel_unique # initialize an associative array
 # Read first line of header names for columns in table.
-IFS=$'\t' read -r -a array_line < $path_file_temporary_1
+IFS=$';' read -r -a array_line < $path_file_temporary_1
 # Iterate across header names of columns in table.
 for name_full in "${array_line[@]}"; do
+  # Extract base name of file.
+  name_base="$(basename $name_full .bam)"
   # Initialize and reset the novel identifier.
   identifier_novel=""
   # Extract keys of associative array the unique original header names.
   string_identifiers_check=${!identifiers_novel_unique[@]} # transfers a space-delimited list of keys
-  # Extract base name of file.
-  name_base="$(basename $name_full .bam)"
-  # Generate novel identifier.
-  identifier_novel_prefix=`cat /dev/urandom | tr -dc [:upper:] | head -c3`
-  identifier_novel_suffix=`cat /dev/urandom | tr -dc [:digit:] | head -c4`
-  identifier_novel="${identifier_novel_prefix}-${identifier_novel_suffix}"
-  # Make sure that the novel identifier does not already exist in the collection.
-  if [[ "${string_identifiers_check}" =~ "${identifier_novel}" ]]; then
-    # Generate another novel identifier.
-    # The probability of generating an existing identifier twice must be small.
+  # Generate novel and unique identifier.
+  while [ "${identifier_novel}" == "" ] || [ "${string_identifiers_check}" =~ "${identifier_novel}" ]; do
+    # Generate novel identifier.
     identifier_novel_prefix=`cat /dev/urandom | tr -dc [:upper:] | head -c3`
     identifier_novel_suffix=`cat /dev/urandom | tr -dc [:digit:] | head -c4`
     identifier_novel="${identifier_novel_prefix}-${identifier_novel_suffix}"
-  fi
+  done
+  # Confirm that the novel identifier does not already exist in the collection.
   if [[ ! "${string_identifiers_check}" =~ "${identifier_novel}" ]]; then
     identifiers_novel_unique[$identifier_novel]=0 # assign a key-value pair
     # Define line.
