@@ -52,14 +52,14 @@ rm $path_file_table_product
 head -1 $path_file_table_source > $path_file_temporary_1
 
 # Replace problematic delimiters.
-sed -i -e 's%\t%;%g' $path_file_temporary_1
+sed -i -e "s%\t%;%g" $path_file_temporary_1
 
 # Collect lines for product table.
 lines_product=()
 line="name_full;name_base"
 lines_product+=($line)
 # Read first line of header names for columns in table.
-IFS=$'\t' read -r -a array_line < $path_file_temporary_1
+IFS=$';' read -r -a array_line < $path_file_temporary_1
 # Iterate across header names of columns in table.
 for name_full in "${array_line[@]}"; do
   # Extract base name of file.
