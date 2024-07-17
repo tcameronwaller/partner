@@ -59,7 +59,7 @@ while IFS=$'\n' read -r -a array_lines; do
     name_original="${array_segments[0]}"
     name_novel="${array_segments[1]}"
     # Skip the header line.
-    if [[ $name_original == "identifier_original" ]]; then
+    if [[ "${name_original}" == "" || "${name_original}" == "identifier_original" ]]; then
       continue
     fi
     # Organize identifiers within associative array.
