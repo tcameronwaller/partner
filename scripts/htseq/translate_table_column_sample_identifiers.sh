@@ -54,7 +54,7 @@ input=$path_file_column_translations
 while IFS=$'\n' read -r -a array_lines; do
   for line in "${array_lines[@]}"; do
     # Separate segments within current line.
-    IFS=$'\t' read -r -a array_segments <<< "${line}"
+    IFS=$';' read -r -a array_segments <<< "${line}"
     # Select original and novel identifiers for samples from segments in current line.
     name_original="${array_segments[0]}"
     name_novel="${array_segments[1]}"
