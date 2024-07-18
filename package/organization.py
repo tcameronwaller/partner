@@ -478,7 +478,217 @@ def sort_table_rows_by_list_indices(
     return table
 
 
+##########
 # Filter.
+
+
+def filter_sort_table_columns(
+    table=None,
+    columns_sequence=None,
+    report=None,
+):
+    """
+    Filters and sorts the columns within a Pandas data-frame table.
+
+    Review: TCW; 18 July 2024
+
+    arguments:
+        table (object): Pandas data-frame table
+        columns_sequence (list<str>): identifiers or names of columns to keep
+            in sort sequence
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    # Copy information in table.
+    table_filter_sort = table.copy(deep=True)
+
+    # Remove unnecessary columns.
+    #table_filter_sort.drop(
+    #    labels=["test", "blah", "q_significance",],
+    #    axis="columns",
+    #    inplace=True
+    #)
+
+    # Filter and sort table's columns.
+    #table_filter_sort = table_filter_sort.loc[
+    #    :, table_filter_sort.columns.isin(columns_sequence)
+    #]
+    table_filter_sort = table_filter_sort.filter(
+        items=columns_sequence,
+        axis="columns",
+    )
+    table_filter_sort = table_filter_sort[[*columns_sequence]]
+
+    # Report.
+    if report:
+        count_columns_source = (table.shape[1])
+        count_columns_product = (table_filter_sort.shape[1])
+        putly.print_terminal_partition(level=3)
+        print("module: partner.organization.py")
+        print("function: filter_sort_table_columns()")
+        putly.print_terminal_partition(level=5)
+        print("count of columns in source table: " + str(count_columns_source))
+        print(
+            "count of columns in product table: " +
+            str(count_columns_product)
+        )
+        putly.print_terminal_partition(level=5)
+        print("product table:")
+        print(table_filter_sort)
+        putly.print_terminal_partition(level=5)
+    # Return information.
+    return table_filter_sort
+
+
+def extract_organize_values_from_series(
+    series=None,
+    report=None,
+):
+    """
+    Dependency:
+    This function is a dependency of the function below.
+    partner.organization.match_keep_series_signal_validity()
+
+    Extracts and organizes values from a Pandas series, such as a single column
+    or row from a Pandas data-frame table.
+
+    Review: TCW; 18 July 2024
+
+    arguments:
+        series (object): Pandas series of values of signal intensity
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict<object>): collection of information
+
+    """
+
+    # Copy information in series.
+    series = series.copy(deep=True)
+    # Extract and organize information from series.
+    #values_raw = values_raw.astype(numpy.float32)
+    values_raw = series.to_numpy(
+        dtype="float64",
+        na_value=numpy.nan,
+        copy=True,
+    )
+    values_positive = values_raw
+    values_positive[values_positive <= 0] = numpy.nan
+    values_valid = values_positive[~numpy.isnan(values_positive)]
+    values_log = numpy.log(values_valid)
+    # Collect information.
+    pail = dict()
+    pail["values_raw"] = values_raw
+    pail["values_positive"] = values_positive
+    pail["values_valid"] = values_valid
+    pail["values_log"] = values_log
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("module: partner.organization.py")
+        print("function: extract_organize_values_from_series()")
+        putly.print_terminal_partition(level=5)
+        print("original source series:")
+        print(series)
+        putly.print_terminal_partition(level=5)
+        print("raw values:")
+        print(values_raw)
+        putly.print_terminal_partition(level=5)
+        print("positive values, greater than zero):")
+        print(values_positive)
+        putly.print_terminal_partition(level=5)
+        print("valid values, positive and nonmissing:")
+        print(values_valid)
+        putly.print_terminal_partition(level=4)
+        print("logarithmic values:")
+        print(values_log)
+    # Return information.
+    return pail
+
+
+def match_keep_series_signal_validity(
+    series=None,
+    keys_signal=None,
+    proportion=None,
+    report=None,
+):
+    """
+    Determines whether to keep a Pandas series on the basis of the
+    proportion of values of signal intensity that are nonmissing and greater
+    than zero. The series can come from the row or column in a table.
+
+    Review: TCW; 18 July 2024
+
+    arguments:
+        series (object): Pandas series of values of signal intensity
+        keys_signal (list<str>): names or identifiers of elements in the series
+            that correspond to values of signal intensity
+        proportion (float): proportion of values of signal intensity that
+            must be nonmissing and greater than zero in order to keep the
+            series
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (int): logical binary representation of whether to keep current row
+
+    """
+
+    # Copy information in series.
+    series = series.copy(deep=True)
+    # Extract and organize information from series.
+    pail_values = extract_organize_values_from_series(
+        series=series[keys_signal],
+        report=report,
+    )
+    count_raw = int(pail_values["values_raw"].size)
+    count_valid = int(pail_values["values_valid"].size)
+    #values_nonmissing = pail_values["values_raw"][~numpy.isnan(
+    #    pail_values["values_raw"]
+    #)]
+    #count_nonmissing = numpy.count_nonzero(~numpy.isnan(
+    #    pail_values["values_raw"]
+    #))
+    #count_nonmissing = int(values_nonmissing.size)
+    #count_validity = numpy.count_nonzero(values_nonmissing > 0)
+    #count_samples = len(columns_intensity)
+    #count_invalidity = (count_samples - count_validity)
+    proportion_actual = float(count_valid / count_raw)
+    # Determine whether to keep current row from table.
+    if (
+        (proportion_actual >= proportion)
+    ):
+        indicator = 1
+    else:
+        indicator = 0
+        pass
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("module: partner.organization.py")
+        print("function: match_keep_series_signal_validity()")
+        putly.print_terminal_partition(level=5)
+        print("count of total values: " + str(count_raw))
+        print(
+            "count valid values, positive and nonmissing: " + str(count_valid)
+        )
+        putly.print_terminal_partition(level=5)
+        print("proportion valid, actual: " + str(proportion_actual))
+        print("proportion valid, threshold: " + str(proportion))
+        print("indicator: " + str(indicator))
+        putly.print_terminal_partition(level=5)
+    # Return information.
+    return indicator
+
 
 # TODO: TCW; 6 June 2024
 # Simplify function 'match_table_row_redundant_interchangeable_pairs' to avoid
@@ -583,66 +793,6 @@ def match_table_row_redundant_interchangeable_pairs(
         print(values_index_match)
         print(min(values_index_match))
     return indicator
-
-
-def filter_sort_table_columns(
-    table=None,
-    columns_sequence=None,
-    report=None,
-):
-    """
-    Filters and sorts the columns within a Pandas data-frame table.
-
-    Review: TCW; 28 March 2024
-
-    arguments:
-        table (object): Pandas data-frame table
-        columns_sequence (list<str>): identifiers or names of columns to keep
-            in sort sequence
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (object): Pandas data-frame table
-
-    """
-
-    # Copy information in table.
-    table_filter_sort = table.copy(deep=True)
-
-    # Remove unnecessary columns.
-    #table_filter_sort.drop(
-    #    labels=["test", "blah", "q_significance",],
-    #    axis="columns",
-    #    inplace=True
-    #)
-
-    # Filter and sort table's columns.
-    #table_filter_sort = table_filter_sort.loc[
-    #    :, table_filter_sort.columns.isin(columns_sequence)
-    #]
-    table_filter_sort = table_filter_sort.filter(
-        items=columns_sequence,
-        axis="columns",
-    )
-    table_filter_sort = table_filter_sort[[*columns_sequence]]
-
-    # Report.
-    if report:
-        putly.print_terminal_partition(level=4)
-        count_columns_source = (table.shape[1])
-        count_columns_product = (table_filter_sort.shape[1])
-        print("Count of columns in source table: " + str(count_columns_source))
-        print(
-            "Count of columns in product table: " +
-            str(count_columns_product)
-        )
-        print("Table")
-        print(table_filter_sort)
-        putly.print_terminal_partition(level=4)
-    # Return information.
-    return table_filter_sort
 
 
 def filter_symmetrical_table_half_diagonal_two_value_types(
