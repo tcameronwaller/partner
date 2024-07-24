@@ -32,7 +32,7 @@ mkdir -p $path_python_3111
 mkdir -p $path_python_396
 mkdir -p $path_python_2718
 
-################################################################################
+###############################################################################
 # Python installation
 # There is a tool, "pyenv" to help manage installations of multiple versions of
 # Python. This tool uses "shims" in the Path variable to determine which version
@@ -76,10 +76,12 @@ sudo apt install python-dev python3-dev
 # date, release: 6 June 2024
 # description: https://www.python.org/downloads/release/python-3124/
 # installation:
+# - installation from source
 # - system: NCSA, mForge, endocrinology workspace
 # - date, installation: 12 July 2024
 # - version, installation: v3.12.4
 # installation:
+# - installation from source
 # - system: halyard
 # - date, installation: 17 July 2024
 # - version, installation: v3.12.4
