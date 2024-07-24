@@ -546,8 +546,92 @@ def filter_sort_table_columns(
     return table_filter_sort
 
 
+def test_extract_organize_values_from_series():
+    """
+    Test:
+    This function tests the function below.
+    partner.organization.extract_organize_values_from_series()
+
+
+    Review: TCW; 24 July 2024
+
+    arguments:
+
+    raises:
+
+    returns:
+
+    """
+
+    # Dictionary.
+    dictionary_integer = {
+        "a": 1,
+        "b": 2,
+        "c": 3,
+        "d": float("nan"),
+        "e": 5,
+        "f": 6,
+        "g": 7,
+        "h": 8,
+        "i": 9,
+        "j": 10,
+    }
+    dictionary_float = {
+        "a": 0.001,
+        "b": 0.005,
+        "c": 0.01,
+        "d": 0.05,
+        "e": 0.1,
+        "f": 0.5,
+        "g": float("nan"),
+        "h": 0.7,
+        "i": 0.8,
+        "j": 0.9,
+    }
+    # Series.
+    series_integer = pandas.Series(
+        data=dictionary_integer,
+        index=[
+            "a", "b", "c", "d", "e", "f", "g", "h", "i", "j",
+        ],
+    )
+    series_float = pandas.Series(
+        data=dictionary_float,
+        index=[
+            "a", "b", "c", "d", "e", "f", "g", "h", "i", "j",
+        ],
+    )
+    # Call function to test.
+    putly.print_terminal_partition(level=3)
+    print("module: partner.organization.py")
+    print("function: test_extract_organize_values_from_series()")
+    print("series type: integer")
+    putly.print_terminal_partition(level=5)
+    pail_test = extract_organize_values_from_series(
+        series=series_integer,
+        threshold_low=1,
+        threshold_high=9,
+        report=True,
+    )
+    # Call function to test.
+    putly.print_terminal_partition(level=3)
+    print("module: partner.organization.py")
+    print("function: test_extract_organize_values_from_series()")
+    print("series type: float")
+    putly.print_terminal_partition(level=5)
+    pail_test = extract_organize_values_from_series(
+        series=series_float,
+        threshold_low=0.01,
+        threshold_high=0.8,
+        report=True,
+    )
+    pass
+
+
 def extract_organize_values_from_series(
     series=None,
+    threshold_low=None,
+    threshold_high=None,
     report=None,
 ):
     """
@@ -558,10 +642,14 @@ def extract_organize_values_from_series(
     Extracts and organizes values from a Pandas series, such as a single column
     or row from a Pandas data-frame table.
 
-    Review: TCW; 18 July 2024
+    Review: TCW; 24 July 2024
 
     arguments:
         series (object): Pandas series of values of signal intensity
+        threshold_low (float): threshold below which (value <= threshold) all
+            values are considered invalid and missing
+        threshold_high (float): threshold above which (value > threshold) all
+            values are considered invalid and missing
         report (bool): whether to print reports
 
     raises:
@@ -574,20 +662,43 @@ def extract_organize_values_from_series(
     # Copy information in series.
     series = series.copy(deep=True)
     # Extract and organize information from series.
+    # Values, raw.
     #values_raw = values_raw.astype(numpy.float32)
     values_raw = series.to_numpy(
         dtype="float64",
         na_value=numpy.nan,
         copy=True,
     )
-    values_positive = values_raw
-    values_positive[values_positive <= 0] = numpy.nan
-    values_valid = values_positive[~numpy.isnan(values_positive)]
-    values_log = numpy.log(values_valid)
+    # Values, nonmissing.
+    values_nonmissing = numpy.copy(values_raw[~numpy.isnan(values_raw)])
+    # Values, valid.
+    if ((threshold_low is None) and (threshold_high is None)):
+        values_valid = numpy.copy(values_nonmissing)
+    elif ((threshold_low is not None) and (threshold_high is None)):
+        values_temporary = numpy.copy(values_raw)
+        values_temporary[values_temporary <= threshold_low] = numpy.nan
+        values_valid = values_temporary[~numpy.isnan(values_temporary)]
+    elif ((threshold_low is None) and (threshold_high is not None)):
+        values_temporary = numpy.copy(values_raw)
+        values_temporary[values_temporary > threshold_high] = numpy.nan
+        values_valid = values_temporary[~numpy.isnan(values_temporary)]
+    elif ((threshold_low is not None) and (threshold_high is not None)):
+        values_temporary = numpy.copy(values_raw)
+        values_temporary[values_temporary <= threshold_low] = numpy.nan
+        values_temporary[values_temporary > threshold_high] = numpy.nan
+        values_valid = values_temporary[~numpy.isnan(values_temporary)]
+        pass
+    # Values, logarithm.
+    values_log = numpy.copy(values_valid)
+    values_log = numpy.log(values_log)
+    # Counts.
+    #count_nonmissing = numpy.count_nonzero(~numpy.isnan(values_raw))
+    #count_nonmissing = int(values_nonmissing.size)
+    #count_positive = numpy.count_nonzero(values_nonmissing > 0)
     # Collect information.
     pail = dict()
     pail["values_raw"] = values_raw
-    pail["values_positive"] = values_positive
+    pail["values_nonmissing"] = values_nonmissing
     pail["values_valid"] = values_valid
     pail["values_log"] = values_log
     # Report.
@@ -599,16 +710,18 @@ def extract_organize_values_from_series(
         print("original source series:")
         print(series)
         putly.print_terminal_partition(level=5)
-        print("raw values:")
-        print(values_raw)
+        print("values, raw:")
+        print(pail["values_raw"])
         putly.print_terminal_partition(level=5)
-        print("positive values, greater than zero):")
-        print(values_positive)
+        print("values, nonmissing:")
+        print(pail["values_nonmissing"])
         putly.print_terminal_partition(level=5)
-        print("valid values, positive and nonmissing:")
-        print(values_valid)
+        print("values, nonmissing and within thresholds:")
+        print("threshold, low (<=): " + str(threshold_low))
+        print("threshold, high (>): " + str(threshold_high))
+        print(pail["values_valid"])
         putly.print_terminal_partition(level=4)
-        print("logarithmic values:")
+        print("values, logarithm:")
         print(values_log)
     # Return information.
     return pail
@@ -617,6 +730,8 @@ def extract_organize_values_from_series(
 def match_keep_series_signal_validity(
     series=None,
     keys_signal=None,
+    threshold_low=None,
+    threshold_high=None,
     proportion=None,
     report=None,
 ):
@@ -625,15 +740,19 @@ def match_keep_series_signal_validity(
     proportion of values of signal intensity that are nonmissing and greater
     than zero. The series can come from the row or column in a table.
 
-    Review: TCW; 18 July 2024
+    Review: TCW; 24 July 2024
 
     arguments:
         series (object): Pandas series of values of signal intensity
         keys_signal (list<str>): names or identifiers of elements in the series
             that correspond to values of signal intensity
+        threshold_low (float): threshold below which (value <= threshold) all
+            values are considered invalid and missing
+        threshold_high (float): threshold above which (value > threshold) all
+            values are considered invalid and missing
         proportion (float): proportion of values of signal intensity that
-            must be nonmissing and greater than zero in order to keep the
-            series
+            must be nonmissing and within low and high thresholds in order to
+            keep the series
         report (bool): whether to print reports
 
     raises:
@@ -648,20 +767,12 @@ def match_keep_series_signal_validity(
     # Extract and organize information from series.
     pail_values = extract_organize_values_from_series(
         series=series[keys_signal],
+        threshold_low=threshold_low,
+        threshold_high=threshold_high,
         report=report,
     )
     count_raw = int(pail_values["values_raw"].size)
     count_valid = int(pail_values["values_valid"].size)
-    #values_nonmissing = pail_values["values_raw"][~numpy.isnan(
-    #    pail_values["values_raw"]
-    #)]
-    #count_nonmissing = numpy.count_nonzero(~numpy.isnan(
-    #    pail_values["values_raw"]
-    #))
-    #count_nonmissing = int(values_nonmissing.size)
-    #count_validity = numpy.count_nonzero(values_nonmissing > 0)
-    #count_samples = len(columns_intensity)
-    #count_invalidity = (count_samples - count_validity)
     proportion_actual = float(count_valid / count_raw)
     # Determine whether to keep current row from table.
     if (
@@ -679,7 +790,7 @@ def match_keep_series_signal_validity(
         putly.print_terminal_partition(level=5)
         print("count of total values: " + str(count_raw))
         print(
-            "count valid values, positive and nonmissing: " + str(count_valid)
+            "count valid values, nonmissing and threshold: " + str(count_valid)
         )
         putly.print_terminal_partition(level=5)
         print("proportion valid, actual: " + str(proportion_actual))
