@@ -2106,15 +2106,18 @@ def collect_values_from_records(key=None, records=None):
     return collection
 
 
-def compare_lists_by_inclusion(list_one=None, list_two=None):
+def compare_lists_by_inclusion(
+    list_primary=None,
+    list_secondary=None
+):
     """
     Compares lists by inclusion.
 
-    Returns True if all elements in list_two are in list_one.
+    Returns True if all elements in list_secondary are in list_primary.
 
     arguments:
-        list_one (list): list of elements
-        list_two (list): list of elements
+        list_primary (list): list of elements
+        list_secondary (list): list of elements
 
     returns:
         (bool): whether first list includes all elements from second
@@ -2124,18 +2127,22 @@ def compare_lists_by_inclusion(list_one=None, list_two=None):
     """
 
     def match(element_two=None):
-        return element_two in list_one
-    matches = list(map(match, list_two))
-    return all(matches)
+        return element_two in list_primary
+    matches = list(map(match, list_secondary))
+    comparison = all(matches)
+    return comparison
 
 
-def compare_lists_by_mutual_inclusion(list_one=None, list_two=None):
+def compare_lists_by_mutual_inclusion(
+    list_primary=None,
+    list_secondary=None,
+):
     """
-    Compares lists by mutual inclusion
+    Compares lists by mutual inclusion.
 
     arguments:
-        list_one (list): list of elements
-        list_two (list): list of elements
+        list_primary (list): list of elements
+        list_secondary (list): list of elements
 
     returns:
         (bool): whether each list includes all elements from the other
@@ -2145,14 +2152,46 @@ def compare_lists_by_mutual_inclusion(list_one=None, list_two=None):
     """
 
     forward = compare_lists_by_inclusion(
-        list_one=list_one,
-        list_two=list_two
+        list_primary=list_primary,
+        list_secondary=list_secondary
     )
     reverse = compare_lists_by_inclusion(
-        list_one=list_two,
-        list_two=list_one
+        list_primary=list_secondary,
+        list_secondary=list_primary
     )
-    return forward and reverse
+    comparison = (forward and reverse)
+    return comparison
+
+
+def compare_lists_by_elemental_identity(
+    list_primary=None,
+    list_secondary=None,
+):
+    """
+    Compares lists by elemental or element-wise identity, or identity across
+    pairs of elements in matching sequenc.
+
+    arguments:
+        list_primary (list): list of elements
+        list_secondary (list): list of elements
+
+    returns:
+        (bool): whether elements of both lists are identical and share the same
+            sequence
+
+    raises:
+
+    """
+    #comparison = all(x == y for x, y in zip(list_primary, list_secondary))
+    #comparison = all(map(
+    #    lambda primary, secondary: (primary == secondary),
+    #    zip(list_primary, list_secondary)
+    #))
+    comparison = all(map(
+        lambda pair: (pair[0] == pair[1]),
+        zip(list_primary, list_secondary)
+    ))
+    return comparison
 
 
 def filter_common_elements(list_minor=None, list_major=None):

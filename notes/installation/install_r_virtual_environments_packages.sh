@@ -61,6 +61,8 @@ make install # halyard: 24 July 2024
 # Print path to library in which R installs packages.
 # > getOption("repos") # Print repositories from which R will install packages.
 # > .libPaths() # "$path_tool/r/r-4.4.1/lib/R/library"
+# > library()
+# > library(lib.loc='~/r-packages')
 # > lapply(.libPaths(), list.files) # Print packages available in each environmental library.
 # > q()
 # Remove installation.
