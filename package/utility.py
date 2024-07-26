@@ -1685,6 +1685,7 @@ def write_table_to_file(
     table=None,
     name_file=None,
     path_directory=None,
+    reset_index=None,
     type=None,
 ):
     """
@@ -1693,10 +1694,15 @@ def write_table_to_file(
     Before calling this function, pay attention to any relevant indices across
     rows and columns, especially if writing to file in text format.
 
+    Normally it seems that writing to file in text format captures named
+    indices even when parameter "index" is "FALSE". It seems unnecessary to
+    reset the index before writing the table to file in text format.
+
     arguments:
         table (object): Pandas data-frame table of information to write to file
         name_file (str): base name for file
         path_directory (str): path to directory within which to write file
+        reset_index (bool): whether to reset index
         type (str): type of file to save, 'text' or 'pickle'
 
     raises:
@@ -1713,12 +1719,13 @@ def write_table_to_file(
     if (type == "text"):
         # Copy information in table.
         table_copy = table.copy(deep=True)
-        # Organize information in table.
-        table_copy.reset_index(
-            level=None,
-            inplace=True,
-            drop=False, # remove index; do not move to regular columns
-        )
+        # Organize indices in table.
+        if reset_index:
+            table_copy.reset_index(
+                level=None,
+                inplace=True,
+                drop=False, # remove index; do not move to regular columns
+            )
         # Specify directories and files.
         path_file_table = os.path.join(
             path_directory, str(name_file + ".tsv")
@@ -1729,7 +1736,8 @@ def write_table_to_file(
             sep="\t",
             na_rep="NA",
             header=True,
-            index=False,
+            index=False, # prints integer indices
+            encoding="utf-8",
         )
     elif (type == "pickle"):
         # Specify directories and files.
@@ -1746,6 +1754,7 @@ def write_table_to_file(
 def write_tables_to_file(
     pail_write=None,
     path_directory=None,
+    reset_index=None,
     type="text",
 ):
     """
@@ -1757,6 +1766,7 @@ def write_tables_to_file(
         pail_write (dict<object>): collection of information to write to file
         path_directory (str): path to directory within which to write
             information to files
+        reset_index (bool): whether to reset index
         type (str): type of file to save, 'text' or 'pickle'
 
     raises:
@@ -1774,6 +1784,7 @@ def write_tables_to_file(
             table=pail_write[name_file],
             name_file=name_file,
             path_directory=path_directory,
+            reset_index=reset_index,
             type=type,
         )
         pass
@@ -1783,6 +1794,7 @@ def write_tables_to_file(
 def write_tables_to_file_in_child_directories(
     pail_write=None,
     path_directory_parent=None,
+    reset_index=None,
     type="text",
 ):
     """
@@ -1795,6 +1807,7 @@ def write_tables_to_file_in_child_directories(
         pail_write (dict<dict<object>>): collection of information to write to
             file
         path_directory_parent (str): path to parent directory
+        reset_index (bool): whether to reset index
         type (str): type of file to save, 'text' or 'pickle'
 
     raises:
@@ -1816,6 +1829,7 @@ def write_tables_to_file_in_child_directories(
         write_tables_to_file(
             pail_write=pail_write[name_directory],
             path_directory=path_directory_child,
+            reset_index=reset_index,
             type=type,
         )
         pass
