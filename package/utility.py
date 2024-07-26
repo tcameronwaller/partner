@@ -1686,23 +1686,25 @@ def write_table_to_file(
     name_file=None,
     path_directory=None,
     reset_index=None,
+    write_index=None,
     type=None,
 ):
     """
     Writes product information to file.
 
     Before calling this function, pay attention to any relevant indices across
-    rows and columns, especially if writing to file in text format.
-
-    Normally it seems that writing to file in text format captures named
-    indices even when parameter "index" is "FALSE". It seems unnecessary to
-    reset the index before writing the table to file in text format.
+    rows and columns, especially if writing to file in text format. If it is
+    desirable to preserve columns that are part of a named index, then it is
+    necessary to set parameter "index" to "True"; however, if the table does
+    not have a named index, then setting parameter "index" to "True" would only
+    print the default index of sequential integers across rows.
 
     arguments:
         table (object): Pandas data-frame table of information to write to file
         name_file (str): base name for file
         path_directory (str): path to directory within which to write file
         reset_index (bool): whether to reset index
+        write_index (bool): whether to write index to file
         type (str): type of file to save, 'text' or 'pickle'
 
     raises:
@@ -1736,7 +1738,7 @@ def write_table_to_file(
             sep="\t",
             na_rep="NA",
             header=True,
-            index=False, # prints integer indices
+            index=write_index,
             encoding="utf-8",
         )
     elif (type == "pickle"):
@@ -1755,6 +1757,7 @@ def write_tables_to_file(
     pail_write=None,
     path_directory=None,
     reset_index=None,
+    write_index=None,
     type="text",
 ):
     """
@@ -1767,6 +1770,7 @@ def write_tables_to_file(
         path_directory (str): path to directory within which to write
             information to files
         reset_index (bool): whether to reset index
+        write_index (bool): whether to write index to file
         type (str): type of file to save, 'text' or 'pickle'
 
     raises:
@@ -1785,6 +1789,7 @@ def write_tables_to_file(
             name_file=name_file,
             path_directory=path_directory,
             reset_index=reset_index,
+            write_index=write_index,
             type=type,
         )
         pass
@@ -1795,6 +1800,7 @@ def write_tables_to_file_in_child_directories(
     pail_write=None,
     path_directory_parent=None,
     reset_index=None,
+    write_index=None,
     type="text",
 ):
     """
@@ -1808,6 +1814,7 @@ def write_tables_to_file_in_child_directories(
             file
         path_directory_parent (str): path to parent directory
         reset_index (bool): whether to reset index
+        write_index (bool): whether to write index to file
         type (str): type of file to save, 'text' or 'pickle'
 
     raises:
@@ -1830,6 +1837,7 @@ def write_tables_to_file_in_child_directories(
             pail_write=pail_write[name_directory],
             path_directory=path_directory_child,
             reset_index=reset_index,
+            write_index=write_index,
             type=type,
         )
         pass
