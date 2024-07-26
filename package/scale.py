@@ -693,7 +693,7 @@ def scale_feature_values_between_observations_by_median_ratio(
     Table has values for each feature oriented across rows with their
     observations oriented across columns. All values are on a continous ratio
     scale of measurement and have the same type, such as corresponding to
-    intensities from a particular type of measurement.
+    signal intensities from a particular type of measurement.
 
     The table must have a single-level index (potentially with name
     "observations") across columns and a single-level index (potentially with
@@ -731,8 +731,8 @@ def scale_feature_values_between_observations_by_median_ratio(
     raises:
 
     returns:
-        (object): Pandas data-frame table of values across observations in
-            columns and across features in rows
+        (object): Pandas data-frame table of values for observations across
+            columns and for features across rows
 
     """
 

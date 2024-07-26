@@ -8,6 +8,13 @@
 ###############################################################################
 # Note
 
+# https://www.biostars.org/p/368158/
+# It might be a method improvement to use HTSeq or featureCounts to allocate
+# and quantify reads to transcripts and then to use "tximport" (R Bioconductor
+# package) to combine transcripts to gene level.
+
+
+
 # documentation: https://www.bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html
 # documentation: https://www.bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#se
 
@@ -103,8 +110,12 @@ print(samples_signal)
 all(rownames(table_sample) %in% colnames(table_signal))
 all(rownames(table_sample) == colnames(table_signal))
 
+# DESeq2 requires integer counts for the signals.
+#table_signal_deseq <- as.matrix(round(table_signal, digits = 0))
+table_signal_deseq <- round(table_signal, digits = 0)
+
 data_set <- DESeqDataSetFromMatrix(
-    countData = as.matrix(table_signal),
+    countData = table_signal_deseq,
     colData = table_sample,
     design = ~ condition
 )

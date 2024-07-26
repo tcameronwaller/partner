@@ -637,7 +637,8 @@ def extract_organize_values_from_series(
     """
     Dependency:
     This function is a dependency of the function below.
-    partner.organization.match_keep_series_signal_validity()
+    partner.organization.determine_series_signal_validity_threshold()
+    partner.organization.fill_missing_values_series()
 
     Extracts and organizes values from a Pandas series, such as a single column
     or row from a Pandas data-frame table.
@@ -727,7 +728,7 @@ def extract_organize_values_from_series(
     return pail
 
 
-def match_keep_series_signal_validity(
+def determine_series_signal_validity_threshold(
     series=None,
     keys_signal=None,
     threshold_low=None,
@@ -764,6 +765,8 @@ def match_keep_series_signal_validity(
 
     # Copy information in series.
     series = series.copy(deep=True)
+    # Copy other information.
+    keys_signal = copy.deepcopy(keys_signal)
     # Extract and organize information from series.
     pail_values = extract_organize_values_from_series(
         series=series[keys_signal],
@@ -786,7 +789,7 @@ def match_keep_series_signal_validity(
     if report:
         putly.print_terminal_partition(level=3)
         print("module: partner.organization.py")
-        print("function: match_keep_series_signal_validity()")
+        print("function: determine_series_signal_validity_threshold()")
         putly.print_terminal_partition(level=5)
         print("count of total values: " + str(count_raw))
         print(
@@ -1019,6 +1022,342 @@ def filter_symmetrical_table_half_diagonal_two_value_types(
     return table_product
 
 
+##########
+# Fill missing values across rows.
+
+
+
+# TODO: TCW; 26 July 2024; I think this function is now obsolete...
+def determine_series_value_missing(
+    row=None,
+    columns_intensity=None,
+    report=None,
+):
+    """
+    Determines whether the current row from a table needs fill of missing
+    values.
+
+    arguments:
+        row (object): Pandas series of values of intensity across samples for
+            a single protein
+        columns_intensity (list<str>): names of columns corresponding to values
+            of intensity
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (int): logical binary representation of whether to keep current row
+
+    """
+
+    # Copy information in row.
+    row = row.copy(deep=True)
+    # Extract and organize information from series.
+    pail_values = porg.extract_organize_values_from_series(
+        series=row[columns_intensity],
+        report=False,
+    )
+    #count_missing = numpy.count_nonzero(
+    #    numpy.isnan(pail_values["values_raw"])
+    #)
+    # Determine whether the current row has missing values.
+    if (pail_values["values_valid"].size < len(columns_intensity)):
+        indicator = 1
+    else:
+        indicator = 0
+        pass
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=4)
+        print("Match missing value fill.")
+        print("Indicator: " + str(indicator))
+        putly.print_terminal_partition(level=4)
+    # Return information.
+    return indicator
+
+
+def fill_missing_values_series(
+    fill_missing=None,
+    series=None,
+    keys_signal=None,
+    method=None,
+    report=None,
+):
+    """
+    Dependency:
+    This function is a dependency of the function below.
+    partner.organization.fill_missing_values_table_by_row()
+
+    Determines whether the current row from a table needs fill of missing
+    values.
+
+    Within a normal distribution, 99.7% of values occur within 3 standard
+    deviations of the mean, either above or below.
+    3 standard deviations: 99.73%
+    2 standard deviations: 95.45%
+    1 standard deviations: 68.27%
+
+    For the 'triple_standard_deviation_below' method, this function transforms
+    raw values via natural logarithm before determining their mean and
+    standard deviation so that these statistics are representative of a more
+    normal distribution. This function calculates the intermediate fill value
+    and then inverts the transformation by exponentiation.
+
+    Reference:
+    https://en.wikipedia.org/wiki/68-95-99.7_rule
+
+    Note:
+    On 27 June 2024, TCW confirmed that the procedure was actually recognizing
+    and filling missing values appropriately. TCW also used a separate
+    spreadsheet to check the math that determines the fill value via the
+    'triple_standard_deviation_below' method. As expected, the fill value
+    differed by whether the method transformed by logarithm before calculation
+    of mean and standard deviation.
+
+    Review: 26 July 2024
+
+    arguments:
+        fill_missing (int): logical binary representation of whether to fill,
+            that is replace, missing values in series
+        series (object): Pandas series of values of signal intensity
+        keys_signal (list<str>): names or identifiers of elements in the series
+            that correspond to values of signal intensity
+        method (str): name of method to use for filling missing values, either
+            'triple_standard_deviation_below', 'half_minimum', or 'zero'
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas series of values of intensity across samples for
+            a single protein
+
+    """
+
+    # Copy information in series.
+    series = series.copy(deep=True)
+    # Copy other information.
+    keys_signal = copy.deepcopy(keys_signal)
+
+    # Determine whether the current row has a missing value in the current
+    # column.
+    check_fill = 0
+    value_fill = float("nan")
+    if (fill_missing == 1):
+        # Fill missing value.
+        check_fill = 1
+        # Extract and organize information from series.
+        pail_values = extract_organize_values_from_series(
+            series=series[keys_signal],
+            threshold_low=0, # necessary to make logarithm possible
+            threshold_high=None,
+            report=report,
+        )
+        # Determine which method to use for fill.
+        if (method == "triple_standard_deviation_below"):
+            mean = numpy.nanmean(pail_values["values_log"])
+            standard_deviation = numpy.nanstd(
+                pail_values["values_log"],
+                ddof=1, # divisor is (n - 1) for sample standard deviation
+            )
+            value_fill_log = float(mean - (3 * standard_deviation))
+            value_fill = numpy.exp(value_fill_log)
+            series_fill = series.replace(
+                to_replace=pandas.NA,
+                value=value_fill,
+            )
+        elif (method == "half_minimum"):
+            minimum = numpy.nanmin(pail_values["values_nonmissing"])
+            value_fill = float(minimum / 2)
+            series_fill = series.replace(
+                to_replace=pandas.NA,
+                value=value_fill,
+            )
+        elif (method == "zero"):
+            value_fill = 0.0
+            series_fill = series.replace(
+                to_replace=pandas.NA,
+                value=value_fill,
+            )
+        # Report.
+        if report:
+            if (value_fill <= 0):
+                putly.print_terminal_partition(level=1)
+                print("**********")
+                print("WARNING!")
+                print("**********")
+                print(
+                    "Method selection to fill missing values returned a value " +
+                    "less than or equal to zero!"
+                )
+                print("**********")
+                putly.print_terminal_partition(level=1)
+            putly.print_terminal_partition(level=4)
+            print("fill missing value check: " + str(check_fill))
+            print("fill value: " + str(value_fill))
+            putly.print_terminal_partition(level=4)
+            print("row with fill values: " + str(row_fill))
+            putly.print_terminal_partition(level=4)
+            pass
+        pass
+    else:
+        series_fill = series
+        pass
+
+    # Report.
+    if report:
+        if (value_fill <= 0):
+            putly.print_terminal_partition(level=1)
+            print("**********")
+            print("WARNING!")
+            print("**********")
+            print(
+                "Method selection to fill missing values returned a value " +
+                "less than or equal to zero!"
+            )
+            print("**********")
+            putly.print_terminal_partition(level=1)
+        putly.print_terminal_partition(level=4)
+        print("fill missing value check: " + str(check_fill))
+        print("fill value: " + str(value_fill))
+        putly.print_terminal_partition(level=4)
+        print("series with fill values: " + str(series_fill))
+        putly.print_terminal_partition(level=4)
+    # Return information.
+    return series_fill
+
+
+def fill_missing_values_table_by_row(
+    table=None,
+    columns=None,
+    method=None,
+    report=None,
+):
+    """
+    Fills missing values in a table row by row with support for multiple
+    alternative methods of imputation.
+
+    Within a normal distribution, 99.7% of values occur within 3 standard
+    deviations of the mean, either above or below.
+    3 standard deviations: 99.73%
+    2 standard deviations: 95.45%
+    1 standard deviations: 68.27%
+
+    Reference:
+    https://en.wikipedia.org/wiki/68-95-99.7_rule
+
+    Table's format and orientation
+
+    Table has values for each feature oriented across rows with their
+    observations oriented across columns. All values are on a continous ratio
+    scale of measurement and have the same type, such as corresponding to
+    signal intensities from a particular type of measurement.
+
+    The table must have a single-level index (potentially with name
+    "observations") across columns and a single-level index (potentially with
+    name "features") across rows.
+
+    observations   observation_1 observation_2 observation_3 observation_4
+    features
+    feature_1      ...           ...           ...           ...
+    feature_2      ...           ...           ...           ...
+    feature_3      ...           ...           ...           ...
+    feature_4      ...           ...           ...           ...
+    feature_5      ...           ...           ...           ...
+    feature_6      ...           ...           ...           ...
+    feature_7      ...           ...           ...           ...
+    feature_8      ...           ...           ...           ...
+    feature_9      ...           ...           ...           ...
+    feature_10     ...           ...           ...           ...
+
+    This function does not modify the names of indices across columns or rows
+    from the original table.
+
+    Review: 26 July 2024
+
+    arguments:
+        table (object): Pandas data-frame table of values for observations
+            across columns and for features across rows
+        columns (list<str>): names of columns for which to fill missing values
+        method (str): name of method to use for filling missing values, either
+            'triple_standard_deviation_below', 'half_minimum', or 'zero'
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table of values for observations across
+            columns and for features across rows
+
+    """
+
+    # Copy information in table.
+    table_fill = table.copy(deep=True)
+    # Copy other information.
+    columns = copy.deepcopy(columns)
+
+    # Determine which rows in table have missing values.
+    table_fill["match_missing"] = table_fill.apply(
+        lambda row:
+            1 if any(pandas.isna(row[columns]).to_list()) else 0,
+        axis="columns", # apply function to each row
+    )
+    table_fill_actual = table_fill.loc[
+        (table_fill["match_missing"] == 1), :
+    ].copy(deep=True)
+
+    # Fill missing values in all relevant columns and across all rows.
+    # Apply the function to each row.
+    table_fill = table_fill.apply(
+        lambda row:
+            fill_missing_values_series(
+                fill_missing=row["match_missing"],
+                series=row,
+                keys_signal=columns,
+                method=method,
+                report=False,
+            ),
+        axis="columns", # apply function to each row
+    )
+    # Remove unnecessary columns.
+    table_fill.drop(
+        labels=["match_missing",],
+        axis="columns",
+        inplace=True
+    )
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("module: partner.organization.py")
+        print("function: fill_missing_values_table_by_row()")
+        putly.print_terminal_partition(level=5)
+        count_rows_missing = (table_fill_actual.shape[0])
+        count_rows_total = (table_fill.shape[0])
+        proportion_missing = round(
+            float(count_rows_missing / count_rows_total), 2
+        )
+        print(
+            "count of rows requiring missing fill: " + str(count_rows_missing)
+        )
+        print(
+            "proportion of rows requiring missing fill: " +
+            str(proportion_missing)
+        )
+        putly.print_terminal_partition(level=4)
+        print("table after fill: ")
+        print(table_fill)
+        putly.print_terminal_partition(level=4)
+    # Return information.
+    return table_fill
+
+
+
+
+
+
+##########
 # Combine tables.
 
 # TODO: TCW; 1 July 2024
@@ -1296,10 +1635,6 @@ def merge_columns_two_tables(
         pass
     # Return information.
     return table
-
-
-
-
 
 
 # Shape.
