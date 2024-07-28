@@ -78,4 +78,16 @@ BiocManager::install("edgeR")
 
 
 ##########
+# BiocParallel
+# - description: parallelization
+# - site: https://bioconductor.org/packages/release/bioc/html/BiocParallel.html
+# installation:
+# - system: halyard
+# - date, installation: 28 July 2024
+# - version, installation: v1.38.0
+# Execution from R console or R script.
+BiocManager::install("BiocParallel")
+
+
+##########
 # End
