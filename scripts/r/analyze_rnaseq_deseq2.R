@@ -172,15 +172,14 @@ print(data_deseq)
 # If registration of multiple parallel processing cores occurred previously,
 # then the argument "BPPARAM=MulticoreParam(threads)" is unnecessary.
 
-data_set <- DESeq(
+data_deseq <- DESeq(
     data_deseq,
     parallel=TRUE
 )
 table_result <- results(
     data_deseq,
     contrast=c("condition", "intervention_1", "control"),
-    alpha=0.05,
-    parallel=TRUE
+    alpha=0.05
 )
 table_result_sort <- table_result[order(table_result$pvalue),]
 table_result_sort
