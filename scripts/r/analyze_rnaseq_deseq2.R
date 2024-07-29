@@ -33,14 +33,15 @@ arguments = commandArgs(trailingOnly=TRUE)
 if (length(arguments)==0) {
     # There are not any arguments.
     stop("This script requires arguments.n", call.=FALSE)
-} else if (length(arguments)==5) {
+} else if (length(arguments)==6) {
   # There are a correct count of arguments.
   print("Thank you for providing the correct count of arguments. Good job!")
   path_file_source_table_sample <- arguments[1]
-  path_file_source_table_signal <- arguments[2]
-  path_file_product_table <- arguments[3]
-  threads <- arguments[4]
-  report <- arguments[5]
+  path_file_source_table_gene <- arguments[2]
+  path_file_source_table_signal <- arguments[3]
+  path_file_product_table <- arguments[4]
+  threads <- arguments[5]
+  report <- arguments[6]
 } else {
   # There are an incorrect count of arguments.
   stop("There seem to be an incorrect count of arguments.n", call.=FALSE)
@@ -67,11 +68,30 @@ register(MulticoreParam(strtoi(threads)))
 cat("\n----------\n----------\n----------\n\n")
 print(paste("threads: ", strtoi(threads)))
 
-
+# image <- "
+#     \/
+#    _--_
+#   /    \
+#  / ^  ^ \
+# |  *  *  |
+#  \      /
+#  /      \
+#  |      |
+#  |      |
+#   \ .. /\
+#       |_/
+# "
+print(image)
 
 ###############################################################################
 # Read and organize source information from file.
 
+# Report.
+cat("\n----------\n----------\n----------\n\n")
+print("Read source information from file.")
+cat("\n----------\n----------\n----------\n\n")
+
+# Table of samples.
 table_sample <- read.table(
     path_file_source_table_sample,
     header = TRUE,
@@ -95,10 +115,38 @@ table_sample <- read.table(
 # Report.
 cat("\n----------\n----------\n----------\n\n")
 print("Table of information and attributes about samples.")
+cat("----------\n")
+print(paste("path: ", path_file_source_table_sample))
+cat("----------\n")
 print(table_sample[1:10, ])
 print(paste("columns: ", ncol(table_sample)))
 print(paste("rows: ", nrow(table_sample)))
 
+# Table of genes.
+table_gene <- read.table(
+    path_file_source_table_gene,
+    header = TRUE,
+    row.names = "identifier",
+    check.names = FALSE,
+    sep = "\t",
+    quote = "\"'",
+    dec = ".",
+    na.strings = c(
+        "nan", "na", "NAN", "NA", "<nan>", "<na>", "<NAN>", "<NA>"
+    ),
+    encoding = "UTF-8",
+)
+# Report.
+cat("\n----------\n----------\n----------\n\n")
+print("Table of information and attributes about genes.")
+cat("----------\n")
+print(paste("path: ", path_file_source_table_gene))
+cat("----------\n")
+print(table_gene[1:10, ])
+print(paste("columns: ", ncol(table_gene)))
+print(paste("rows: ", nrow(table_gene)))
+
+# Table of signals.
 table_signal <- read.table(
     path_file_source_table_signal,
     header = TRUE,
@@ -112,8 +160,12 @@ table_signal <- read.table(
     ),
     encoding = "UTF-8",
 )
+# Report.
 cat("\n----------\n----------\n----------\n\n")
 print("Table of signals for genes across samples.")
+cat("----------\n")
+print(paste("path: ", path_file_source_table_signal))
+cat("----------\n")
 print(table_signal[1:10, 1:10])
 print(paste("columns: ", ncol(table_signal)))
 print(paste("rows: ", nrow(table_signal)))
@@ -182,25 +234,60 @@ table_result <- results(
     alpha=0.05
 )
 table_result_sort <- table_result[order(table_result$pvalue),]
-table_result_sort
-summary(table_result_sort)
+table_result_sort_significant <- subset(
+    table_result_sort,
+    padj<0.05
+)
 count_significant <- sum(
     table_result_sort$padj<0.05,
     na.rm=TRUE
 )
+# Report.
+cat("\n----------\n----------\n----------\n\n")
+print("Results of differential expression analysis in DESeq2.")
+cat("----------\n")
+print(table_result_sort)
+cat("----------\n")
+summary(table_result_sort)
+cat("----------\n")
 print(paste("count of significant differences: ", count_significant))
-table_result_sort_significant <- subset(
-    table_result_sort,
-    padj<0.1
+cat("\n----------\n----------\n----------\n\n")
+
+
+
+###############################################################################
+# Include information about genes in table of results.
+
+# Merge together tables.
+table_merge <- merge(
+    as.data.frame(table_result_sort_significant),
+    table_gene,
+    by="row.names"
 )
+colnames(
+    table_merge
+)[which(names(table_merge) == "Row.names")] <- "identifier_gene"
+
+# Report.
+cat("\n----------\n----------\n----------\n\n")
+print("Table of results after merge with information about genes.")
+cat("----------\n")
+print(table_merge[1:10, 1:10])
+print(paste("columns: ", ncol(table_merge)))
+print(paste("rows: ", nrow(table_merge)))
 
 
 
 ###############################################################################
 # Write product information to file.
 
+# Report.
+cat("\n----------\n----------\n----------\n\n")
+print("Write product information to file.")
+cat("\n----------\n----------\n----------\n\n")
+
 write.table(
-    as.data.frame(table_result_sort_significant),
+    table_merge,
     file=path_file_product_table,
     sep="\t",
     eol="\n",
@@ -209,6 +296,12 @@ write.table(
     row.names=TRUE,
     col.names=TRUE
 )
+
+# Report.
+cat("\n----------\n----------\n----------\n\n")
+print("Table of information and attributes about samples.")
+cat("----------\n")
+print(paste("path: ", path_file_source_table_sample))
 
 
 
