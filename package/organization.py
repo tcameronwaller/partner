@@ -240,7 +240,7 @@ def transfer_table_rows_attributes_reference(
         inplace=True,
         drop=True, # remove index; do not move to regular columns
     )
-    # Transfer attributes to the table of genetic correlations.
+    # Transfer attributes from reference table to the main table.
     for column_reference in columns_reference_transfer:
         column_novel = str(
             prefix_reference_main +
