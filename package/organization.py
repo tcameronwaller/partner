@@ -189,9 +189,9 @@ def transfer_table_rows_attributes_reference(
     does not require the key factor variable to be unique in the main table.
 
     Neither the main table nor the reference table ought to have special,
-    named indices.
+    named indices, as this function would remove them.
 
-    Review: TCW; 3 July 2024
+    Review: TCW; 1 August 2024
 
     arguments:
         table_main (object): Pandas data-frame table
@@ -256,15 +256,18 @@ def transfer_table_rows_attributes_reference(
         pass
     # Report.
     if report:
-        putly.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=3)
+        print("module: partner.organization.py")
+        print("function: transfer_table_rows_attributes_reference()")
+        putly.print_terminal_partition(level=5)
         count_columns_source = (table_main.shape[1])
         count_columns_product = (table_main_attribute.shape[1])
-        print("Count of columns in source table: " + str(count_columns_source))
+        print("count of columns in source table: " + str(count_columns_source))
         print(
-            "Count of columns in product table: " +
+            "count of columns in product table: " +
             str(count_columns_product)
         )
-        print("Table")
+        print("table")
         print(table_main_attribute)
         putly.print_terminal_partition(level=4)
     # Return information.

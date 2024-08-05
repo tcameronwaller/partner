@@ -16,6 +16,13 @@
 
 # DESeq2
 # documentation: https://www.bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html
+# documentation: https://www.bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#contrasts
+#    - how to specify contrast conditions for differential expression analysis
+# documentation: https://www.bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#multi-factor-designs
+# documentation: https://www.bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#interactions
+#    - how to specify and interpretate interaction terms in differential expression analysis
+
+
 # documentation: https://www.bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#se
 # Paired samples from same subject in different experimental groups
 #    documentation: https://bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#can-i-use-deseq2-to-analyze-paired-samples
@@ -193,19 +200,22 @@ print(paste("sample mutual equality: ", equality))
 table_signal_deseq <- round(table_signal, digits = 0)
 
 # Initialize data set in DESeq2.
+# Statistics (log2 fold change, p-values, etc) of priority in results will
+# correspond to the last factor in the formula. The statistics for other
+# factors (covariates, etc) are also accessible from the results.
 data_deseq <- DESeqDataSetFromMatrix(
     countData = table_signal_deseq,
     colData = table_sample,
-    design = ~ subject + condition
+    design = ~ subject + study_clinic_visit
 )
 # Define levels of factors explicitly.
 #data_deseq$condition <- rlevel(data_deseq$condition, ref = "control")
 data_deseq$condition <- factor(
-    data_deseq$condition,
-    levels = c("control", "intervention_1"),
+    data_deseq$study_clinic_visit,
+    levels = c("first", "second"),
     exclude = NA
 )
-data_deseq$condition <- droplevels(data_deseq$condition)
+data_deseq$study_clinic_visit <- droplevels(data_deseq$study_clinic_visit)
 data_deseq$subject <- factor(data_deseq$subject)
 # Report.
 cat("\n----------\n----------\n----------\n\n")
@@ -230,7 +240,7 @@ data_deseq <- DESeq(
 )
 table_result <- results(
     data_deseq,
-    contrast=c("condition", "intervention_1", "control"),
+    contrast=c("study_clinic_visit", "second", "first"),
     alpha=0.05
 )
 table_result_sort <- table_result[order(table_result$pvalue),]
