@@ -350,7 +350,7 @@ data_deseq <- DESeqDataSetFromMatrix(
 if (
     nchar(condition) > 0 &
     length(condition) > 1 &
-    condition != "None"
+    condition != "none"
 ) {
     #data_deseq[[condition]] <- relevel(
     #    data_deseq[[condition]], ref = "control"
@@ -365,7 +365,7 @@ if (
 if (
     nchar(supplement) > 0 &
     length(supplement) > 1 &
-    supplement != "None"
+    supplement != "none"
 ) {
     data_deseq[[supplement]] <- factor(
         data_deseq[[supplement]],
@@ -377,7 +377,7 @@ if (
 if (
     nchar(subject) > 0 &
     length(subject) > 1 &
-    subject != "None"
+    subject != "none"
 ) {
     data_deseq[[subject]] <- factor(data_deseq[[subject]])
 }
