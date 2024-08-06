@@ -8,6 +8,12 @@
 ###############################################################################
 # Note
 
+# General note about using R with files in Excel format.
+# readxl()
+# writexl()
+# These functions make it possible to access separate sheets within the file.
+
+
 # https://www.biostars.org/p/368158/
 # It might be a method improvement to use HTSeq or featureCounts to allocate
 # and quantify reads to transcripts (without "fractional" allocation) and then
@@ -390,6 +396,16 @@ print(data_deseq)
 # Perform differential expression analysis.
 # DESeq2 supports analyses on pairs of samples in different experimental
 # groups.
+# Contrast factors and levels for fold changes:
+# Refer to the documentation of DESeq2 (vignettes at top of this file) for
+# explanation of contrasts and comparisons between specific levels of the
+# main factor variable. By default, DESeq2 reports the fold changes
+# corresponding to the last variable in the formulaic design of the analysis.
+# If this last variable is a categorical factor, the fold changes will
+# correspond to the ratio of the last discrete factor level (numerator) to the
+# first discrete factor level, which is the reference (denominator).
+# When using interaction terms in the formulaic design of the analysis, there
+# are special considerations.
 # If registration of multiple parallel processing cores occurred previously,
 # then the argument "BPPARAM=MulticoreParam(threads)" is unnecessary.
 
@@ -398,6 +414,11 @@ cat("\n--------------------------------------------------\n")
 cat("\n--------------------------------------------------\n")
 cat("\n--------------------------------------------------\n\n")
 print("Perform differential expression analysis.")
+cat("\n----------\n----------\n----------\n\n")
+print("fold changes and the formulaic design of analysis:")
+print("(fold change) = (last level of last factor) / (first level of last factor)")
+print("... which is synonymous to...")
+print("(fold change) = (last level of last factor) vs (first level of last factor)")
 cat("\n----------\n----------\n----------\n\n")
 
 data_deseq <- DESeq(
