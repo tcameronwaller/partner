@@ -70,18 +70,20 @@
 # 10. subject: name of column within table for factor variable with categorical
 #      values corresponding to pairs of samples or observations between the
 #      experimental conditions of primary interest
-# 11. threads: count of concurrent or parallel process threads on node cores
-# 12. report: whether to print report information to terminal
+# 11. threshold_significance: threshold alpha on p-value for determination of
+#      significance
+# 12. threads: count of concurrent or parallel process threads on node cores
+# 13. report: whether to print report information to terminal
 
 # Parse arguments.
 arguments = commandArgs(trailingOnly=TRUE)
 print(paste("count of arguments: ", length(arguments)))
 if (length(arguments)==0) {
     # There are not any arguments.
-    stop("This script requires 12 arguments.n", call.=FALSE)
-} else if (length(arguments)==12) {
+    stop("This script requires 13 arguments.", call.=FALSE)
+} else if (length(arguments)==13) {
   # There are a correct count of arguments.
-  print("correct count of arguments: 12")
+  print("correct count of arguments: 13")
   path_file_source_table_sample <- arguments[1]
   path_file_source_table_gene <- arguments[2]
   path_file_source_table_signal <- arguments[3]
@@ -92,12 +94,13 @@ if (length(arguments)==0) {
   supplement <- arguments[8]
   levels_supplement <- as.vector(unlist(strsplit(arguments[9], ",")))
   subject <- arguments[10]
-  threads <- arguments[11]
-  report <- arguments[12]
+  threshold_significance <- as.double(arguments[11])
+  threads <- arguments[12]
+  report <- arguments[13]
 } else {
   # There are an incorrect count of arguments.
   print("There seem to be an incorrect count of arguments.")
-  stop("This script requires 12 arguments.", call.=FALSE)
+  stop("This script requires 13 arguments.", call.=FALSE)
 }
 
 # Report.
@@ -124,8 +127,9 @@ print(paste(
     "9. levels_supplement: ", paste(levels_supplement, collapse=", ")
 ))
 print(paste("10. subject: ", subject))
-print(paste("11. threads: ", threads))
-print(paste("12. report: ", report))
+print(paste("11. threshold_significance: ", threshold_significance))
+print(paste("12. threads: ", threads))
+print(paste("13. report: ", report))
 cat("\n----------\n----------\n----------\n\n")
 
 
@@ -428,16 +432,16 @@ data_deseq <- DESeq(
 table_result <- results(
     data_deseq,
     contrast=c(condition, levels_condition),
-    alpha=0.05
+    alpha=threshold_significance
 )
 table_result_sort <- table_result[order(table_result$pvalue),]
+count_significant <- sum(
+    table_result_sort$padj<threshold_significance,
+    na.rm=TRUE
+)
 table_result_sort_significant <- subset(
     table_result_sort,
-    padj<0.05
-)
-count_significant <- sum(
-    table_result_sort$padj<0.05,
-    na.rm=TRUE
+    padj<threshold_significance
 )
 # Report.
 cat("\n----------\n----------\n----------\n\n")
@@ -447,6 +451,9 @@ print(table_result_sort)
 cat("----------\n")
 summary(table_result_sort)
 cat("----------\n")
+print(paste(
+    "value of alpha for p-value significance: ", threshold_significance
+))
 print(paste("count of significant differences: ", count_significant))
 cat("\n----------\n----------\n----------\n\n")
 
