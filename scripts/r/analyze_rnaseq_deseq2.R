@@ -478,6 +478,7 @@ table_merge <- merge(
 colnames(
     table_merge
 )[which(names(table_merge) == "Row.names")] <- "identifier_gene"
+row.names(table_merge) <- NULL
 
 # Report.
 cat("\n----------\n----------\n----------\n\n")
@@ -506,7 +507,7 @@ write.table(
     eol="\n",
     na="NA",
     dec=".",
-    row.names=TRUE,
+    row.names=FALSE,
     col.names=TRUE
 )
 
