@@ -1194,16 +1194,17 @@ def remove_or_nullify_genetic_correlation_values_raw(
             "z_statistic_less_one",
             "p_value_less_one",
         ]
-        for column_null in columns_null:
-            table_filter[column_null] = table_filter.apply(
+        for column in columns_null:
+            table_filter[column] = table_filter.apply(
                 lambda row:
-                    float("nan") if (row[column_match] == 1) else row[column_null],
+                    float("nan") if (row[column_match] == 1) else row[column],
                 axis="columns", # apply function to each row
             )
             pass
         pass
     # Return information.
     return table_filter
+
 
 # TODO: TCW; 6 June 2024
 # TODO: Simplify function 'filter_table_rows_ldsc_correlation' by splitting
@@ -1529,6 +1530,198 @@ def simplify_transform_genetic_correlation_table_long(
     ##########
     # Return information.
     return table_long
+
+
+def fill_series_missing_values_from_reciprocal_study_pair(
+    series=None,
+    name_primary=None,
+    name_secondary=None,
+    table=None,
+    report=None,
+):
+    """
+    Dependency:
+    This function is a dependency of the function below.
+    partner.extraction.
+    fill_missing_from_reciprocal_interchangeable_study_pair()
+
+    Review: TCW; 9 August 2024
+
+    arguments:
+        series (object): Pandas series of values of signal intensity
+        name_primary (str): name of column for primary identifier
+        name_secondary (str): name of column for secondary identifier
+        table (object): Pandas data-frame table
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas series of genetic correlation statistics and
+            information about a pair of studies
+
+    """
+
+    # Copy information in series.
+    series = series.copy(deep=True)
+    series_fill = series.copy(deep=True)
+    # Copy information in table.
+    table = table.copy(deep=True)
+    # Organize information in table.
+    table.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
+    table["study_pair_key"] = table.apply(
+        lambda row:
+            str(row[name_primary] + "_-_" + row[name_secondary]),
+        axis="columns", # apply function to each row
+    )
+    # Create dictionary from table for convenient access.
+    table.set_index(
+        ["study_pair_key"],
+        append=False,
+        drop=True,
+        inplace=True,
+    )
+    pail_fill = table.to_dict("index")
+
+    # Define columns of statistics relevant to comparison by genetic
+    # correlation to attempt to fill if missing.
+    keys_fill = [
+        "correlation",
+        "correlation_error",
+        "z_statistic_ldsc",
+        "p_value_ldsc",
+        "q_value_ldsc",
+    ]
+
+    # Define forward and reverse identifiers from combinations of primary and
+    # secondary studies.
+    pair_forward = str(series[name_primary] + "_-_" + series[name_secondary])
+    pair_reverse = str(series[name_secondary] + "_-_" + series[name_primary])
+
+    # Determine whether the current row has missing values for genetic
+    # correlation between the specific pair of studies.
+    check_missing = 0
+    check_fill = 0
+    if (
+        (pandas.isna(series["correlation"])) and
+        (series[name_primary] != series[name_secondary])
+    ):
+        # Indicate the detection of a missing value and attempt to fill.
+        check_missing = 1
+        # Determine whether the table includes non-missing values of genetic
+        # correlation between the reciprocal pair of studies.
+        if (
+            (pair_reverse in pail_fill) and
+            (not pandas.isna(pail_fill[pair_reverse]["correlation"]))
+        ):
+            # Indicate the ability to fill the missing value.
+            check_fill = 1
+            # Extract a few important values for reporting.
+            fill_study_primary = pail_fill[pair_reverse][name_primary]
+            fill_study_secondary = pail_fill[pair_reverse][name_secondary]
+            fill_correlation = pail_fill[pair_reverse]["correlation"]
+            # Fill missing values from the reciprocal pair.
+            for key_fill in keys_fill:
+                series_fill[key_fill] = pail_fill[pair_reverse][key_fill]
+            pass
+        pass
+    # Report.
+    if report:
+        if (check_missing == 1):
+            putly.print_terminal_partition(level=3)
+            print("module: partner.extraction.py")
+            print(
+                "function: fill_series_missing_values_from_reciprocal_" +
+                "study_pair()"
+            )
+            putly.print_terminal_partition(level=4)
+            print("check missing value: " + str(check_missing))
+            print("check fill: " + str(check_fill))
+            putly.print_terminal_partition(level=4)
+            print("series original:")
+            print(series)
+            putly.print_terminal_partition(level=4)
+            print("values reciprocal fill...")
+            print("study primary: " + str(fill_study_primary))
+            print("study secondary: " + str(fill_study_secondary))
+            print("correlation: " + str(fill_correlation))
+            putly.print_terminal_partition(level=4)
+            print("series with fill values:")
+            print(series_fill)
+            putly.print_terminal_partition(level=4)
+            pass
+        pass
+    # Return information.
+    return series_fill
+
+
+def fill_missing_from_reciprocal_interchangeable_study_pair(
+    table=None,
+    name_primary=None,
+    name_secondary=None,
+    report=None,
+):
+    """
+    Fills missing values from the reciprocal combination of interchangeable
+    primary and secondary studies. This patch is helpful to enable the filter
+    to the half-diagonal of an otherwise symmetrical matrix of pairwise
+    comparisons.
+
+    Review: TCW; 9 August 2024
+
+    arguments:
+        table (object): Pandas data-frame table
+        name_primary (str): name of column for primary identifier
+        name_secondary (str): name of column for secondary identifier
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=1)
+        print("module: partner.extraction.py")
+        print(
+            "function: fill_missing_from_reciprocal_" +
+            "interchangeable_study_pair()"
+        )
+        putly.print_terminal_partition(level=2)
+
+    # Copy information in table.
+    table_fill = table.copy(deep=True)
+
+    # Apply the function to each row.
+    table_fill = table_fill.apply(
+        lambda row:
+            fill_series_missing_values_from_reciprocal_study_pair(
+                series=row,
+                name_primary=name_primary,
+                name_secondary=name_secondary,
+                table=table_fill,
+                report=False,
+            ),
+        axis="columns", # apply function to each row
+    )
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=4)
+        print("module: partner.extraction.py")
+        print(
+            "function: fill_missing_from_reciprocal_" +
+            "interchangeable_study_pair()"
+        )
+        putly.print_terminal_partition(level=5)
+    # Return information.
+    return table_fill
 
 
 def needs_update_filter_table_ldsc_correlation_studies(

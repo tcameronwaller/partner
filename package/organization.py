@@ -158,7 +158,9 @@ def change_names_table_indices_columns_rows(
     return table_product
 
 
-# Merge, combine, transfer.
+# Transfer information between tables.
+# This operation differs from a merge or join in that it does not require a
+# one to one match of identifiers.
 
 
 def transfer_table_rows_attributes_reference(
@@ -272,6 +274,7 @@ def transfer_table_rows_attributes_reference(
         putly.print_terminal_partition(level=4)
     # Return information.
     return table_main_attribute
+
 
 
 # Sort.
@@ -1118,7 +1121,7 @@ def fill_missing_values_series(
     differed by whether the method transformed by logarithm before calculation
     of mean and standard deviation.
 
-    Review: 26 July 2024
+    Review: TCW; 26 July 2024
 
     arguments:
         fill_missing (int): logical binary representation of whether to fill,
@@ -1354,10 +1357,6 @@ def fill_missing_values_table_by_row(
         putly.print_terminal_partition(level=4)
     # Return information.
     return table_fill
-
-
-
-
 
 
 ##########

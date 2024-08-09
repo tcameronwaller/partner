@@ -1011,10 +1011,6 @@ def calculate_table_long_false_discovery_rate_q_values(
     return table_product
 
 
-
-
-
-
 ##########
 # Report ranges of variables from table
 
