@@ -38,7 +38,7 @@ cd ~/Downloads
 wget https://dl.discordapp.net/apps/linux/0.0.40/discord-0.0.49.deb
 #wget https://discord.com/api/download?platform=linux&format=deb
 #wget "https://discord.com/api/download?platform=linux&format=deb"
-sudo apt install ./discord-0.0.49.deb
+sudo apt install ./discord-0.0.63.deb # TCW; 9 August 2024
 sudo apt remove discord
 
 # Spotify
