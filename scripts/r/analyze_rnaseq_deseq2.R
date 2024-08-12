@@ -3,8 +3,8 @@
 ###############################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 25 July 2024
-# Date, last execution or modification: 7 August 2024
-# Review: TCW; 7 August 2024
+# Date, last execution or modification: 12 August 2024
+# Review: TCW; 12 August 2024
 ###############################################################################
 # Note
 
@@ -420,6 +420,8 @@ cat("\n--------------------------------------------------\n\n")
 print("Perform differential expression analysis.")
 cat("\n----------\n----------\n----------\n\n")
 print("fold changes and the formulaic design of analysis:")
+print("reference level: first level of last factor")
+print("effect level: last level of last factor")
 print("(fold change) = (last level of last factor) / (first level of last factor)")
 print("... which is synonymous to...")
 print("(fold change) = (last level of last factor) vs (first level of last factor)")
