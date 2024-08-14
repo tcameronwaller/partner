@@ -3,8 +3,8 @@
 ###############################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 25 July 2024
-# Date, last execution or modification: 12 August 2024
-# Review: TCW; 12 August 2024
+# Date, last execution or modification: 14 August 2024
+# Review: TCW; 14 August 2024
 ###############################################################################
 # Note
 
@@ -50,6 +50,15 @@
 
 
 ###############################################################################
+# Organize libraries and packages.
+
+#library("optparse") # alternative for management of arguments
+library("BiocParallel")
+library("DESeq2")
+
+
+
+###############################################################################
 # Organize arguments.
 
 # Explain arguments.
@@ -63,25 +72,29 @@
 #      categorical values corresponding to experimental conditions of primary
 #      interest
 #  7. levels_condition: categorical values of condition factor variable
-#  8. supplement: name of column within table for factor variable with
+#  8. supplement_1: name of column within table for factor variable with
 #      categorical values corresponding to groups of secondary interest as
 #      covariates
-#  9. levels_supplement: categorical values of supplement factor variable
-# 10. subject: name of column within table for factor variable with categorical
+#  9. levels_supplement_1: categorical values of supplement factor variable
+# 10. supplement_2: name of column within table for factor variable with
+#      categorical values corresponding to groups of secondary interest as
+#      covariates
+# 11. levels_supplement_2: categorical values of supplement factor variable
+# 12. subject: name of column within table for factor variable with categorical
 #      values corresponding to pairs of samples or observations between the
 #      experimental conditions of primary interest
-# 11. threshold_significance: threshold alpha on p-value for determination of
+# 13. threshold_significance: threshold alpha on p-value for determination of
 #      significance
-# 12. threads: count of concurrent or parallel process threads on node cores
-# 13. report: whether to print report information to terminal
+# 14. threads: count of concurrent or parallel process threads on node cores
+# 15. report: whether to print report information to terminal
 
 # Parse arguments.
 arguments = commandArgs(trailingOnly=TRUE)
 print(paste("count of arguments: ", length(arguments)))
 if (length(arguments)==0) {
     # There are not any arguments.
-    stop("This script requires 13 arguments.", call.=FALSE)
-} else if (length(arguments)==13) {
+    stop("This script requires 15 arguments.", call.=FALSE)
+} else if (length(arguments)==15) {
   # There are a correct count of arguments.
   print("correct count of arguments: 13")
   path_file_source_table_sample <- arguments[1]
@@ -91,16 +104,18 @@ if (length(arguments)==0) {
   formula_text <- paste(as.vector(unlist(strsplit(arguments[5], ","))), collapse=" + ")
   condition <- arguments[6]
   levels_condition <- as.vector(unlist(strsplit(arguments[7], ",")))
-  supplement <- arguments[8]
-  levels_supplement <- as.vector(unlist(strsplit(arguments[9], ",")))
-  subject <- arguments[10]
-  threshold_significance <- as.double(arguments[11])
-  threads <- arguments[12]
-  report <- arguments[13]
+  supplement_1 <- arguments[8]
+  levels_supplement_1 <- as.vector(unlist(strsplit(arguments[9], ",")))
+  supplement_2 <- arguments[10]
+  levels_supplement_2 <- as.vector(unlist(strsplit(arguments[11], ",")))
+  subject <- arguments[12]
+  threshold_significance <- as.double(arguments[13])
+  threads <- arguments[14]
+  report <- arguments[15]
 } else {
   # There are an incorrect count of arguments.
   print("There seem to be an incorrect count of arguments.")
-  stop("This script requires 13 arguments.", call.=FALSE)
+  stop("This script requires 15 arguments.", call.=FALSE)
 }
 
 # Report.
@@ -119,27 +134,35 @@ print(paste(
     "3. path_file_source_table_signal: ", path_file_source_table_signal
 ))
 print(paste("4. path_file_product_table: ", path_file_product_table))
+cat("----------\n")
 print(paste("5. formula_text: ", formula_text))
+cat("----------\n")
 print(paste("6. condition: ", condition))
 print(paste("7. levels_condition: ", paste(levels_condition, collapse=", ")))
-print(paste("8. supplement: ", supplement))
+print(paste("... effect is first level: ", levels_condition[1]))
 print(paste(
-    "9. levels_supplement: ", paste(levels_supplement, collapse=", ")
+    "... reference is last level: ",
+    levels_condition[length(levels_condition)]
 ))
-print(paste("10. subject: ", subject))
-print(paste("11. threshold_significance: ", threshold_significance))
-print(paste("12. threads: ", threads))
-print(paste("13. report: ", report))
+print("... fold change = (effect) / (reference)")
+print(paste(
+    "... see documentation and notes below about factor levels ",
+    "and contrasts in DESeq2"
+))
+cat("----------\n")
+print(paste("8. supplement_1: ", supplement_1))
+print(paste(
+    "9. levels_supplement_1: ", paste(levels_supplement_1, collapse=", ")
+))
+print(paste("10. supplement_2: ", supplement_2))
+print(paste(
+    "11. levels_supplement_2: ", paste(levels_supplement_2, collapse=", ")
+))
+print(paste("12. subject: ", subject))
+print(paste("13. threshold_significance: ", threshold_significance))
+print(paste("14. threads: ", threads))
+print(paste("15. report: ", report))
 cat("\n----------\n----------\n----------\n\n")
-
-
-
-###############################################################################
-# Organize libraries and packages.
-
-#library("optparse") # alternative for management of arguments
-library("BiocParallel")
-library("DESeq2")
 
 
 
@@ -280,9 +303,13 @@ print(paste("factor for main experimental condition: ", condition))
 print("values of experimental condition:")
 print(levels_condition)
 cat("----------\n")
-print(paste("factor for covariate supplement: ", supplement))
-print("values of covariate supplement:")
-print(levels_supplement)
+print(paste("factor for covariate supplement_1: ", supplement_1))
+print("values of covariate supplement_1:")
+print(levels_supplement_1)
+cat("----------\n")
+print(paste("factor for covariate supplement_2: ", supplement_2))
+print("values of covariate supplement_2:")
+print(levels_supplement_2)
 cat("----------\n")
 
 ##########
@@ -315,21 +342,28 @@ table_signal_deseq <- round(table_signal, digits = 0)
 if (
     nchar(condition) > 0 &
     length(condition) > 1 &
-    condition != "None"
+    condition != "none"
 ) {
     table_sample[[condition]] <- factor(table_sample[[condition]])
 }
 if (
-    nchar(supplement) > 0 &
-    length(supplement) > 1 &
-    supplement != "None"
+    nchar(supplement_1) > 0 &
+    length(supplement_1) > 1 &
+    supplement_1 != "none"
 ) {
-    table_sample[[supplement]] <- factor(table_sample[[supplement]])
+    table_sample[[supplement_1]] <- factor(table_sample[[supplement_1]])
+}
+if (
+    nchar(supplement_2) > 0 &
+    length(supplement_2) > 1 &
+    supplement_2 != "none"
+) {
+    table_sample[[supplement_2]] <- factor(table_sample[[supplement_2]])
 }
 if (
     nchar(subject) > 0 &
     length(subject) > 1 &
-    subject != "None"
+    subject != "none"
 ) {
     table_sample[[subject]] <- factor(table_sample[[subject]])
 }
@@ -367,16 +401,28 @@ if (
     data_deseq[[condition]] <- droplevels(data_deseq[[condition]])
 }
 if (
-    nchar(supplement) > 0 &
-    length(supplement) > 1 &
-    supplement != "none"
+    nchar(supplement_1) > 0 &
+    length(supplement_1) > 1 &
+    supplement_1 != "none"
 ) {
-    data_deseq[[supplement]] <- factor(
-        data_deseq[[supplement]],
-        levels = levels_supplement,
+    data_deseq[[supplement_1]] <- factor(
+        data_deseq[[supplement_1]],
+        levels = levels_supplement_1,
         exclude = NA
     )
-    data_deseq[[supplement]] <- droplevels(data_deseq[[supplement]])
+    data_deseq[[supplement_1]] <- droplevels(data_deseq[[supplement_1]])
+}
+if (
+    nchar(supplement_2) > 0 &
+    length(supplement_2) > 1 &
+    supplement_2 != "none"
+) {
+    data_deseq[[supplement_2]] <- factor(
+        data_deseq[[supplement_2]],
+        levels = levels_supplement_2,
+        exclude = NA
+    )
+    data_deseq[[supplement_2]] <- droplevels(data_deseq[[supplement_2]])
 }
 if (
     nchar(subject) > 0 &
@@ -406,8 +452,9 @@ print(data_deseq)
 # main factor variable. By default, DESeq2 reports the fold changes
 # corresponding to the last variable in the formulaic design of the analysis.
 # If this last variable is a categorical factor, the fold changes will
-# correspond to the ratio of the last discrete factor level (numerator) to the
-# first discrete factor level, which is the reference (denominator).
+# correspond to the ratio of the first discrete level of that factor, which is
+# the effect (numerator), to the last discrete level of that factor, which is
+# the reference (denominator).
 # When using interaction terms in the formulaic design of the analysis, there
 # are special considerations.
 # If registration of multiple parallel processing cores occurred previously,
@@ -420,11 +467,11 @@ cat("\n--------------------------------------------------\n\n")
 print("Perform differential expression analysis.")
 cat("\n----------\n----------\n----------\n\n")
 print("fold changes and the formulaic design of analysis:")
-print("reference level: first level of last factor")
-print("effect level: last level of last factor")
-print("(fold change) = (last level of last factor) / (first level of last factor)")
+print("effect: first level of the last factor in formulaic design")
+print("reference: last level of the last factor in formulaic design")
+print("(fold change) = (effect) / (reference)")
 print("... which is synonymous to...")
-print("(fold change) = (last level of last factor) vs (first level of last factor)")
+print("(fold change) = (effect) vs (reference)")
 cat("\n----------\n----------\n----------\n\n")
 
 data_deseq <- DESeq(
@@ -482,13 +529,18 @@ colnames(
 )[which(names(table_merge) == "Row.names")] <- "identifier_gene"
 row.names(table_merge) <- NULL
 
+table_merge_sort <- table_merge[order(
+    table_merge$pvalue),
+    decreasing=FALSE,
+]
+
 # Report.
 cat("\n----------\n----------\n----------\n\n")
 print("Table of results after merge with information about genes.")
 cat("----------\n")
-print(table_merge[1:10, 1:10])
-print(paste("columns: ", ncol(table_merge)))
-print(paste("rows: ", nrow(table_merge)))
+print(table_merge_sort[1:10, 1:10])
+print(paste("columns: ", ncol(table_merge_sort)))
+print(paste("rows: ", nrow(table_merge_sort)))
 
 
 
@@ -503,7 +555,7 @@ print("Write product information to file.")
 cat("\n----------\n----------\n----------\n\n")
 
 write.table(
-    table_merge,
+    table_merge_sort,
     file=path_file_product_table,
     sep="\t",
     eol="\n",
