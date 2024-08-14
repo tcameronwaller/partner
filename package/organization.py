@@ -743,6 +743,10 @@ def determine_series_signal_validity_threshold(
     report=None,
 ):
     """
+    Dependency:
+    This function is a dependency of the function below.
+    exercise.transcriptomics.organize_signal.filter_table_main_rows_signal()
+
     Determines whether to keep a Pandas series on the basis of the
     proportion of values of signal intensity that are nonmissing and greater
     than zero. The series can come from the row or column in a table.
@@ -808,6 +812,102 @@ def determine_series_signal_validity_threshold(
         putly.print_terminal_partition(level=5)
     # Return information.
     return indicator
+
+
+def segregate_fold_change_values_by_thresholds(
+    table=None,
+    column_fold=None,
+    column_p=None,
+    threshold_fold=None,
+    threshold_p=None,
+    report=None,
+):
+    """
+    Dependency:
+    This function is a dependency of the function below.
+    partner.plot.plot_scatter_fold_change_volcano()
+
+    Segregates data by values against thresholds on two dimensions.
+
+    Table's format and orientation
+
+    Table has each type of feature oriented across columns with their
+    individual observations oriented across rows.
+
+    features        feature_1 feature_2 feature_3 feature_4 feature_5
+    observations
+    observation_1   ...       ...       ...       ...       ...
+    observation_2   ...       ...       ...       ...       ...
+    observation_3   ...       ...       ...       ...       ...
+    observation_4   ...       ...       ...       ...       ...
+    observation_5   ...       ...       ...       ...       ...
+
+    Review: TCW; 13 August 2024
+
+    arguments:
+        table (object): Pandas data-frame table of features across columns and
+            values for observations across rows
+        column_fold (str): name of column in table on which to apply the
+            threshold for the fold change
+        column_p (str): name of column in table on which to apply the threshold
+            for the p-value or q-value corresponding to the fold change
+            estimate
+        threshold_fold (float): value for threshold on fold change
+            (fold change > threshold) that is on the same scale, such as
+            base-two logarithm, as the actual values themselves
+        threshold_p (float): value for threshold on p-values or q-values
+            (p-value > threshold) that is on the same scale, such as negative
+            base-ten logarithm, as the actual values themselves
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict<object>): collection of information
+
+    """
+
+    # Copy information in table.
+    table = table.copy(deep=True)
+    # Filter rows in table for segregation of values by thresholds.
+    table_pass_any = table.loc[
+        (
+            (table[column_p] > threshold_p) &
+            (abs(table[column_fold]) > threshold_fold)
+        ), :
+    ].copy(deep=True)
+    table_pass_up = table.loc[
+        (
+            (table[column_p] > threshold_p) &
+            (table[column_fold] > threshold_fold)
+        ), :
+    ].copy(deep=True)
+    table_pass_down = table.loc[
+        (
+            (table[column_p] > threshold_p) &
+            (table[column_fold] < (-1*threshold_fold))
+        ), :
+    ].copy(deep=True)
+    # Fail.
+    table_fail = table.loc[
+        ~table.index.isin(table_pass_any.index), :
+    ].copy(deep=True)
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("module: partner.organization.py")
+        print("function: segregate_fold_change_values_by_thresholds()")
+        putly.print_terminal_partition(level=5)
+    # Collect information.
+    pail = dict()
+    pail["table_pass_any"] = table_pass_any
+    pail["table_pass_up"] = table_pass_up
+    pail["table_pass_down"] = table_pass_down
+    pail["table_fail"] = table_fail
+    # Return information.
+    return pail
+
 
 
 # TODO: TCW; 6 June 2024
@@ -1028,59 +1128,275 @@ def filter_symmetrical_table_half_diagonal_two_value_types(
     return table_product
 
 
-##########
-# Fill missing values across rows.
+# Older functions to apply filters on tables.
 
 
+def filter_rows_columns_by_threshold_proportion(
+    data=None,
+    dimension=None,
+    threshold=None,
+    proportion=None,
+):
+    """
+    Filters either rows or columns by whether a certain proportion of values
+    are greater than or equal to a minimal threshold.
 
-# TODO: TCW; 26 July 2024; I think this function is now obsolete...
-def determine_series_value_missing(
-    row=None,
-    columns_intensity=None,
+    Persistence of a row or column requires at least a specific proportion of
+    values beyond a specific threshold.
+
+    Filter rows by consideration of values across columns in each row.
+    Filter columns by consideration of values across rows in each column.
+
+    arguments:
+        data (object): Pandas data frame of values
+        dimension (str): dimension to filter, either "row" or "column"
+        threshold (float): minimal signal
+        proportion (float): minimal proportion of rows or columns that must
+            pass threshold
+
+    raises:
+
+    returns:
+        (object): Pandas data frame of values
+
+    """
+
+    def count_true(slice=None, count=None):
+        values = slice.tolist()
+        values_true = list(itertools.compress(values, values))
+        return (len(values_true) >= count)
+
+    # Determine count from proportion.
+    if dimension == "row":
+        # Filter rows by consideration of columns for each row.
+        columns = data.shape[1]
+        count = round(proportion * columns)
+    elif dimension == "column":
+        # Filter columns by consideration of rows for each columns.
+        rows = data.shape[0]
+        count = round(proportion * rows)
+
+    # Determine whether values exceed threshold.
+    data_threshold = (data >= threshold)
+    # Determine whether count of values exceed threshold.
+    if dimension == "row":
+        axis = "columns"
+    elif dimension == "column":
+        axis = "index"
+    # This aggregation operation produces a series.
+    data_count = data_threshold.aggregate(
+        lambda slice: count_true(slice=slice, count=count),
+        axis=axis,
+    )
+
+    # Select rows and columns with appropriate values.
+    if dimension == "row":
+        data_pass = data.loc[data_count, : ]
+    elif dimension == "column":
+        data_pass = data.loc[:, data_count]
+    return data_pass
+
+
+def filter_rows_columns_by_threshold_outer_proportion(
+    data=None,
+    dimension=None,
+    threshold_high=None,
+    threshold_low=None,
+    proportion=None,
+):
+    """
+    Filters either rows or columns by whether a certain proportion of values
+    are outside of low and high thresholds.
+
+    Persistence of a row or column requires at least a specific proportion of
+    values beyond a specific threshold.
+
+    Filter rows by consideration of values across columns in each row.
+    Filter columns by consideration of values across rows in each column.
+
+    arguments:
+        data (object): Pandas data frame of values
+        dimension (str): dimension to filter, either "row" or "column"
+        threshold_high (float): value must be greater than this threshold
+        threshold_low (float): value must be less than this threshold
+        proportion (float): minimal proportion of rows or columns that must
+            pass threshold
+
+    raises:
+
+    returns:
+        (object): Pandas data frame of values
+
+    """
+
+    def count_true(slice=None, count=None):
+        values = slice.values.tolist()
+        values_true = list(itertools.compress(values, values))
+        return (len(values_true) >= count)
+
+    # Copy data.
+    data = data.copy(deep=True)
+
+    # Determine count from proportion.
+    if dimension == "row":
+        # Filter rows by consideration of columns for each row.
+        columns = data.shape[1]
+        count = round(proportion * columns)
+    elif dimension == "column":
+        # Filter columns by consideration of rows for each columns.
+        rows = data.shape[0]
+        count = round(proportion * rows)
+
+    # Determine whether values exceed threshold.
+    data_threshold = data.applymap(
+        lambda value: ((value <= threshold_low) or (threshold_high <= value))
+    )
+    # Determine whether count of values exceed threshold.
+    if dimension == "row":
+        axis = "columns"
+    elif dimension == "column":
+        axis = "index"
+    # This aggregation operation produces a series.
+    data_count = data_threshold.aggregate(
+        lambda slice: count_true(slice=slice, count=count),
+        axis=axis,
+    )
+
+    # Select rows and columns with appropriate values.
+    if dimension == "row":
+        data_pass = data.loc[data_count, : ]
+    elif dimension == "column":
+        data_pass = data.loc[:, data_count]
+    return data_pass
+
+
+def filter_table_columns_by_nonmissing_variance(
+    threshold_valid_proportion_per_column=None,
+    threshold_column_variance=None,
+    type_variance=None,
+    table=None,
     report=None,
 ):
     """
-    Determines whether the current row from a table needs fill of missing
-    values.
+    Filters columns in a table by their proportions of non-missing values and by
+    their relative varances across rows.
+
+    Table format: Pandas data frame with variables (features) across columns and
+    their samples (cases, observations) across rows with an explicit index
 
     arguments:
-        row (object): Pandas series of values of intensity across samples for
-            a single protein
-        columns_intensity (list<str>): names of columns corresponding to values
-            of intensity
+        threshold_valid_proportion_per_column (float): minimal proportion of
+            a column's rows that must have a valid value
+        threshold_column_variance (float): minimal value of variance measure in
+            each column's values
+        type_variance (str): type of measurement of variance, either
+            "standard_deviation" or "relative_variance"
+        table (object): Pandas data frame with variables (features) across
+            columns and samples (cases, observations) across rows with an
+            explicit index
         report (bool): whether to print reports
 
     raises:
 
     returns:
-        (int): logical binary representation of whether to keep current row
+        (dict): collection of information for the singular value decomposition
 
     """
 
-    # Copy information in row.
-    row = row.copy(deep=True)
-    # Extract and organize information from series.
-    pail_values = porg.extract_organize_values_from_series(
-        series=row[columns_intensity],
-        report=False,
-    )
-    #count_missing = numpy.count_nonzero(
-    #    numpy.isnan(pail_values["values_raw"])
-    #)
-    # Determine whether the current row has missing values.
-    if (pail_values["values_valid"].size < len(columns_intensity)):
-        indicator = 1
-    else:
-        indicator = 0
-        pass
+    # Nested function.
+    def match_column_variance(
+        name=None,
+        threshold_column_variance=None,
+        variances=None,
+    ):
+        if (str(name) in variances.keys()):
+            variance = variances[name]
+            if (
+                (not math.isnan(variance)) and
+                (threshold_column_variance <= variance)
+            ):
+                match = True
+            else:
+                match = False
+        else:
+            match = False
+        return match
+
+    # Copy information.
+    table_source = table.copy(deep=True)
+    table_product = table.copy(deep=True)
+    # Drop any columns with inadequate valid (non-missing) values across rows.
+    if (0.001 <= threshold_valid_proportion_per_column):
+        rows = table_product.shape[0]
+        threshold = round(rows*threshold_valid_proportion_per_column)
+        table_product.dropna(
+            axis="columns", # drop columns
+            thresh=threshold,
+            subset=None,
+            inplace=True,
+        )
+    # Drop any columns with minimal relative variance.
+    if (0.00001 <= threshold_column_variance):
+        if (type_variance == "standard_deviation"):
+            series_variance = table_product.aggregate(
+                lambda column: numpy.nanstd(column.to_numpy()),
+                axis="index", # apply function to each column
+            )
+            #series_variance = table_product.aggregate(
+            #    lambda column: column.std(),
+            #    axis="index", # apply function to each column
+            #)
+        elif (type_variance == "relative_variance"):
+            series_variance = table_product.aggregate(
+                lambda column: calculate_relative_variance(
+                    array=column.to_numpy()
+                ),
+                axis="index", # apply function to each column
+            )
+            pass
+        variances = series_variance.to_dict()
+        columns = copy.deepcopy(table.columns.to_list())
+        columns_variance = list(filter(
+            lambda column_trial: match_column_variance(
+                name=column_trial,
+                threshold_column_variance=(
+                    threshold_column_variance
+                ),
+                variances=variances,
+            ),
+            columns
+        ))
+        table_product = table_product.loc[
+            :, table_product.columns.isin(columns_variance)
+        ]
+    # Determine any columns removed.
+    columns_exclusion = list(filter(
+        lambda column: (str(column) not in table_product.columns.tolist()),
+        table_source.columns.tolist()
+    ))
+
     # Report.
     if report:
-        putly.print_terminal_partition(level=4)
-        print("Match missing value fill.")
-        print("Indicator: " + str(indicator))
-        putly.print_terminal_partition(level=4)
-    # Return information.
-    return indicator
+        print_terminal_partition(level=2)
+        print(
+            "Report from: " +
+            "filter_table_columns_by_nonmissing_relative_variance()"
+        )
+        print_terminal_partition(level=3)
+        print("count rows in source table: " + str(table_source.shape[0]))
+        print("count columns in source table: " + str(table_source.shape[1]))
+        print("series variance: " + str(type_variance))
+        print(series_variance.iloc[0:25])
+        print("count rows in product table: " + str(table_product.shape[0]))
+        print("count columns in product table: " + str(table_product.shape[1]))
+        print("any columns removed from table: ")
+        print(columns_exclusion)
+    # Return.
+    return table_product
+
+
+##########
+# Fill missing values across rows.
 
 
 def fill_missing_values_series(
@@ -1255,7 +1571,7 @@ def fill_missing_values_table_by_row(
 
     Table's format and orientation
 
-    Table has values for each feature oriented across rows with their
+    Table has each type of feature oriented across rows with their individual
     observations oriented across columns. All values are on a continous ratio
     scale of measurement and have the same type, such as corresponding to
     signal intensities from a particular type of measurement.

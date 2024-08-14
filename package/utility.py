@@ -1580,10 +1580,11 @@ def write_file_text_table(
         writer.writerows(information)
 
 
-def write_file_text_list(
+def write_list_to_file_text(
     elements=None,
     delimiter=None,
-    path_file=None
+    name_file=None,
+    path_directory=None,
 ):
     """
     Writes to file in text format information from an array of strings.
@@ -1593,7 +1594,9 @@ def write_file_text_list(
     arguments:
         elements (list<str>): character elements
         delimiter (str): delimiter between elements in list
-        path_file (str): path to directory and file
+        name_file (str): base name for file
+        path_directory (str): path to directory within which to write file
+
 
     returns:
 
@@ -1601,10 +1604,53 @@ def write_file_text_list(
 
     """
 
+    # Initialize directories.
+    create_directories(
+        path=path_directory,
+    )
+    # Specify directories and files.
+    path_file = os.path.join(
+        path_directory, str(name_file + ".txt")
+    )
     # Write information to file
     with open(path_file, "w") as file_product:
         string = delimiter.join(elements)
         file_product.write(string)
+    pass
+
+
+def write_lists_to_file_text(
+    pail_write=None,
+    path_directory=None,
+):
+    """
+    Writes product information to file.
+
+    First and only dictionary tier names the file.
+
+    arguments:
+        pail_write (dict<object>): collection of information to write to file
+        path_directory (str): path to directory within which to write
+            information to files
+
+    raises:
+
+    returns:
+
+    """
+
+    # Structure of "pail_write" collection is "dict<object>".
+    # First and only tier of dictionary tree gives names of files.
+    # Iterate across charts.
+    for name_file in pail_write.keys():
+        # Write chart object to file in child directory.
+        write_list_to_file_text(
+            elements=pail_write[name_file],
+            delimiter="\n",
+            name_file=name_file,
+            path_directory=path_directory,
+        )
+        pass
     pass
 
 
@@ -2674,214 +2720,6 @@ def convert_table_columns_variables_types_float(
     return table
 
 
-def segregate_data_two_thresholds(
-    data=None,
-    abscissa=None,
-    ordinate=None,
-    threshold_abscissa=None,
-    selection_abscissa=None,
-    threshold_ordinate=None,
-    selection_ordinate=None,
-):
-    """
-    Segregates data by values against thresholds on two dimensions.
-
-    arguments:
-        data (object): Pandas data frame of groups, series, and values
-        abscissa (str): name of data column with independent variable
-        ordinate (str): name of data column with dependent variable
-        threshold_abscissa (float): threshold for abscissa
-        selection_abscissa (str): selection criterion for abscissa's values
-            against threshold
-        threshold_ordinate (float): threshold for ordinate
-        selection_ordinate (str): selection criterion for ordinate's values
-            against threshold
-
-    raises:
-
-    returns:
-        (dict): collection of data that pass and fail against thresholds
-
-    """
-
-    # Copy data.
-    data_pass = data.copy(deep=True)
-    data_fail = data.copy(deep=True)
-    # Abscissa.
-    if selection_abscissa == ">=":
-        data_pass = data_pass.loc[
-            data_pass[abscissa] >= threshold_abscissa,
-            :
-        ]
-    elif selection_abscissa == "<=":
-        data_pass = data_pass.loc[
-            data_pass[abscissa] <= threshold_abscissa,
-            :
-        ]
-    # Ordinate.
-    if selection_ordinate == ">=":
-        data_pass = data_pass.loc[
-            data_pass[ordinate] >= threshold_ordinate,
-            :
-        ]
-    elif selection_ordinate == "<=":
-        data_pass = data_pass.loc[
-            data_pass[ordinate] <= threshold_ordinate,
-            :
-        ]
-
-    # Fail.
-    data_fail = data_fail.loc[
-        ~data_fail.index.isin(data_pass.index),
-        :
-    ]
-
-    # Return information.
-    collection = dict()
-    collection["pass"] = data_pass
-    collection["fail"] = data_fail
-    return collection
-
-
-def filter_rows_columns_by_threshold_proportion(
-    data=None,
-    dimension=None,
-    threshold=None,
-    proportion=None,
-):
-    """
-    Filters either rows or columns by whether a certain proportion of values
-    are greater than a minimal thresholds.
-
-    Persistence of a row or column requires at least a specific proportion of
-    values beyond a specific threshold.
-
-    Filter rows by consideration of values across columns in each row.
-    Filter columns by consideration of values across rows in each column.
-
-    arguments:
-        data (object): Pandas data frame of values
-        dimension (str): dimension to filter, either "row" or "column"
-        threshold (float): minimal signal
-        proportion (float): minimal proportion of rows or columns that must
-            pass threshold
-
-    raises:
-
-    returns:
-        (object): Pandas data frame of values
-
-    """
-
-    def count_true(slice=None, count=None):
-        values = slice.tolist()
-        values_true = list(itertools.compress(values, values))
-        return (len(values_true) >= count)
-
-    # Determine count from proportion.
-    if dimension == "row":
-        # Filter rows by consideration of columns for each row.
-        columns = data.shape[1]
-        count = round(proportion * columns)
-    elif dimension == "column":
-        # Filter columns by consideration of rows for each columns.
-        rows = data.shape[0]
-        count = round(proportion * rows)
-
-    # Determine whether values exceed threshold.
-    data_threshold = (data >= threshold)
-    # Determine whether count of values exceed threshold.
-    if dimension == "row":
-        axis = "columns"
-    elif dimension == "column":
-        axis = "index"
-    # This aggregation operation produces a series.
-    data_count = data_threshold.aggregate(
-        lambda slice: count_true(slice=slice, count=count),
-        axis=axis,
-    )
-
-    # Select rows and columns with appropriate values.
-    if dimension == "row":
-        data_pass = data.loc[data_count, : ]
-    elif dimension == "column":
-        data_pass = data.loc[:, data_count]
-    return data_pass
-
-
-def filter_rows_columns_by_threshold_outer_proportion(
-    data=None,
-    dimension=None,
-    threshold_high=None,
-    threshold_low=None,
-    proportion=None,
-):
-    """
-    Filters either rows or columns by whether a certain proportion of values
-    are outside of low and high thresholds.
-
-    Persistence of a row or column requires at least a specific proportion of
-    values beyond a specific threshold.
-
-    Filter rows by consideration of values across columns in each row.
-    Filter columns by consideration of values across rows in each column.
-
-    arguments:
-        data (object): Pandas data frame of values
-        dimension (str): dimension to filter, either "row" or "column"
-        threshold_high (float): value must be greater than this threshold
-        threshold_low (float): value must be less than this threshold
-        proportion (float): minimal proportion of rows or columns that must
-            pass threshold
-
-    raises:
-
-    returns:
-        (object): Pandas data frame of values
-
-    """
-
-    def count_true(slice=None, count=None):
-        values = slice.values.tolist()
-        values_true = list(itertools.compress(values, values))
-        return (len(values_true) >= count)
-
-    # Copy data.
-    data = data.copy(deep=True)
-
-    # Determine count from proportion.
-    if dimension == "row":
-        # Filter rows by consideration of columns for each row.
-        columns = data.shape[1]
-        count = round(proportion * columns)
-    elif dimension == "column":
-        # Filter columns by consideration of rows for each columns.
-        rows = data.shape[0]
-        count = round(proportion * rows)
-
-    # Determine whether values exceed threshold.
-    data_threshold = data.applymap(
-        lambda value: ((value <= threshold_low) or (threshold_high <= value))
-    )
-    # Determine whether count of values exceed threshold.
-    if dimension == "row":
-        axis = "columns"
-    elif dimension == "column":
-        axis = "index"
-    # This aggregation operation produces a series.
-    data_count = data_threshold.aggregate(
-        lambda slice: count_true(slice=slice, count=count),
-        axis=axis,
-    )
-
-    # Select rows and columns with appropriate values.
-    if dimension == "row":
-        data_pass = data.loc[data_count, : ]
-    elif dimension == "column":
-        data_pass = data.loc[:, data_count]
-    return data_pass
-
-
 def impute_continuous_variables_missing_values_half_minimum(
     columns=None,
     table=None,
@@ -2933,6 +2771,7 @@ def impute_continuous_variables_missing_values_half_minimum(
     return table
 
 
+# osolete? possibly replace with coefficient of variation?
 def calculate_relative_variance(
     array=None,
 ):
@@ -3154,131 +2993,6 @@ def report_contingency_table_stratification_by_missingness(
         print("chi2: " + str(chi2))
         print("probability: " + str(probability))
     pass
-
-
-def filter_table_columns_by_nonmissing_variance(
-    threshold_valid_proportion_per_column=None,
-    threshold_column_variance=None,
-    type_variance=None,
-    table=None,
-    report=None,
-):
-    """
-    Filters columns in a table by their proportions of non-missing values and by
-    their relative varances across rows.
-
-    Table format: Pandas data frame with variables (features) across columns and
-    their samples (cases, observations) across rows with an explicit index
-
-    arguments:
-        threshold_valid_proportion_per_column (float): minimal proportion of
-            a column's rows that must have a valid value
-        threshold_column_variance (float): minimal value of variance measure in
-            each column's values
-        type_variance (str): type of measurement of variance, either
-            "standard_deviation" or "relative_variance"
-        table (object): Pandas data frame with variables (features) across
-            columns and samples (cases, observations) across rows with an
-            explicit index
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (dict): collection of information for the singular value decomposition
-
-    """
-
-    # Nested function.
-    def match_column_variance(
-        name=None,
-        threshold_column_variance=None,
-        variances=None,
-    ):
-        if (str(name) in variances.keys()):
-            variance = variances[name]
-            if (
-                (not math.isnan(variance)) and
-                (threshold_column_variance <= variance)
-            ):
-                match = True
-            else:
-                match = False
-        else:
-            match = False
-        return match
-
-    # Copy information.
-    table_source = table.copy(deep=True)
-    table_product = table.copy(deep=True)
-    # Drop any columns with inadequate valid (non-missing) values across rows.
-    if (0.001 <= threshold_valid_proportion_per_column):
-        rows = table_product.shape[0]
-        threshold = round(rows*threshold_valid_proportion_per_column)
-        table_product.dropna(
-            axis="columns", # drop columns
-            thresh=threshold,
-            subset=None,
-            inplace=True,
-        )
-    # Drop any columns with minimal relative variance.
-    if (0.00001 <= threshold_column_variance):
-        if (type_variance == "standard_deviation"):
-            series_variance = table_product.aggregate(
-                lambda column: numpy.nanstd(column.to_numpy()),
-                axis="index", # apply function to each column
-            )
-            #series_variance = table_product.aggregate(
-            #    lambda column: column.std(),
-            #    axis="index", # apply function to each column
-            #)
-        elif (type_variance == "relative_variance"):
-            series_variance = table_product.aggregate(
-                lambda column: calculate_relative_variance(
-                    array=column.to_numpy()
-                ),
-                axis="index", # apply function to each column
-            )
-            pass
-        variances = series_variance.to_dict()
-        columns = copy.deepcopy(table.columns.to_list())
-        columns_variance = list(filter(
-            lambda column_trial: match_column_variance(
-                name=column_trial,
-                threshold_column_variance=(
-                    threshold_column_variance
-                ),
-                variances=variances,
-            ),
-            columns
-        ))
-        table_product = table_product.loc[
-            :, table_product.columns.isin(columns_variance)
-        ]
-    # Determine any columns removed.
-    columns_exclusion = list(filter(
-        lambda column: (str(column) not in table_product.columns.tolist()),
-        table_source.columns.tolist()
-    ))
-
-    # Report.
-    if report:
-        print_terminal_partition(level=2)
-        print(
-            "Report from: " +
-            "filter_table_columns_by_nonmissing_relative_variance()"
-        )
-        print_terminal_partition(level=3)
-        print("count rows in source table: " + str(table_source.shape[0]))
-        print("count columns in source table: " + str(table_source.shape[1]))
-        print("series variance: " + str(type_variance))
-        print(series_variance.iloc[0:25])
-        print("count rows in product table: " + str(table_product.shape[0]))
-        print("count columns in product table: " + str(table_product.shape[1]))
-        print("any columns removed from table: ")
-        print(columns_exclusion)
-    # Return.
-    return table_product
 
 
 def extract_first_search_string_from_table_column_main_string(

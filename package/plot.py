@@ -718,8 +718,8 @@ def plot_heat_map_few_signal_significance_labels(
         labels_abscissa_categories (list<str>): optional, explicit labels for
             abscissa or horizontal axis
         title_chart_top_right (str):
-        title_ordinate (str):
-        title_abscissa (str):
+        title_ordinate (str): title for ordinate vertical axis
+        title_abscissa (str): title for abscissa horizontal axis
         title_bar (str): title for scale bar
         size_label_sig_p (str): font size
         size_label_sig_q (str): font size
@@ -730,7 +730,7 @@ def plot_heat_map_few_signal_significance_labels(
         size_label_legend (str): font size
         size_title_bar (str): font size
         size_label_bar (str): font size
-        aspect (str): aspect ratio for MatPlotLib figure
+        aspect (str): aspect ratio for MatPlotLib chart figure
         fonts (dict<object>): references to definitions of font properties
         colors (dict<tuple>): references to definitions of color properties
         report (bool): whether to print reports
@@ -2838,6 +2838,408 @@ def plot_boxes_groups(
     return figure
 
 
+##########
+# Chart type: scatter
+
+
+def plot_scatter_fold_change_volcano(
+    table=None,
+    column_identifier=None,
+    column_name=None,
+    column_fold=None,
+    column_p=None,
+    threshold_fold=None,
+    threshold_p=None,
+    identifiers_emphasis=None,
+    emphasis_label=None,
+    count_label=None,
+    minimum_abscissa=None,
+    maximum_abscissa=None,
+    minimum_ordinate=None,
+    maximum_ordinate=None,
+    title_abscissa=None,
+    title_ordinate=None,
+    size_title_abscissa=None,
+    size_title_ordinate=None,
+    size_label_abscissa=None,
+    size_label_ordinate=None,
+    size_label_emphasis=None,
+    size_label_count=None,
+    aspect=None,
+    fonts=None,
+    colors=None,
+    report=None,
+):
+    """
+    Creates a chart figure of basic type scatter that represents fold changes
+    with thresholds on two dimensions.
+
+    Volcano Plot
+    chart type: scatter
+    abscissa
+       - axis: horizontal, x
+       - representation: fold change on base-two logarithmic scale
+    ordinate
+       - axis: vertical, y
+       - representation: p-value or q-value for estimate of fold change on
+          negative base-ten logarithmic scale
+
+    Review: TCW; 14 August 2024
+
+    arguments:
+        table (object): Pandas data-frame table of features across columns and
+            values for observations across rows
+        column_identifier (str): name of column in table for the unique
+            identifier corresponding to the fold change
+        column_name (str): name of column in table for the name corresponding
+            to the fold change
+        column_fold (str): name of column in table on which to apply the
+            threshold for the fold change
+        column_p (str): name of column in table on which to apply the threshold
+            for the p-value or q-value corresponding to the fold change
+            estimate
+        threshold_fold (float): value for threshold on fold change
+            (fold change > threshold) that is on the same scale, such as
+            base-two logarithm, as the actual values themselves
+        threshold_p (float): value for threshold on p-values or q-values
+            (p-value > threshold) that is on the same scale, such as negative
+            base-ten logarithm, as the actual values themselves
+        identifiers_emphasis (list<str>): identifiers corresponding to a
+            special selection of fold changes for which to emphasize points on
+            chart and for which to create text labels adjacent to the points
+            on the chart
+        emphasis_label (bool): whether to create text labels adjacent to
+            the special selection of points for special emphasis
+        count_label (bool): whether to create text labels on chart to report
+            counts of fold changes that pass thresholds
+        minimum_abscissa (float): value for minimal limit to represent on the
+            abscissa horizontal axis
+        maximum_abscissa (float): value for maximal limit to represent on the
+            abscissa horizontal axis
+        minimum_ordinate (float): value for minimal limit to represent on the
+            ordinate horizontal axis
+        maximum_ordinate (float): value for maximal limit to represent on the
+            ordinate horizontal axis
+        title_abscissa (str): title for abscissa horizontal axis
+        title_ordinate (str): title for ordinate vertical axis
+        size_title_abscissa (str): font size for title on abscissa horizontal
+            axis
+        size_title_ordinate (str): font size for title on ordinate vertical
+            axis
+        size_label_abscissa (str): font size for labels on abscissa horizontal
+            axis
+        size_label_ordinate (str): font size for labels on ordinate vertical
+            axis
+        size_label_emphasis (str): font size for labels adjacent to points for
+            special emphasis
+        size_label_count (str): font size for labels to report counts of
+            fold changes that pass thresholds
+        aspect (str): aspect ratio for MatPlotLib chart figure
+        fonts (dict<object>): definitions of font properties
+        colors (dict<tuple>): definitions of color properties
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): chart figure object
+
+    """
+
+    ##########
+    # Organize information for chart.
+
+    # Copy information in table.
+    table = table.copy(deep=True)
+    # Organize information in table.
+    table = table.loc[:, [
+        column_identifier,
+        column_name,
+        column_fold,
+        column_p,
+    ]]
+    table.dropna(
+        axis="index",
+        how="any",
+        inplace=True,
+    )
+    limits = [
+        {"type": "low", "value": minimum_abscissa, "column": column_fold},
+        {"type": "high", "value": maximum_abscissa, "column": column_fold},
+        {"type": "low", "value": minimum_ordinate, "column": column_p},
+        {"type": "high", "value": maximum_ordinate, "column": column_p},
+    ]
+    for limit in limits:
+        if (limit["value"] is not None):
+            if (limit["type"] == "low"):
+                table = table.loc[
+                    (table[limit["column"]] >= limit["value"]), :
+                ].copy(deep=True)
+            elif (limit["type"] == "high"):
+                table = table.loc[
+                    (table[limit["column"]] <= limit["value"]), :
+                ].copy(deep=True)
+                pass
+            pass
+        pass
+    # Extract information about selection of fold changes for special emphasis.
+    table_bore = table.loc[
+        ~table[column_identifier].isin(identifiers_emphasis), :
+    ].copy(deep=True)
+    table_emphasis = table.loc[
+        table[column_identifier].isin(identifiers_emphasis), :
+    ].copy(deep=True)
+    # Filter rows in table for segregation of values by thresholds.
+    pail_threshold = porg.segregate_fold_change_values_by_thresholds(
+        table=table,
+        column_fold=column_fold,
+        column_p=column_p,
+        threshold_fold=threshold_fold,
+        threshold_p=threshold_p,
+        report=False,
+    )
+    # Extract counts.
+    count_pass = (pail_threshold["table_pass_any"].shape[0])
+    count_pass_up = (pail_threshold["table_pass_up"].shape[0])
+    count_pass_down = (pail_threshold["table_pass_down"].shape[0])
+    count_fail = (pail_threshold["table_fail"].shape[0])
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("module: partner.plot.py")
+        print("function: plot_scatter_fold_change_volcano()")
+        putly.print_terminal_partition(level=5)
+        print(
+            "count of fold changes that pass segregation thresholds: " +
+            str(count_pass)
+        )
+        print("count ups: " + str(count_pass_up))
+        print("count downs: " + str(count_pass_down))
+        print(
+            "count of fold changes that fail segregation thresholds: " +
+            str(count_fail)
+        )
+        putly.print_terminal_partition(level=5)
+        print("table of fold changes for special emphasis:")
+        print(table_emphasis)
+        putly.print_terminal_partition(level=5)
+        pass
+
+    ##########
+    # Create and initialize figure chart object.
+
+    # Create figure.
+    figure = initialize_matplotlib_figure_aspect(
+        aspect=aspect,
+    )
+    # Create axes.
+    axes = matplotlib.pyplot.axes()
+    #axes.margins(
+    #    x=1,
+    #    y=1,
+    #    tight=True,
+    #)
+    # Define limits for axes.
+    if (minimum_abscissa is not None):
+        axes.set_xlim(xmin=minimum_abscissa)
+    if (maximum_abscissa is not None):
+        axes.set_xlim(xmax=maximum_abscissa)
+    if (minimum_ordinate is not None):
+        axes.set_ylim(ymin=minimum_ordinate)
+    if (maximum_ordinate is not None):
+        axes.set_ylim(ymax=maximum_ordinate)
+
+    # Set titles for axes.
+    if (len(title_abscissa) > 0):
+        axes.set_xlabel(
+            xlabel=title_abscissa,
+            labelpad=30,
+            alpha=1.0,
+            backgroundcolor=colors["white"],
+            color=colors["black"],
+            fontproperties=fonts["properties"][size_title_abscissa]
+        )
+    if (len(title_ordinate) > 0):
+        axes.set_ylabel(
+            ylabel=title_ordinate,
+            labelpad=30,
+            alpha=1.0,
+            backgroundcolor=colors["white"],
+            color=colors["black"],
+            fontproperties=fonts["properties"][size_title_ordinate]
+        )
+    # Define parameters for tick labels on axes.
+    axes.tick_params(
+        axis="both", # "y", "x", or "both"
+        which="both", # "major", "minor", or "both"
+        direction="out",
+        top=False,
+        labeltop=False,
+        bottom=True,
+        labelbottom=True,
+        left=True,
+        labelleft=True,
+        right=False,
+        labelright=False,
+        length=7.5, # 5.0
+        width=5.0, # 3.0, 5.0
+        pad=10.0, # 5.0, 7.5
+        color=colors["black"],
+        labelcolor=colors["black"],
+    )
+    axes.tick_params(
+        axis="x",
+        which="both",
+        labelsize=fonts["values"][size_label_abscissa]["size"],
+    )
+    axes.tick_params(
+        axis="y",
+        which="both",
+        labelsize=fonts["values"][size_label_ordinate]["size"],
+    )
+    # Keep axes, ticks, and labels, but remove border.
+    # ["left", "top", "right", "bottom",]
+    for position in ["top", "right",]:
+        matplotlib.pyplot.gca().spines[position].set_visible(False)
+
+    # Create lines to represent threshold values.
+    axes.axvline(
+        x=threshold_fold,
+        ymin=minimum_ordinate,
+        ymax=maximum_ordinate,
+        alpha=1.0,
+        color=colors["black"],
+        linestyle="--",
+        linewidth=2.5,
+    )
+    axes.axvline(
+        x=(-1*threshold_fold),
+        ymin=minimum_ordinate,
+        ymax=maximum_ordinate,
+        alpha=1.0,
+        color=colors["black"],
+        linestyle="--",
+        linewidth=2.5,
+    )
+    axes.axhline(
+        y=threshold_p,
+        xmin=minimum_abscissa,
+        xmax=maximum_abscissa,
+        alpha=1.0,
+        color=colors["black"],
+        linestyle="--",
+        linewidth=2.5,
+    )
+
+    ##########
+    # Represent information on the chart figure object.
+
+    # Plot points for values from each group.
+    handle = axes.plot(
+        pail_threshold["table_fail"][column_fold].values,
+        pail_threshold["table_fail"][column_p].values,
+        linestyle="",
+        marker="o",
+        markersize=2.5,
+        markeredgecolor=colors["gray"],
+        markerfacecolor=colors["gray"]
+    )
+    handle = axes.plot(
+        pail_threshold["table_pass_any"][column_fold].values,
+        pail_threshold["table_pass_any"][column_p].values,
+        linestyle="",
+        marker="o",
+        markersize=5,
+        markeredgecolor=colors["blue_navy"],
+        markerfacecolor=colors["blue_navy"]
+    )
+    handle = axes.plot(
+        table_emphasis[column_fold].values,
+        table_emphasis[column_p].values,
+        linestyle="",
+        marker="o",
+        markersize=5,
+        markeredgecolor=colors["orange"],
+        markerfacecolor=colors["orange"]
+    )
+
+    # Plot labels to report counts of fold changes that pass thresholds.
+    if count_label:
+        # Determine position coordinates of labels.
+        center_abscissa_down = (
+            minimum_abscissa + (abs(minimum_abscissa - (-1*threshold_fold))/2.5)
+        )
+        center_abscissa_up = (
+            maximum_abscissa - ((maximum_abscissa - threshold_fold)/2.5)
+        )
+        center_ordinate = ((maximum_ordinate - threshold_p)/2)
+        #count_pass_up
+        #count_pass_down
+        # Create labels on chart.
+        axes.text(
+            center_abscissa_up,
+            center_ordinate,
+            str("count: " + str(count_pass_up)),
+            horizontalalignment="right",
+            verticalalignment="center",
+            backgroundcolor=colors["white_faint"],
+            color=colors["black"],
+            fontproperties=fonts["properties"][size_label_count],
+        )
+        axes.text(
+            center_abscissa_down,
+            center_ordinate,
+            str("count: " + str(count_pass_down)),
+            horizontalalignment="left",
+            verticalalignment="center",
+            backgroundcolor=colors["white_faint"],
+            color=colors["black"],
+            fontproperties=fonts["properties"][size_label_count],
+        )
+        pass
+
+    # Plot labels adjacent to the selection of points for special emphasis.
+    # Align bottom left of label with an offset of 1% of the chart coordinate
+    # dimensions.
+    if emphasis_label:
+        for index, row in table_emphasis.iterrows():
+            # Determine position coordinates of label.
+            abscissa_raw = row[column_fold]
+            if (abscissa_raw > 0):
+                alignment_horizontal = "right"
+                abscissa = (
+                    abscissa_raw - (
+                        0.01 * (maximum_abscissa - minimum_abscissa)
+                    )
+                )
+            if (abscissa_raw < 0):
+                alignment_horizontal = "left"
+                abscissa = (
+                    abscissa_raw + (
+                        0.01 * (maximum_abscissa - minimum_abscissa)
+                    )
+                )
+            ordinate = row[column_p]
+            # Create label on chart.
+            axes.text(
+                abscissa,
+                ordinate,
+                str(row[column_name]),
+                horizontalalignment=alignment_horizontal,
+                verticalalignment="center",
+                backgroundcolor=colors["white_faint"],
+                color=colors["black"],
+                fontproperties=fonts["properties"][size_label_emphasis],
+            )
+            pass
+        pass
+
+    ##########
+    # Return figure.
+    return figure
+
+
 def plot_scatter_factor_groups(
     data=None,
     abscissa=None,
@@ -3992,147 +4394,6 @@ def plot_scatter_points_dot_category_abscissa(
             color=colors["black"],
             fontproperties=fonts["properties"]["four"]
         )
-
-    # Return figure.
-    return figure
-
-
-
-# TODO: probably obsolete?
-def plot_scatter_threshold(
-    data=None,
-    abscissa=None,
-    ordinate=None,
-    threshold_abscissa=None,
-    selection_abscissa=None,
-    threshold_ordinate=None,
-    selection_ordinate=None,
-    title_abscissa=None,
-    title_ordinate=None,
-    fonts=None,
-    colors=None,
-):
-    """
-    Creates a figure of a chart of type scatter with thresholds on each
-        dimension.
-
-    arguments:
-        data (object): Pandas data frame of groups, series, and values
-        abscissa (str): name of data column with independent variable
-        ordinate (str): name of data column with dependent variable
-        threshold_abscissa (float): threshold for abscissa
-        selection_abscissa (str): selection criterion for abscissa's values
-            against threshold
-        threshold_ordinate (float): threshold for ordinate
-        selection_ordinate (str): selection criterion for ordinate's values
-            against threshold
-        title_abscissa (str): title for abscissa on horizontal axis
-        title_ordinate (str): title for ordinate on vertical axis
-        factor (str): name of data column with groups or factors of samples
-        fonts (dict<object>): references to definitions of font properties
-        colors (dict<tuple>): references to definitions of color properties
-
-    raises:
-
-    returns:
-        (object): figure object
-
-    """
-
-    # Organize data.
-    data = data.copy(deep=True)
-    data = data.loc[:, [abscissa, ordinate]]
-    data.dropna(
-        axis="index",
-        how="any",
-        inplace=True,
-    )
-    # Divide values by whether they pass thresholds on both dimensions.
-    collection = putly.segregate_data_two_thresholds(
-        data=data,
-        abscissa=abscissa,
-        ordinate=ordinate,
-        threshold_abscissa=threshold_abscissa,
-        selection_abscissa=selection_abscissa,
-        threshold_ordinate=threshold_ordinate,
-        selection_ordinate=selection_ordinate,
-    )
-
-    ##########
-    # Create figure.
-    figure = matplotlib.pyplot.figure(
-        figsize=(15.748, 11.811),
-        tight_layout=True
-    )
-    # Create axes.
-    axes = matplotlib.pyplot.axes()
-    axes.set_xlabel(
-        xlabel=title_abscissa,
-        labelpad=20,
-        alpha=1.0,
-        backgroundcolor=colors["white"],
-        color=colors["black"],
-        fontproperties=fonts["properties"]["one"]
-    )
-    axes.set_ylabel(
-        ylabel=title_ordinate,
-        labelpad=20,
-        alpha=1.0,
-        backgroundcolor=colors["white"],
-        color=colors["black"],
-        fontproperties=fonts["properties"]["one"]
-    )
-    axes.tick_params(
-        axis="both",
-        which="both",
-        direction="out",
-        length=5.0,
-        width=3.0,
-        color=colors["black"],
-        pad=5,
-        labelsize=fonts["values"]["one"]["size"],
-        labelcolor=colors["black"]
-    )
-    # Plot points for values from each group.
-    handle = axes.plot(
-        collection["fail"][abscissa].values,
-        collection["fail"][ordinate].values,
-        linestyle="",
-        marker="o",
-        markersize=2.5,
-        markeredgecolor=colors["gray"],
-        markerfacecolor=colors["gray"]
-    )
-    handle = axes.plot(
-        collection["pass"][abscissa].values,
-        collection["pass"][ordinate].values,
-        linestyle="",
-        marker="o",
-        markersize=5,
-        markeredgecolor=colors["blue_navy"],
-        markerfacecolor=colors["blue_navy"]
-    )
-
-    # Plot lines for each threshold value...
-    # Create lines for thresholds.
-    axes.axvline(
-        x=threshold_abscissa,
-        ymin=0,
-        ymax=1,
-        alpha=1.0,
-        color=colors["orange"],
-        linestyle="--",
-        linewidth=3.0,
-    )
-    axes.axhline(
-        y=threshold_ordinate,
-        xmin=0,
-        xmax=1,
-        alpha=1.0,
-        color=colors["orange"],
-        linestyle="--",
-        linewidth=3.0,
-    )
 
     # Return figure.
     return figure
