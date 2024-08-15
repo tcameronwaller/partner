@@ -530,9 +530,9 @@ colnames(
 row.names(table_merge) <- NULL
 
 table_merge_sort <- table_merge[order(
-    table_merge$pvalue),
+    table_merge$pvalue,
     decreasing=FALSE,
-]
+)]
 
 # Report.
 cat("\n----------\n----------\n----------\n\n")
