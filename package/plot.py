@@ -2982,13 +2982,6 @@ def plot_scatter_fold_change_volcano(
                 pass
             pass
         pass
-    # Extract information about selection of fold changes for special emphasis.
-    table_bore = table.loc[
-        ~table[column_identifier].isin(identifiers_emphasis), :
-    ].copy(deep=True)
-    table_emphasis = table.loc[
-        table[column_identifier].isin(identifiers_emphasis), :
-    ].copy(deep=True)
     # Filter rows in table for segregation of values by thresholds.
     pail_threshold = porg.segregate_fold_change_values_by_thresholds(
         table=table,
@@ -2998,6 +2991,14 @@ def plot_scatter_fold_change_volcano(
         threshold_p=threshold_p,
         report=False,
     )
+    # Extract information about selection of fold changes for special emphasis.
+    #table_bore = table.loc[
+    #    ~table[column_identifier].isin(identifiers_emphasis), :
+    #].copy(deep=True)
+    table_source = pail_threshold["table_pass_any"]
+    table_emphasis = table_source.loc[
+        table_source[column_identifier].isin(identifiers_emphasis), :
+    ].copy(deep=True)
     # Extract counts.
     count_pass = (pail_threshold["table_pass_any"].shape[0])
     count_pass_up = (pail_threshold["table_pass_up"].shape[0])
@@ -3184,7 +3185,7 @@ def plot_scatter_fold_change_volcano(
             horizontalalignment="right",
             verticalalignment="center",
             backgroundcolor=colors["white_faint"],
-            color=colors["black"],
+            color=colors["orange"],
             fontproperties=fonts["properties"][size_label_count],
         )
         axes.text(
@@ -3194,7 +3195,7 @@ def plot_scatter_fold_change_volcano(
             horizontalalignment="left",
             verticalalignment="center",
             backgroundcolor=colors["white_faint"],
-            color=colors["black"],
+            color=colors["orange"],
             fontproperties=fonts["properties"][size_label_count],
         )
         pass
