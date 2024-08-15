@@ -3,8 +3,8 @@
 ###############################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 25 July 2024
-# Date, last execution or modification: 14 August 2024
-# Review: TCW; 14 August 2024
+# Date, last execution or modification: 15 August 2024
+# Review: TCW; 15 August 2024
 ###############################################################################
 # Note
 
@@ -529,14 +529,19 @@ colnames(
 )[which(names(table_merge) == "Row.names")] <- "identifier_gene"
 row.names(table_merge) <- NULL
 
-table_merge_sort <- table_merge[order(
-    table_merge$pvalue,
-    decreasing=FALSE,
-)]
-
 # Report.
 cat("\n----------\n----------\n----------\n\n")
 print("Table of results after merge with information about genes.")
+cat("----------\n")
+print(table_merge[1:10, 1:10])
+print(paste("columns: ", ncol(table_merge)))
+print(paste("rows: ", nrow(table_merge)))
+
+table_merge_sort <- table_merge[order(table_merge$pvalue),]
+
+# Report.
+cat("\n----------\n----------\n----------\n\n")
+print("Table of results after sort with information about genes.")
 cat("----------\n")
 print(table_merge_sort[1:10, 1:10])
 print(paste("columns: ", ncol(table_merge_sort)))
