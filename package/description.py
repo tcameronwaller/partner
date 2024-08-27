@@ -1051,7 +1051,7 @@ def describe_quantiles_ordinal(
     table = table.copy(deep=True)
     # Extract unique values from column of designations for quantiles.
     quantiles = table[column_product].unique()
-    sorted(quantiles, reverse=True)
+    #sorted(quantiles, reverse=True) # error with string designators
     count = len(quantiles)
     # Report.
     if report:
@@ -1111,6 +1111,7 @@ def determine_describe_quantiles_ordinal(
     column_source=None,
     column_product=None,
     count=None,
+    text_string=None,
     report=None,
 ):
     """
@@ -1138,6 +1139,8 @@ def determine_describe_quantiles_ordinal(
         column_product (str): name of product column in table for designation
             of quantiles with encoding as integers on an ordinal scale
         count (int): count of quantiles to create and describe
+        text_string (bool): whether to convert the integer, ordinal designators
+            of quantiles to text strings
         report (bool): whether to print reports
 
     raises:
@@ -1150,11 +1153,21 @@ def determine_describe_quantiles_ordinal(
     # Copy information in table.
     table = table.copy(deep=True)
 
+    # Determine labels for quantiles.
+    designators_raw = list(range(0, count, 1))
+    if text_string:
+        designators = list(map(
+            lambda designator: str("tertile_" + str(designator)),
+            designators_raw
+        ))
+    else:
+        designators = designators_raw
+
     # Determine quantiles.
     table[column_product], bins = pandas.qcut(
         table[column_source],
         q=count,
-        labels=list(range(0, count, 1)),
+        labels=designators,
         retbins=True,
     )
     # Report.
