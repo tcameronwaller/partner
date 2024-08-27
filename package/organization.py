@@ -1270,131 +1270,6 @@ def filter_rows_columns_by_threshold_outer_proportion(
     return data_pass
 
 
-def filter_table_columns_by_nonmissing_variance(
-    threshold_valid_proportion_per_column=None,
-    threshold_column_variance=None,
-    type_variance=None,
-    table=None,
-    report=None,
-):
-    """
-    Filters columns in a table by their proportions of non-missing values and by
-    their relative varances across rows.
-
-    Table format: Pandas data frame with variables (features) across columns and
-    their samples (cases, observations) across rows with an explicit index
-
-    arguments:
-        threshold_valid_proportion_per_column (float): minimal proportion of
-            a column's rows that must have a valid value
-        threshold_column_variance (float): minimal value of variance measure in
-            each column's values
-        type_variance (str): type of measurement of variance, either
-            "standard_deviation" or "relative_variance"
-        table (object): Pandas data frame with variables (features) across
-            columns and samples (cases, observations) across rows with an
-            explicit index
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (dict): collection of information for the singular value decomposition
-
-    """
-
-    # Nested function.
-    def match_column_variance(
-        name=None,
-        threshold_column_variance=None,
-        variances=None,
-    ):
-        if (str(name) in variances.keys()):
-            variance = variances[name]
-            if (
-                (not math.isnan(variance)) and
-                (threshold_column_variance <= variance)
-            ):
-                match = True
-            else:
-                match = False
-        else:
-            match = False
-        return match
-
-    # Copy information.
-    table_source = table.copy(deep=True)
-    table_product = table.copy(deep=True)
-    # Drop any columns with inadequate valid (non-missing) values across rows.
-    if (0.001 <= threshold_valid_proportion_per_column):
-        rows = table_product.shape[0]
-        threshold = round(rows*threshold_valid_proportion_per_column)
-        table_product.dropna(
-            axis="columns", # drop columns
-            thresh=threshold,
-            subset=None,
-            inplace=True,
-        )
-    # Drop any columns with minimal relative variance.
-    if (0.00001 <= threshold_column_variance):
-        if (type_variance == "standard_deviation"):
-            series_variance = table_product.aggregate(
-                lambda column: numpy.nanstd(column.to_numpy()),
-                axis="index", # apply function to each column
-            )
-            #series_variance = table_product.aggregate(
-            #    lambda column: column.std(),
-            #    axis="index", # apply function to each column
-            #)
-        elif (type_variance == "relative_variance"):
-            series_variance = table_product.aggregate(
-                lambda column: calculate_relative_variance(
-                    array=column.to_numpy()
-                ),
-                axis="index", # apply function to each column
-            )
-            pass
-        variances = series_variance.to_dict()
-        columns = copy.deepcopy(table.columns.to_list())
-        columns_variance = list(filter(
-            lambda column_trial: match_column_variance(
-                name=column_trial,
-                threshold_column_variance=(
-                    threshold_column_variance
-                ),
-                variances=variances,
-            ),
-            columns
-        ))
-        table_product = table_product.loc[
-            :, table_product.columns.isin(columns_variance)
-        ]
-    # Determine any columns removed.
-    columns_exclusion = list(filter(
-        lambda column: (str(column) not in table_product.columns.tolist()),
-        table_source.columns.tolist()
-    ))
-
-    # Report.
-    if report:
-        print_terminal_partition(level=2)
-        print(
-            "Report from: " +
-            "filter_table_columns_by_nonmissing_relative_variance()"
-        )
-        print_terminal_partition(level=3)
-        print("count rows in source table: " + str(table_source.shape[0]))
-        print("count columns in source table: " + str(table_source.shape[1]))
-        print("series variance: " + str(type_variance))
-        print(series_variance.iloc[0:25])
-        print("count rows in product table: " + str(table_product.shape[0]))
-        print("count columns in product table: " + str(table_product.shape[1]))
-        print("any columns removed from table: ")
-        print(columns_exclusion)
-    # Return.
-    return table_product
-
-
 ##########
 # Fill missing values across rows.
 
@@ -1941,10 +1816,10 @@ def merge_columns_two_tables(
 
     # Report.
     if report:
-        print_terminal_partition(level=2)
+        putly.print_terminal_partition(level=2)
         print("report: ")
         print("merge_columns_two_tables()")
-        print_terminal_partition(level=3)
+        putly.print_terminal_partition(level=3)
         print("table columns: " + str(int(table.shape[1])))
         print("table rows: " + str(int(table.shape[0])))
         print("columns")

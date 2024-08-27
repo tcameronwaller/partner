@@ -48,7 +48,7 @@ cd ~
 path_directory_paths="./Downloads/paths_process_local"
 path_directory_process=$(<"$path_directory_paths/path_directory_process_local.txt")
 path_directory_dock="$path_directory_process/dock"
-path_directory_data="$path_directory_dock/in_data" # restore script does not modify "in_data" for efficiency
+#path_directory_data="$path_directory_dock/in_data" # restore script does not modify "in_data" for efficiency
 path_directory_parameters="$path_directory_dock/in_parameters"
 path_directory_parameters_private_source=$(<"$path_directory_paths/path_parameters_private_${project_main}.txt")
 path_directory_parameters_private="$path_directory_dock/in_parameters_private"
