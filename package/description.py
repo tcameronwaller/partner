@@ -1012,6 +1012,165 @@ def calculate_table_long_false_discovery_rate_q_values(
 
 
 ##########
+# Quantiles
+
+
+def describe_quantiles_ordinal(
+    table=None,
+    column_source=None,
+    column_product=None,
+    columns_category=None,
+    report=None,
+):
+    """
+    Describe an integer ordinal encoding of quantiles for a feature variable
+    with values on a continuous interval or ratio measurement scale.
+
+    Review: TCW; 27 August 2024
+
+    arguments:
+        table (object): Pandas data-frame table of subjects, samples, and their
+            attribute features
+        column_source (str): name of source column in table for a feature
+            variable with values on a continuous interval or ratio measurement
+            scale
+        column_product (str): name of product column in table for designation
+            of quantiles with encoding as integers on an ordinal scale
+        columns_category (list<str>): names of columns in table for categorical
+            factor variables to describe within quantiles
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    # Copy information in table.
+    table = table.copy(deep=True)
+    # Extract unique values from column of designations for quantiles.
+    quantiles = table[column_product].unique()
+    sorted(quantiles, reverse=True)
+    count = len(quantiles)
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("module: partner.description.py")
+        print("function: describe_quantiles_ordinal()")
+        putly.print_terminal_partition(level=4)
+        print(str("name of source column: " + column_source))
+        putly.print_terminal_partition(level=5)
+        print(str("count of quantiles: " + str(count)))
+        putly.print_terminal_partition(level=5)
+        print("quantile designators:")
+        print(quantiles)
+        putly.print_terminal_partition(level=5)
+        print("count of samples in each quantile:")
+        print(table[column_product].value_counts(dropna=False))
+        #putly.print_terminal_partition(level=5)
+        #print("description of quantiles:")
+        #print(table[column_product].describe(include=columns_category))
+        putly.print_terminal_partition(level=5)
+        print("what follows is a description of each quantile separately")
+        pass
+    # Describe individual quantiles.
+    for designator in quantiles:
+        table_quantile = table.loc[
+            (table[column_product] == designator), :
+        ]
+        count_rows = (table_quantile.shape[0])
+        count_columns = (table_quantile.shape[1])
+        minimum = table_quantile[column_source].min()
+        maximum = table_quantile[column_source].max()
+        # Report.
+        if report:
+            putly.print_terminal_partition(level=4)
+            print(str("quantile: " + str(designator)))
+            print(str("count rows: " + str(count_rows)))
+            print(str("minimum: " + str(minimum)))
+            print(str("maximum: " + str(maximum)))
+            pass
+        for column_category in columns_category:
+            # Report.
+            if report:
+                putly.print_terminal_partition(level=5)
+                print(str("categorical column: " + column_category))
+                print(
+                    table_quantile[column_category].value_counts(dropna=False)
+                )
+                pass
+            pass
+        pass
+    # Return information.
+    pass
+
+
+def determine_describe_quantiles_ordinal(
+    table=None,
+    column_source=None,
+    column_product=None,
+    count=None,
+    report=None,
+):
+    """
+    Determine and describe an integer ordinal encoding of quantiles for a
+    feature variable with values on a continuous interval or ratio measurement
+    scale.
+
+    See the function below as an example of applying quantiles separately by
+    some factor of stratification.
+    function:
+    define_ordinal_stratifications_by_sex_continuous_variables
+    module:
+    organization.py
+    package:
+    sexy_age_hormones
+
+    Review: TCW; 27 August 2024
+
+    arguments:
+        table (object): Pandas data-frame table of subjects, samples, and their
+            attribute features
+        column_source (str): name of source column in table for a feature
+            variable with values on a continuous interval or ratio measurement
+            scale
+        column_product (str): name of product column in table for designation
+            of quantiles with encoding as integers on an ordinal scale
+        count (int): count of quantiles to create and describe
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    # Copy information in table.
+    table = table.copy(deep=True)
+
+    # Determine quantiles.
+    table[column_product] = pandas.qcut(
+        table[column_source],
+        q=count,
+        labels=list(range(0, count, 1)),
+    )
+    # Report.
+    if report:
+        describe_quantiles_ordinal(
+            table=table,
+            column_source=column_source,
+            column_product=column_product,
+            columns_category=[],
+            report=True,
+        )
+        pass
+    # Return information.
+    return table
+
+
+##########
 # Report ranges of variables from table
 
 
