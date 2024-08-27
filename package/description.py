@@ -1151,19 +1151,30 @@ def determine_describe_quantiles_ordinal(
     table = table.copy(deep=True)
 
     # Determine quantiles.
-    table[column_product] = pandas.qcut(
+    table[column_product], bins = pandas.qcut(
         table[column_source],
         q=count,
         labels=list(range(0, count, 1)),
+        retbins=True,
     )
     # Report.
     if report:
+        putly.print_terminal_partition(level=3)
+        print("module: partner.description.py")
+        print("function: determine_describe_quantiles_ordinal()")
+        putly.print_terminal_partition(level=4)
+        print(str("name of source column: " + column_source))
+        putly.print_terminal_partition(level=5)
+        print(str("count of quantiles: " + str(count)))
+        putly.print_terminal_partition(level=5)
+        print("quantile bins:")
+        print(bins)
         describe_quantiles_ordinal(
             table=table,
             column_source=column_source,
             column_product=column_product,
             columns_category=[],
-            report=True,
+            report=False,
         )
         pass
     # Return information.
