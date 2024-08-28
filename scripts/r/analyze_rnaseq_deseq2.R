@@ -163,8 +163,10 @@ print(paste("13. threshold_significance: ", threshold_significance))
 print(paste("14. threads: ", threads))
 print(paste("15. report: ", report))
 cat("\n----------\n----------\n----------\n\n")
-
-
+print("Floating point precision on current computer system.")
+print(paste("float minimum: ", .Machine$double.xmin))
+print(paste("float maximum: ", .Machine$double.xmax))
+cat("\n----------\n----------\n----------\n\n")
 
 ###############################################################################
 # Organize parameters and settings.
