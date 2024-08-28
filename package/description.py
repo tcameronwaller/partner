@@ -1131,8 +1131,8 @@ def determine_describe_quantiles_ordinal(
     Review: TCW; 27 August 2024
 
     arguments:
-        table (object): Pandas data-frame table of subjects, samples, and their
-            attribute features
+        table (object): Pandas data-frame table of features across columns and
+           observations across rows
         column_source (str): name of source column in table for a feature
             variable with values on a continuous interval or ratio measurement
             scale
