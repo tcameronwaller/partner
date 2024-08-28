@@ -1163,13 +1163,34 @@ def determine_describe_quantiles_ordinal(
     else:
         designators = designators_raw
 
-    # Determine quantiles.
-    table[column_product], bins = pandas.qcut(
-        table[column_source],
-        q=count,
-        labels=designators,
-        retbins=True,
-    )
+    if False:
+        # Sort rows within table.
+        table.sort_values(
+            by=[column_source,],
+            axis="index",
+            ascending=True,
+            na_position="last",
+            inplace=True,
+        )
+        # Assign ranks to the rows in the table.
+        # Unambiguous ranks on the sorted rows in the data-frame table can
+        # help to avoid overlapping bins for the quantiles.
+        # Determine quantiles.
+        table[column_product], bins = pandas.qcut(
+            table.rank(method="first"),
+            q=count,
+            labels=designators,
+            retbins=True,
+        )
+    else:
+        # Determine quantiles.
+        table[column_product], bins = pandas.qcut(
+            table[column_source],
+            q=count,
+            labels=designators,
+            retbins=True,
+            duplicates="raise", # "raise", "drop"
+        )
     # Report.
     if report:
         putly.print_terminal_partition(level=3)

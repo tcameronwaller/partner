@@ -205,7 +205,7 @@ cat("\n----------\n----------\n----------\n\n")
 table_sample <- read.table(
     path_file_source_table_sample,
     header = TRUE,
-    row.names = "identifier",
+    row.names = "identifier_signal",
     check.names = FALSE,
     sep = "\t",
     quote = "\"'",
@@ -237,7 +237,7 @@ cat("----------\n")
 table_gene <- read.table(
     path_file_source_table_gene,
     header = TRUE,
-    row.names = "identifier",
+    row.names = "identifier_gene",
     check.names = FALSE,
     sep = "\t",
     quote = "\"'",
@@ -500,10 +500,17 @@ print(table_result_sort)
 cat("----------\n")
 summary(table_result_sort)
 cat("----------\n")
+cat("----------\n")
+cat("----------\n")
 print(paste(
     "value of alpha for p-value significance: ", threshold_significance
 ))
+cat("----------\n")
 print(paste("count of significant differences: ", count_significant))
+cat("----------\n")
+print(table_result_sort_significant)
+cat("----------\n")
+summary(table_result_sort_significant)
 cat("\n----------\n----------\n----------\n\n")
 
 
@@ -520,7 +527,7 @@ cat("\n----------\n----------\n----------\n\n")
 
 # Merge together tables.
 table_merge <- merge(
-    as.data.frame(table_result_sort_significant),
+    as.data.frame(table_result_sort),
     table_gene,
     by="row.names"
 )
