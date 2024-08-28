@@ -474,6 +474,7 @@ print("... which is synonymous to...")
 print("(fold change) = (effect) vs (reference)")
 cat("\n----------\n----------\n----------\n\n")
 
+# Execute regression in DESeq2.
 data_deseq <- DESeq(
     data_deseq,
     parallel=TRUE
@@ -483,7 +484,15 @@ table_result <- results(
     contrast=c(condition, levels_condition),
     alpha=threshold_significance
 )
+# Calculate negative base-ten logarithm of p-value.
+table_result$neglog10pvalue <- (log(table_result$pvalue, base=10) * -1)
+# Calculate rank metric.
+table_result$rank_metric <- (
+    table_result$log2FoldChange * table_result$neglog10pvalue
+)
+# Sort rows in table.
 table_result_sort <- table_result[order(table_result$pvalue),]
+# Prepare information for summary.
 count_significant <- sum(
     table_result_sort$padj<threshold_significance,
     na.rm=TRUE
