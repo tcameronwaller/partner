@@ -3,8 +3,8 @@
 ###############################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 25 July 2024
-# Date, last execution or modification: 15 August 2024
-# Review: TCW; 15 August 2024
+# Date, last execution or modification: 28 August 2024
+# Review: TCW; 28 August 2024
 ###############################################################################
 # Note
 
@@ -96,7 +96,7 @@ if (length(arguments)==0) {
     stop("This script requires 15 arguments.", call.=FALSE)
 } else if (length(arguments)==15) {
   # There are a correct count of arguments.
-  print("correct count of arguments: 13")
+  print("correct count of arguments: 15")
   path_file_source_table_sample <- arguments[1]
   path_file_source_table_gene <- arguments[2]
   path_file_source_table_signal <- arguments[3]
