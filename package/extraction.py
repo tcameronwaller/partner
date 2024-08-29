@@ -1206,9 +1206,6 @@ def remove_or_nullify_genetic_correlation_values_raw(
     return table_filter
 
 
-# TODO: TCW; 6 June 2024
-# TODO: Simplify function 'filter_table_rows_ldsc_correlation' by splitting
-# the procedure into a few different functions.
 def filter_table_rows_ldsc_correlation(
     table=None,
     studies_primary_keep=None,

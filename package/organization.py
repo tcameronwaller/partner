@@ -909,11 +909,6 @@ def segregate_fold_change_values_by_thresholds(
     return pail
 
 
-
-# TODO: TCW; 6 June 2024
-# Simplify function 'match_table_row_redundant_interchangeable_pairs' to avoid
-# logical errors.
-
 def match_table_row_redundant_interchangeable_pairs(
     table=None,
     name_index=None,
