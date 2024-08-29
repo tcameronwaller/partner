@@ -492,6 +492,12 @@ table_result$neglog10pvalue <- (log(table_result$pvalue, base=10) * -1)
 table_result$rank_metric <- (
     table_result$log2FoldChange * table_result$neglog10pvalue
 )
+# Filter rows in table.
+table_result_filter <- subset(
+    table_result,
+        (pvalue < 0.1) &
+        (log2FoldChange < -0.3 | log2FoldChange > 0.3)
+)
 # Sort rows in table.
 table_result_sort <- table_result[order(table_result$pvalue),]
 # Prepare information for summary.
@@ -507,7 +513,7 @@ table_result_sort_significant <- subset(
 cat("\n----------\n----------\n----------\n\n")
 print("Results of differential expression analysis in DESeq2.")
 cat("----------\n")
-print(table_result_sort)
+print(table_result)
 cat("----------\n")
 summary(table_result_sort)
 cat("----------\n")
@@ -538,7 +544,7 @@ cat("\n----------\n----------\n----------\n\n")
 
 # Merge together tables.
 table_merge <- merge(
-    as.data.frame(table_result_sort),
+    as.data.frame(table_result_filter),
     table_gene,
     by="row.names"
 )
@@ -549,7 +555,7 @@ row.names(table_merge) <- NULL
 
 # Report.
 cat("\n----------\n----------\n----------\n\n")
-print("Table of results after merge with information about genes.")
+print("Table of results after filter and merge with information about genes.")
 cat("----------\n")
 print(table_merge[1:10, 1:10])
 print(paste("columns: ", ncol(table_merge)))
@@ -559,7 +565,7 @@ table_merge_sort <- table_merge[order(table_merge$pvalue),]
 
 # Report.
 cat("\n----------\n----------\n----------\n\n")
-print("Table of results after sort with information about genes.")
+print("Table of results after filter and sort with information about genes.")
 cat("----------\n")
 print(table_merge_sort[1:10, 1:10])
 print(paste("columns: ", ncol(table_merge_sort)))
