@@ -96,6 +96,102 @@ import partner.parallelization as prall
 # Linkage Disequilibrium Score Regression (LDSC)
 
 
+def define_snp_heritability_table_column_types():
+    """
+    Defines the variable types of columns within table for genetic correlations.
+
+    Review: TCW; 28 May 2024
+
+    arguments:
+
+    raises:
+
+    returns:
+        (dict<str>): variable types of columns within table
+
+    """
+
+    # Specify variable types of columns within table.
+    types_columns = dict()
+    types_columns["path_directory"] = "string"
+    types_columns["name_file"] = "string"
+    types_columns["type_analysis"] = "string"
+    types_columns["variants"] = "float32"
+    types_columns["heritability"] = "float32"
+    types_columns["heritability_error"] = "float32"
+    types_columns["heritability_ci95_low"] = "float32"
+    types_columns["heritability_ci95_high"] = "float32"
+    types_columns["heritability_ci99_low"] = "float32"
+    types_columns["heritability_ci99_high"] = "float32"
+    types_columns["lambda_gc"] = "float32"
+    types_columns["chi_square"] = "float32"
+    types_columns["intercept"] = "float32"
+    types_columns["intercept_error"] = "float32"
+    types_columns["ratio"] = "float32"
+    types_columns["ratio_error"] = "float32"
+    types_columns["summary_heritability_error"] = "string"
+    types_columns["summary_heritability_ci95"] = "string"
+    types_columns["summary_heritability_ci99"] = "string"
+    # Return information.
+    return types_columns
+
+
+def define_snp_heritability_table_column_sequence():
+    """
+    Defines the columns in sequence within table for genetic correlations.
+
+    arguments:
+
+    raises:
+
+    returns:
+        (list<str>): variable types of columns within table
+
+    """
+
+    # Specify sequence of columns within table.
+    columns_sequence = [
+        #"inclusion_thyroid_table",
+        #"path_directory",
+        #"name_file",
+        #"type_analysis",
+        "group",
+        #"sort_group",
+        "identifier",
+        "abbreviation",
+        "description",
+        "sex",
+        "ancestry",
+        "observations_total",
+        "cases",
+        "controls",
+        "observations_effective",
+        "prevalence_sample",
+        "prevalence_population",
+        "variants",
+        "heritability",
+        "heritability_error",
+        "heritability_ci95_low",
+        "heritability_ci95_high",
+        "heritability_ci99_low",
+        "heritability_ci99_high",
+        "lambda_gc",
+        "chi_square",
+        "intercept",
+        "intercept_error",
+        "ratio",
+        "ratio_error",
+        #"summary_heritability_error",
+        #"summary_heritability_ci95",
+        #"summary_heritability_ci99",
+        "author",
+        "year",
+        "pubmed",
+    ]
+    # Return information.
+    return columns_sequence
+
+
 def read_extract_ldsc_heritability(
     path_file=None,
 ):

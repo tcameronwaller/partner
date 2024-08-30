@@ -1026,8 +1026,10 @@ def filter_symmetrical_table_half_diagonal_two_value_types(
     group       type_value   group_2_a   group_2_b   group_2_c
     group_1_a   signal       -0.15       -0.20       -0.25
     group_1_a   p_value      0.001       0.001       0.001
+    group_1_a   q_value      0.001       0.001       0.001
     group_1_b   signal       0.15        0.20        0.25
     group_1_b   p_value      0.001       0.001       0.001
+    group_1_b   q_value      0.001       0.001       0.001
 
     Recommendations for names of indices:
     name_index_type_value="type_value"
@@ -1073,6 +1075,12 @@ def filter_symmetrical_table_half_diagonal_two_value_types(
             name_index_type_value
         ).isin([types_value[1]])
     ].copy(deep=True)
+    if (len(types_value) > 2):
+        table_three = table_source[
+            table_source.index.get_level_values(
+                name_index_type_value
+            ).isin([types_value[2]])
+        ].copy(deep=True)
 
     ##########
     # Filter to the diagonal lower half of a table representing a symmetrical
@@ -1085,16 +1093,27 @@ def filter_symmetrical_table_half_diagonal_two_value_types(
     ).astype(numpy.bool_)
     table_one_half = table_one.where(matrix_mask_half)
     table_two_half = table_two.where(matrix_mask_half)
+    if (len(types_value) > 2):
+        table_three_half = table_three.where(matrix_mask_half)
 
     ##########
     # Combine the half-diagonal tables for the different types of values.
-    table_product = pandas.concat(
-        [table_one_half, table_two_half,],
-        axis="index",
-        join="outer",
-        ignore_index=False,
-        copy=True,
-    )
+    if (len(types_value) == 2):
+        table_product = pandas.concat(
+            [table_one_half, table_two_half,],
+            axis="index",
+            join="outer",
+            ignore_index=False,
+            copy=True,
+        )
+    elif (len(types_value) > 2):
+        table_product = pandas.concat(
+            [table_one_half, table_two_half, table_three_half,],
+            axis="index",
+            join="outer",
+            ignore_index=False,
+            copy=True,
+        )
 
     ##########
     # Report.
