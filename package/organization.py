@@ -1716,6 +1716,7 @@ def merge_columns_two_tables(
     identifier_second=None,
     table_first=None,
     table_second=None,
+    preserve_index=None,
     report=None,
 ):
     """
@@ -1734,6 +1735,8 @@ def merge_columns_two_tables(
             merge
         table_first (object): Pandas data frame of information
         tables_second (object): Pandas data frame of information
+        preserve_index (bool): whether to preserve the indices across rows in
+            the original tables
         report (bool): whether to print reports
 
     raises:
@@ -1748,15 +1751,16 @@ def merge_columns_two_tables(
     table_second = table_second.copy(deep=True)
 
     # Reset indices in original tables.
+    drop_index = (not preserve_index)
     table_first.reset_index(
         level=None,
         inplace=True,
-        drop=False, # do not remove index; move to regular columns
+        drop=drop_index, # do not remove index; move to regular columns
     )
     table_second.reset_index(
         level=None,
         inplace=True,
-        drop=False, # do not remove index; move to regular columns
+        drop=drop_index, # do not remove index; move to regular columns
     )
 
     # Collect columns in original tables.

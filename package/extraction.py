@@ -151,23 +151,8 @@ def define_snp_heritability_table_column_sequence():
 
     # Specify sequence of columns within table.
     columns_sequence = [
-        #"inclusion_thyroid_table",
-        #"path_directory",
-        #"name_file",
-        #"type_analysis",
-        "group",
-        #"sort_group",
         "identifier",
-        "abbreviation",
-        "description",
-        "sex",
-        "ancestry",
-        "observations_total",
-        "cases",
-        "controls",
-        "observations_effective",
-        "prevalence_sample",
-        "prevalence_population",
+        "type_analysis",
         "variants",
         "heritability",
         "heritability_error",
@@ -184,9 +169,6 @@ def define_snp_heritability_table_column_sequence():
         #"summary_heritability_error",
         #"summary_heritability_ci95",
         #"summary_heritability_ci99",
-        "author",
-        "year",
-        "pubmed",
     ]
     # Return information.
     return columns_sequence
