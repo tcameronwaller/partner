@@ -544,7 +544,7 @@ cat("\n----------\n----------\n----------\n\n")
 
 # Merge together tables.
 table_merge <- merge(
-    as.data.frame(table_result_filter),
+    as.data.frame(table_result), # whichever version here determines output
     table_gene,
     by="row.names"
 )
