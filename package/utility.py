@@ -1717,7 +1717,7 @@ def write_objects_to_file_pickle(
     # First and only tier of dictionary tree gives names of files.
     # Iterate across charts.
     for name_file in pail_write.keys():
-        # Write chart object to file in child directory.
+        # Write object to file in child directory.
         write_object_to_file_pickle(
             object=pail_write[name_file],
             name_file=name_file,

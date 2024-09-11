@@ -1112,6 +1112,7 @@ def determine_describe_quantiles_ordinal(
     column_product=None,
     count=None,
     text_string=None,
+    name_prefix=None,
     report=None,
 ):
     """
@@ -1141,12 +1142,13 @@ def determine_describe_quantiles_ordinal(
         count (int): count of quantiles to create and describe
         text_string (bool): whether to convert the integer, ordinal designators
             of quantiles to text strings
+        name_prefix (str): prefix for names as designators of the tertiles
         report (bool): whether to print reports
 
     raises:
 
     returns:
-        (object): Pandas data-frame table
+        (dict): collection of information
 
     """
 
@@ -1157,13 +1159,22 @@ def determine_describe_quantiles_ordinal(
     designators_raw = list(range(0, count, 1))
     if text_string:
         designators = list(map(
-            lambda designator: str("tertile_" + str(designator)),
+            lambda designator: str(name_prefix + str(designator)),
             designators_raw
         ))
     else:
         designators = designators_raw
 
-    if False:
+    if True:
+        # Determine quantiles.
+        table[column_product], bins = pandas.qcut(
+            table[column_source],
+            q=count,
+            labels=designators,
+            retbins=True,
+            duplicates="raise", # "raise", "drop"
+        )
+    else:
         # Sort rows within table.
         table.sort_values(
             by=[column_source,],
@@ -1182,15 +1193,12 @@ def determine_describe_quantiles_ordinal(
             labels=designators,
             retbins=True,
         )
-    else:
-        # Determine quantiles.
-        table[column_product], bins = pandas.qcut(
-            table[column_source],
-            q=count,
-            labels=designators,
-            retbins=True,
-            duplicates="raise", # "raise", "drop"
-        )
+        pass
+
+    # Collect information.
+    pail = dict()
+    pail["table"] = table
+    pail["bins"] = bins
     # Report.
     if report:
         putly.print_terminal_partition(level=3)
@@ -1212,7 +1220,7 @@ def determine_describe_quantiles_ordinal(
         )
         pass
     # Return information.
-    return table
+    return pail
 
 
 ##########
