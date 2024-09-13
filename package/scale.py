@@ -683,7 +683,7 @@ def scale_feature_values_between_observations_by_deseq(
     report=None,
 ):
     """
-    Scales values of features between observations by their
+    Scale values of features between observations by their
     observation-specific median ratio to their geometric mean value across all
     observations.
 
@@ -697,7 +697,7 @@ def scale_feature_values_between_observations_by_deseq(
     majority of features, such as genes or proteins, will have similar values.
 
     For this method, it is necessary to exclude any features that have a
-    geometric mean of zero across samples.
+    geometric mean of zero across observations.
 
     The popular DESeq2 tool applies this strategy of scaling or normalization.
 
