@@ -381,7 +381,8 @@ def calculate_p_value_from_z_statistic(
     return p_value
 
 
-# Median-Ratio Scaling
+##########
+# Scale adjustment by the DESeq method of median-ratio scaling
 
 
 def calculate_ratios_to_geometric_mean_across_feature_observations(
@@ -391,7 +392,7 @@ def calculate_ratios_to_geometric_mean_across_feature_observations(
     """
     Dependency:
     This function is a dependency of the function below.
-    partner.scale.scale_feature_values_between_observations_by_median_ratio()
+    partner.scale.scale_feature_values_between_observations_by_deseq()
 
     Calculates for each feature the ratio of observation values to the
     geometric mean across all observations.
@@ -405,6 +406,9 @@ def calculate_ratios_to_geometric_mean_across_feature_observations(
     that are missing or less than zero. Careful and thorough filter and
     imputation operations on the data ought to happen before calling this
     function.
+
+    For this method, it is necessary to exclude any features that have a
+    geometric mean of zero across samples.
 
     Table's format and orientation
 
@@ -437,7 +441,7 @@ def calculate_ratios_to_geometric_mean_across_feature_observations(
     efficiency. While matrix transformations would be more efficient, they
     would also be more difficult to follow and critique.
 
-    Review: 2 July 2024
+    Review: 13 September 2024
 
     arguments:
         table (object): Pandas data-frame table of values for observations
@@ -469,6 +473,18 @@ def calculate_ratios_to_geometric_mean_across_feature_observations(
             ),
         axis="columns", # apply function to each row
     )
+    # For this method, it is necessary to exclude any features that have a
+    # geometric mean of zero across samples.
+    table["mean_geometric"] = table["mean_geometric"].replace(
+        to_replace=0.0,
+        value=pandas.NA,
+    )
+    table.dropna(
+        axis="index",
+        how="all",
+        subset=["mean_geometric"],
+        inplace=True,
+    )
     # Calculate ratio of each observation of each feature to that feature's
     # geometric mean value across all observations.
     for column in columns:
@@ -490,6 +506,8 @@ def calculate_ratios_to_geometric_mean_across_feature_observations(
             axis="columns", # apply function to each row
         )
         pass
+    # Copy information in table.
+    table = table.copy(deep=True)
     # Return information.
     return table
 
@@ -506,7 +524,7 @@ def filter_table_features_least_change_across_observations(
     across observations on the basis of the middle quantile.
 
     This function is a handy companion to the function below.
-    partner.scale.scale_feature_values_between_observations_by_median_ratio()
+    partner.scale.scale_feature_values_between_observations_by_deseq()
 
     Tables' format and orientation
 
@@ -658,7 +676,7 @@ def filter_table_features_least_change_across_observations(
     return table_middle
 
 
-def scale_feature_values_between_observations_by_median_ratio(
+def scale_feature_values_between_observations_by_deseq(
     table=None,
     name_columns=None,
     name_rows=None,
@@ -677,6 +695,11 @@ def scale_feature_values_between_observations_by_median_ratio(
     biological regulation of expression of genes and proteins. An important
     assumption of this scaling method is that between observations the vast
     majority of features, such as genes or proteins, will have similar values.
+
+    For this method, it is necessary to exclude any features that have a
+    geometric mean of zero across samples.
+
+    The popular DESeq2 tool applies this strategy of scaling or normalization.
 
     References:
     1. Anders et al, Genome Biology, 2010; PubMed:20979621
@@ -719,7 +742,7 @@ def scale_feature_values_between_observations_by_median_ratio(
     efficiency. While matrix transformations would be more efficient, they
     would also be more difficult to follow and critique.
 
-    Review: 27 June 2024
+    Review: 13 September 2024
 
     arguments:
         table (object): Pandas data-frame table of values for observations
@@ -817,7 +840,7 @@ def scale_feature_values_between_observations_by_median_ratio(
         print("Report:")
         print("partner")
         print("scale")
-        print("scale_feature_values_between_observations_by_median_ratio()")
+        print("scale_feature_values_between_observations_by_deseq()")
         putly.print_terminal_partition(level=4)
         print(
             "Original source table of values for observations across " +
@@ -870,7 +893,7 @@ def describe_variance_across_features_with_least_change(
     to the geometric mean of values across all observations.
 
     This function is a handy companion to the function below.
-    partner.scale.scale_feature_values_between_observations_by_median_ratio()
+    partner.scale.scale_feature_values_between_observations_by_deseq()
 
     Tables' format and orientation
 
@@ -988,7 +1011,7 @@ def compare_middle_quantile_feature_sets_by_ratio_to_geometric_mean(
     most features do not change between the experimental groups.
 
     This function is a handy companion to the function below.
-    partner.scale.scale_feature_values_between_observations_by_median_ratio()
+    partner.scale.scale_feature_values_between_observations_by_deseq()
 
     Tables' format and orientation
 
@@ -1187,6 +1210,7 @@ def compare_middle_quantile_feature_sets_by_ratio_to_geometric_mean(
     return pail
 
 
+##########
 # Rank-Based Inverse Normalization
 
 
