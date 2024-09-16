@@ -1005,10 +1005,12 @@ def compare_middle_quantile_feature_sets_by_ratio_to_geometric_mean(
     """
     Compares the set overlap of features from the middle quantile of their
     ratios relative to the geometric mean across all samples. These features
-    demonstrated the least change. The two separate tables could have been
+    demonstrated the least change and were most stable in their values across
+    all observations. For example, the two separate tables might have been
     stratified on the basis of control and intervention samples from the same
-    experiment. The goal of this comparison is to evaluate the assumption that
-    most features do not change between the experimental groups.
+    experiment or comparison. The goal of this example comparison would be to
+    evaluate the assumption that most features do not change between the
+    experimental groups.
 
     This function is a handy companion to the function below.
     partner.scale.scale_feature_values_between_observations_by_deseq()
@@ -1044,7 +1046,7 @@ def compare_middle_quantile_feature_sets_by_ratio_to_geometric_mean(
     efficiency. While matrix transformations would be more efficient, they
     would also be more difficult to follow and critique.
 
-    Review: 2 July 2024
+    Review: 16 September 2024
 
     arguments:
         table_first (object): Pandas data-frame table of values for
@@ -1163,44 +1165,48 @@ def compare_middle_quantile_feature_sets_by_ratio_to_geometric_mean(
         print("partner")
         print("scale")
         print(
-            "compare_middle_tertile_feature_sets_by_" +
-            "ratio_to_geometric_mean()"
+            "compare_middle_quantile_feature_sets_by_ratio_to_geometric_mean()"
         )
         putly.print_terminal_partition(level=4)
-        print("Counts of unique features in original tables")
-        print("First table: " + str(count_first))
-        print("Second table: " + str(count_second))
-        print("Union: " + str(count_union_original))
+        print("counts of unique features in original tables")
+        print("first table: " + str(count_first))
+        print("second table: " + str(count_second))
+        print("union: " + str(count_union_original))
         putly.print_terminal_partition(level=4)
-        print("Counts of unique features in middle quantile of tables")
+        print("counts of unique features in middle quantile of tables")
         print(
-            "First table: " + str(count_first_middle) +
+            "first table: " + str(count_first_middle) +
             " (" + percentage_first + " %)"
         )
         print(
-            "Second table: " + str(count_second_middle) +
+            "second table: " + str(count_second_middle) +
             " (" + percentage_second + " %)"
         )
-        print("Union: " + str(count_union_middle))
+        print("union: " + str(count_union_middle))
         putly.print_terminal_partition(level=4)
         print(
-            "Expectable range of unique union features from middle quantiles"
+            "expectable range of unique union features from middle quantiles"
         )
         print(
-            "Count of minimum possible unique union features: " +
+            "count of minimum possible unique union features: " +
             str(count_union_minimum)
         )
         print("This count would correspond to 100% similarity.")
+        print("Minimal union size indicates that the two sets were identical.")
         print(
-            "Count of maximum possible unique union features: " +
+            "count of maximum possible unique union features: " +
             str(count_union_maximum)
         )
         print("This count would correspond to 0% similarity.")
+        print(
+            "Maximal union size indicates that the two sets were entirely "
+            + "different."
+        )
         putly.print_terminal_partition(level=4)
         print(
-            "Percentage of similarity in the features from middle quantiles"
+            "percentage of similarity in the features from middle quantiles"
         )
-        print("Percentage: " + percentage_union_middle + " %")
+        print("percentage: " + percentage_union_middle + " %")
         putly.print_terminal_partition(level=4)
     # Collect information.
     pail = dict()
