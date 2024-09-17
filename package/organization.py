@@ -61,6 +61,7 @@ import shutil
 import textwrap
 import itertools
 import math
+import functools
 
 # Relevant
 
@@ -1140,6 +1141,372 @@ def filter_symmetrical_table_half_diagonal_two_value_types(
     ##########
     # Return information.
     return table_product
+
+
+def filter_table_rows_by_quantile_least_variation_across_columns(
+    table=None,
+    name_columns=None,
+    name_rows=None,
+    logarithm=None,
+    count_quantile=None,
+    report=None,
+):
+    """
+    Dependency:
+    This function is a dependency of the function below.
+    partner.organization.compare_stable_feature_sets_before_after_scale()
+
+    Filters rows in table to select features that demonstrate least change
+    across observations on the basis of the minimal quantile.
+
+    Tables' format and orientation
+
+    Table has values for each feature oriented across rows with their
+    observations oriented across columns. All values are on a continous ratio
+    scale of measurement and have the same type, such as corresponding to
+    intensities from a particular type of measurement.
+
+    The table must have a single-level index (potentially with name
+    "observations") across columns and a single-level index (potentially with
+    name "features") across rows.
+
+    observations   observation_1 observation_2 observation_3 observation_4
+    features
+    feature_1      ...           ...           ...           ...
+    feature_2      ...           ...           ...           ...
+    feature_3      ...           ...           ...           ...
+    feature_4      ...           ...           ...           ...
+    feature_5      ...           ...           ...           ...
+    feature_6      ...           ...           ...           ...
+    feature_7      ...           ...           ...           ...
+    feature_8      ...           ...           ...           ...
+    feature_9      ...           ...           ...           ...
+    feature_10     ...           ...           ...           ...
+
+    This function does not modify the names of indices across columns or rows
+    from the original table.
+
+    In its implementation, this function attempts to prioritize clarity over
+    efficiency. While matrix transformations would be more efficient, they
+    would also be more difficult to follow and critique.
+
+    Review: 17 September 2024
+
+    arguments:
+        table (object): Pandas data-frame table of values for observations
+            across columns and for features across rows
+        name_columns (str): name of single-level index across columns
+        name_rows (str): name of single-level index across rows
+        logarithm (bool): whether to transform to logarithmic scale before
+            calculation of coefficient of variation
+        count_quantile (int): odd count of quantiles, such as three for
+            tertiles
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table of values for observations across
+            columns and for features across rows
+
+    """
+
+    # Copy information in table.
+    table = table.copy(deep=True)
+    # Copy names of columns in original table.
+    columns = copy.deepcopy(
+        table.columns.get_level_values(name_columns).to_list()
+    )
+    # Calculate the logarithm of values.
+    # math.log() # optimal for scalar values
+    # numpy.log() # optimal for array values
+    if logarithm:
+        for column in columns:
+            table[column] = numpy.log(
+                table[column].to_numpy(
+                    dtype="float64",
+                    na_value=numpy.nan,
+                    copy=True,
+            ))
+            pass
+        pass
+
+    # Calculate coefficient of variation of values for each feature across all
+    # observations.
+    table["variation_coefficient"] = table.apply(
+        lambda row:
+            scipy.stats.variation(
+                row[columns].to_numpy(
+                    dtype="float64",
+                    na_value=numpy.nan,
+                    copy=True,
+                ),
+                ddof=1, # divisor is (n - 1) for sample standard deviation
+                nan_policy="omit",
+            ),
+        axis="columns", # apply function to each row
+    )
+    # Determine indices for quantiles.
+    indices = list(range(0, count_quantile, 1))
+    index_middle = indices[int(len(indices) // 2)]
+    # Determine ordinal sets of features.
+    table["quantile_variation"] = pandas.qcut(
+        table["variation_coefficient"],
+        q=count_quantile,
+        labels=indices,
+    )
+    # Filter table to rows of features in the minimal quantile.
+    table_quantile_minimum = table.loc[
+        (table["quantile_variation"] == 0), :
+    ]
+    # Determine counts and percentages.
+    count_rows_source = table.shape[0]
+    count_rows_product = table_quantile_minimum.shape[0]
+    percentage = str(round(
+        float(100 * (count_rows_product / count_rows_source)), 2
+    ))
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=4)
+        print("module: partner.organization.py")
+        print(
+            "function: " +
+            "filter_table_rows_by_quantile_least_variation_across_columns()"
+        )
+        putly.print_terminal_partition(level=5)
+        print("count of quantiles: " + str(count_quantile))
+        print("quantile indices:")
+        print(indices)
+        print("middle index: " + str(index_middle))
+        putly.print_terminal_partition(level=5)
+        print(
+            "count of rows in original, source table: " +
+            str(count_rows_source)
+        )
+        print(
+            "count of rows in novel, product table: " +
+            str(count_rows_product) + " (" + percentage + " %)"
+        )
+        print(
+            "table of features with minimal coefficient of variation that " +
+            "demonstrate least change across observations")
+        print(table_quantile_minimum)
+    # Return information.
+    return table_quantile_minimum
+
+
+def compare_stable_feature_sets_before_after_scale(
+    table_raw=None,
+    table_scale=None,
+    name_columns=None,
+    name_rows=None,
+    count_quantile=None,
+    report=None,
+):
+    """
+    Compares the set overlap of stable features that have the least coefficient
+    of variance from tables of signal values before and after adjustment of
+    scale.
+
+    This function is a handy companion to the function below.
+    partner.scale.scale_feature_values_between_observations_by_deseq()
+
+    Tables' format and orientation
+
+    Table has values for each feature oriented across rows with their
+    observations oriented across columns. All values are on a continous ratio
+    scale of measurement and have the same type, such as corresponding to
+    intensities from a particular type of measurement.
+
+    The table must have a single-level index (potentially with name
+    "observations") across columns and a single-level index (potentially with
+    name "features") across rows.
+
+    observations   observation_1 observation_2 observation_3 observation_4
+    features
+    feature_1      ...           ...           ...           ...
+    feature_2      ...           ...           ...           ...
+    feature_3      ...           ...           ...           ...
+    feature_4      ...           ...           ...           ...
+    feature_5      ...           ...           ...           ...
+    feature_6      ...           ...           ...           ...
+    feature_7      ...           ...           ...           ...
+    feature_8      ...           ...           ...           ...
+    feature_9      ...           ...           ...           ...
+    feature_10     ...           ...           ...           ...
+
+    This function does not modify the names of indices across columns or rows
+    from the original table.
+
+    In its implementation, this function attempts to prioritize clarity over
+    efficiency. While matrix transformations would be more efficient, they
+    would also be more difficult to follow and critique.
+
+    Review: 17 September 2024
+
+    arguments:
+        table_raw (object): Pandas data-frame table of values for
+            observations across columns and for features across rows
+        table_scale (object): Pandas data-frame table of values for
+            observations across columns and for features across rows
+        name_columns (str): name of single-level index across columns
+        name_rows (str): name of single-level index across rows
+        count_quantile (int): odd count of quantiles, such as three for
+            tertiles
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (list<str>): identifiers of features in the middle tertiles of both
+            tables
+
+    """
+
+    # Copy information in table.
+    table_raw = table_raw.copy(deep=True)
+    table_scale = table_scale.copy(deep=True)
+    # Filter rows in table to select features that demonstrate least change
+    # across observations on the basis of the minimal quantile on the
+    # coefficient of variation.
+    table_raw_stable = (
+        filter_table_rows_by_quantile_least_variation_across_columns(
+            table=table_raw,
+            name_columns=name_columns,
+            name_rows=name_rows,
+            logarithm=True,
+            count_quantile=count_quantile,
+            report=report,
+    ))
+    table_scale_stable = (
+        filter_table_rows_by_quantile_least_variation_across_columns(
+            table=table_scale,
+            name_columns=name_columns,
+            name_rows=name_rows,
+            logarithm=False,
+            count_quantile=count_quantile,
+            report=report,
+    ))
+    # Extract identifiers of features from the stable quantile of each table.
+    features_raw = copy.deepcopy(
+        table_raw.index.get_level_values(
+            name_rows
+        ).unique().to_list()
+    )
+    features_raw_stable = copy.deepcopy(
+        table_raw_stable.index.get_level_values(
+            name_rows
+        ).unique().to_list()
+    )
+    features_scale = copy.deepcopy(
+        table_scale.index.get_level_values(
+            name_rows
+        ).unique().to_list()
+    )
+    features_scale_stable = copy.deepcopy(
+        table_scale_stable.index.get_level_values(
+            name_rows
+        ).unique().to_list()
+    )
+    # Determine overlap or union from complementary sets.
+    list_sets_original = [
+        set(features_raw),
+        set(features_scale),
+    ]
+    list_sets_stable = [
+        set(features_raw_stable),
+        set(features_scale_stable),
+    ]
+    #union_original = set()
+    #union_original = set(features_raw).union(set(features_scale))
+    union_original = functools.reduce(
+        lambda raw, scale: raw.union(scale),
+        list_sets_original,
+    )
+    union_stable = functools.reduce(
+        lambda raw, scale: raw.union(scale),
+        list_sets_stable,
+    )
+    # Determine counts of features from each group.
+    count_raw = len(features_raw)
+    count_raw_stable = len(features_raw_stable)
+    count_scale = len(features_scale)
+    count_scale_stable = len(features_scale_stable)
+    count_union_original = len(union_original)
+    count_union_stable = len(union_stable)
+    # Determine percentages.
+    percentage_raw = str(round(
+        float(100 * (count_raw_stable / count_raw)), 2
+    ))
+    percentage_scale = str(round(
+        float(100 * (count_scale_stable / count_scale)), 2
+    ))
+    # Determine proportion of similarity between the stable sets of features.
+    count_union_minimum = int(min([count_raw_stable, count_scale_stable]))
+    count_union_maximum = int(count_raw_stable + count_scale_stable)
+    range_union_stable = int(count_union_maximum - count_union_minimum)
+    scale_union_stable = int(count_union_stable - count_union_minimum)
+    proportion_union_stable = float(
+        scale_union_stable / range_union_stable
+    )
+    percentage_union_stable = str(round(
+        float(100 * proportion_union_stable), 2
+    ))
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=4)
+        print("module: partner.organization.py")
+        print(
+            "function: " +
+            "compare_stable_feature_sets_before_after_scale()"
+        )
+        putly.print_terminal_partition(level=4)
+        print("counts of unique features in original tables")
+        print("raw table: " + str(count_raw))
+        print("scale table: " + str(count_scale))
+        print("union: " + str(count_union_original))
+        putly.print_terminal_partition(level=4)
+        print("counts of unique features in stable quantile of tables")
+        print(
+            "raw table: " + str(count_raw_stable) +
+            " (" + percentage_raw + " %)"
+        )
+        print(
+            "scale table: " + str(count_scale_stable) +
+            " (" + percentage_scale + " %)"
+        )
+        print("union: " + str(count_union_stable))
+        putly.print_terminal_partition(level=4)
+        print(
+            "expectable range of unique union features from stable quantiles"
+        )
+        print(
+            "count of minimum possible unique union features: " +
+            str(count_union_minimum)
+        )
+        print("This count would correspond to 100% similarity.")
+        print("Minimal union size indicates that the two sets were identical.")
+        print(
+            "count of maximum possible unique union features: " +
+            str(count_union_maximum)
+        )
+        print("This count would correspond to 0% similarity.")
+        print(
+            "Maximal union size indicates that the two sets were entirely "
+            + "different."
+        )
+        putly.print_terminal_partition(level=4)
+        print(
+            "percentage of similarity in the features from stable quantiles"
+        )
+        print("percentage: " + percentage_union_stable + " %")
+        putly.print_terminal_partition(level=4)
+    # Collect information.
+    pail = dict()
+    pail["union_original"] = union_original
+    pail["union_stable"] = union_stable
+    # Return information.
+    return pail
 
 
 # Older functions to apply filters on tables.
