@@ -615,50 +615,33 @@ def filter_table_features_least_change_across_observations(
             table=table,
             columns=columns,
     ))
-    # Calculate geometric mean of ratio values for each feature across all
-    # observations.
-    # The geometric mean is more precise for values on a ratio scale.
-    table_ratio["ratio_mean_geometric"] = table_ratio.apply(
+
+    # Calculate mean of ratio values for each feature across all observations.
+    # While the geometric mean is more precise for values on a ratio scale,
+    # there was an error when attempting to calculate quantiles with the
+    # geometric mean.
+    # Another option is to calculate the mean of the ratio values on a
+    # logarithmic scale.
+    table_ratio["mean_ratio"] = table_ratio.apply(
         lambda row:
-            scipy.stats.mstats.gmean(
+            numpy.nanmean(
                 row[columns_ratio].to_numpy(
                     dtype="float64",
                     na_value=numpy.nan,
                     copy=True,
-                ),
-                nan_policy="omit",
+                )
             ),
         axis="columns", # apply function to each row
     )
-    if False:
-        table_ratio["mean_ratio_log"] = table_ratio.apply(
-            lambda row:
-                numpy.nanmean(
-                    row[columns_ratio_log].to_numpy(
-                        dtype="float64",
-                        na_value=numpy.nan,
-                        copy=True,
-                    )
-                ),
-            axis="columns", # apply function to each row
-        )
-        pass
     # Determine indices for quantiles.
     indices = list(range(0, count_quantile, 1))
     index_middle = indices[int(len(indices) // 2)]
     # Determine ordinal sets of features.
     table_ratio["quantile_mean_ratio"] = pandas.qcut(
-        table_ratio["ratio_mean_geometric"],
+        table_ratio["mean_ratio"],
         q=count_quantile,
         labels=indices,
     )
-    if False:
-        table_ratio["quantile_mean_ratio_log"] = pandas.qcut(
-            table_ratio["mean_ratio_log"],
-            q=count_quantile,
-            labels=indices,
-        )
-        pass
     # Filter table to rows of features in the middle quantile.
     table_middle = table_ratio.loc[
         (table_ratio["quantile_mean_ratio"] == index_middle), :
