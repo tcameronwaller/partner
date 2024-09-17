@@ -617,6 +617,7 @@ def filter_table_features_least_change_across_observations(
     ))
     # Calculate geometric mean of ratio values for each feature across all
     # observations.
+    # The geometric mean is more precise for values on a ratio scale.
     table_ratio["ratio_mean_geometric"] = table_ratio.apply(
         lambda row:
             scipy.stats.mstats.gmean(
