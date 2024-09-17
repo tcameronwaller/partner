@@ -441,7 +441,7 @@ def calculate_ratios_to_geometric_mean_across_feature_observations(
     efficiency. While matrix transformations would be more efficient, they
     would also be more difficult to follow and critique.
 
-    Review: 16 September 2024
+    Review: 17 September 2024
 
     arguments:
         table (object): Pandas data-frame table of values for observations
@@ -497,30 +497,6 @@ def calculate_ratios_to_geometric_mean_across_feature_observations(
         pass
     # Copy information in table.
     table = table.copy(deep=True)
-
-    # Calculate the logarithm of ratios.
-    if False:
-        for column in columns:
-            # math.log() # optimal for scalar values
-            # numpy.log() # optimal for array values
-            table[str(column + "_ratio_log")] = numpy.log(
-                table[str(column + "_ratio")].to_numpy(
-                    dtype="float64",
-                    na_value=numpy.nan,
-                    copy=True,
-            ))
-            if False:
-                table[str(column + "_ratio_log")] = table.apply(
-                    lambda row:
-                        math.log(row[str(column + "_ratio")])
-                        if row[str(column + "_ratio")] != 0.0 else pandas.NA,
-                    axis="columns", # apply function to each row
-                )
-                pass
-            pass
-        # Copy information in table.
-        table = table.copy(deep=True)
-        pass
     # Return information.
     return table
 
