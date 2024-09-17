@@ -517,9 +517,9 @@ def scale_feature_values_between_observations_by_deseq(
     comparatively few observations or samples. The goal of this method is to
     remove the influence of technical confounders so that comparisons between
     observations are more relevant to real differences, such as those due to
-    biological regulation of expression of genes and proteins. An important
+    biological regulation of expression of genes and proteins. A fundamental
     assumption of this scaling method is that between observations the vast
-    majority of features, such as genes or proteins, will have similar values.
+    majority of features, such as genes or proteins, have similar values.
 
     For this method, it is necessary to exclude any features that have a
     geometric mean of zero across observations.
@@ -662,11 +662,12 @@ def scale_feature_values_between_observations_by_deseq(
     # Report.
     if report:
         putly.print_terminal_partition(level=2)
-        print("Report:")
-        print("partner")
-        print("scale")
-        print("scale_feature_values_between_observations_by_deseq()")
-        putly.print_terminal_partition(level=4)
+        print("module: partner.scale.py")
+        print(
+            "function: " +
+            "scale_feature_values_between_observations_by_deseq()"
+        )
+        putly.print_terminal_partition(level=3)
         print(
             "Original source table of values for observations across " +
             "columns and for features across rows:")
