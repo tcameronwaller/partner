@@ -466,10 +466,12 @@ def define_color_properties():
 
     """
     # (0.1 * 255) = 25.5
+    # (0.15 * 255) = 38.25
     # (0.2 * 255) = 51.0
     # (0.3 * 255) = 76.5
     # (0.4 * 255) = 102.0
     # (0.5 * 255) = 127.5
+    # 0.55 * 255) = 140.25
     # (0.6 * 255) = 153.0
     # (0.7 * 255) = 178.5
     # (0.8 * 255) = 204.0
@@ -507,6 +509,8 @@ def define_color_properties():
     pail["yellow_cream"] = (1.0, 1.0, 0.784, 1.0) # (red: 255; green: 255; blue: 200)
 
     pail["green"] = (0.25, 0.75, 0.25, 1.0) # (red: 64; green: 191; blue: 64)
+    pail["green_forest"] = (0.15, 0.55, 0.15, 1.0) # (red: 38; green: 140; blue: 38)
+    pail["green_kelly"] = (0.3, 0.7, 0.1, 1.0) # (red: 77; green: 179; blue: 26)
 
     pail["blue_navy"] = (0.039, 0.196, 0.588, 1.0) # (red: 10; green: 50; blue: 150)
     pail["blue_navy_faint"] = (0.039, 0.196, 0.588, 0.75)
@@ -2699,7 +2703,7 @@ def plot_boxes_groups(
             alpha=1.0,
             backgroundcolor=colors["white"],
             color=colors["black"],
-            fontproperties=fonts["properties"]["five"],
+            fontproperties=fonts["properties"]["seven"],
             rotation="horizontal",
         )
     if len(title_ordinate) > 0:
@@ -2709,7 +2713,7 @@ def plot_boxes_groups(
             alpha=1.0,
             backgroundcolor=colors["white"],
             color=colors["black"],
-            fontproperties=fonts["properties"]["five"]
+            fontproperties=fonts["properties"]["seven"]
         )
 
     # Set tick parameters for axes.
@@ -2723,7 +2727,7 @@ def plot_boxes_groups(
             width=7.5, # 3.0, 7.5, 11.0
             color=colors["black"],
             pad=10,
-            labelsize=fonts["values"]["seven"]["size"],
+            labelsize=fonts["values"]["nine"]["size"],
             labelcolor=colors["black"],
         )
         axes.tick_params(
@@ -2734,7 +2738,7 @@ def plot_boxes_groups(
             width=7.5, # 3.0, 7.5, 11.0
             color=colors["black"],
             pad=10,
-            labelsize=fonts["values"]["seven"]["size"],
+            labelsize=fonts["values"]["nine"]["size"],
             labelcolor=colors["black"],
         )
     elif orientation_box == "vertical":
