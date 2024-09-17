@@ -441,7 +441,7 @@ def calculate_ratios_to_geometric_mean_across_feature_observations(
     efficiency. While matrix transformations would be more efficient, they
     would also be more difficult to follow and critique.
 
-    Review: 13 September 2024
+    Review: 16 September 2024
 
     arguments:
         table (object): Pandas data-frame table of values for observations
@@ -487,27 +487,40 @@ def calculate_ratios_to_geometric_mean_across_feature_observations(
     )
     # Calculate ratio of each observation of each feature to that feature's
     # geometric mean value across all observations.
+    # if row["mean_geometric"] != 0.0 else pandas.NA
     for column in columns:
         table[str(column + "_ratio")] = table.apply(
             lambda row:
-                (row[column] / row["mean_geometric"])
-                if row["mean_geometric"] != 0.0 else pandas.NA,
-            axis="columns", # apply function to each row
-        )
-        pass
-    # Calculate the logarithm of ratios.
-    for column in columns:
-        # math.log() # optimal for scalar values
-        # numpy.log() # optimal for array values
-        table[str(column + "_ratio_log")] = table.apply(
-            lambda row:
-                math.log(row[str(column + "_ratio")])
-                if row[str(column + "_ratio")] != 0.0 else pandas.NA,
+                (row[column] / row["mean_geometric"]),
             axis="columns", # apply function to each row
         )
         pass
     # Copy information in table.
     table = table.copy(deep=True)
+
+    # Calculate the logarithm of ratios.
+    if False:
+        for column in columns:
+            # math.log() # optimal for scalar values
+            # numpy.log() # optimal for array values
+            table[str(column + "_ratio_log")] = numpy.log(
+                table[column].to_numpy(
+                    dtype="float64",
+                    na_value=numpy.nan,
+                    copy=True,
+            ))
+            if False:
+                table[str(column + "_ratio_log")] = table.apply(
+                    lambda row:
+                        math.log(row[str(column + "_ratio")])
+                        if row[str(column + "_ratio")] != 0.0 else pandas.NA,
+                    axis="columns", # apply function to each row
+                )
+                pass
+            pass
+        # Copy information in table.
+        table = table.copy(deep=True)
+        pass
     # Return information.
     return table
 
@@ -557,7 +570,7 @@ def filter_table_features_least_change_across_observations(
     efficiency. While matrix transformations would be more efficient, they
     would also be more difficult to follow and critique.
 
-    Review: 2 July 2024
+    Review: 16 September 2024
 
     arguments:
         table (object): Pandas data-frame table of values for observations
@@ -587,10 +600,12 @@ def filter_table_features_least_change_across_observations(
         lambda name: str(name + "_ratio"),
         columns,
     ))
-    columns_ratio_log = list(map(
-        lambda name: str(name + "_ratio_log"),
-        columns,
-    ))
+    if False:
+        columns_ratio_log = list(map(
+            lambda name: str(name + "_ratio_log"),
+            columns,
+        ))
+        pass
     # Calculate geometric mean of values for each feature across all
     # observations.
     # Calculate ratio of each observation for each feature to that feature's
@@ -600,43 +615,49 @@ def filter_table_features_least_change_across_observations(
             table=table,
             columns=columns,
     ))
-    # Calculate mean of ratio values across all observations for each feature.
-    table_ratio["mean_ratio"] = table_ratio.apply(
+    # Calculate geometric mean of ratio values for each feature across all
+    # observations.
+    table_ratio["ratio_mean_geometric"] = table_ratio.apply(
         lambda row:
-            numpy.nanmean(
+            scipy.stats.mstats.gmean(
                 row[columns_ratio].to_numpy(
                     dtype="float64",
                     na_value=numpy.nan,
                     copy=True,
-                )
+                ),
+                nan_policy="omit",
             ),
         axis="columns", # apply function to each row
     )
-    table_ratio["mean_ratio_log"] = table_ratio.apply(
-        lambda row:
-            numpy.nanmean(
-                row[columns_ratio_log].to_numpy(
-                    dtype="float64",
-                    na_value=numpy.nan,
-                    copy=True,
-                )
-            ),
-        axis="columns", # apply function to each row
-    )
+    if False:
+        table_ratio["mean_ratio_log"] = table_ratio.apply(
+            lambda row:
+                numpy.nanmean(
+                    row[columns_ratio_log].to_numpy(
+                        dtype="float64",
+                        na_value=numpy.nan,
+                        copy=True,
+                    )
+                ),
+            axis="columns", # apply function to each row
+        )
+        pass
     # Determine indices for quantiles.
     indices = list(range(0, count_quantile, 1))
     index_middle = indices[int(len(indices) // 2)]
     # Determine ordinal sets of features.
     table_ratio["quantile_mean_ratio"] = pandas.qcut(
-        table_ratio["mean_ratio"],
+        table_ratio["ratio_mean_geometric"],
         q=count_quantile,
         labels=indices,
     )
-    table_ratio["quantile_mean_ratio_log"] = pandas.qcut(
-        table_ratio["mean_ratio_log"],
-        q=count_quantile,
-        labels=indices,
-    )
+    if False:
+        table_ratio["quantile_mean_ratio_log"] = pandas.qcut(
+            table_ratio["mean_ratio_log"],
+            q=count_quantile,
+            labels=indices,
+        )
+        pass
     # Filter table to rows of features in the middle quantile.
     table_middle = table_ratio.loc[
         (table_ratio["quantile_mean_ratio"] == index_middle), :
@@ -650,27 +671,27 @@ def filter_table_features_least_change_across_observations(
     # Report.
     if report:
         putly.print_terminal_partition(level=2)
-        print("Report:")
+        print("report:")
         print("partner")
         print("scale")
         print(
             "filter_table_features_least_change_across_observations()"
         )
         putly.print_terminal_partition(level=4)
-        print("Count of quantiles: " + str(count_quantile))
-        print("Quantile indices:")
+        print("count of quantiles: " + str(count_quantile))
+        print("quantile indices:")
         print(indices)
-        print("Middle index: " + str(index_middle))
+        print("middle index: " + str(index_middle))
         putly.print_terminal_partition(level=4)
         print(
-            "Count of rows in original, source table: " +
+            "count of rows in original, source table: " +
             str(count_rows_source)
         )
         print(
-            "Count of rows in novel, product table: " +
+            "count of rows in novel, product table: " +
             str(count_rows_product) + " (" + percentage + " %)"
         )
-        print("Table of middle features that demonstrate least change")
+        print("table of middle features that demonstrate least change")
         print(table_middle)
     # Return information.
     return table_middle
@@ -963,7 +984,7 @@ def describe_variance_across_features_with_least_change(
     ))
     # Describe the distribution of values for these sets of middle features
     # that change the least.
-    values_middle = table_middle["mean_ratio_log"].to_numpy(
+    values_middle = table_middle["ratio_mean_geometric"].to_numpy(
         dtype="float64",
         na_value=numpy.nan,
         copy=True,

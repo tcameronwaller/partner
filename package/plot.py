@@ -475,72 +475,55 @@ def define_color_properties():
     # (0.8 * 255) = 204.0
     # (0.9 * 255) = 229.5
 
+    # Collect information.
+    pail = dict()
+
     # Black.
-    black = (0.0, 0.0, 0.0, 1.0)
+    pail["black"] = (0.0, 0.0, 0.0, 1.0)
     # Gray.
-    gray = (0.5, 0.5, 0.5, 1.0)
-    gray_dark = (0.3, 0.3, 0.3, 1.0) # (red: 75; green: 75; blue: 75)
-    gray_light = (0.7, 0.7, 0.7, 1.0) # (red: 180; green: 180; blue: 180)
-    gray_faint = (0.5, 0.5, 0.5, 0.5) # (red: 180; green: 180; blue: 180)
+    pail["gray"] = (0.5, 0.5, 0.5, 1.0)
+    pail["gray_dark"] = (0.3, 0.3, 0.3, 1.0) # (red: 75; green: 75; blue: 75)
+    pail["gray_light"] = (0.7, 0.7, 0.7, 1.0) # (red: 180; green: 180; blue: 180)
+    pail["gray_faint"] = (0.5, 0.5, 0.5, 0.5) # (red: 180; green: 180; blue: 180)
     # White.
-    white = (1.0, 1.0, 1.0, 1.0)
-    white_faint = (1.0, 1.0, 1.0, 0.75)
+    pail["white"] = (1.0, 1.0, 1.0, 1.0)
+    pail["white_faint"] = (1.0, 1.0, 1.0, 0.75)
     # Clear.
-    clear = (1.0, 1.0, 1.0, 0.0)
-    clear_faint = (1.0, 1.0, 1.0, 0.25)
+    pail["clear"] = (1.0, 1.0, 1.0, 0.0)
+    pail["clear_faint"] = (1.0, 1.0, 1.0, 0.25)
 
-    blue_navy = (0.039, 0.196, 0.588, 1.0) # (red: 10; green: 50; blue: 150)
-    blue_navy_faint = (0.039, 0.196, 0.588, 0.75)
-    blue_navy_light = (0.118, 0.314, 0.706, 1.0) # (r: 30; g: 80; b: 180)
-    blue_sky = (0.196, 0.588, 1.0, 1.0) # (red: 50; green: 150; blue: 255)
-    blue_navy_bright = (0.784, 0.824, 1.0, 1.0) # (r: 200; g: 210; b: 255)
-    blue_periwinkle = (0.667, 0.667, 1.0, 1.0) # (red: 170; green: 170; blue: 255)
-    blue_indigo = (0.196, 0.0, 0.588, 1.0) # (red: 50; green: 0; blue: 150)
+    pail["red_brick"] = (0.667, 0.196, 0.039, 1.0) # (red: 170; green: 50; blue: 10)
+    pail["red_burgundy"] = (0.510, 0.039, 0.118, 1.0) # (red: 130; green: 10; blue: 30)
+    pail["red_crimson"] = (0.784, 0.118, 0.196, 1.0) # (red: 200; green: 30; blue: 50)
 
-    purple = (0.510, 0.039, 0.510, 1.0) # (red: 130; green: 10; blue: 130)
-    purple_light = (0.588, 0.196, 0.588, 1.0) # (red: 150; green: 50; blue: 150)
-    magenta = (0.784, 0.275, 0.784, 1.0) # (red: 200; green: 70; blue: 200)
-    purple_lavender = (0.784, 0.784, 1.0, 1.0) # (red: 200; green: 200; blue: 255)
-    purple_lilac = (0.784, 0.667, 0.784, 1.0) # (red: 200; green: 170; blue: 200)
+    pail["orange"] = (1.0, 0.667, 0.039, 1.0) # (red: 255; green: 170; blue: 10)
+    pail["orange_burnt"] = (0.902, 0.510, 0.039, 1.0) # (red: 230; green: 130; blue: 10)
+    pail["orange_faint"] = (1.0, 0.588, 0.039, 0.75)
 
-    red_brick = (0.667, 0.196, 0.039, 1.0) # (red: 170; green: 50; blue: 10)
-    red_burgundy = (0.510, 0.039, 0.118, 1.0) # (red: 130; green: 10; blue: 30)
-    red_crimson = (0.784, 0.118, 0.196, 1.0) # (red: 200; green: 30; blue: 50)
+    pail["yellow"] = (1.0, 0.8, 0.0, 1.0) # (red: 255; green: 200; blue: 0)
+    pail["yellow_sunshine"] = (1.0, 1.0, 0.196, 1.0) # (red: 255; green: 255; blue: 50)
+    pail["yellow_sunflower"] = (1.0, 0.784, 0.0, 1.0) # (red: 255; green: 200; blue: 0)
+    pail["yellow_butter"] = (1.0, 1.0, 0.392, 1.0) # (red: 255; green: 255; blue: 100)
+    pail["yellow_cream"] = (1.0, 1.0, 0.784, 1.0) # (red: 255; green: 255; blue: 200)
 
-    orange = (1.0, 0.667, 0.039, 1.0) # (red: 255; green: 170; blue: 10)
-    orange_burnt = (0.902, 0.510, 0.039, 1.0) # (red: 230; green: 130; blue: 10)
-    orange_faint = (1.0, 0.588, 0.039, 0.75)
+    pail["green"] = (0.25, 0.75, 0.25, 1.0) # (red: 64; green: 191; blue: 64)
 
-    yellow = (1.0, 0.8, 0.0, 1.0) # (red: 255; green: 200; blue: 0)
-    yellow_sunshine = (1.0, 1.0, 0.196, 1.0) # (red: 255; green: 255; blue: 50)
-    yellow_sunflower = (1.0, 0.784, 0.0, 1.0) # (red: 255; green: 200; blue: 0)
-    yellow_butter = (1.0, 1.0, 0.392, 1.0) # (red: 255; green: 255; blue: 100)
-    yellow_cream = (1.0, 1.0, 0.784, 1.0) # (red: 255; green: 255; blue: 200)
+    pail["blue_navy"] = (0.039, 0.196, 0.588, 1.0) # (red: 10; green: 50; blue: 150)
+    pail["blue_navy_faint"] = (0.039, 0.196, 0.588, 0.75)
+    pail["blue_navy_light"] = (0.118, 0.314, 0.706, 1.0) # (r: 30; g: 80; b: 180)
+    pail["blue_sky"] = (0.196, 0.588, 1.0, 1.0) # (red: 50; green: 150; blue: 255)
+    pail["blue_navy_bright"] = (0.784, 0.824, 1.0, 1.0) # (r: 200; g: 210; b: 255)
+    pail["blue_periwinkle"] = (0.667, 0.667, 1.0, 1.0) # (red: 170; green: 170; blue: 255)
+    pail["blue_indigo"] = (0.196, 0.0, 0.588, 1.0) # (red: 50; green: 0; blue: 150)
 
+    pail["purple"] = (0.510, 0.039, 0.510, 1.0) # (red: 130; green: 10; blue: 130)
+    pail["purple_light"] = (0.588, 0.196, 0.588, 1.0) # (red: 150; green: 50; blue: 150)
+    pail["magenta"] = (0.784, 0.275, 0.784, 1.0) # (red: 200; green: 70; blue: 200)
+    pail["purple_lavender"] = (0.784, 0.784, 1.0, 1.0) # (red: 200; green: 200; blue: 255)
+    pail["purple_lilac"] = (0.784, 0.667, 0.784, 1.0) # (red: 200; green: 170; blue: 200)
 
-    green = (0.25, 0.75, 0.25, 1.0) # (red: 64; green: 191; blue: 64)
-    # Compile and return references.
-    return {
-        "black": black,
-        "gray": gray,
-        "gray_dark": gray_dark,
-        "gray_light": gray_light,
-        "gray_faint": gray_faint,
-        "white": white,
-        "white_faint": white_faint,
-        "clear": clear,
-        "clear_faint": clear_faint,
-        "blue_navy": blue_navy,
-        "blue_navy_faint": blue_navy_faint,
-        "blue_navy_light": blue_navy_light,
-        "blue_sky": blue_sky,
-        "purple": purple,
-        "magenta": magenta,
-        "green": green,
-        "orange": orange,
-        "orange_faint": orange_faint,
-        "yellow": yellow,
-    }
+    # Return information.
+    return pail
 
 
 def initialize_matplotlib_figure_aspect(
@@ -2620,8 +2603,8 @@ def plot_boxes_groups(
     https://towardsdatascience.com/understanding-boxplots-5e2df7bcbd51
 
     arguments:
-        values_groups (list<array>): NumPy arrays of non-missing values for each
-            group
+        values_groups (list<array>): NumPy arrays of non-missing values for
+            each group
         title_ordinate (str): title for ordinate or vertical axis
         title_abscissa (str): title for abscissa or horizontal axis
         titles_abscissa_groups (list<str>): titles for groups on abscissa or
@@ -2678,18 +2661,18 @@ def plot_boxes_groups(
         },
         medianprops={
             "linestyle": "solid",
-            "linewidth": 5.0, # 1.0, 2.5, 5.0
+            "linewidth": 2.5, # 1.0, 2.5, 5.0
             "color": colors["black"],
         },
         meanprops={
             "marker": "D", # diamond
-            "markersize": 15.0, # 10.0, 20.0
-            "markeredgecolor": colors["orange"],
-            "markerfacecolor": colors["orange"],
+            "markersize": 10.0, # 10.0, 20.0
+            "markeredgecolor": colors["orange_burnt"],
+            "markerfacecolor": colors["orange_burnt"],
         },
         whiskerprops={
             "linestyle": "solid",
-            "linewidth": 3.5,
+            "linewidth": 2.5,
             "color": colors["black"],
         },
     )
@@ -2716,7 +2699,7 @@ def plot_boxes_groups(
             alpha=1.0,
             backgroundcolor=colors["white"],
             color=colors["black"],
-            fontproperties=fonts["properties"]["four"],
+            fontproperties=fonts["properties"]["five"],
             rotation="horizontal",
         )
     if len(title_ordinate) > 0:
@@ -2726,7 +2709,7 @@ def plot_boxes_groups(
             alpha=1.0,
             backgroundcolor=colors["white"],
             color=colors["black"],
-            fontproperties=fonts["properties"]["four"]
+            fontproperties=fonts["properties"]["five"]
         )
 
     # Set tick parameters for axes.
@@ -2740,7 +2723,7 @@ def plot_boxes_groups(
             width=7.5, # 3.0, 7.5, 11.0
             color=colors["black"],
             pad=10,
-            labelsize=fonts["values"]["five"]["size"],
+            labelsize=fonts["values"]["seven"]["size"],
             labelcolor=colors["black"],
         )
         axes.tick_params(
@@ -2751,7 +2734,7 @@ def plot_boxes_groups(
             width=7.5, # 3.0, 7.5, 11.0
             color=colors["black"],
             pad=10,
-            labelsize=fonts["values"]["five"]["size"],
+            labelsize=fonts["values"]["seven"]["size"],
             labelcolor=colors["black"],
         )
     elif orientation_box == "vertical":
@@ -2764,7 +2747,7 @@ def plot_boxes_groups(
             width=7.5, # 3.0, 7.5, 11.0
             color=colors["black"],
             pad=10,
-            labelsize=fonts["values"]["five"]["size"],
+            labelsize=fonts["values"]["seven"]["size"],
             labelcolor=colors["black"],
         )
         axes.tick_params(
@@ -2775,7 +2758,7 @@ def plot_boxes_groups(
             width=7.5, # 3.0, 7.5, 11.0
             color=colors["black"],
             pad=10,
-            labelsize=fonts["values"]["five"]["size"],
+            labelsize=fonts["values"]["seven"]["size"],
             labelcolor=colors["black"],
             #labelrotation=45.0, # 45.0, 60,0
             #rotation_mode="anchor",
