@@ -1031,9 +1031,10 @@ def plot_heat_map_few_signal_significance_labels(
             signal_text = "{:.2f}".format(round(signal_value, 2))
             p_value = matrix_p[index_row, index_column]
             q_value = matrix_q[index_row, index_column]
-            if ((signal_value > 0.6) or (signal_value < -0.6)):
+            if ((signal_value > 0.5) or (signal_value < -0.5)):
                 #color="white"
                 color="gray_light"
+                #color="gray"
             else:
                 #color="black"
                 #color="gray_dark"
