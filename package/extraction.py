@@ -1799,6 +1799,7 @@ def fill_missing_from_reciprocal_interchangeable_study_pair(
     return table_fill
 
 
+# obsolete, I think... TCW; 19 September 2024
 def needs_update_filter_table_ldsc_correlation_studies(
     table=None,
     studies_keep=None,
