@@ -3,8 +3,8 @@
 ###############################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 25 July 2024
-# Date, last execution or modification: 11 September 2024
-# Review: TCW; 11 September 2024
+# Date, last execution or modification: 23 September 2024
+# Review: TCW; 23 September 2024
 ###############################################################################
 # Note
 
@@ -80,23 +80,27 @@ library("DESeq2")
 #      categorical values corresponding to groups of secondary interest as
 #      covariates
 # 11. levels_supplement_2: categorical values of supplement factor variable
-# 12. subject: name of column within table for factor variable with categorical
+# 12. supplement_3: name of column within table for factor variable with
+#      categorical values corresponding to groups of secondary interest as
+#      covariates
+# 13. levels_supplement_3: categorical values of supplement factor variable
+# 14. subject: name of column within table for factor variable with categorical
 #      values corresponding to pairs of samples or observations between the
 #      experimental conditions of primary interest
-# 13. threshold_significance: threshold alpha on p-value for determination of
+# 15. threshold_significance: threshold alpha on p-value for determination of
 #      significance
-# 14. threads: count of concurrent or parallel process threads on node cores
-# 15. report: whether to print report information to terminal
+# 16. threads: count of concurrent or parallel process threads on node cores
+# 17. report: whether to print report information to terminal
 
 # Parse arguments.
 arguments = commandArgs(trailingOnly=TRUE)
 print(paste("count of arguments: ", length(arguments)))
 if (length(arguments)==0) {
     # There are not any arguments.
-    stop("This script requires 15 arguments.", call.=FALSE)
-} else if (length(arguments)==15) {
+    stop("This script requires 17 arguments.", call.=FALSE)
+} else if (length(arguments)==17) {
   # There are a correct count of arguments.
-  print("correct count of arguments: 15")
+  print("correct count of arguments: 17")
   path_file_source_table_sample <- arguments[1]
   path_file_source_table_gene <- arguments[2]
   path_file_source_table_signal <- arguments[3]
@@ -108,14 +112,16 @@ if (length(arguments)==0) {
   levels_supplement_1 <- as.vector(unlist(strsplit(arguments[9], ",")))
   supplement_2 <- arguments[10]
   levels_supplement_2 <- as.vector(unlist(strsplit(arguments[11], ",")))
-  subject <- arguments[12]
-  threshold_significance <- as.double(arguments[13])
-  threads <- arguments[14]
-  report <- arguments[15]
+  supplement_3 <- arguments[12]
+  levels_supplement_3 <- as.vector(unlist(strsplit(arguments[13], ",")))
+  subject <- arguments[14]
+  threshold_significance <- as.double(arguments[15])
+  threads <- arguments[16]
+  report <- arguments[17]
 } else {
   # There are an incorrect count of arguments.
   print("There seem to be an incorrect count of arguments.")
-  stop("This script requires 15 arguments.", call.=FALSE)
+  stop("This script requires 17 arguments.", call.=FALSE)
 }
 
 # Report.
@@ -158,10 +164,14 @@ print(paste("10. supplement_2: ", supplement_2))
 print(paste(
     "11. levels_supplement_2: ", paste(levels_supplement_2, collapse=", ")
 ))
-print(paste("12. subject: ", subject))
-print(paste("13. threshold_significance: ", threshold_significance))
-print(paste("14. threads: ", threads))
-print(paste("15. report: ", report))
+print(paste("12. supplement_3: ", supplement_3))
+print(paste(
+    "13. levels_supplement_3: ", paste(levels_supplement_3, collapse=", ")
+))
+print(paste("14. subject: ", subject))
+print(paste("15. threshold_significance: ", threshold_significance))
+print(paste("16. threads: ", threads))
+print(paste("17. report: ", report))
 cat("\n----------\n----------\n----------\n\n")
 print("Floating point precision on current computer system.")
 print(paste("float minimum: ", .Machine$double.xmin))
@@ -305,13 +315,17 @@ print(paste("factor for main experimental condition: ", condition))
 print("values of experimental condition:")
 print(levels_condition)
 cat("----------\n")
-print(paste("factor for covariate supplement_1: ", supplement_1))
+print(paste("categorical factor for covariate supplement_1: ", supplement_1))
 print("values of covariate supplement_1:")
 print(levels_supplement_1)
 cat("----------\n")
-print(paste("factor for covariate supplement_2: ", supplement_2))
+print(paste("categorical factor for covariate supplement_2: ", supplement_2))
 print("values of covariate supplement_2:")
 print(levels_supplement_2)
+cat("----------\n")
+print(paste("categorical factor for covariate supplement_3: ", supplement_3))
+print("values of covariate supplement_3:")
+print(levels_supplement_3)
 cat("----------\n")
 
 ##########
@@ -361,6 +375,13 @@ if (
     supplement_2 != "none"
 ) {
     table_sample[[supplement_2]] <- factor(table_sample[[supplement_2]])
+}
+if (
+    nchar(supplement_3) > 0 &
+    length(supplement_3) > 1 &
+    supplement_3 != "none"
+) {
+    table_sample[[supplement_3]] <- factor(table_sample[[supplement_3]])
 }
 if (
     nchar(subject) > 0 &
@@ -425,6 +446,18 @@ if (
         exclude = NA
     )
     data_deseq[[supplement_2]] <- droplevels(data_deseq[[supplement_2]])
+}
+if (
+    nchar(supplement_3) > 0 &
+    length(supplement_3) > 1 &
+    supplement_3 != "none"
+) {
+    data_deseq[[supplement_3]] <- factor(
+        data_deseq[[supplement_3]],
+        levels = levels_supplement_3,
+        exclude = NA
+    )
+    data_deseq[[supplement_3]] <- droplevels(data_deseq[[supplement_3]])
 }
 if (
     nchar(subject) > 0 &
@@ -493,11 +526,11 @@ table_result$rank_metric <- (
     table_result$log2FoldChange * table_result$neglog10pvalue
 )
 # Filter rows in table.
-table_result_filter <- subset(
-    table_result,
-        (pvalue < 0.1) &
-        (log2FoldChange < -0.3 | log2FoldChange > 0.3)
-)
+#table_result_filter <- subset(
+#    table_result,
+#        (pvalue < 0.1) &
+#        (log2FoldChange < -0.3 | log2FoldChange > 0.3)
+#)
 # Sort rows in table.
 table_result_sort <- table_result[order(table_result$pvalue),]
 # Prepare information for summary.
