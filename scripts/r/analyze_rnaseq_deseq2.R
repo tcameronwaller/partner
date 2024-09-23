@@ -365,21 +365,27 @@ if (
 if (
     nchar(supplement_1) > 0 &
     length(supplement_1) > 1 &
-    supplement_1 != "none"
+    supplement_1 != "none" &
+    length(levels_supplement_1) > 1 &
+    levels_supplement_1 != "none"
 ) {
     table_sample[[supplement_1]] <- factor(table_sample[[supplement_1]])
 }
 if (
     nchar(supplement_2) > 0 &
     length(supplement_2) > 1 &
-    supplement_2 != "none"
+    supplement_2 != "none" &
+    length(levels_supplement_2) > 1 &
+    levels_supplement_2 != "none"
 ) {
     table_sample[[supplement_2]] <- factor(table_sample[[supplement_2]])
 }
 if (
     nchar(supplement_3) > 0 &
     length(supplement_3) > 1 &
-    supplement_3 != "none"
+    supplement_3 != "none" &
+    length(levels_supplement_3) > 1 &
+    levels_supplement_3 != "none"
 ) {
     table_sample[[supplement_3]] <- factor(table_sample[[supplement_3]])
 }
@@ -426,7 +432,9 @@ if (
 if (
     nchar(supplement_1) > 0 &
     length(supplement_1) > 1 &
-    supplement_1 != "none"
+    supplement_1 != "none" &
+    length(levels_supplement_1) > 1 &
+    levels_supplement_1 != "none"
 ) {
     data_deseq[[supplement_1]] <- factor(
         data_deseq[[supplement_1]],
@@ -438,7 +446,9 @@ if (
 if (
     nchar(supplement_2) > 0 &
     length(supplement_2) > 1 &
-    supplement_2 != "none"
+    supplement_2 != "none" &
+    length(levels_supplement_2) > 1 &
+    levels_supplement_2 != "none"
 ) {
     data_deseq[[supplement_2]] <- factor(
         data_deseq[[supplement_2]],
@@ -450,7 +460,9 @@ if (
 if (
     nchar(supplement_3) > 0 &
     length(supplement_3) > 1 &
-    supplement_3 != "none"
+    supplement_3 != "none" &
+    length(levels_supplement_3) > 1 &
+    levels_supplement_3 != "none"
 ) {
     data_deseq[[supplement_3]] <- factor(
         data_deseq[[supplement_3]],
