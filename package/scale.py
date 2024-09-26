@@ -194,6 +194,8 @@ def transform_values_distribution_scale_standard_z_score(
 
     An alternative would be to use sklearn.preprocessing.StandardScaler().
 
+    Review: 24 September 2024
+
     arguments:
         values_array (object): NumPy array of original values
 
@@ -212,7 +214,7 @@ def transform_values_distribution_scale_standard_z_score(
         values_array,
         axis=0,
         ddof=1, # divisor is (n - 1) for sample standard deviation
-        nan_policy="omit", # Ignore missing values in calculation.
+        nan_policy="omit", # ignore missing values in calculation.
     )
     # Return information.
     return values_z_array
@@ -233,6 +235,8 @@ def drive_transform_variables_distribution_scale_z_score(
     This function does not modify the names of the columns for the original
     variables.
 
+    Review: 24 September 2024
+
     arguments:
         table (object): Pandas data frame of variables across columns and
             samples across rows
@@ -251,6 +255,9 @@ def drive_transform_variables_distribution_scale_z_score(
     # Copy information in table.
     table = table.copy(deep=True)
     table_scale = table.copy(deep=True)
+    # Copy other information.
+    columns = copy.deepcopy(columns)
+
     # Filter columns by whether they are in the table.
     columns_relevant = list(filter(
         lambda column: (str(column) in table.columns.to_list()),
@@ -260,17 +267,22 @@ def drive_transform_variables_distribution_scale_z_score(
     for column in columns_relevant:
         table_scale[column] = (
             transform_values_distribution_scale_standard_z_score(
-                values_array=table_scale[column].to_numpy(),
+                values_array=table_scale[column].to_numpy(
+                    dtype="float64",
+                    na_value=numpy.nan,
+                    copy=True,
+                ),
         ))
         pass
     # Report.
     if report:
         putly.print_terminal_partition(level=2)
-        print("report: ")
+        print("module: partner.scale.py")
         name_function = (
-            "drive_transform_variables_distribution_scale_standard_z_score()"
+            "drive_transform_variables_distribution_scale_z_score()"
         )
-        print(name_function)
+        print(str("function: " + name_function))
+
         putly.print_terminal_partition(level=3)
         table_report = table.copy(deep=True)
         table_report = table_report.loc[
