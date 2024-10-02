@@ -3,8 +3,8 @@
 ###############################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 25 July 2024
-# Date, last execution or modification: 23 September 2024
-# Review: TCW; 23 September 2024
+# Date, last execution or modification: 1 October 2024
+# Review: TCW; 1 October 2024
 ###############################################################################
 # Note
 
@@ -87,20 +87,24 @@ library("DESeq2")
 # 14. subject: name of column within table for factor variable with categorical
 #      values corresponding to pairs of samples or observations between the
 #      experimental conditions of primary interest
-# 15. threshold_significance: threshold alpha on p-value for determination of
+# 15. results_contrast: designation of parameter for 'contrast' argument to
+#      DESeq2 'results' function, for which value 'condition' designates to
+#      specify the condition variable and its levels
+# 16. results_name: parameter for 'name' argument to DESeq2 'results' function
+# 17. threshold_significance: threshold alpha on p-value for determination of
 #      significance
-# 16. threads: count of concurrent or parallel process threads on node cores
-# 17. report: whether to print report information to terminal
+# 18. threads: count of concurrent or parallel process threads on node cores
+# 19. report: whether to print report information to terminal
 
 # Parse arguments.
 arguments = commandArgs(trailingOnly=TRUE)
 print(paste("count of arguments: ", length(arguments)))
 if (length(arguments)==0) {
     # There are not any arguments.
-    stop("This script requires 17 arguments.", call.=FALSE)
-} else if (length(arguments)==17) {
+    stop("This script requires 19 arguments.", call.=FALSE)
+} else if (length(arguments)==19) {
   # There are a correct count of arguments.
-  print("correct count of arguments: 17")
+  print("correct count of arguments: 19")
   path_file_source_table_sample <- arguments[1]
   path_file_source_table_gene <- arguments[2]
   path_file_source_table_signal <- arguments[3]
@@ -115,9 +119,11 @@ if (length(arguments)==0) {
   supplement_3 <- arguments[12]
   levels_supplement_3 <- as.vector(unlist(strsplit(arguments[13], ",")))
   subject <- arguments[14]
-  threshold_significance <- as.double(arguments[15])
-  threads <- arguments[16]
-  report <- arguments[17]
+  results_contrast <- arguments[15]
+  results_name <- arguments[16]
+  threshold_significance <- as.double(arguments[17])
+  threads <- arguments[18]
+  report <- arguments[19]
 } else {
   # There are an incorrect count of arguments.
   print("There seem to be an incorrect count of arguments.")
@@ -125,6 +131,12 @@ if (length(arguments)==0) {
 }
 
 # Report.
+cat("\n--------------------------------------------------\n")
+cat("--------------------------------------------------\n")
+cat("--------------------------------------------------\n\n")
+cat("\n--------------------------------------------------\n")
+cat("--------------------------------------------------\n")
+cat("--------------------------------------------------\n\n")
 cat("\n--------------------------------------------------\n")
 cat("--------------------------------------------------\n")
 cat("--------------------------------------------------\n\n")
@@ -169,9 +181,13 @@ print(paste(
     "13. levels_supplement_3: ", paste(levels_supplement_3, collapse=", ")
 ))
 print(paste("14. subject: ", subject))
-print(paste("15. threshold_significance: ", threshold_significance))
-print(paste("16. threads: ", threads))
-print(paste("17. report: ", report))
+print(paste("15. results_contrast: ", results_contrast))
+print(paste("16. results_name: ", results_name))
+
+
+print(paste("17. threshold_significance: ", threshold_significance))
+print(paste("18. threads: ", threads))
+print(paste("19. report: ", report))
 cat("\n----------\n----------\n----------\n\n")
 print("Floating point precision on current computer system.")
 print(paste("float minimum: ", .Machine$double.xmin))
@@ -355,16 +371,17 @@ table_signal_deseq <- round(table_signal, digits = 0)
 
 ##########
 # Predefine categorical factor variables.
+#nchar(condition) > 0 &
+#length(condition) > 1 &
+
 if (
-    nchar(condition) > 0 &
-    length(condition) > 1 &
-    condition != "none"
+    condition != "none" &
+    length(levels_condition) > 1 &
+    levels_condition[1] != "none"
 ) {
     table_sample[[condition]] <- factor(table_sample[[condition]])
 }
 if (
-    nchar(supplement_1) > 0 &
-    length(supplement_1) > 1 &
     supplement_1 != "none" &
     length(levels_supplement_1) > 1 &
     levels_supplement_1[1] != "none"
@@ -372,8 +389,6 @@ if (
     table_sample[[supplement_1]] <- factor(table_sample[[supplement_1]])
 }
 if (
-    nchar(supplement_2) > 0 &
-    length(supplement_2) > 1 &
     supplement_2 != "none" &
     length(levels_supplement_2) > 1 &
     levels_supplement_2[1] != "none"
@@ -381,8 +396,6 @@ if (
     table_sample[[supplement_2]] <- factor(table_sample[[supplement_2]])
 }
 if (
-    nchar(supplement_3) > 0 &
-    length(supplement_3) > 1 &
     supplement_3 != "none" &
     length(levels_supplement_3) > 1 &
     levels_supplement_3[1] != "none"
@@ -390,8 +403,6 @@ if (
     table_sample[[supplement_3]] <- factor(table_sample[[supplement_3]])
 }
 if (
-    nchar(subject) > 0 &
-    length(subject) > 1 &
     subject != "none"
 ) {
     table_sample[[subject]] <- factor(table_sample[[subject]])
@@ -414,11 +425,15 @@ data_deseq <- DESeqDataSetFromMatrix(
 # Define levels of categorical factors explicitly.
 # The "$" subset operator (example "data_deseq$condition") only works with
 # literal arguments that do not need any prior evaluation.
+#nchar(condition) > 0 &
+#length(condition) > 1 &
+
 if (
-    nchar(condition) > 0 &
-    length(condition) > 1 &
-    condition != "none"
+    condition != "none" &
+    length(levels_condition) > 1 &
+    levels_condition[1] != "none"
 ) {
+    print("... setting explicit levels of 'condition' ...")
     #data_deseq[[condition]] <- relevel(
     #    data_deseq[[condition]], ref = "control"
     #)
@@ -430,12 +445,11 @@ if (
     data_deseq[[condition]] <- droplevels(data_deseq[[condition]])
 }
 if (
-    nchar(supplement_1) > 0 &
-    length(supplement_1) > 1 &
     supplement_1 != "none" &
     length(levels_supplement_1) > 1 &
     levels_supplement_1[1] != "none"
 ) {
+    print("... setting explicit levels of 'supplement_1' ...")
     data_deseq[[supplement_1]] <- factor(
         data_deseq[[supplement_1]],
         levels = levels_supplement_1,
@@ -444,12 +458,11 @@ if (
     data_deseq[[supplement_1]] <- droplevels(data_deseq[[supplement_1]])
 }
 if (
-    nchar(supplement_2) > 0 &
-    length(supplement_2) > 1 &
     supplement_2 != "none" &
     length(levels_supplement_2) > 1 &
     levels_supplement_2[1] != "none"
 ) {
+    print("... setting explicit levels of 'supplement_2' ...")
     data_deseq[[supplement_2]] <- factor(
         data_deseq[[supplement_2]],
         levels = levels_supplement_2,
@@ -458,12 +471,11 @@ if (
     data_deseq[[supplement_2]] <- droplevels(data_deseq[[supplement_2]])
 }
 if (
-    nchar(supplement_3) > 0 &
-    length(supplement_3) > 1 &
     supplement_3 != "none" &
     length(levels_supplement_3) > 1 &
     levels_supplement_3[1] != "none"
 ) {
+    print("... setting explicit levels of 'supplement_3' ...")
     data_deseq[[supplement_3]] <- factor(
         data_deseq[[supplement_3]],
         levels = levels_supplement_3,
@@ -472,8 +484,6 @@ if (
     data_deseq[[supplement_3]] <- droplevels(data_deseq[[supplement_3]])
 }
 if (
-    nchar(subject) > 0 &
-    length(subject) > 1 &
     subject != "none"
 ) {
     data_deseq[[subject]] <- factor(data_deseq[[subject]])
@@ -526,11 +536,40 @@ data_deseq <- DESeq(
     data_deseq,
     parallel=TRUE
 )
-table_result <- results(
-    data_deseq,
-    contrast=c(condition, levels_condition),
-    alpha=threshold_significance
-)
+cat("\n----------\n----------\n----------\n\n")
+print("... names of individual effect coefficients from the analysis ...")
+resultsNames(data_deseq)
+cat("\n----------\n----------\n----------\n\n")
+
+# Determine whether to extract results with the "contrast" argument or with the
+# "name" argument.
+if (
+    results_contrast != "none" &
+    results_contrast == "condition"
+) {
+    print("... using 'contrast' argument to DESeq2 'results' function ...")
+    table_result <- results(
+        data_deseq,
+        contrast=c(condition, levels_condition),
+        alpha=threshold_significance
+    )
+} else if (
+    results_name != "none"
+) {
+    print("... using 'name' argument to DESeq2 'results' function ...")
+    table_result <- results(
+        data_deseq,
+        name=results_name,
+        alpha=threshold_significance
+    )
+}
+#else {
+#  table_result <- results(
+#      data_deseq,
+#      alpha=threshold_significance
+#  )
+#}
+
 # Calculate negative base-ten logarithm of p-value.
 table_result$neglog10pvalue <- (log(table_result$pvalue, base=10) * -1)
 # Calculate rank metric.
