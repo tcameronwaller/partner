@@ -1766,8 +1766,8 @@ def fill_missing_values_series(
                 print("WARNING!")
                 print("**********")
                 print(
-                    "Method selection to fill missing values returned a value " +
-                    "less than or equal to zero!"
+                    "Method selection to fill missing values returned a " +
+                    "value less than or equal to zero!"
                 )
                 print("**********")
                 putly.print_terminal_partition(level=1)

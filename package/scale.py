@@ -40,6 +40,7 @@ License:
 ###############################################################################
 # Notes
 
+
 ###############################################################################
 # Installation and importation
 
@@ -214,7 +215,7 @@ def transform_values_distribution_scale_standard_z_score(
         values_array,
         axis=0,
         ddof=1, # divisor is (n - 1) for sample standard deviation
-        nan_policy="omit", # ignore missing values in calculation.
+        nan_policy="omit", # ignore missing values in calculation
     )
     # Return information.
     return values_z_array
@@ -292,34 +293,34 @@ def drive_transform_variables_distribution_scale_z_score(
         table_scale_report = table_scale_report.loc[
             :, table_scale_report.columns.isin(columns_relevant)
         ]
-        print("Summary statistics before standardization.")
+        print("... summary statistics before standardization ...")
         table_mean = table_report.aggregate(
             lambda series: series.mean(),
-            axis="index", # Apply function to each column of table.
+            axis="index", # apply function to each column
         )
-        print("Mean")
+        print("mean:")
         print(table_mean.iloc[0:25])
         putly.print_terminal_partition(level=5)
         table_deviation = table_report.aggregate(
             lambda series: series.std(),
-            axis="index", # Apply function to each column of table.
+            axis="index", # apply function to each column
         )
-        print("Standard deviation")
+        print("standard deviation:")
         print(table_deviation.iloc[0:25])
         putly.print_terminal_partition(level=4)
-        print("Summary statistics after standardization.")
+        print("... summary statistics after standardization ...")
         table_mean = table_scale_report.aggregate(
             lambda series: series.mean(),
-            axis="index", # Apply function to each column of table.
+            axis="index", # apply function to each column
         )
-        print("Mean")
+        print("mean:")
         print(table_mean.iloc[0:25])
         putly.print_terminal_partition(level=5)
         table_deviation = table_scale_report.aggregate(
             lambda series: series.std(),
-            axis="index", # Apply function to each column of table.
+            axis="index", # apply function to each column
         )
-        print("Standard deviation")
+        print("standard deviation:")
         print(table_deviation.iloc[0:25])
     # Return information.
     return table_scale
