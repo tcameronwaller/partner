@@ -273,6 +273,7 @@ def transform_standard_z_score_by_table_rows(
     return table_scale
 
 
+# def transform standard_z_score_by_table_columns() <-- follow example of simplified function for rows
 
 
 def transform_values_distribution_scale_standard_z_score(
