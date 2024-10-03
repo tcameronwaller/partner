@@ -817,10 +817,10 @@ def determine_series_signal_validity_threshold(
 
 def segregate_fold_change_values_by_thresholds(
     table=None,
-    column_fold=None,
-    column_p=None,
-    threshold_fold=None,
-    threshold_p=None,
+    column_fold_change=None,
+    column_significance=None,
+    threshold_fold_change=None,
+    threshold_significance=None,
     report=None,
 ):
     """
@@ -843,22 +843,22 @@ def segregate_fold_change_values_by_thresholds(
     observation_4   ...       ...       ...       ...       ...
     observation_5   ...       ...       ...       ...       ...
 
-    Review: TCW; 13 August 2024
+    Review: TCW; 3 October 2024
 
     arguments:
         table (object): Pandas data-frame table of features across columns and
             values for observations across rows
-        column_fold (str): name of column in table on which to apply the
+        column_fold_change (str): name of column in table on which to apply the
             threshold for the fold change
-        column_p (str): name of column in table on which to apply the threshold
-            for the p-value or q-value corresponding to the fold change
-            estimate
-        threshold_fold (float): value for threshold on fold change
+        column_significance (str): name of column in table on which to apply
+            the threshold for significance, corresponding to the p-value or
+            q-value corresponding to the estimate of fold change
+        threshold_fold_change (float): value for threshold on fold change
             (fold change > threshold) that is on the same scale, such as
             base-two logarithm, as the actual values themselves
-        threshold_p (float): value for threshold on p-values or q-values
-            (p-value > threshold) that is on the same scale, such as negative
-            base-ten logarithm, as the actual values themselves
+        threshold_significance (float): value for threshold on p-values or
+            q-values (p-value or q-value < threshold) that is not on a scale of
+            the negative logarithm
         report (bool): whether to print reports
 
     raises:
@@ -873,20 +873,20 @@ def segregate_fold_change_values_by_thresholds(
     # Filter rows in table for segregation of values by thresholds.
     table_pass_any = table.loc[
         (
-            (table[column_p] > threshold_p) &
-            (abs(table[column_fold]) > threshold_fold)
+            (table[column_significance] < threshold_significance) &
+            (abs(table[column_fold_change]) > threshold_fold_change)
         ), :
     ].copy(deep=True)
     table_pass_up = table.loc[
         (
-            (table[column_p] > threshold_p) &
-            (table[column_fold] > threshold_fold)
+            (table[column_significance] < threshold_significance) &
+            (table[column_fold_change] > threshold_fold_change)
         ), :
     ].copy(deep=True)
     table_pass_down = table.loc[
         (
-            (table[column_p] > threshold_p) &
-            (table[column_fold] < (-1*threshold_fold))
+            (table[column_significance] < threshold_significance) &
+            (table[column_fold_change] < (-1*threshold_fold_change))
         ), :
     ].copy(deep=True)
     # Fail.

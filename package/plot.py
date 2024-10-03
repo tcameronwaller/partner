@@ -3186,11 +3186,14 @@ def plot_scatter_fold_change_volcano(
     table=None,
     column_identifier=None,
     column_name=None,
-    column_fold=None,
-    column_p=None,
-    threshold_fold=None,
-    threshold_p=None,
+    column_plot_fold=None,
+    column_plot_p=None,
+    column_fold_change=None,
+    column_significance=None,
+    threshold_fold_change=None,
+    threshold_significance=None,
     identifiers_emphasis=None,
+    lines_thresholds=None,
     emphasis_label=None,
     count_label=None,
     minimum_abscissa=None,
@@ -3224,7 +3227,7 @@ def plot_scatter_fold_change_volcano(
        - representation: p-value or q-value for estimate of fold change on
           negative base-ten logarithmic scale
 
-    Review: TCW; 14 August 2024
+    Review: TCW; 3 October 2024
 
     arguments:
         table (object): Pandas data-frame table of features across columns and
@@ -3233,21 +3236,26 @@ def plot_scatter_fold_change_volcano(
             identifier corresponding to the fold change
         column_name (str): name of column in table for the name corresponding
             to the fold change
-        column_fold (str): name of column in table on which to apply the
+        column_plot_fold (str): name of column in table for values of fold
+            change for representation on the plot
+        column_plot_p (str): name of column in table for values of p-value or
+            representation of significance for representation on the plot
+        column_fold_change (str): name of column in table on which to apply the
             threshold for the fold change
-        column_p (str): name of column in table on which to apply the threshold
-            for the p-value or q-value corresponding to the fold change
-            estimate
-        threshold_fold (float): value for threshold on fold change
+        column_significance (str): name of column in table on which to apply
+            the threshold for significance, corresponding to the p-value or
+            q-value corresponding to the estimate of fold change
+        threshold_fold_change (float): value for threshold on fold change
             (fold change > threshold) that is on the same scale, such as
             base-two logarithm, as the actual values themselves
-        threshold_p (float): value for threshold on p-values or q-values
-            (p-value > threshold) that is on the same scale, such as negative
-            base-ten logarithm, as the actual values themselves
+        threshold_significance (float): value for threshold on p-values or
+            q-values (p-value or q-value < threshold) that is not on a scale of
+            the negative logarithm
         identifiers_emphasis (list<str>): identifiers corresponding to a
             special selection of fold changes for which to emphasize points on
             chart and for which to create text labels adjacent to the points
             on the chart
+        lines_thresholds (bool): whether to draw lines to represent thresholds
         emphasis_label (bool): whether to create text labels adjacent to
             the special selection of points for special emphasis
         count_label (bool): whether to create text labels on chart to report
@@ -3291,23 +3299,48 @@ def plot_scatter_fold_change_volcano(
 
     # Copy information in table.
     table = table.copy(deep=True)
+    # Filter columns in table.
+    #table = table.loc[
+    #    :, table.columns.isin(columns_sequence)
+    #]
+    table = table.filter(
+        items=[
+            column_identifier,
+            column_name,
+            column_plot_fold,
+            column_plot_p,
+            column_fold_change,
+            column_significance,
+        ],
+        axis="columns",
+    )
     # Organize information in table.
-    table = table.loc[:, [
-        column_identifier,
-        column_name,
-        column_fold,
-        column_p,
-    ]]
     table.dropna(
         axis="index",
         how="any",
         inplace=True,
     )
     limits = [
-        {"type": "low", "value": minimum_abscissa, "column": column_fold},
-        {"type": "high", "value": maximum_abscissa, "column": column_fold},
-        {"type": "low", "value": minimum_ordinate, "column": column_p},
-        {"type": "high", "value": maximum_ordinate, "column": column_p},
+        {
+            "type": "low",
+            "value": minimum_abscissa,
+            "column": column_plot_fold,
+        },
+        {
+            "type": "high",
+            "value": maximum_abscissa,
+            "column": column_plot_fold,
+        },
+        {
+            "type": "low",
+            "value": minimum_ordinate,
+            "column": column_plot_p,
+        },
+        {
+            "type": "high",
+            "value": maximum_ordinate,
+            "column": column_plot_p,
+        },
     ]
     for limit in limits:
         if (limit["value"] is not None):
@@ -3325,10 +3358,10 @@ def plot_scatter_fold_change_volcano(
     # Filter rows in table for segregation of values by thresholds.
     pail_threshold = porg.segregate_fold_change_values_by_thresholds(
         table=table,
-        column_fold=column_fold,
-        column_p=column_p,
-        threshold_fold=threshold_fold,
-        threshold_p=threshold_p,
+        column_fold_change=column_fold_change,
+        column_significance=column_significance,
+        threshold_fold_change=threshold_fold_change,
+        threshold_significance=threshold_significance,
         report=False,
     )
     # Extract information about selection of fold changes for special emphasis.
@@ -3340,10 +3373,10 @@ def plot_scatter_fold_change_volcano(
         table_source[column_identifier].isin(identifiers_emphasis), :
     ].copy(deep=True)
     # Extract counts.
-    count_pass = (pail_threshold["table_pass_any"].shape[0])
-    count_pass_up = (pail_threshold["table_pass_up"].shape[0])
-    count_pass_down = (pail_threshold["table_pass_down"].shape[0])
-    count_fail = (pail_threshold["table_fail"].shape[0])
+    count_pass = int(pail_threshold["table_pass_any"].shape[0])
+    count_pass_up = int(pail_threshold["table_pass_up"].shape[0])
+    count_pass_down = int(pail_threshold["table_pass_down"].shape[0])
+    count_fail = int(pail_threshold["table_fail"].shape[0])
 
     # Report.
     if report:
@@ -3445,41 +3478,53 @@ def plot_scatter_fold_change_volcano(
         matplotlib.pyplot.gca().spines[position].set_visible(False)
 
     # Create lines to represent threshold values.
-    axes.axvline(
-        x=threshold_fold,
-        ymin=minimum_ordinate,
-        ymax=maximum_ordinate,
-        alpha=1.0,
-        color=colors["black"],
-        linestyle="--",
-        linewidth=2.5,
-    )
-    axes.axvline(
-        x=(-1*threshold_fold),
-        ymin=minimum_ordinate,
-        ymax=maximum_ordinate,
-        alpha=1.0,
-        color=colors["black"],
-        linestyle="--",
-        linewidth=2.5,
-    )
-    axes.axhline(
-        y=threshold_p,
-        xmin=minimum_abscissa,
-        xmax=maximum_abscissa,
-        alpha=1.0,
-        color=colors["black"],
-        linestyle="--",
-        linewidth=2.5,
-    )
+    if (lines_thresholds and (count_pass > 0)):
+        # Determine minimal value of significance for line.
+        threshold_significance_scale = numpy.nanmin(
+            pail_threshold["table_pass_any"][column_plot_p].to_numpy(
+                dtype="float64",
+                na_value=numpy.nan,
+                copy=True,
+            )
+        )
+        axes.axhline(
+            y=threshold_significance_scale,
+            xmin=minimum_abscissa,
+            xmax=maximum_abscissa,
+            alpha=1.0,
+            color=colors["black"],
+            linestyle="--",
+            linewidth=2.5,
+        )
+        axes.axvline(
+            x=threshold_fold_change,
+            ymin=minimum_ordinate,
+            ymax=maximum_ordinate,
+            alpha=1.0,
+            color=colors["black"],
+            linestyle="--",
+            linewidth=2.5,
+        )
+        if (threshold_fold_change != 0):
+            axes.axvline(
+                x=(-1*threshold_fold_change),
+                ymin=minimum_ordinate,
+                ymax=maximum_ordinate,
+                alpha=1.0,
+                color=colors["black"],
+                linestyle="--",
+                linewidth=2.5,
+            )
+            pass
+        pass
 
     ##########
     # Represent information on the chart figure object.
 
     # Plot points for values from each group.
     handle = axes.plot(
-        pail_threshold["table_fail"][column_fold].values,
-        pail_threshold["table_fail"][column_p].values,
+        pail_threshold["table_fail"][column_plot_fold].values,
+        pail_threshold["table_fail"][column_plot_p].values,
         linestyle="",
         marker="o",
         markersize=2.5,
@@ -3487,8 +3532,8 @@ def plot_scatter_fold_change_volcano(
         markerfacecolor=colors["gray"]
     )
     handle = axes.plot(
-        pail_threshold["table_pass_any"][column_fold].values,
-        pail_threshold["table_pass_any"][column_p].values,
+        pail_threshold["table_pass_any"][column_plot_fold].values,
+        pail_threshold["table_pass_any"][column_plot_p].values,
         linestyle="",
         marker="o",
         markersize=5,
@@ -3496,8 +3541,8 @@ def plot_scatter_fold_change_volcano(
         markerfacecolor=colors["blue_navy"]
     )
     handle = axes.plot(
-        table_emphasis[column_fold].values,
-        table_emphasis[column_p].values,
+        table_emphasis[column_plot_fold].values,
+        table_emphasis[column_plot_p].values,
         linestyle="",
         marker="o",
         markersize=5,
@@ -3509,12 +3554,13 @@ def plot_scatter_fold_change_volcano(
     if count_label:
         # Determine position coordinates of labels.
         center_abscissa_down = (
-            minimum_abscissa + (abs(minimum_abscissa - (-1*threshold_fold))/2.5)
-        )
+            minimum_abscissa + (
+                abs(minimum_abscissa - (-1*threshold_fold_change))/2.5
+        ))
         center_abscissa_up = (
-            maximum_abscissa - ((maximum_abscissa - threshold_fold)/2.5)
+            maximum_abscissa - ((maximum_abscissa - threshold_fold_change)/2.5)
         )
-        center_ordinate = ((maximum_ordinate - threshold_p)/2)
+        center_ordinate = ((maximum_ordinate - 0)/2)
         #count_pass_up
         #count_pass_down
         # Create labels on chart.
@@ -3546,7 +3592,7 @@ def plot_scatter_fold_change_volcano(
     if emphasis_label:
         for index, row in table_emphasis.iterrows():
             # Determine position coordinates of label.
-            abscissa_raw = row[column_fold]
+            abscissa_raw = row[column_plot_fold]
             if (abscissa_raw > 0):
                 alignment_horizontal = "right"
                 abscissa = (
@@ -3561,7 +3607,7 @@ def plot_scatter_fold_change_volcano(
                         0.01 * (maximum_abscissa - minimum_abscissa)
                     )
                 )
-            ordinate = row[column_p]
+            ordinate = row[column_plot_p]
             # Create label on chart.
             axes.text(
                 abscissa,

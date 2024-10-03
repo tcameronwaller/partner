@@ -551,7 +551,8 @@ if (
     table_result <- results(
         data_deseq,
         contrast=c(condition, levels_condition),
-        alpha=threshold_significance
+        alpha=threshold_significance,
+        pAdjustMethod="BH"
     )
 } else if (
     results_name != "none"
@@ -560,7 +561,8 @@ if (
     table_result <- results(
         data_deseq,
         name=results_name,
-        alpha=threshold_significance
+        alpha=threshold_significance,
+        pAdjustMethod="BH"
     )
 }
 #else {
