@@ -588,6 +588,11 @@ def initialize_matplotlib_figure_aspect(
 # These heatmap plots support options such as text labels on the cells.
 
 
+# Current applications:
+# 1. genetic correlations
+# 2. regression coefficients against polygenic risk scores
+# review: TCW; 3 October 2024
+# TODO: rename to 'plot_heat_map_signal_label_features_observations_significance'
 def plot_heat_map_few_signal_significance_labels(
     table=None,
     transpose_table=None,
@@ -627,6 +632,11 @@ def plot_heat_map_few_signal_significance_labels(
 ):
     """
     Heat map.
+
+    features of this chart design...
+    labels of categorical groups on both axes: True
+    labels of significance on individual cells: True
+    clustering: False
 
     Format of source table in long format with floating-point values of signals
     and p-values organized with categorical indices across columns and rows
@@ -680,12 +690,15 @@ def plot_heat_map_few_signal_significance_labels(
         index_group_rows (str): name of index across table's rows that provides
             labels for groups across vertical axis (ordinate) after any
             transpose on the table
-        fill_missing (bool): whether to fill any missing values in every element
-            of matrix
+        fill_missing (bool): whether to fill any missing values in every
+            element of matrix
         value_missing_fill (float): value with which to fill any missing values
-        constrain_signal_values (bool): whether to constrain all values in matrix
-        value_minimum (float): minimal value for constraint on signals and scale
-        value_maximum (float): maximal value for constraint on signals and scale
+        constrain_signal_values (bool): whether to constrain all values in
+            matrix
+        value_minimum (float): minimal value for constraint on signals and
+            scale
+        value_maximum (float): maximal value for constraint on signals and
+            scale
         significance_p (bool): whether to consider p-values to indicate
             significance in labels on the heatmap
         significance_q (bool): whether to consider q-values to indicate
@@ -800,8 +813,8 @@ def plot_heat_map_few_signal_significance_labels(
             matrix_signal,
             copy=True,
             nan=value_missing_fill,
-            posinf=1.0, # this value for correlations
-            neginf=-1.0, # this value for correlations
+            posinf=value_maximum, # or + 1.0 for correlations
+            neginf=value_minimum, # or - 1.0 for correlations
         )
     # Constrain values.
     if constrain_signal_values:
@@ -1180,6 +1193,342 @@ def plot_heat_map_few_signal_significance_labels(
             )
     # Return figure.
     return figure
+
+
+# Current applications:
+# 1. signal intensity for a few genes between samples or groups of samples
+# review: TCW; 3 October 2024
+def plot_heat_map_signal_label_features_observations(
+    table=None,
+    transpose_table=None,
+    index_group_columns=None,
+    index_group_rows=None,
+    fill_missing=None,
+    value_missing_fill=None,
+    constrain_signal_values=None,
+    value_minimum=None,
+    value_maximum=None,
+    show_scale_bar=None,
+    labels_ordinate_categories=None,
+    labels_abscissa_categories=None,
+    title_ordinate=None,
+    title_abscissa=None,
+    title_bar=None,
+    size_title_ordinate=None,
+    size_title_abscissa=None,
+    size_label_ordinate=None,
+    size_label_abscissa=None,
+    size_title_bar=None,
+    size_label_bar=None,
+    aspect=None,
+    fonts=None,
+    colors=None,
+    report=None,
+):
+    """
+    Heat map.
+
+    features of this chart design...
+    labels of categorical groups on both axes: True
+    labels of significance on individual cells: False
+    clustering: False
+
+    Format of source table in long format with floating-point values of signals
+    and p-values organized with categorical indices across columns and rows
+    that will serve as labels:
+
+    observation_or_group   observation_1   observation_2   observation_3
+    feature
+    feature_1              -0.15           0.2             -0.25
+    feature_2              -0.15           0.2             -0.25
+    feature_3              -0.15           0.2             -0.25
+    feature_4              -0.15           0.2             -0.25
+    feature_5              -0.15           0.2             -0.25
+
+    MatPlotLib color maps.
+    https://matplotlib.org/stable/tutorials/colors/colormaps.html
+
+    arguments:
+        table (object): Pandas data-frame table of values of signal intensity
+            for features in rows across sample observations or groups of
+            sample observations in columns
+        transpose_table (bool): whether to transpose matrix from table
+        index_group_columns (str): name of index across table's columns that
+            provides labels for groups across horizontal axis (abscissa) after
+            any transpose on the table
+        index_group_rows (str): name of index across table's rows that provides
+            labels for groups across vertical axis (ordinate) after any
+            transpose on the table
+        fill_missing (bool): whether to fill any missing values in every
+            element of matrix
+        value_missing_fill (float): value with which to fill any missing values
+        constrain_signal_values (bool): whether to constrain all values in
+            matrix
+        value_minimum (float): minimal value for constraint on signals and
+            scale
+        value_maximum (float): maximal value for constraint on signals and
+            scale
+        show_scale_bar (bool): whether to create scale bar
+        labels_ordinate_categories (list<str>): optional, explicit labels for
+            ordinate or vertical axis
+        labels_abscissa_categories (list<str>): optional, explicit labels for
+            abscissa or horizontal axis
+        title_ordinate (str): title for ordinate vertical axis
+        title_abscissa (str): title for abscissa horizontal axis
+        title_bar (str): title for scale bar
+        size_title_ordinate (str): font size
+        size_title_abscissa (str): font size
+        size_label_ordinate (str): font size
+        size_label_abscissa (str): font size
+        size_title_bar (str): font size
+        size_label_bar (str): font size
+        aspect (str): aspect ratio for MatPlotLib chart figure
+        fonts (dict<object>): references to definitions of font properties
+        colors (dict<tuple>): references to definitions of color properties
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): MatPlotLib figure object
+
+    """
+
+    ##########
+    # Organize information for figure.
+    # Copy information in table.
+    table_signal = table.copy(deep=True)
+
+    # Transpose table.
+    if (transpose_table):
+        table_signal = table_signal.transpose(copy=True)
+        pass
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=4)
+        print("rows in table: " + str(table_signal.shape[0]))
+        print("columns in table: " + str(table_signal.shape[1]))
+        putly.print_terminal_partition(level=4)
+
+    # Extract values.
+    #matrix_signal = numpy.transpose(numpy.copy(table_signal.to_numpy()))
+    matrix_signal = numpy.copy(table_signal.to_numpy())
+
+    # Organize signals in matrix.
+    # Replace missing values.
+    if fill_missing:
+        matrix_signal = numpy.nan_to_num(
+            matrix_signal,
+            copy=True,
+            nan=value_missing_fill,
+            posinf=value_maximum, # or + 1.0 for correlations
+            neginf=value_minimum, # or - 1.0 for correlations
+        )
+    # Constrain values.
+    if constrain_signal_values:
+        matrix_signal[matrix_signal < value_minimum] = value_minimum
+        matrix_signal[matrix_signal > value_maximum] = value_maximum
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=4)
+        print("matrix of signals:")
+        count_rows = copy.deepcopy(matrix_signal.shape[0])
+        count_columns = copy.deepcopy(matrix_signal.shape[1])
+        print("matrix rows (dimension 0): " + str(count_rows))
+        print("matrix columns (dimension 1): " + str(count_columns))
+        putly.print_terminal_partition(level=4)
+
+    # Extract categorical names for labels.
+    if (
+        (
+            (labels_ordinate_categories is None) or
+            (len(labels_ordinate_categories) < 2)
+        ) or
+        (
+            (labels_abscissa_categories is None) or
+            (len(labels_abscissa_categories) < 2)
+        )
+    ):
+        #labels_columns = copy.deepcopy(table_signal.columns.to_list())
+        #table_signal.reset_index(
+        #    level=None,
+        #    inplace=True,
+        #    drop=False, # remove index; do not move to regular columns
+        #)
+        #labels_rows = table.index.to_list()
+        #labels_rows = table_signal["group_primary"].to_list()
+        labels_columns = copy.deepcopy(
+            table_signal.columns.get_level_values(
+                index_group_columns
+            ).unique().to_list()
+        )
+        labels_rows = copy.deepcopy(
+            table_signal.index.get_level_values(
+                index_group_rows
+            ).unique().to_list()
+        )
+        labels_ordinate_categories = labels_rows # vertical axis
+        labels_abscissa_categories = labels_columns # horizontal axis
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=4)
+        print("column labels:")
+        print(labels_ordinate_categories)
+        print("row labels:")
+        print(labels_abscissa_categories)
+        putly.print_terminal_partition(level=4)
+
+    ##########
+    # Create figure.
+    figure = initialize_matplotlib_figure_aspect(
+        aspect=aspect,
+    )
+    # Create axes.
+    axes = matplotlib.pyplot.axes()
+    #figure.subplots_adjust(bottom=0.2) # Does this work?
+    #axes.margins(
+    #    x=1,
+    #    y=1,
+    #    tight=True,
+    #)
+
+    # Plot values as a color grid.
+    # This function represents values acros matrix dimension 0 as vertical rows.
+    # This function represents values across matrix dimension 1 as horizontal
+    # columns.
+    # Diverging color maps: "PRGn", "PRGn_r", "PiYG", "PiYG_r",
+    # Diverging color maps: "PuOr", "PuOr_r",
+    # Diverging color maps: "PuOr", "PuOr_r", "RdBu", "RdBu_r", "BrBG",
+    # Sequential color maps: "Reds", "Reds_r", "Oranges", "Oranges_r",
+    # site: https://montoliu.naukas.com/2021/11/18/color-blindness-purple-and-orange-are-the-solution/
+    image = axes.imshow(
+        matrix_signal,
+        cmap=matplotlib.colormaps["PuOr"], # RdBu_r, PuOr_r
+        vmin=value_minimum,
+        vmax=value_maximum,
+        aspect="auto", # "auto", "equal",
+        origin="upper",
+        # Extent: (left, right, bottom, top)
+        #extent=(-0.5, (matrix.shape[1] - 0.5), (matrix.shape[0] - 0.5), -0.5),
+    )
+
+    # Set titles for axes.
+    if (len(title_ordinate) > 0):
+        axes.set_ylabel(
+            ylabel=title_ordinate,
+            labelpad=30,
+            alpha=1.0,
+            backgroundcolor=colors["white"],
+            color=colors["black"],
+            fontproperties=fonts["properties"][size_title_ordinate]
+        )
+    if (len(title_abscissa) > 0):
+        axes.set_xlabel(
+            xlabel=title_abscissa,
+            labelpad=30,
+            alpha=1.0,
+            backgroundcolor=colors["white"],
+            color=colors["black"],
+            fontproperties=fonts["properties"][size_title_abscissa]
+        )
+    # Set tick parameters for axes.
+    axes.tick_params(
+        axis="both", # "y", "x", or "both"
+        which="both", # "major", "minor", or "both"
+        length=7.5, # 5.0
+        width=5, # 3.5
+        pad=10, # 7.5
+        direction="out",
+        color=colors["black"],
+        labelcolor=colors["black"],
+        top=True,
+        bottom=False,
+        left=True,
+        right=False,
+        labeltop=True,
+        labelbottom=False,
+        labelleft=True,
+        labelright=False,
+    )
+    # Set tick positions and labels on axes.
+    axes.set_yticks(
+        numpy.arange(matrix_signal.shape[0]),
+    )
+    axes.set_yticklabels(
+        labels_ordinate_categories,
+        #minor=False,
+        ha="right", # horizontal alignment
+        va="center", # vertical alignment
+        alpha=1.0,
+        backgroundcolor=colors["white"],
+        color=colors["black"],
+        fontproperties=fonts["properties"][size_label_ordinate]
+    )
+    axes.set_xticks(
+        numpy.arange(matrix_signal.shape[1]),
+    )
+    axes.set_xticklabels(
+        labels_abscissa_categories,
+        #minor=False,
+        rotation=-60,
+        rotation_mode="anchor",
+        ha="left", # horizontal alignment
+        va="top", # vertical alignment
+        alpha=1.0,
+        backgroundcolor=colors["white"],
+        color=colors["black"],
+        fontproperties=fonts["properties"][size_label_abscissa]
+    )
+    axes.tick_params(
+        top=False,
+        labeltop=False,
+        bottom=True,
+        labelbottom=True,
+    )
+    # Keep axes, ticks, and labels, but remove border.
+    for position in ['right', 'top', 'bottom', 'left']:
+        matplotlib.pyplot.gca().spines[position].set_visible(False)
+
+    # Create legend for scale of color grid.
+    if show_scale_bar:
+        bar = axes.figure.colorbar(
+            image,
+            orientation="vertical",
+            ax=axes,
+            location="right",
+            shrink=0.7, # 0.7; factor for dimensions of the Scale Bar.
+        )
+        if (len(title_bar) > 0):
+            bar.ax.set_ylabel(
+                title_bar,
+                rotation=-90,
+                va="bottom",
+                labelpad=5, # 5
+                alpha=1.0,
+                backgroundcolor=colors["white"],
+                color=colors["black"],
+                fontproperties=fonts["properties"][size_title_bar],
+            )
+        bar.ax.tick_params(
+            axis="both",
+            which="both", # major, minor, or both
+            direction="out",
+            length=7.5, # 5.0, 7.5
+            width=3, # 2.5, 5.0
+            color=colors["black"],
+            pad=5, # 5, 7
+            labelsize=fonts["values"][size_label_bar]["size"],
+            labelcolor=colors["black"],
+        )
+
+    # Return figure.
+    return figure
+
+
+
+
+
 
 
 ##########
@@ -2572,7 +2921,10 @@ def plot_bar_stack(
 
 # https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.violinplot.html#matplotlib.pyplot.violinplot
 
-
+# Current applications:
+# 1. RNA sequence gene levels before and after scale adjustment and
+#    normalization
+# review: TCW; 3 October 2024
 def plot_boxes_groups(
     values_groups=None,
     title_ordinate=None,
