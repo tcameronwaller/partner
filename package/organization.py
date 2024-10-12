@@ -1190,7 +1190,7 @@ def filter_table_rows_by_quantile_least_variation_across_columns(
     efficiency. While matrix transformations would be more efficient, they
     would also be more difficult to follow and critique.
 
-    Review: 17 September 2024
+    Review: TCW; 17 September 2024
 
     arguments:
         table (object): Pandas data-frame table of values for observations
@@ -2823,34 +2823,45 @@ def transform_table_quadruple_index_long_to_wide_square(
     return table_wide
 
 
-# Cluster.
+# Cluster columns or rows in a table.
 
 
-def cluster_data_columns(
-    data=None,
+def cluster_table_columns(
+    table=None,
 ):
     """
-    Clusters features on columns by their similarities across instances on
-    rows.
+    Cluster the sequence of a table's columns by similarity in their values
+    across rows.
+
+    Reference:
+    https://docs.scipy.org/doc/scipy/reference/cluster.hierarchy.html
+    https://stackabuse.com/hierarchical-clustering-with-python-and-scikit-
+        learn/
+
+    Review: TCW; 17 September 2024
 
     arguments:
-        data (object): Pandas data frame of values
+        table (object): Pandas data-frame table of floating-point values on
+            continuous interval or ratio scales of measurement
 
     raises:
 
     returns:
-        (object): Pandas data frame of values
+        (object): Pandas data-frame table of values
 
     """
 
-    data = data.copy(deep=True)
-    # Cluster.
-    columns = data.columns.to_numpy()#.tolist()
-    rows = data.index.to_numpy()#.tolist()
-    index_name = data.index.name
-    # Plan to cluster across columns.
+    # Copy information in table.
+    table = table.copy(deep=True)
+    # Extract names of columns and rows in table.
+    #columns = copy.deepcopy(table.columns.to_list())
+    columns = copy.deepcopy(table.columns.to_numpy())
+    rows = copy.deepcopy(table.index.to_numpy())
+    index_name = table.index.name
+
+    # Cluster table's columns.
     # Organize columns across dimension zero.
-    matrix = numpy.transpose(data.to_numpy())
+    matrix = numpy.transpose(table.to_numpy())
     linkage = scipy.cluster.hierarchy.linkage(
         matrix,
         method="average", # "single", "complete", "average"
@@ -2872,46 +2883,57 @@ def cluster_data_columns(
         lambda index: columns[leaves[index]],
         indices
     ))
-    # Organize data.
-    data_cluster = pandas.DataFrame(
+    # Organize table.
+    table_cluster = pandas.DataFrame(
         data=numpy.transpose(matrix_cluster),
         index=rows,
         columns=columns_sort,
     )
-    data_cluster.rename_axis(
+    table_cluster.rename_axis(
         index_name,
         axis="index",
         inplace=True,
     )
     # Return information.
-    return data_cluster
+    return table_cluster
 
 
-def cluster_data_rows(
-    data=None,
+def cluster_table_rows(
+    table=None,
 ):
     """
-    Clusters instances on rows by their similarities across features on
-    columns.
+    Cluster the sequence of a table's rows by similarity in their values
+    across columns.
+
+    Reference:
+    https://docs.scipy.org/doc/scipy/reference/cluster.hierarchy.html
+    https://stackabuse.com/hierarchical-clustering-with-python-and-scikit-
+        learn/
+
+    Review: TCW; 17 September 2024
 
     arguments:
-        data (object): Pandas data frame of values
+        table (object): Pandas data-frame table of floating-point values on
+            continuous interval or ratio scales of measurement
 
     raises:
 
     returns:
-        (object): Pandas data frame of values
+        (object): Pandas data-frame table of values
 
     """
 
-    data = data.copy(deep=True)
-    # Cluster.
-    columns = data.columns.to_numpy()#.tolist()
-    rows = data.index.to_numpy()#.tolist()
-    index_name = data.index.name
-    # Plan to cluster across columns.
+    # Copy information in table.
+    table = table.copy(deep=True)
+    # Extract names of columns and rows in table.
+    #columns = copy.deepcopy(table.columns.to_list())
+    columns = copy.deepcopy(table.columns.to_numpy())
+    rows = copy.deepcopy(table.index.to_numpy())
+    index_name = table.index.name
+
+    # Cluster table's rows.
     # Organize rows across dimension zero.
-    matrix = data.to_numpy()
+    matrix = table.to_numpy()
     linkage = scipy.cluster.hierarchy.linkage(
         matrix,
         method="average", # "single", "complete", "average"
@@ -2933,68 +2955,90 @@ def cluster_data_rows(
         lambda index: rows[leaves[index]],
         indices
     ))
-    # Organize data.
-    data_cluster = pandas.DataFrame(
+    # Organize table.
+    table_cluster = pandas.DataFrame(
         data=matrix_cluster,
         index=rows_sort,
         columns=columns,
     )
-    data_cluster.rename_axis(
+    table_cluster.rename_axis(
         index_name,
         axis="index",
         inplace=True,
     )
     # Return information.
-    return data_cluster
+    return table_cluster
 
 
-def cluster_data_rows_by_group(
+def cluster_table_rows_by_group(
+    table=None,
     group=None,
     index=None,
-    data=None,
 ):
     """
-    Clusters instances on rows by their similarities across features on
-    columns.
+    Cluster the sequence of a table's rows within separate groups by similarity
+    in their values across columns.
 
     arguments:
+        table (object): Pandas data-frame table of floating-point values on
+            continuous interval or ratio scales of measurement
         group (str): name of column to use for groups
         index (str): name of column to use for index during cluster
-        data (object): Pandas data frame of values
 
     raises:
 
     returns:
-        (object): Pandas data frame of values
+        (object): Pandas data-frame table of values
 
     """
 
-    data = data.copy(deep=True)
-    groups = data.groupby(
+    # Copy information in table.
+    table = table.copy(deep=True)
+    # Organize indices in table.
+    table.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
+    table.set_index(
+        [group, index],
+        append=False,
+        drop=True,
+        inplace=True
+    )
+    # Split rows within table by factor columns.
+    groups = table.groupby(
         level=[group],
     )
-    data_collection = pandas.DataFrame()
-    for name, data_group in groups:
-        data_group = data_group.copy(deep=True)
-        data_group.reset_index(
-            level=None,
-            inplace=True
+    # Iterate on groups, apply operations, and collect information from each.
+    table_collection = pandas.DataFrame()
+    for name, table_group in groups:
+        # Copy information in table.
+        table_group = table_group.copy(deep=True)
+        # Organize indices in table.
+        if False:
+            table_group.reset_index(
+                level=None,
+                inplace=True,
+                drop=False, # remove index; do not move to regular columns
+            )
+        # Cluster table's rows.
+        table_cluster = cluster_table_rows(
+            table=table_group,
         )
-        data_group.set_index(
-            [index],
-            append=False,
-            drop=True,
-            inplace=True
-        )
-        data_cluster = cluster_data_rows(
-            data=data_group,
-        )
-        data_collection = pandas.concat(
-            [data_collection, data_cluster],
+        table_collection = pandas.concat(
+            [table_collection, table_cluster],
             ignore_index=False,
         )
+        pass
+    # Organize indices in table.
+    table_collection.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
     # Return information.
-    return data_collection
+    return table_collection
 
 
 # Read and transform tables with multi-level indices.

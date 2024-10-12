@@ -1198,6 +1198,9 @@ def plot_heat_map_few_signal_significance_labels(
 # Current applications:
 # 1. signal intensity for a few genes between samples or groups of samples
 # review: TCW; 3 October 2024
+# TODO: TCW; 11 October 2024
+# TODO: it isn't necessary for the input table to have explicit definitions of
+# the indices... it'd suffice to use column names
 def plot_heat_map_signal_label_features_observations(
     table=None,
     transpose_table=None,
@@ -1821,6 +1824,8 @@ def plot_heatmap_asymmetric(
 # Sort by master variable and cluster by similarities
 # TODO: would this set of functions be more appropriate for the utility module?
 
+# TODO: TCW; 11 October 2024
+# TODO: currently unused or obsolete, but useful for scrap reference?
 def organize_data_master_main_sort_cluster(
     type_master=None,
     sequence=None,
@@ -1910,7 +1915,8 @@ def organize_data_master_main_sort_cluster(
     # Return information.
     return data_sequence
 
-
+# TODO: TCW; 11 October 2024
+# TODO: currently unused or obsolete, but useful for scrap reference?
 def organize_data_master_main(
     data_master=None,
     master=None,
