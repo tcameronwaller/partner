@@ -224,7 +224,7 @@ def translate_identifiers_table_indices_columns_rows(
         table[index_rows_obsolete] = table[index_rows]
         table[index_rows] = table.apply(
             lambda row:
-                determine_translation_name(
+                determine_translation_identifier(
                     source=row[index_rows_obsolete],
                     translations=translations_rows,
                 ),
@@ -3145,7 +3145,8 @@ def cluster_table_columns(
     Cluster the sequence of a table's columns by similarity in their values
     across rows.
 
-    Table must have an explicitly-defined index across rows.
+    Table must have an explicitly defined index across rows to designate that
+    remaining columns are those by which to cluster.
 
     Reference:
     https://docs.scipy.org/doc/scipy/reference/cluster.hierarchy.html
@@ -3219,7 +3220,8 @@ def cluster_table_rows(
     Cluster the sequence of a table's rows by similarity in their values
     across columns.
 
-    Table must have an explicitly-defined index across rows.
+    Table must have an explicitly defined index across rows to designate that
+    remaining columns are those by which to cluster.
 
     Reference:
     https://docs.scipy.org/doc/scipy/reference/cluster.hierarchy.html
@@ -3288,22 +3290,24 @@ def cluster_table_rows(
 
 def cluster_table_rows_by_group(
     table=None,
-    group=None,
-    index=None,
+    index_rows=None,
+    column_group=None,
 ):
     """
     Cluster the sequence of a table's rows within separate groups by similarity
     in their values across columns.
 
-    Table must not have an explicitly-defined index across rows.
+    Original source table must not have an explicitly defined index across
+    rows.
 
-    Review: TCW; 15 October 2024
+    Review: TCW; 16 October 2024
 
     arguments:
         table (object): Pandas data-frame table of floating-point values on
             continuous interval or ratio scales of measurement
-        group (str): name of column to use for groups
-        index (str): name of column to use for index during cluster
+        index_rows (str): name for index across rows, which corresponds to a
+            column in the original source table
+        column_group (str): name of column to use for groups
 
     raises:
 
@@ -3323,57 +3327,40 @@ def cluster_table_rows_by_group(
         drop=True, # remove index; do not move to regular columns
     )
     table.set_index(
-        [group],
+        [index_rows, column_group],
         append=False,
         drop=True,
         inplace=True
     )
     # Split rows within table by factor columns.
     groups = table.groupby(
-        level=group,
+        level=column_group,
     )
     # Iterate on groups, apply operations, and collect information from each.
     table_collection = pandas.DataFrame()
     for name, table_group in groups:
         # Copy information in table.
         table_group = table_group.copy(deep=True)
-        # Organize indices in table.
-        table_group.reset_index(
-            level=None,
-            inplace=True,
-            drop=True, # remove index; do not move to regular columns
-        )
-        table_group.set_index(
-            [index],
-            append=False,
-            drop=True,
-            inplace=True
-        )
         # Cluster table's rows.
         table_cluster = cluster_table_rows(
             table=table_group,
         )
         # Organize indices in table.
+        table_cluster.index = pandas.MultiIndex.from_tuples(
+            table_cluster.index,
+            names=[index_rows, column_group]
+        )
         table_cluster.reset_index(
             level=None,
             inplace=True,
             drop=False, # remove index; do not move to regular columns
         )
-        # Include information about current group.
-        table_cluster[group] = name
         # Collect table for current group.
         table_collection = pandas.concat(
             [table_collection, table_cluster],
-            ignore_index=False,
+            ignore_index=True,
         )
         pass
-    # Organize indices in table.
-    if False:
-        table_collection.reset_index(
-            level=None,
-            inplace=True,
-            drop=False, # remove index; do not move to regular columns
-        )
     # Filter and sort columns within table.
     table_collection = filter_sort_table_columns(
         table=table_collection,
