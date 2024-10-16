@@ -182,7 +182,7 @@ def organize_table_cohort_model_variables_for_regression(
     # z-score standard scale.
     # Standardization introduces missing values if standard deviation is zero.
     if (standard_scale):
-        table = pscale.drive_transform_variables_distribution_scale_z_score(
+        table = pscale.transform_standard_z_score_by_table_columns(
             table=table,
             columns=independence,
             report=report,

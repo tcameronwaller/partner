@@ -114,29 +114,8 @@ import partner.organization as porg
 
 def prepare_data_label_features_groups_cluster_observations(
     table=None,
-
-    index_group_columns=None,
-    index_group_rows=None,
-    fill_missing=None,
-    value_missing_fill=None,
-    constrain_signal_values=None,
-    value_minimum=None,
-    value_maximum=None,
-    show_scale_bar=None,
-    labels_ordinate_categories=None,
-    labels_abscissa_categories=None,
-    title_ordinate=None,
-    title_abscissa=None,
-    title_bar=None,
-    size_title_ordinate=None,
-    size_title_abscissa=None,
-    size_label_ordinate=None,
-    size_label_abscissa=None,
-    size_title_bar=None,
-    size_label_bar=None,
-    aspect=None,
-    fonts=None,
-    colors=None,
+    column_observation=None,
+    column_group=None,
     report=None,
 ):
     """
@@ -173,10 +152,6 @@ def prepare_data_label_features_groups_cluster_observations(
         column_group (str): name of column in table for categorical names that
             correspond to groups of observations in rows with values of signal
             intensity across features in other columns
-
-        aspect (str): aspect ratio for MatPlotLib chart figure
-        fonts (dict<object>): references to definitions of font properties
-        colors (dict<tuple>): references to definitions of color properties
         report (bool): whether to print reports
 
     raises:
@@ -196,17 +171,31 @@ def prepare_data_label_features_groups_cluster_observations(
     ))
     # Extract labels for categorical groups of observations from values in the
     # special column for these categorical groups.
-    groups = copy.deepcopy(table[column_group]).unique().to_list()
+    groups = copy.deepcopy(table[column_group].unique().tolist())
     # Cluster rows in table within groups.
     table_cluster = porg.cluster_table_rows_by_group(
         table=table,
         group=column_group,
         index=column_observation,
     )
+    # Collect information.
+    pail = dict()
+    pail["table_cluster"] = table_cluster
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("module: partner.organization.py")
+        function = "prepare_data_label_features_groups_cluster_observations"
+        print(str("function: " + function + "()"))
+        print("version check: 7")
+        putly.print_terminal_partition(level=5)
+        print(pail["table_cluster"])
+        putly.print_terminal_partition(level=4)
+    # Return information.
+    return pail
 
-
-    pass
-
+# TODO: don't require the plotting function to perform the clustering
+# run the clustering BEFORE passing the table to the plot function
 
 
 

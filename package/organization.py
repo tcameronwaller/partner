@@ -74,7 +74,7 @@ import statsmodels.api
 
 # Custom
 import partner.utility as putly # this import path for subpackage
-
+import partner.scale as pscl
 
 #dir()
 #importlib.reload()
@@ -83,29 +83,30 @@ import partner.utility as putly # this import path for subpackage
 # Functionality
 
 
+##########
 # Indices.
 
 
-def change_names_table_indices_columns_rows(
+def translate_names_table_indices_columns_rows(
     table=None,
-    name_columns_novel=None,
-    name_rows_original=None,
-    name_rows_novel=None,
+    index_columns_product=None,
+    index_rows_source=None,
+    index_rows_product=None,
     report=None,
 ):
     """
-    Change names of indices across columns and rows in a table.
+    Translate names of explicitly named indices across columns and rows in a
+    table.
 
-    The table ought to have special, named indices.
+    The table must have explicitly named indices across columns and rows.
 
-    Review: 2 July 2024
+    Review: TCW; 15 October 2024
 
     arguments:
-        table (object): Pandas data-frame table of values for observations
-            across columns and for features across rows
-        name_columns_novel (str): name of single-level index across columns
-        name_rows_original (str): name of single-level index across rows
-        name_rows_novel (str): name of single-level index across rows
+        table (object): Pandas data-frame table
+        index_columns_product (str): name of single-level index across columns
+        index_rows_source (str): name of single-level index across rows
+        index_rows_product (str): name of single-level index across rows
         report (bool): whether to print reports
 
     raises:
@@ -126,19 +127,19 @@ def change_names_table_indices_columns_rows(
     )
     # Translate names of columns.
     translations = dict()
-    translations[name_rows_original] = name_rows_novel
+    translations[index_rows_source] = index_rows_product
     table_product.rename(
         columns=translations,
         inplace=True,
     )
     table_product.set_index(
-        [name_rows_novel],
+        [index_rows_product],
         append=False,
         drop=True,
         inplace=True,
     )
     table_product.columns.rename(
-        name_columns_novel,
+        index_columns_product,
         inplace=True,
     ) # single-dimensional index
     # Report.
@@ -147,23 +148,113 @@ def change_names_table_indices_columns_rows(
         print("Report:")
         print("partner")
         print("organization")
-        print("change_names_table_indices_columns_rows()")
+        print("translate_names_table_indices_columns_rows()")
         putly.print_terminal_partition(level=4)
-        print("Source, original table:")
+        print("original, source table before translations:")
         print(table_source)
         putly.print_terminal_partition(level=4)
-        print("Product, novel table:")
+        print("novel, product table after translations:")
         print(table_product)
         pass
     # Return information.
     return table_product
 
 
+def translate_identifiers_table_indices_columns_rows(
+    table=None,
+    index_rows=None,
+    translations_columns=None,
+    translations_rows=None,
+    report=None,
+):
+    """
+    Translate names of individual identifiers in a table's indices across
+    columns and rows.
+
+    For versatility and convenience, this table does not have explicitly named
+    indices across columns or rows.
+
+    This function only translates names that are in the argument references.
+
+    Review: TCW; 15 October 2024
+
+    arguments:
+        table (object): Pandas data-frame table
+        index_rows (str): name for index across rows, which corresponds to a
+            column in the original source table
+        translations_columns (dict<str>): translations for names or identifiers
+            of columns
+        translations_rows (dict<str>): translations for names or identifiers
+            of columns
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    # Define subordinate functions for internal use.
+    def determine_translation_identifier(source=None, translations=None):
+        if (source in translations.keys()):
+            product = translations[source]
+        else:
+            product = source
+        return product
+
+    # Copy information in table.
+    table = table.copy(deep=True)
+    # Copy other information.
+    translations_columns = copy.deepcopy(translations_columns)
+    translations_rows = copy.deepcopy(translations_rows)
+
+    # Translate names of columns.
+    #if (len(list(translations_columns.keys())) > 0):
+    if (translations_columns is not None):
+        table.rename(
+            columns=translations_columns,
+            inplace=True,
+        )
+        pass
+
+    # Translate names of rows.
+    if (translations_rows is not None):
+        index_rows_obsolete = str(index_rows + "_obsolete")
+        table[index_rows_obsolete] = table[index_rows]
+        table[index_rows] = table.apply(
+            lambda row:
+                determine_translation_name(
+                    source=row[index_rows_obsolete],
+                    translations=translations_rows,
+                ),
+            axis="columns", # apply function to each row
+        )
+        # Remove unnecessary columns.
+        table.drop(
+            labels=[index_rows_obsolete,],
+            axis="columns",
+            inplace=True
+        )
+        pass
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("module: partner.organization.py")
+        print("function: translate_identifiers_table_indices_columns_rows()")
+        putly.print_terminal_partition(level=5)
+    # Return information.
+    return table
+
+
+
+##########
+# Transfer, Fill.
+
 # Transfer information between tables.
 # This operation differs from a merge or join in that it does not require a
 # one to one match of identifiers.
-
-
 def transfer_table_rows_attributes_reference(
     table_main=None,
     column_main_key=None,
@@ -277,7 +368,86 @@ def transfer_table_rows_attributes_reference(
     return table_main_attribute
 
 
+def determine_fill_table_groups_rows(
+    table=None,
+    column_group=None,
+    index_rows=None,
+    groups_rows=None,
+    report=None,
+):
+    """
+    Determine and fill names of groups to which each row in a table belongs.
 
+    For versatility and convenience, this table does not have explicitly named
+    indices across columns or rows.
+
+    Review; TCW; 15 October 2024
+
+    arguments:
+        table (object): Pandas data-frame table
+        column_group (str): name of new column in product table for names of
+            groups
+        index_rows (str): name for index across rows, which corresponds to a
+            column in the original source table
+        groups_rows (dict<list<str>>): names of groups and identifiers of rows
+            that belong to each of these groups
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    # Define subordinate functions for internal use.
+    def determine_row_group(identifier=None, groups_rows=None):
+        group = ""
+        for key in groups_rows.keys():
+            if identifier in groups_rows[key]:
+                group = key
+                pass
+            pass
+        return group
+
+    # Copy information in table.
+    table = table.copy(deep=True)
+    # Copy other information.
+    groups_rows = copy.deepcopy(groups_rows)
+    columns_source = copy.deepcopy(table.columns.to_list())
+
+    # Determine to which categorical group each sample belongs.
+    table[column_group] = table.apply(
+        lambda row: determine_row_group(
+            identifier=row[index_rows],
+            groups_rows=groups_rows,
+        ),
+        axis="columns", # apply function to each row
+    )
+
+    # Filter and sort columns in table.
+    columns_sequence = copy.deepcopy(columns_source)
+    columns_sequence.remove(index_rows)
+    columns_sequence.insert(0, column_group)
+    columns_sequence.insert(0, index_rows)
+    table = filter_sort_table_columns(
+        table=table,
+        columns_sequence=columns_sequence,
+        report=report,
+    )
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("module: partner.organization.py")
+        print("function: determine_fill_table_groups_rows()")
+        putly.print_terminal_partition(level=5)
+    # Return information.
+    return table
+
+
+
+##########
 # Sort.
 
 
@@ -497,7 +667,10 @@ def filter_sort_table_columns(
     """
     Filters and sorts the columns within a Pandas data-frame table.
 
-    Review: TCW; 18 July 2024
+    Identifiers of columns must only include those that are actually in the
+    table's columns.
+
+    Review: TCW; 15 October 2024
 
     arguments:
         table (object): Pandas data-frame table
@@ -551,6 +724,145 @@ def filter_sort_table_columns(
         putly.print_terminal_partition(level=5)
     # Return information.
     return table_filter_sort
+
+
+def filter_select_table_columns_rows_by_identifiers(
+    table=None,
+    index_rows=None,
+    identifiers_columns=None,
+    identifiers_rows=None,
+    report=None,
+):
+    """
+    Filter and select specific columns and rows from a Pandas data-frame table.
+
+    Review: TCW; 16 October 2024
+
+    arguments:
+        table (object): Pandas data-frame table
+        index_rows (str): name for index across rows, which corresponds to a
+            column in the original source table
+        identifiers_columns (list<str>): identifiers or names of columns to
+            keep
+        identifiers_rows (list<str>): identifiers or names of rows to keep
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    # Copy information in table.
+    table_source = table.copy(deep=True)
+    # Copy other information.
+    identifiers_columns = copy.deepcopy(identifiers_columns)
+    identifiers_rows = copy.deepcopy(identifiers_rows)
+
+    # Filter and sort columns in table.
+    columns_sequence = copy.deepcopy(identifiers_columns)
+    columns_sequence.insert(0, index_rows)
+    table_product = filter_sort_table_columns(
+        table=table_source,
+        columns_sequence=columns_sequence,
+        report=False,
+    )
+
+    # Filter rows in table.
+    table_product = table_product.loc[
+        table_product[index_rows].isin(identifiers_rows), :
+    ].copy(deep=True)
+
+    # Report.
+    if report:
+        count_columns_source = (table_source.shape[1])
+        count_columns_product = (table_product.shape[1])
+        count_rows_source = (table_source.shape[0])
+        count_rows_product = (table_product.shape[0])
+        putly.print_terminal_partition(level=3)
+        print("module: partner.organization.py")
+        print("function: filter_select_table_columns_rows_by_identifiers()")
+        putly.print_terminal_partition(level=5)
+        print("source table")
+        print("count of columns: " + str(count_columns_source))
+        print("count of rows: " + str(count_rows_source))
+        putly.print_terminal_partition(level=5)
+        print("product table")
+        print("count of columns: " + str(count_columns_product))
+        print("count of rows: " + str(count_rows_product))
+        putly.print_terminal_partition(level=5)
+    # Return information.
+    return table_product
+
+
+def filter_extract_table_row_identifiers_by_columns_categories(
+    table=None,
+    column_identifier=None,
+    name=None,
+    columns_categories=None,
+    report=None,
+):
+    """
+    Filters rows in a table to extract identifiers for a set of rows
+    corresponding to selection by specific categorical values of columns for
+    features.
+
+    This function preserves the original sequence of rows from the source
+    table.
+
+    arguments:
+        table (object): Pandas data-frame table
+        column_identifier (str): name of column in table for extraction of
+            identifiers
+        name (str): name corresponding to selection criteria
+        columns_categories (dict<list<str>>): specific columns for features and
+            their categorical values by which to filter rows in table
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (list<str>): identifiers from selection of rows from table
+
+    """
+
+    # Copy information in table.
+    table = table.copy(deep=True)
+    # Copy other information.
+    columns_categories = copy.deepcopy(columns_categories)
+    # Filter rows in table by specific criteria.
+    # Iterate on columns for features and their categorical values for
+    # selection of rows from table.
+    table_selection = table.copy(deep=True)
+    if (columns_categories is not None):
+        for column in columns_categories.keys():
+            table_selection = table_selection.loc[(
+                table_selection[column].isin(columns_categories[column])
+            ), :].copy(deep=True)
+            pass
+        pass
+    # Extract identifiers from selection of rows from table.
+    identifiers = copy.deepcopy(
+        table_selection[column_identifier].unique().tolist()
+    )
+    # Report.
+    if report:
+        count = len(identifiers)
+        putly.print_terminal_partition(level=3)
+        print("module: exercise.transcriptomics.organize_signal.py")
+        function = (
+            "filter_extract_table_row_identifiers_by_columns_categories" +
+            "()"
+        )
+        print(str("function: " + function))
+        putly.print_terminal_partition(level=5)
+        print(str("name: " + name))
+        print(str("count: " + str(count)))
+        putly.print_terminal_partition(level=5)
+        pass
+    # Return information.
+    return identifiers
 
 
 def test_extract_organize_values_from_series():
@@ -2833,6 +3145,8 @@ def cluster_table_columns(
     Cluster the sequence of a table's columns by similarity in their values
     across rows.
 
+    Table must have an explicitly-defined index across rows.
+
     Reference:
     https://docs.scipy.org/doc/scipy/reference/cluster.hierarchy.html
     https://stackabuse.com/hierarchical-clustering-with-python-and-scikit-
@@ -2904,6 +3218,8 @@ def cluster_table_rows(
     """
     Cluster the sequence of a table's rows by similarity in their values
     across columns.
+
+    Table must have an explicitly-defined index across rows.
 
     Reference:
     https://docs.scipy.org/doc/scipy/reference/cluster.hierarchy.html
@@ -2979,6 +3295,10 @@ def cluster_table_rows_by_group(
     Cluster the sequence of a table's rows within separate groups by similarity
     in their values across columns.
 
+    Table must not have an explicitly-defined index across rows.
+
+    Review: TCW; 15 October 2024
+
     arguments:
         table (object): Pandas data-frame table of floating-point values on
             continuous interval or ratio scales of measurement
@@ -2994,21 +3314,23 @@ def cluster_table_rows_by_group(
 
     # Copy information in table.
     table = table.copy(deep=True)
+    # Copy other information.
+    columns_sequence = copy.deepcopy(table.columns.to_list())
     # Organize indices in table.
     table.reset_index(
         level=None,
         inplace=True,
-        drop=False, # remove index; do not move to regular columns
+        drop=True, # remove index; do not move to regular columns
     )
     table.set_index(
-        [group, index],
+        [group],
         append=False,
         drop=True,
         inplace=True
     )
     # Split rows within table by factor columns.
     groups = table.groupby(
-        level=[group],
+        level=group,
     )
     # Iterate on groups, apply operations, and collect information from each.
     table_collection = pandas.DataFrame()
@@ -3016,26 +3338,47 @@ def cluster_table_rows_by_group(
         # Copy information in table.
         table_group = table_group.copy(deep=True)
         # Organize indices in table.
-        if False:
-            table_group.reset_index(
-                level=None,
-                inplace=True,
-                drop=False, # remove index; do not move to regular columns
-            )
+        table_group.reset_index(
+            level=None,
+            inplace=True,
+            drop=True, # remove index; do not move to regular columns
+        )
+        table_group.set_index(
+            [index],
+            append=False,
+            drop=True,
+            inplace=True
+        )
         # Cluster table's rows.
         table_cluster = cluster_table_rows(
             table=table_group,
         )
+        # Organize indices in table.
+        table_cluster.reset_index(
+            level=None,
+            inplace=True,
+            drop=False, # remove index; do not move to regular columns
+        )
+        # Include information about current group.
+        table_cluster[group] = name
+        # Collect table for current group.
         table_collection = pandas.concat(
             [table_collection, table_cluster],
             ignore_index=False,
         )
         pass
     # Organize indices in table.
-    table_collection.reset_index(
-        level=None,
-        inplace=True,
-        drop=False, # remove index; do not move to regular columns
+    if False:
+        table_collection.reset_index(
+            level=None,
+            inplace=True,
+            drop=False, # remove index; do not move to regular columns
+        )
+    # Filter and sort columns within table.
+    table_collection = filter_sort_table_columns(
+        table=table_collection,
+        columns_sequence=columns_sequence,
+        report=False,
     )
     # Return information.
     return table_collection

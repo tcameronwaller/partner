@@ -2603,6 +2603,65 @@ def combine_unique_elements_pairwise_order(
     return pairs
 
 
+def parse_extract_text_keys_values_semicolon_colon_comma(
+    text=None,
+):
+    """
+    Defines the types of variables for columns in a table.
+
+    Format of source text (name: "text_source")
+    Format of source text is a character string with delimiter semicolon ";"
+    between features, delimiter colon ":" between features and their values,
+    and delimiter comma "," between values of each feature.
+    ----------
+    "feature_a:value_a1,value_a2,value_a3;feature_b:value_b1,value_b2,value_b3"
+    ----------
+
+    Review: 16 October 2024
+
+    arguments:
+        text_source (str): flat text with delimiters in specific format for
+            rules of parse
+
+    raises:
+
+    returns:
+        (dict<list<str>>): collection of features and their values
+
+    """
+
+    # Organize information.
+    text = str(text).strip()
+    #features = list()
+    # Parse and extract information.
+    if ((text != "none") and (text != "") and (len(text) > 0)):
+        pail_parse = dict()
+        for part in text.split(";"):
+            part_split = part.split(":")
+            part_feature = str(part_split[0])
+            part_values = str(part_split[1]).split(",")
+            pail_parse[part_feature] = part_values
+            #features.append(part_feature)
+            pass
+        #features.extend(list(pail.keys()))
+        pass
+    else:
+        pail_parse = None
+        pass
+    # Collect unique names of features.
+    #features_unique = putly.collect_unique_elements(
+    #    elements=features,
+    #)
+    # Collect information.
+    #pail_return = dict()
+    #pail_return["parse"] = pail_parse
+    #pail_return["features"] = features
+    # Return information.
+    return pail_parse
+
+
+
+
 ##################################################
 ##########
 # NumPy and Pandas

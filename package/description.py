@@ -69,6 +69,8 @@ import statsmodels.api
 
 # Custom
 import partner.utility as putly # this import path for subpackage
+import partner.organization as porg # this import path for subpackage
+import partner.scale as pscl
 
 #dir()
 #importlib.reload()
@@ -1268,6 +1270,347 @@ def report_table_range_variables(
     pass
 
 
+##########
+# Extract and describe signal intensity values for a selection of
+# features and within groups of observations
+
+
+def extract_describe_signals_for_features_in_observations_groups(
+    table=None,
+    index_features=None,
+    index_observations=None,
+    features=None,
+    groups_observations=None,
+    translations_features=None,
+    translations_observations=None,
+    report=None,
+):
+    """
+    Extract and describe values of signal intensity for a selection of features
+    and within groups of observations.
+
+    Any translations of identifiers or names of features and observations occur
+    after the selection of features and observations. Hence identifiers or
+    names for selection of features and observations must match those in the
+    original source table.
+
+    Each observation must only belong to a single group. That is, the groups of
+    observations must be exclusive.
+
+    By intentional design, this function does not apply any transformation of
+    scale or normalization of distribution to the values of signal intensity.
+
+    Format of source table (name: "table_source")
+    Format of source table is in wide format with floating-point values of
+    signal intensities corresponding to features across rows and distinct
+    observations across columns. A special column provides names or values of
+    categorical groups of observations. For versatility, this table does not
+    have explicitly named indices across columns or rows.
+    ----------
+    feature     observation_1 observation_2 observation_3 observation_4 ...
+    feature_1   0.001         0.001         0.001         0.001         ...
+    feature_2   0.001         0.001         0.001         0.001         ...
+    feature_3   0.001         0.001         0.001         0.001         ...
+    feature_4   0.001         0.001         0.001         0.001         ...
+    feature_5   0.001         0.001         0.001         0.001         ...
+    ----------
+
+    Format of product table 1 (name: "table_product_1")
+    Format of product table 1 is in wide format with floating-point values of
+    signal intensities corresponding to features across rows and distinct
+    observations across columns. A special column provides names or values of
+    categorical groups of observations. For versatility, this table does not
+    have explicitly named indices across columns or rows. This novel product
+    table shares its format with the original source table. The difference is
+    that this novel product table only includes a specific selection of
+    features and observations from the original source table.
+    ----------
+    feature     observation_1 observation_2 observation_3 observation_4 ...
+    feature_1   0.001         0.001         0.001         0.001         ...
+    feature_2   0.001         0.001         0.001         0.001         ...
+    feature_3   0.001         0.001         0.001         0.001         ...
+    feature_4   0.001         0.001         0.001         0.001         ...
+    feature_5   0.001         0.001         0.001         0.001         ...
+    ----------
+
+    Format of product table 2 (name: "table_product_2")
+    Format of product table 2 is in wide format with floating-point values of
+    signal intensities corresponding to features across columns and distinct
+    observations across rows. A special column gives identifiers corresponding
+    to each observation across rows. Another special column provides names
+    of categorical groups of observations. For versatility, this table does not
+    have explicitly named indices across columns or rows.
+    ----------
+    observation     group   feature_1 feature_2 feature_3 feature_4 feature_5
+    observation_1   group_1 0.001     0.001     0.001     0.001     0.001
+    observation_2   group_1 0.001     0.001     0.001     0.001     0.001
+    observation_3   group_2 0.001     0.001     0.001     0.001     0.001
+    observation_4   group_2 0.001     0.001     0.001     0.001     0.001
+    observation_5   group_3 0.001     0.001     0.001     0.001     0.001
+    ----------
+
+    Format of product table 3
+    Format of product table 3 is in partial long format with floating-point
+    values of statistics corresponding to type of descriptive statistic across
+    columns and features and groups across rows.
+    ----------
+    feature   group   mean standard_error standard_deviation median interqua...
+    feature_1 group_1 0.01 0.001          0.001              0.015  0.5
+    feature_1 group_2 0.01 0.001          0.001              0.015  0.5
+    feature_1 group_3 0.01 0.001          0.001              0.015  0.5
+    feature_1 group_4 0.01 0.001          0.001              0.015  0.5
+    feature_2 group_1 0.01 0.001          0.001              0.015  0.5
+    feature_2 group_2 0.01 0.001          0.001              0.015  0.5
+    feature_2 group_3 0.01 0.001          0.001              0.015  0.5
+    feature_2 group_4 0.01 0.001          0.001              0.015  0.5
+    ----------
+
+    Format of product table 4
+    Format of product table 4 is in partial long format with floating-point
+    values of statistics corresponding to type of descriptive statistic across
+    columns and features and groups across rows. This novel product table
+    shares its format with product table 3. The difference between product
+    table 3 and product table 4 is that before the calculation of descriptive
+    statistics for product table 4, there is standardization by z score of
+    the values of signal intensity for each feature across all relevant
+    observations. This standardization by z score gives the original values of
+    signal intensity for each feature a mean of zero and standard deviation of
+    one. This standardization simplifies the scale and distribution of values
+    for visual representation on charts, especially heatmaps.
+    ----------
+    feature   group   mean standard_error standard_deviation median interqua...
+    feature_1 group_1 0.01 0.001          0.001              0.015  0.5
+    feature_1 group_2 0.01 0.001          0.001              0.015  0.5
+    feature_1 group_3 0.01 0.001          0.001              0.015  0.5
+    feature_1 group_4 0.01 0.001          0.001              0.015  0.5
+    feature_2 group_1 0.01 0.001          0.001              0.015  0.5
+    feature_2 group_2 0.01 0.001          0.001              0.015  0.5
+    feature_2 group_3 0.01 0.001          0.001              0.015  0.5
+    feature_2 group_4 0.01 0.001          0.001              0.015  0.5
+    ----------
+
+    Format of product table 5
+    Format of product table 5 is in wide format with floating-point values of
+    a single, specific type of descriptive statistics (usually either mean or
+    median) corresponding to groups of observations across columns and features
+    across rows. Product table 5 is a derivation from product table 4.
+    ----------
+    feature   group_1 group_2 group_3 group_4
+    feature_1 0.01    0.001   0.001   0.015
+    feature_2 0.01    0.001   0.001   0.015
+    feature_3 0.01    0.001   0.001   0.015
+    feature_4 0.01    0.001   0.001   0.015
+    feature_5 0.01    0.001   0.001   0.015
+    ----------
+
+    Review: 16 October 2024
+
+    arguments:
+        table (object): Pandas data-frame table of values of signal intensity
+            corresponding to features across rows and observations across
+            columns
+        index_features (str): name for index corresponding to features, which
+            is a column in the original source table
+        index_observations (str): name for index corresponding to observations,
+            is not a column in the original source table but will be in novel
+            product table 2
+        features (list<str>): identifiers of features for which to filter
+            and describe values of signal intensity across observations
+        groups_observations (dict<list<str>>): names of groups and identifiers
+            of observations that belong to each of these groups
+        translations_features (dict<str>): translations for names or
+            identifiers of features
+        translations_observations (dict<str>): translations for names or
+            identifiers of observations
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+
+    """
+
+    ##########
+    # 1. Organize information.
+    # Copy information in table.
+    table_source = table.copy(deep=True)
+    # Copy other information.
+    features = copy.deepcopy(features)
+    groups_observations = copy.deepcopy(groups_observations)
+    translations_features = copy.deepcopy(translations_features)
+    translations_observations = copy.deepcopy(translations_observations)
+
+    ##########
+    # 2. Prepare source information.
+    # Ensure that all features are in the source table.
+    features_all = copy.deepcopy(
+        table_source[index_features].unique().tolist()
+    )
+    features_available = list(filter(
+        lambda feature: (feature in features_all),
+        features
+    ))
+    # Ensure that all observations are in the source table.
+    observations_all = copy.deepcopy(table_source.columns.to_list())
+    observations_request = list()
+    for group in groups_observations.keys():
+        group_observations = copy.deepcopy(groups_observations[group])
+        observations_request.extend(group_observations)
+        pass
+    observations_request_unique = putly.collect_unique_elements(
+        elements=observations_request,
+    )
+    observations_available = list(filter(
+        lambda observation: (observation in observations_all),
+        observations_request_unique
+    ))
+
+    ##########
+    # 3. Prepare product table 1.
+    # Filter specific features and observations from table.
+    table_selection = porg.filter_select_table_columns_rows_by_identifiers(
+        table=table_source,
+        index_rows=index_features,
+        identifiers_columns=observations_available,
+        identifiers_rows=features_available,
+        report=False,
+    )
+    # Translate names of features and observations.
+    table_product_1 = porg.translate_identifiers_table_indices_columns_rows(
+        table=table_selection,
+        index_rows=index_features,
+        translations_columns=translations_observations,
+        translations_rows=translations_features,
+        report=False,
+    )
+
+    ##########
+    # 4. Prepare product table 2.
+    # Copy information in table.
+    table_transpose_group = table_selection.copy(deep=True)
+    # Organize indices in table.
+    table_transpose_group.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    table_transpose_group.set_index(
+        index_features,
+        append=False,
+        drop=True,
+        inplace=True
+    )
+    table_transpose_group.columns.rename(
+        index_observations,
+        inplace=True,
+    ) # single-dimensional index
+    # Transpose table.
+    table_transpose_group = table_transpose_group.transpose(copy=True)
+    # Organize indices in table.
+    table_transpose_group.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
+    table_transpose_group.columns.rename(
+        None,
+        inplace=True,
+    ) # single-dimensional index
+    # Determine and fill groups of observations.
+    table_transpose_group = porg.determine_fill_table_groups_rows(
+        table=table_transpose_group,
+        column_group="group",
+        index_rows=index_observations,
+        groups_rows=groups_observations,
+        report=False,
+    )
+    # Translate names of features and observations.
+    table_product_2 = porg.translate_identifiers_table_indices_columns_rows(
+        table=table_transpose_group,
+        index_rows=index_observations,
+        translations_columns=translations_features,
+        translations_rows=translations_observations,
+        report=False,
+    )
+
+    ##########
+    # 5. Prepare product table 3.
+    # Calculate descriptive statistics for each feature across observations.
+    table_product_3 = describe_table_features_by_groups(
+        table=table_transpose_group,
+        column_group="group",
+        columns_features=features_available,
+        report=False,
+    )
+
+    ##########
+    # 6. Prepare product table 4.
+    # Calculate z scores of values for each feature across observations to
+    # standardize their scales and distributions.
+    table_transpose_group_z = pscl.transform_standard_z_score_by_table_columns(
+        table=table_transpose_group,
+        columns=features_available,
+        report=False,
+    )
+    table_product_4 = describe_table_features_by_groups(
+        table=table_transpose_group_z,
+        column_group="group",
+        columns_features=features_available,
+        report=False,
+    )
+
+    ##########
+    # 7. Prepare product table 5.
+    # Select relevant statistic.
+    statistic = "mean"
+    # Copy information in table.
+    table_z_long = table_product_4.copy(deep=True)
+    # Organize indices in table.
+    table_z_long.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    table_product_5 = table_z_long.pivot(
+        columns=["group",],
+        index="feature",
+        values=statistic,
+    )
+    # Organize indices in table.
+    table_product_5.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
+    table_product_5.columns.rename(
+        None,
+        inplace=True,
+    ) # single-dimensional index
+
+    # Collect information.
+    pail = dict()
+    pail["table_1"] = table_product_1
+    pail["table_2"] = table_product_2
+    pail["table_3"] = table_product_3
+    pail["table_4"] = table_product_4
+    pail["table_5"] = table_product_5
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("module: partner.description.py")
+        function = str(
+            "extract_describe_signals_for_features_in_observations_groups" +
+            "()"
+        )
+        print("function: " + function)
+        putly.print_terminal_partition(level=4)
+
+    # Return information.
+    return pail
+
+
+
 
 ##########
 # Split and apply operation or transformation to groups within table
@@ -1356,6 +1699,163 @@ def template_split_apply_table_groups(
         pass
     # Return information.
     return table_collection
+
+
+def describe_table_features_by_groups(
+    table=None,
+    column_group=None,
+    columns_features=None,
+    report=None,
+):
+    """
+    Describe values corresponding to columns for features within groups of rows
+    for observations.
+
+    Format of source table is in wide format with floating-point values of
+    signal intensities corresponding to features across columns and distinct
+    observations across rows. A special column gives identifiers corresponding
+    to each observation across rows. Another special column provides names
+    of categorical groups of observations. For versatility, this table does not
+    have explicitly named indices across columns or rows. Values of signal
+    intensities are continuous on interval or ratio scales of measurement.
+    ----------
+    observation     group   feature_1 feature_2 feature_3 feature_4 feature_5
+    observation_1   group_1 0.001     0.001     0.001     0.001     0.001
+    observation_2   group_1 0.001     0.001     0.001     0.001     0.001
+    observation_3   group_2 0.001     0.001     0.001     0.001     0.001
+    observation_4   group_2 0.001     0.001     0.001     0.001     0.001
+    observation_5   group_3 0.001     0.001     0.001     0.001     0.001
+    ----------
+
+    Review; TCW; 15 October 2024
+
+    arguments:
+        table (object): Pandas data-frame table
+        column_group (str): name of column in source table for groups of
+            observations
+        columns_features (list<str>): names of columns in source table for
+            features
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    # Copy information in table.
+    table_source = table.copy(deep=True)
+    # Copy other information.
+    columns_features = copy.deepcopy(columns_features)
+
+    # Organize indices in table.
+    table_source.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    table_source.set_index(
+        column_group,
+        append=False,
+        drop=True,
+        inplace=True
+    )
+    # Split rows within table by factor columns.
+    groups = table_source.groupby(
+        level=column_group,
+    )
+
+    # Collect records of information, which will become rows in table.
+    records = list()
+    # Iterate on features, apply operations, and collect information.
+    for feature in columns_features:
+        # Iterate on groups, apply operations, and collect information.
+        for group, table_group in groups:
+            # Copy information in table.
+            table_group = table_group.copy(deep=True)
+            # Organize indices in table.
+            table_group.reset_index(
+                level=None,
+                inplace=True,
+                drop=True, # remove index; do not move to regular columns
+            )
+            # Extract and organize information from series.
+            values_raw = table_group[feature].dropna().to_numpy(
+                dtype="float64",
+                na_value=numpy.nan,
+                copy=True,
+            )
+            values_available = numpy.copy(values_raw[~numpy.isnan(values_raw)])
+            # Collect information.
+            record = dict()
+            record["feature"] = feature
+            record["group"] = group
+            # Determine mean, median, standard deviation, and standard error of
+            # values in array.
+            record["mean"] = numpy.nanmean(values_available)
+            record["standard_error"] = scipy.stats.sem(
+                values_available,
+                ddof=1, # divisor is (n - 1) for sample standard deviation
+                nan_policy="omit", # ignore missing values in calculation
+            )
+            record["standard_deviation"] = numpy.nanstd(
+                values_available,
+                ddof=1, # divisor is (n - 1) for sample standard deviation
+            )
+            record["median"] = numpy.nanmedian(values_available)
+            record["interquartile"] = scipy.stats.iqr(
+                values_available,
+                rng=(25, 75),
+                nan_policy="omit", # ignore missing values in calculation.
+            )
+            record["minimum"] = numpy.nanmin(values_available)
+            record["maximum"] = numpy.nanmax(values_available)
+            pail_95 = calculate_confidence_interval_range(
+                confidence=0.95,
+                standard_error=record["standard_error"],
+                estimate=record["mean"],
+            )
+            record["range_95_low"] = pail_95["minimum"]
+            record["range_95_high"] = pail_95["maximum"]
+            # Collect information.
+            records.append(record)
+            pass
+        pass
+    # Organize information in a table.
+    table_product = pandas.DataFrame(data=records)
+    # Specify sequence of columns within table.
+    columns_sequence = [
+        "feature",
+        "group",
+        "mean",
+        "standard_error",
+        "standard_deviation",
+        "median",
+        "interquartile",
+        "minimum",
+        "maximum",
+        "range_95_low",
+        "range_95_high",
+    ]
+    # Filter and sort columns within table.
+    table_product = porg.filter_sort_table_columns(
+        table=table_product,
+        columns_sequence=columns_sequence,
+        report=False,
+    )
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("module: partner.description.py")
+        function = str(
+            "describe_table_features_by_groups" +
+            "()"
+        )
+        print("function: " + function)
+        putly.print_terminal_partition(level=4)
+    # Return information.
+    return table_product
 
 
 

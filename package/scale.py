@@ -188,18 +188,21 @@ def transform_standard_z_score_by_table_rows(
     report=None,
 ):
     """
-    Transform values to z-scores to standardize their distribution within each
-    separate row in a table.
+    Transform values to z-scores to standardize their scales and distributions
+    within each separate row of a table.
 
-    The mean of values across each row will be zero (mean = 0).
-    The standard deviation of values across each row will be one (standard
+    The mean of values in each row will be zero (mean = 0).
+    The standard deviation of values in each row will be one (standard
     deviation = 1).
 
-    Review: TCW; 2 October 2024
+    If the table has any columns that do not correspond to values for
+    transformation, then these columns must be explicitly defined as an index.
+
+    Review: TCW; 16 October 2024
 
     arguments:
-        table (object): Pandas data-frame table of values on continuous scale
-            with explicit indices across table's columns and rows
+        table (object): Pandas data-frame table of values on continuous ratio
+            or interval scale of measurement
         report (bool): whether to print reports
 
     raises:
@@ -213,7 +216,8 @@ def transform_standard_z_score_by_table_rows(
     table = table.copy(deep=True)
     table_scale = table.copy(deep=True)
 
-    # Calculate the standard z-score of values within each row in table.
+    # Calculate the standard z-score of values in each row of table.
+    # This method inserts missing values if the standard deviation is zero.
     table_scale = table_scale.transform(
         lambda row: scipy.stats.zscore(
             row.to_numpy(
@@ -246,14 +250,14 @@ def transform_standard_z_score_by_table_rows(
             axis="columns", # apply function to each row
         )
         print("mean:")
-        print(table_mean.iloc[0:25])
+        print(table_mean.iloc[0:10])
         putly.print_terminal_partition(level=5)
         table_deviation = table_report.aggregate(
             lambda series: series.std(),
             axis="columns", # apply function to each row
         )
         print("standard deviation:")
-        print(table_deviation.iloc[0:25])
+        print(table_deviation.iloc[0:10])
         putly.print_terminal_partition(level=4)
         print("... summary statistics after standardization ...")
         table_mean = table_scale_report.aggregate(
@@ -261,21 +265,129 @@ def transform_standard_z_score_by_table_rows(
             axis="columns", # apply function to each row
         )
         print("mean:")
-        print(table_mean.iloc[0:25])
+        print(table_mean.iloc[0:10])
         putly.print_terminal_partition(level=5)
         table_deviation = table_scale_report.aggregate(
             lambda series: series.std(),
             axis="columns", # apply function to each row
         )
         print("standard deviation:")
-        print(table_deviation.iloc[0:25])
+        print(table_deviation.iloc[0:10])
     # Return information.
     return table_scale
 
 
-# def transform standard_z_score_by_table_columns() <-- follow example of simplified function for rows
+def transform_standard_z_score_by_table_columns(
+    table=None,
+    columns=None,
+    report=None,
+):
+    """
+    Transform values to z-scores to standardize their scales and distributions
+    within each separate column of a table.
+
+    The mean of values in each column will be zero (mean = 0).
+    The standard deviation of values in each column will be one (standard
+    deviation = 1).
+
+    This function preserves the names and sequence of columns from the original
+    source table.
+
+    Review: TCW; 16 October 2024
+
+    arguments:
+        table (object): Pandas data-frame table of values on continuous ratio
+            or interval scale of measurement
+        columns (list<str>): names of columns in table for which to apply the
+            transformation
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table of values
+
+    """
+
+    # Copy information in table.
+    table = table.copy(deep=True)
+    table_scale = table.copy(deep=True)
+    # Copy other information.
+    columns = copy.deepcopy(columns)
+
+    # Filter columns by whether they are in the table.
+    columns_relevant = list(filter(
+        lambda column: (str(column) in table.columns.to_list()),
+        columns
+    ))
+
+    # Calculate the standard z-score of values in each column of table.
+    # This method inserts missing values if the standard deviation is zero.
+    for column in columns_relevant:
+        table_scale[column] = scipy.stats.zscore(
+            table_scale[column].to_numpy(
+                    dtype="float64",
+                    na_value=numpy.nan,
+                    copy=True,
+            ),
+            axis=0,
+            ddof=1, # divisor is (n - 1) for sample standard deviation
+            nan_policy="omit", # ignore missing values in calculation
+        )
+        pass
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=2)
+        print("module: partner.scale.py")
+        function = (
+            "transform_standard_z_score_by_table_columns()"
+        )
+        print(str("function: " + function))
+        putly.print_terminal_partition(level=3)
+        table_report = table.copy(deep=True)
+        table_report = table_report.loc[
+            :, table_report.columns.isin(columns_relevant)
+        ]
+        table_scale_report = table_scale.copy(deep=True)
+        table_scale_report = table_scale_report.loc[
+            :, table_scale_report.columns.isin(columns_relevant)
+        ]
+        print("... summary statistics before standardization ...")
+        table_mean = table_report.aggregate(
+            lambda series: series.mean(),
+            axis="index", # apply function to each column
+        )
+        print("mean:")
+        print(table_mean.iloc[0:10])
+        putly.print_terminal_partition(level=5)
+        table_deviation = table_report.aggregate(
+            lambda series: series.std(),
+            axis="index", # apply function to each column
+        )
+        print("standard deviation:")
+        print(table_deviation.iloc[0:10])
+        putly.print_terminal_partition(level=4)
+        print("... summary statistics after standardization ...")
+        table_mean = table_scale_report.aggregate(
+            lambda series: series.mean(),
+            axis="index", # apply function to each column
+        )
+        print("mean:")
+        print(table_mean.iloc[0:10])
+        putly.print_terminal_partition(level=5)
+        table_deviation = table_scale_report.aggregate(
+            lambda series: series.std(),
+            axis="index", # apply function to each column
+        )
+        print("standard deviation:")
+        print(table_deviation.iloc[0:10])
+        pass
+    # Return information.
+    return table_scale
 
 
+# obsolete???
 def transform_values_distribution_scale_standard_z_score(
     values_array=None,
 ):
@@ -312,111 +424,6 @@ def transform_values_distribution_scale_standard_z_score(
     )
     # Return information.
     return values_z_array
-
-
-def drive_transform_variables_distribution_scale_z_score(
-    table=None,
-    columns=None,
-    report=None,
-):
-    """
-    Transforms distribution and scale of variables' values by Standard Z Score.
-
-    The mean of each variable's values will be zero (mean = 0).
-    The standard deviation of each variable's values will be one (standard
-    deviation = 1).
-
-    This function does not modify the names of the columns for the original
-    variables.
-
-    Review: 24 September 2024
-
-    arguments:
-        table (object): Pandas data frame of variables across columns and
-            samples across rows
-        columns (list<str>): names of table's columns for which to standardize
-            the scale of values
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (object): Pandas data frame of variables (features) across columns and
-            samples (cases) across rows
-
-    """
-
-    # Copy information in table.
-    table = table.copy(deep=True)
-    table_scale = table.copy(deep=True)
-    # Copy other information.
-    columns = copy.deepcopy(columns)
-
-    # Filter columns by whether they are in the table.
-    columns_relevant = list(filter(
-        lambda column: (str(column) in table.columns.to_list()),
-        columns
-    ))
-    # Calculate standard scores by column.
-    for column in columns_relevant:
-        table_scale[column] = (
-            transform_values_distribution_scale_standard_z_score(
-                values_array=table_scale[column].to_numpy(
-                    dtype="float64",
-                    na_value=numpy.nan,
-                    copy=True,
-                ),
-        ))
-        pass
-    # Report.
-    if report:
-        putly.print_terminal_partition(level=2)
-        print("module: partner.scale.py")
-        name_function = (
-            "drive_transform_variables_distribution_scale_z_score()"
-        )
-        print(str("function: " + name_function))
-
-        putly.print_terminal_partition(level=3)
-        table_report = table.copy(deep=True)
-        table_report = table_report.loc[
-            :, table_report.columns.isin(columns_relevant)
-        ]
-        table_scale_report = table_scale.copy(deep=True)
-        table_scale_report = table_scale_report.loc[
-            :, table_scale_report.columns.isin(columns_relevant)
-        ]
-        print("... summary statistics before standardization ...")
-        table_mean = table_report.aggregate(
-            lambda series: series.mean(),
-            axis="index", # apply function to each column
-        )
-        print("mean:")
-        print(table_mean.iloc[0:25])
-        putly.print_terminal_partition(level=5)
-        table_deviation = table_report.aggregate(
-            lambda series: series.std(),
-            axis="index", # apply function to each column
-        )
-        print("standard deviation:")
-        print(table_deviation.iloc[0:25])
-        putly.print_terminal_partition(level=4)
-        print("... summary statistics after standardization ...")
-        table_mean = table_scale_report.aggregate(
-            lambda series: series.mean(),
-            axis="index", # apply function to each column
-        )
-        print("mean:")
-        print(table_mean.iloc[0:25])
-        putly.print_terminal_partition(level=5)
-        table_deviation = table_scale_report.aggregate(
-            lambda series: series.std(),
-            axis="index", # apply function to each column
-        )
-        print("standard deviation:")
-        print(table_deviation.iloc[0:25])
-    # Return information.
-    return table_scale
 
 
 def calculate_p_value_from_z_statistic(

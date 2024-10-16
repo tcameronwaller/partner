@@ -6,8 +6,8 @@
 ###############################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 17 July 2024
-# Date, last execution or modification: 19 July 2024
-# Review: TCW; 19 July 2024
+# Date, last execution or modification: 14 October 2024
+# Review: TCW; 14 October 2024
 ###############################################################################
 # Note
 
@@ -49,6 +49,7 @@ path_directory_paths="./Downloads/paths_process_local"
 path_directory_process=$(<"$path_directory_paths/path_directory_process_local.txt")
 path_directory_dock="$path_directory_process/dock"
 #path_directory_data="$path_directory_dock/in_data" # restore script does not modify "in_data" for efficiency
+path_directory_demonstration="$path_directory_dock/in_demonstration"
 path_directory_parameters="$path_directory_dock/in_parameters"
 path_directory_parameters_private_source=$(<"$path_directory_paths/path_parameters_private_${project_main}.txt")
 path_directory_parameters_private="$path_directory_dock/in_parameters_private"
@@ -61,19 +62,21 @@ path_directory_package_partner_product="$path_directory_package/partner"
 path_directory_package_project_main_product="$path_directory_package/${project_main}"
 
 # Initialize directories.
-if [ -d $path_directory_parameters ] || [ -d $path_directory_package ] || [ -d $path_directory_parameters_private ] ; then
+if [ -d $path_directory_demonstration ] || [ -d $path_directory_parameters ] || [ -d $path_directory_parameters_private ] || [ -d $path_directory_package ] ; then
   # Remove previous versions of code from temporary location for execution.
+  rm -rf $path_directory_demonstration
   rm -rf $path_directory_parameters
   rm -rf $path_directory_parameters_private
   rm -rf $path_directory_package
 fi
 
-if [ ! -d $path_directory_process ] || [ ! -d $path_directory_package ] || [ ! -d $path_directory_dock ] || [ ! -d $path_directory_parameters ] || [ ! -d $path_directory_parameters_private ] ; then
+if [ ! -d $path_directory_process ] || [ ! -d $path_directory_package ] || [ ! -d $path_directory_dock ] || [ -d $path_directory_demonstration ] || [ ! -d $path_directory_parameters ] || [ ! -d $path_directory_parameters_private ] ; then
   # Directory or directories do not already exist.
   # Create directories.
   mkdir -p $path_directory_process
   mkdir -p $path_directory_package
   mkdir -p $path_directory_dock
+  mkdir -p $path_directory_demonstration
   mkdir -p $path_directory_parameters
   mkdir -p $path_directory_parameters_private
 fi
@@ -83,6 +86,8 @@ fi
 
 ##########
 # Organize parameters.
+cp -r "$path_directory_repository_partner/demonstration" "$path_directory_demonstration/demonstration"
+mv "$path_directory_demonstration/demonstration" "$path_directory_demonstration/partner"
 cp -r "$path_directory_repository_partner/parameters" "$path_directory_parameters/parameters"
 mv "$path_directory_parameters/parameters" "$path_directory_parameters/partner"
 cp -r "$path_directory_repository_project_main/parameters" "$path_directory_parameters/parameters"
