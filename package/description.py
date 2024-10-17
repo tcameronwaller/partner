@@ -1413,8 +1413,8 @@ def extract_describe_signals_for_features_in_observations_groups(
     Format of product table 6
     Format of product table 6 is in wide format with floating-point values of
     a single, specific type of descriptive statistics (usually either mean or
-    median) corresponding to groups of observations across columns and features
-    across rows. Product table 6 is a derivation from product table 5, which
+    median) corresponding to features across rows and groups of observations
+    across columns. Product table 6 is a derivation from product table 5, which
     was a derivation with signals after z score standardization.
     ----------
     feature   group_1 group_2 group_3 group_4
@@ -1434,8 +1434,8 @@ def extract_describe_signals_for_features_in_observations_groups(
         index_features (str): name for index corresponding to features, which
             is a column in the original source table
         index_observations (str): name for index corresponding to observations,
-            is not a column in the original source table but will be in novel
-            product table 2
+            which is not a column in the original source table but will be in
+            novel product table 2
         features (list<str>): identifiers of features for which to filter
             and describe values of signal intensity across observations
         groups_observations (dict<list<str>>): names of groups and identifiers
@@ -1464,8 +1464,28 @@ def extract_describe_signals_for_features_in_observations_groups(
 
     ##########
     # 2. Prepare source information.
-    # Extract names of groups to preserve their original sequence.
+    # Extract names and indices of groups to preserve their original sequence.
     names_groups_observations = copy.deepcopy(list(groups_observations.keys()))
+    # Option 1.
+    if True:
+        sequence_groups_observations = dict()
+        index = 0
+        for name in names_groups_observations:
+            sequence_groups_observations[name] = index
+            index += 1
+            pass
+    # Option 2.
+    if False:
+        sequence_groups_observations = dict(zip(
+            names_groups_observations,
+            range(len(names_groups_observations))
+        ))
+    # Option 3.
+    if False:
+        sequence_groups_observations = {
+            key: value for value, key in enumerate(names_groups_observations)
+        }
+
     # Ensure that all features are in the source table.
     features_all = copy.deepcopy(
         table_source[index_features].unique().tolist()
@@ -1519,46 +1539,54 @@ def extract_describe_signals_for_features_in_observations_groups(
     ##########
     # 4. Prepare product table 2.
     # Copy information in table.
-    table_transpose_group = table_selection.copy(deep=True)
+    table_flip_group = table_selection.copy(deep=True)
     # Organize indices in table.
-    table_transpose_group.reset_index(
+    table_flip_group.reset_index(
         level=None,
         inplace=True,
         drop=True, # remove index; do not move to regular columns
     )
-    table_transpose_group.set_index(
+    table_flip_group.set_index(
         index_features,
         append=False,
         drop=True,
         inplace=True
     )
-    table_transpose_group.columns.rename(
+    table_flip_group.columns.rename(
         index_observations,
         inplace=True,
     ) # single-dimensional index
     # Transpose table.
-    table_transpose_group = table_transpose_group.transpose(copy=True)
+    table_flip_group = table_flip_group.transpose(copy=True)
     # Organize indices in table.
-    table_transpose_group.reset_index(
+    table_flip_group.reset_index(
         level=None,
         inplace=True,
         drop=False, # remove index; do not move to regular columns
     )
-    table_transpose_group.columns.rename(
+    table_flip_group.columns.rename(
         None,
         inplace=True,
     ) # single-dimensional index
     # Determine and fill groups of observations.
-    table_transpose_group = porg.determine_fill_table_groups_rows(
-        table=table_transpose_group,
+    table_flip_group = porg.determine_fill_table_groups_rows(
+        table=table_flip_group,
         column_group="group",
         index_rows=index_observations,
         groups_rows=groups_observations,
         report=False,
     )
+    # Sort rows in table by groups.
+    table_flip_group = porg.sort_table_rows_by_single_column_reference(
+        table=table_flip_group,
+        index_rows=index_observations,
+        column_reference="group",
+        column_sort_temporary="sort_temporary",
+        reference_sort=sequence_groups_observations,
+    )
     # Translate names of features and observations.
     table_product_2 = porg.translate_identifiers_table_indices_columns_rows(
-        table=table_transpose_group,
+        table=table_flip_group,
         index_rows=index_observations,
         translations_columns=translations_features,
         translations_rows=translations_observations,
@@ -1605,6 +1633,14 @@ def extract_describe_signals_for_features_in_observations_groups(
         level=None,
         inplace=True,
         drop=False, # remove index; do not move to regular columns
+    )
+    # Sort rows in table by groups.
+    table_product_3 = porg.sort_table_rows_by_single_column_reference(
+        table=table_product_3,
+        index_rows=index_observations,
+        column_reference="group",
+        column_sort_temporary="sort_temporary",
+        reference_sort=sequence_groups_observations,
     )
 
     ##########

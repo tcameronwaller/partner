@@ -1195,25 +1195,351 @@ def plot_heat_map_few_signal_significance_labels(
     return figure
 
 
-# Current applications:
-# 1. signal intensity for a few genes between samples or groups of samples
-# review: TCW; 3 October 2024
-# TODO: TCW; 11 October 2024
-# TODO: it isn't necessary for the input table to have explicit definitions of
-# the indices... it'd suffice to use column names
-def plot_heat_map_signal_label_features_observations(
+def extract_prepare_table_signals_categories_for_heatmap(
     table=None,
+    format_table=None,
+    index_columns=None,
+    index_rows=None,
+    column_group=None,
     transpose_table=None,
-    index_group_columns=None,
-    index_group_rows=None,
     fill_missing=None,
     value_missing_fill=None,
     constrain_signal_values=None,
     value_minimum=None,
     value_maximum=None,
-    show_scale_bar=None,
     labels_ordinate_categories=None,
     labels_abscissa_categories=None,
+    report=None,
+):
+    """
+    Extract from table and prepare signals and categorical labels for heatmap.
+
+    Format of source table
+
+    Option 1.
+    Format of source table is in wide format with floating-point values of
+    signal intensities or a single, specific type of descriptive statistics
+    (usually either mean or median) corresponding to features across rows and
+    observations or groups of observations across columns. For convenience in
+    separating the values from their labels or identifiers, the source table
+    must have explicitly defined indices across columns and rows.
+    ----------
+    observation_or_group group_1 group_2 group_3 group_4
+    feature
+    feature_1            0.01    0.001   0.001   0.015
+    feature_2            0.01    0.001   0.001   0.015
+    feature_3            -0.01   0.001   0.001   0.015
+    feature_4            -0.01   0.001   0.001   0.015
+    feature_5            -0.01   0.001   0.001   0.015
+    ----------
+
+    Option 2.
+    Format of source table is in wide format with floating-point values of
+    signal intensities corresponding to features across columns and distinct
+    observations across rows. A special column gives identifiers corresponding
+    to each observation across rows. Another special column provides names
+    of categorical groups of observations. For convenience in separating the
+    values from their labels or identifiers, the source table must have
+    explicitly defined indices across columns and rows.
+    ----------
+    observation     group   feature_1 feature_2 feature_3 feature_4 feature_5
+    observation_1   group_1 0.001     0.001     0.001     0.001     0.001
+    observation_2   group_1 0.001     0.001     0.001     0.001     0.001
+    observation_3   group_2 0.001     0.001     0.001     0.001     0.001
+    observation_4   group_2 0.001     0.001     0.001     0.001     0.001
+    observation_5   group_3 0.001     0.001     0.001     0.001     0.001
+    ----------
+
+    For versatility, the source table does not have explicitly defined indices
+    across columns or rows.
+
+    This function preserves the original sequence of features. This function
+    also preserves the original sequence of groups and observations within
+    groups.
+
+    Review: 17 October 2024
+
+    arguments:
+        table (object): Pandas data-frame table of values of signal intensity
+            for features across sample observations or groups of sample
+            observations
+        format_table (int): value 1 for features across rows and observations
+            or groups of observations across columns, value 2 for features
+            across columns and observations across rows with potential special
+            column for groups of observations
+        index_columns (str): name to define an index corresponding to
+            information across columns in source table
+        index_rows (str): name of a column in source table which defines an
+            index corresponding to information across rows
+        column_group (str): name of column in table to use for groups
+        transpose_table (bool): whether to transpose matrix from table
+        fill_missing (bool): whether to fill any missing values in every
+            element of matrix
+        value_missing_fill (float): value with which to fill any missing values
+        constrain_signal_values (bool): whether to constrain all values in
+            matrix
+        value_minimum (float): minimal value for constraint on signals and
+            scale
+        value_maximum (float): maximal value for constraint on signals and
+            scale
+        labels_ordinate_categories (list<str>): optional, explicit labels for
+            ordinate or vertical axis
+        labels_abscissa_categories (list<str>): optional, explicit labels for
+            abscissa or horizontal axis
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict): collection of information for figure
+
+    """
+
+    # Copy information in table.
+    table_signal = table.copy(deep=True)
+    # Organize indices in table.
+    table_signal.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    table_signal.columns.rename(
+        index_columns,
+        inplace=True,
+    ) # single-dimensional index
+    if (format_table == 1):
+        table_signal.set_index(
+            index_rows,
+            append=False,
+            drop=True,
+            inplace=True
+        )
+    elif ((format_table == 2) and (column_group is None)):
+        table_signal.set_index(
+            index_rows,
+            append=False,
+            drop=True,
+            inplace=True
+        )
+    elif ((format_table == 2) and (column_group is not None)):
+        table_signal.set_index(
+            [index_rows, column_group,],
+            append=False,
+            drop=True,
+            inplace=True
+        )
+        pass
+    # Extract categorical names from original indices in table.
+    #labels_columns = copy.deepcopy(table_signal.columns.to_list())
+    #labels_rows = table.index.to_list()
+    #labels_rows = table_signal["group_primary"].to_list()
+    labels_index_columns = copy.deepcopy(
+        table_signal.columns.get_level_values(
+            index_columns
+        ).to_list()
+    )
+    labels_index_rows = copy.deepcopy(
+        table_signal.index.get_level_values(
+            index_rows
+        ).to_list()
+    )
+    if ((format_table == 2) and (column_group is not None)):
+        labels_group_rows = copy.deepcopy(
+            table_signal.index.get_level_values(
+                column_group
+            ).to_list()
+        )
+        labels_group_unique = putly.collect_unique_elements(
+            elements=labels_group_rows,
+        )
+    else:
+        labels_group_rows = None
+        labels_group_unique = None
+        pass
+    # Extract counts of individual observations in each group.
+    if ((format_table == 2) and (column_group is not None)):
+        groups_counts = table_signal.groupby(
+            level=column_group,
+        ).size().to_dict()
+        pass
+    else:
+        groups_counts = None
+        pass
+
+    # Transpose table.
+    if (transpose_table):
+        table_signal = table_signal.transpose(copy=True)
+        pass
+    # Extract values.
+    #matrix_signal = numpy.transpose(numpy.copy(table_signal.to_numpy()))
+    matrix_signal = numpy.copy(table_signal.to_numpy())
+    # Extract minimal and maximal values.
+    if (
+        (not constrain_signal_values) and
+        (value_minimum is None) and
+        (value_maximum is None)
+    ):
+        value_minimum = round((numpy.nanmin(matrix_signal) - 0.005), 2)
+        value_maximum = round((numpy.nanmax(matrix_signal) + 0.005), 2)
+    # Fill missing values.
+    if fill_missing:
+        matrix_signal = numpy.nan_to_num(
+            matrix_signal,
+            copy=True,
+            nan=value_missing_fill,
+            posinf=value_maximum, # or + 1.0 for correlations
+            neginf=value_minimum, # or - 1.0 for correlations
+        )
+        pass
+    # Constrain values.
+    if constrain_signal_values:
+        matrix_signal[matrix_signal < value_minimum] = value_minimum
+        matrix_signal[matrix_signal > value_maximum] = value_maximum
+        pass
+    # Determine labels for axes.
+    if (transpose_table):
+        if (
+            (format_table == 2) and
+            (column_group is not None) and
+            (
+                (labels_abscissa_categories is None) or
+                (len(labels_abscissa_categories) < 2)
+            )
+        ):
+            #labels_abscissa_categories = labels_group_rows # vertical_axis
+            labels_abscissa_categories = labels_group_unique # vertical_axis
+        elif (
+            (
+                (labels_abscissa_categories is None) or
+                (len(labels_abscissa_categories) < 2)
+            )
+        ):
+            labels_abscissa_categories = labels_index_rows # vertical axis
+        if (
+            (labels_ordinate_categories is None) or
+            (len(labels_ordinate_categories) < 2)
+        ):
+            labels_ordinate_categories = labels_index_columns # vertical axis
+    else:
+        if (
+            (labels_abscissa_categories is None) or
+            (len(labels_abscissa_categories) < 2)
+        ):
+            labels_abscissa_categories = labels_index_columns # horizontal axis
+        if (
+            (format_table == 2) and
+            (column_group is not None) and
+            (
+                (labels_ordinate_categories is None) or
+                (len(labels_ordinate_categories) < 2)
+            )
+        ):
+            #labels_ordinate_categories = labels_group_rows # vertical_axis
+            labels_ordinate_categories = labels_group_unique # vertical_axis
+        elif (
+            (
+                (labels_ordinate_categories is None) or
+                (len(labels_ordinate_categories) < 2)
+            )
+        ):
+            labels_ordinate_categories = labels_index_rows # vertical axis
+        pass
+
+    # Define discrete numerical representation of categorical groups.
+    if ((format_table == 2) and (column_group is not None)):
+        sequence_groups = dict()
+        index = 0
+        for name in labels_group_unique:
+            sequence_groups[name] = index
+            index += 1
+            pass
+        integers_group_rows = list(map(
+            lambda name: sequence_groups[name], labels_group_rows
+        ))
+        #groups_representation = dict()
+        #groups_representation["names"] = labels_group_rows
+        #groups_representation["integers"] = integers_group_rows
+        #table_groups_representation = pandas.DataFrame(
+        #    data=groups_representation,
+        #)
+        # Organize the integer representations of discrete categorical groups
+        # as a matrix.
+        matrix_group_integers = numpy.array(integers_group_rows).reshape(
+            1, len(integers_group_rows)
+        )
+    else:
+        sequence_groups = None
+        integers_group_rows = None
+        matrix_group_integers = None
+        pass
+
+
+    ##########
+    # 9. Collect information.
+    pail = dict()
+    pail["matrix_signal"] = matrix_signal
+    pail["matrix_group_integers"] = matrix_group_integers
+    pail["value_minimum"] = value_minimum
+    pail["value_maximum"] = value_maximum
+    pail["labels_index_columns"] = labels_index_columns
+    pail["labels_index_rows"] = labels_index_rows
+    pail["labels_group_rows"] = labels_group_rows
+    pail["integers_group_rows"] = integers_group_rows
+    pail["labels_group_unique"] = labels_group_unique
+    pail["sequence_groups"] = sequence_groups
+    pail["groups_counts"] = groups_counts
+    pail["labels_ordinate_categories"] = labels_ordinate_categories
+    pail["labels_abscissa_categories"] = labels_abscissa_categories
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("module: partner.plot.py")
+        function = str(
+            "extract_prepare_table_signals_categories_for_heatmap" +
+            "()"
+        )
+        print("function: " + function)
+        putly.print_terminal_partition(level=4)
+        print("source table of signals:")
+        print("rows in table: " + str(table_signal.shape[0]))
+        print("columns in table: " + str(table_signal.shape[1]))
+        putly.print_terminal_partition(level=4)
+        print("matrix of signals:")
+        count_rows = copy.deepcopy(matrix_signal.shape[0])
+        count_columns = copy.deepcopy(matrix_signal.shape[1])
+        print("matrix rows (dimension 0): " + str(count_rows))
+        print("matrix columns (dimension 1): " + str(count_columns))
+        putly.print_terminal_partition(level=4)
+        print("abscissa, horizontal axis labels:")
+        print(labels_abscissa_categories)
+        print("ordinate, vertical axis labels:")
+        print(labels_ordinate_categories)
+        putly.print_terminal_partition(level=4)
+        print("labels_group_rows:")
+        print(labels_group_rows)
+        print("integers_group_rows:")
+        print(integers_group_rows)
+        putly.print_terminal_partition(level=4)
+
+    # Return information.
+    return pail
+
+
+def plot_heatmap_signal_label_features_observations(
+    table=None,
+    format_table=None,
+    index_columns=None,
+    index_rows=None,
+    transpose_table=None,
+    fill_missing=None,
+    value_missing_fill=None,
+    constrain_signal_values=None,
+    value_minimum=None,
+    value_maximum=None,
+    labels_ordinate_categories=None,
+    labels_abscissa_categories=None,
+    show_scale_bar=None,
     title_ordinate=None,
     title_abscissa=None,
     title_bar=None,
@@ -1229,39 +1555,56 @@ def plot_heat_map_signal_label_features_observations(
     report=None,
 ):
     """
-    Heat map.
+    Heatmap.
 
     features of this chart design...
     labels of categorical groups on both axes: True
     labels of significance on individual cells: False
     clustering: False
 
-    Format of source table in long format with floating-point values of signals
-    and p-values organized with categorical indices across columns and rows
-    that will serve as labels:
+    Format of source table
 
-    observation_or_group   observation_1   observation_2   observation_3
+    Format of source table is in wide format with floating-point values of
+    signal intensities or a single, specific type of descriptive statistics
+    (usually either mean or median) corresponding to features across rows and
+    observations or groups of observations across columns. For convenience in
+    separating the values from their labels or identifiers, the source table
+    must have explicitly defined indices across columns and rows.
+    ----------
+    observation_or_group group_1 group_2 group_3 group_4
     feature
-    feature_1              -0.15           0.2             -0.25
-    feature_2              -0.15           0.2             -0.25
-    feature_3              -0.15           0.2             -0.25
-    feature_4              -0.15           0.2             -0.25
-    feature_5              -0.15           0.2             -0.25
+    feature_1            0.01    0.001   0.001   0.015
+    feature_2            0.01    0.001   0.001   0.015
+    feature_3            -0.01   0.001   0.001   0.015
+    feature_4            -0.01   0.001   0.001   0.015
+    feature_5            -0.01   0.001   0.001   0.015
+    ----------
+
+    For versatility, the source table does not have explicitly defined indices
+    across columns or rows.
+
+    This function preserves the original sequence of features. This function
+    also preserves the original sequence of groups and observations within
+    groups.
 
     MatPlotLib color maps.
     https://matplotlib.org/stable/tutorials/colors/colormaps.html
+
+    Review: 17 October 2024
 
     arguments:
         table (object): Pandas data-frame table of values of signal intensity
             for features in rows across sample observations or groups of
             sample observations in columns
+        format_table (int): value 1 for features across rows and observations
+            or groups of observations across columns, value 2 for features
+            across columns and observations across rows with potential special
+            column for groups of observations
+        index_columns (str): name to define an index corresponding to
+            information across columns in source table
+        index_rows (str): name of a column in source table which defines an
+            index corresponding to information across rows
         transpose_table (bool): whether to transpose matrix from table
-        index_group_columns (str): name of index across table's columns that
-            provides labels for groups across horizontal axis (abscissa) after
-            any transpose on the table
-        index_group_rows (str): name of index across table's rows that provides
-            labels for groups across vertical axis (ordinate) after any
-            transpose on the table
         fill_missing (bool): whether to fill any missing values in every
             element of matrix
         value_missing_fill (float): value with which to fill any missing values
@@ -1271,11 +1614,11 @@ def plot_heat_map_signal_label_features_observations(
             scale
         value_maximum (float): maximal value for constraint on signals and
             scale
-        show_scale_bar (bool): whether to create scale bar
         labels_ordinate_categories (list<str>): optional, explicit labels for
             ordinate or vertical axis
         labels_abscissa_categories (list<str>): optional, explicit labels for
             abscissa or horizontal axis
+        show_scale_bar (bool): whether to create scale bar
         title_ordinate (str): title for ordinate vertical axis
         title_abscissa (str): title for abscissa horizontal axis
         title_bar (str): title for scale bar
@@ -1298,89 +1641,23 @@ def plot_heat_map_signal_label_features_observations(
     """
 
     ##########
-    # Organize information for figure.
-    # Copy information in table.
-    table_signal = table.copy(deep=True)
-
-    # Transpose table.
-    if (transpose_table):
-        table_signal = table_signal.transpose(copy=True)
-        pass
-    # Report.
-    if report:
-        putly.print_terminal_partition(level=4)
-        print("rows in table: " + str(table_signal.shape[0]))
-        print("columns in table: " + str(table_signal.shape[1]))
-        putly.print_terminal_partition(level=4)
-
-    # Extract values.
-    #matrix_signal = numpy.transpose(numpy.copy(table_signal.to_numpy()))
-    matrix_signal = numpy.copy(table_signal.to_numpy())
-
-    # Organize signals in matrix.
-    # Replace missing values.
-    if fill_missing:
-        matrix_signal = numpy.nan_to_num(
-            matrix_signal,
-            copy=True,
-            nan=value_missing_fill,
-            posinf=value_maximum, # or + 1.0 for correlations
-            neginf=value_minimum, # or - 1.0 for correlations
-        )
-    # Constrain values.
-    if constrain_signal_values:
-        matrix_signal[matrix_signal < value_minimum] = value_minimum
-        matrix_signal[matrix_signal > value_maximum] = value_maximum
-
-    # Report.
-    if report:
-        putly.print_terminal_partition(level=4)
-        print("matrix of signals:")
-        count_rows = copy.deepcopy(matrix_signal.shape[0])
-        count_columns = copy.deepcopy(matrix_signal.shape[1])
-        print("matrix rows (dimension 0): " + str(count_rows))
-        print("matrix columns (dimension 1): " + str(count_columns))
-        putly.print_terminal_partition(level=4)
-
-    # Extract categorical names for labels.
-    if (
-        (
-            (labels_ordinate_categories is None) or
-            (len(labels_ordinate_categories) < 2)
-        ) or
-        (
-            (labels_abscissa_categories is None) or
-            (len(labels_abscissa_categories) < 2)
-        )
-    ):
-        #labels_columns = copy.deepcopy(table_signal.columns.to_list())
-        #table_signal.reset_index(
-        #    level=None,
-        #    inplace=True,
-        #    drop=False, # remove index; do not move to regular columns
-        #)
-        #labels_rows = table.index.to_list()
-        #labels_rows = table_signal["group_primary"].to_list()
-        labels_columns = copy.deepcopy(
-            table_signal.columns.get_level_values(
-                index_group_columns
-            ).unique().to_list()
-        )
-        labels_rows = copy.deepcopy(
-            table_signal.index.get_level_values(
-                index_group_rows
-            ).unique().to_list()
-        )
-        labels_ordinate_categories = labels_rows # vertical axis
-        labels_abscissa_categories = labels_columns # horizontal axis
-    # Report.
-    if report:
-        putly.print_terminal_partition(level=4)
-        print("column labels:")
-        print(labels_ordinate_categories)
-        print("row labels:")
-        print(labels_abscissa_categories)
-        putly.print_terminal_partition(level=4)
+    # Prepare information for figure.
+    pail = extract_prepare_table_signals_categories_for_heatmap(
+        table=table,
+        format_table=format_table, # 1: features in rows, observations in columns
+        index_columns=index_columns,
+        index_rows=index_rows,
+        column_group=None,
+        transpose_table=transpose_table,
+        fill_missing=fill_missing,
+        value_missing_fill=value_missing_fill,
+        constrain_signal_values=constrain_signal_values,
+        value_minimum=value_minimum,
+        value_maximum=value_maximum,
+        labels_ordinate_categories=labels_ordinate_categories,
+        labels_abscissa_categories=labels_abscissa_categories,
+        report=report,
+    )
 
     ##########
     # Create figure.
@@ -1397,19 +1674,21 @@ def plot_heat_map_signal_label_features_observations(
     #)
 
     # Plot values as a color grid.
-    # This function represents values acros matrix dimension 0 as vertical rows.
+    # This function represents values acros matrix dimension 0 as vertical
+    # rows.
     # This function represents values across matrix dimension 1 as horizontal
     # columns.
     # Diverging color maps: "PRGn", "PRGn_r", "PiYG", "PiYG_r",
     # Diverging color maps: "PuOr", "PuOr_r",
     # Diverging color maps: "PuOr", "PuOr_r", "RdBu", "RdBu_r", "BrBG",
     # Sequential color maps: "Reds", "Reds_r", "Oranges", "Oranges_r",
-    # site: https://montoliu.naukas.com/2021/11/18/color-blindness-purple-and-orange-are-the-solution/
+    # site: https://montoliu.naukas.com/2021/11/18/color-blindness-purple-and-
+    #     orange-are-the-solution/
     image = axes.imshow(
-        matrix_signal,
+        pail["matrix_signal"],
         cmap=matplotlib.colormaps["PuOr"], # RdBu_r, PuOr_r
-        vmin=value_minimum,
-        vmax=value_maximum,
+        vmin=pail["value_minimum"],
+        vmax=pail["value_maximum"],
         aspect="auto", # "auto", "equal",
         origin="upper",
         # Extent: (left, right, bottom, top)
@@ -1456,10 +1735,10 @@ def plot_heat_map_signal_label_features_observations(
     )
     # Set tick positions and labels on axes.
     axes.set_yticks(
-        numpy.arange(matrix_signal.shape[0]),
+        numpy.arange(pail["matrix_signal"].shape[0]),
     )
     axes.set_yticklabels(
-        labels_ordinate_categories,
+        pail["labels_ordinate_categories"],
         #minor=False,
         ha="right", # horizontal alignment
         va="center", # vertical alignment
@@ -1469,10 +1748,10 @@ def plot_heat_map_signal_label_features_observations(
         fontproperties=fonts["properties"][size_label_ordinate]
     )
     axes.set_xticks(
-        numpy.arange(matrix_signal.shape[1]),
+        numpy.arange(pail["matrix_signal"].shape[1]),
     )
     axes.set_xticklabels(
-        labels_abscissa_categories,
+        pail["labels_abscissa_categories"],
         #minor=False,
         rotation=-60,
         rotation_mode="anchor",
@@ -2927,10 +3206,7 @@ def plot_bar_stack(
 
 # https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.violinplot.html#matplotlib.pyplot.violinplot
 
-# Current applications:
-# 1. RNA sequence gene levels before and after scale adjustment and
-#    normalization
-# review: TCW; 3 October 2024
+
 def plot_boxes_groups(
     values_groups=None,
     title_ordinate=None,
@@ -2945,6 +3221,7 @@ def plot_boxes_groups(
     axis_linear_minimum=None,
     fonts=None,
     colors=None,
+    report=None,
 ):
     """
     Creates a figure of a chart of type box plot to represent the distribution
@@ -2965,6 +3242,8 @@ def plot_boxes_groups(
     https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.boxplot.html
     https://towardsdatascience.com/understanding-boxplots-5e2df7bcbd51
 
+    Review: 17 October 2024
+
     arguments:
         values_groups (list<array>): NumPy arrays of non-missing values for
             each group
@@ -2984,6 +3263,7 @@ def plot_boxes_groups(
         axis_linear_minimum (float): minimal value for range of linear axis
         fonts (dict<object>): references to definitions of font properties
         colors (dict<tuple>): references to definitions of color properties
+        report (bool): whether to print reports
 
     raises:
 

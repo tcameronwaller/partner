@@ -69,6 +69,7 @@ import matplotlib.lines
 # Custom
 import partner.utility as putly
 import partner.organization as porg
+import partner.plot as pplot
 
 #dir()
 #importlib.reload()
@@ -110,109 +111,28 @@ import partner.organization as porg
 # the corresponding groups of cells in the main heat map.
 
 
+# TODO: TCW; 17 October 2024
+# Determine if the "tight_layout" is a problem with gridspec...
 
+# TODO: TCW; 17 October 2024
+# Create legend for discrete representation of groups
+# Need to map from the integers back to the categories
 
-def prepare_data_label_features_groups_cluster_observations(
+def plot_heatmap_signal_label_features_groups_of_observations(
     table=None,
-    column_observation=None,
+    format_table=None,
+    index_columns=None,
+    index_rows=None,
     column_group=None,
-    report=None,
-):
-    """
-    Prepare source information for plotting a heat map.
-
-    Format of source table is in wide format with floating-point values of
-    signal intensities corresponding to features across columns and distinct
-    observations across rows. A special column provides names or values of
-    categorical groups of observations. The table does not need to have an
-    explicit index across rows.
-
-    observation   group   feature_1 feature_2 feature_3 feature_4 feature_5
-    observation_1 group_1 0.001     0.001     0.001     0.001     0.001
-    observation_2 group_1 0.001     0.001     0.001     0.001     0.001
-    observation_3 group_2 0.001     0.001     0.001     0.001     0.001
-    observation_4 group_2 0.001     0.001     0.001     0.001     0.001
-    observation_5 group_3 0.001     0.001     0.001     0.001     0.001
-
-    In the final chart, this function preserves the original sequence of
-    features across columns. This function also preserves the original sequence
-    of groups of observations; however, this function clusters and changes the
-    sequence of observations within groups.
-
-    MatPlotLib color maps.
-    https://matplotlib.org/stable/tutorials/colors/colormaps.html
-
-    arguments:
-        table (object): Pandas data-frame table of values of signal intensity
-            for features in rows across sample observations or groups of
-            sample observations in columns
-        column_observation (str): name of column in table for identifiers that
-            correspond to observations in rows with values of signal intensity
-            across features in other columns
-        column_group (str): name of column in table for categorical names that
-            correspond to groups of observations in rows with values of signal
-            intensity across features in other columns
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (dict): collection of information for plot
-
-    """
-
-    # Copy information in table.
-    table = table.copy(deep=True)
-    # Extract labels for features from names of columns in table.
-    columns_all = copy.deepcopy(table.columns.to_list())
-    features = list(filter(
-        lambda column: (column not in [column_observation, column_group]),
-        columns_all
-    ))
-    # Extract labels for categorical groups of observations from values in the
-    # special column for these categorical groups.
-    groups = copy.deepcopy(table[column_group].unique().tolist())
-    # Cluster rows in table within groups.
-    table_cluster = porg.cluster_table_rows_by_group(
-        table=table,
-        group=column_group,
-        index=column_observation,
-    )
-    # Collect information.
-    pail = dict()
-    pail["table_cluster"] = table_cluster
-    # Report.
-    if report:
-        putly.print_terminal_partition(level=3)
-        print("module: partner.organization.py")
-        function = "prepare_data_label_features_groups_cluster_observations"
-        print(str("function: " + function + "()"))
-        print("version check: 7")
-        putly.print_terminal_partition(level=5)
-        print(pail["table_cluster"])
-        putly.print_terminal_partition(level=4)
-    # Return information.
-    return pail
-
-# TODO: don't require the plotting function to perform the clustering
-# run the clustering BEFORE passing the table to the plot function
-
-
-
-
-def plot_heat_map_label_features_groups_cluster_observations(
-    table=None,
     transpose_table=None,
-    index_group_columns=None,
-    index_group_rows=None,
     fill_missing=None,
     value_missing_fill=None,
     constrain_signal_values=None,
     value_minimum=None,
     value_maximum=None,
-    show_scale_bar=None,
     labels_ordinate_categories=None,
     labels_abscissa_categories=None,
+    show_scale_bar=None,
     title_ordinate=None,
     title_abscissa=None,
     title_bar=None,
@@ -230,23 +150,38 @@ def plot_heat_map_label_features_groups_cluster_observations(
     """
     Heat map.
 
+    Format of source table
+
     Format of source table is in wide format with floating-point values of
     signal intensities corresponding to features across columns and distinct
-    observations across rows. A special column provides names or values of
-    categorical groups of observations. The table does not need to have an
-    explicit index across rows.
+    observations across rows. A special column gives identifiers corresponding
+    to each observation across rows. Another special column provides names
+    of categorical groups of observations. For convenience in separating the
+    values from their labels or identifiers, the source table must have
+    explicitly defined indices across columns and rows.
+    ----------
+    observation     group   feature_1 feature_2 feature_3 feature_4 feature_5
+    observation_1   group_1 0.001     0.001     0.001     0.001     0.001
+    observation_2   group_1 0.001     0.001     0.001     0.001     0.001
+    observation_3   group_2 0.001     0.001     0.001     0.001     0.001
+    observation_4   group_2 0.001     0.001     0.001     0.001     0.001
+    observation_5   group_3 0.001     0.001     0.001     0.001     0.001
+    ----------
 
-    observation   group   feature_1 feature_2 feature_3 feature_4 feature_5
-    observation_1 group_1 0.001     0.001     0.001     0.001     0.001
-    observation_2 group_1 0.001     0.001     0.001     0.001     0.001
-    observation_3 group_2 0.001     0.001     0.001     0.001     0.001
-    observation_4 group_2 0.001     0.001     0.001     0.001     0.001
-    observation_5 group_3 0.001     0.001     0.001     0.001     0.001
+    For versatility, the source table does not have explicitly defined indices
+    across columns or rows.
 
-    In the final chart, this function preserves the original sequence of
-    features across columns. This function also preserves the original sequence
-    of groups of observations; however, this function clusters and changes the
-    sequence of observations within groups.
+    This function preserves the original sequence of features. This function
+    also preserves the original sequence of groups and observations within
+    groups.
+
+    This function assumes that the table has many more observations than
+    features, and for this reason, the design orients features across the
+    vertical axis and observations across the horizontal axis. With a landscape
+    aspect ratio, this design allows more space for the horizontal axis.
+
+    ----------
+
 
     Reference:
     https://www.kaggle.com/code/sgalella/correlation-heatmaps-with-
@@ -259,11 +194,17 @@ def plot_heat_map_label_features_groups_cluster_observations(
     https://matplotlib.org/stable/tutorials/colors/colormaps.html
 
     Maybe useful for problem-solving:
-    https://matplotlib.org/stable/gallery/subplots_axes_and_figures/subplots_demo.html
-       - subplots and gridspec
-    https://stackoverflow.com/questions/42562440/multiple-heatmaps-with-fixed-grid-size
+    https://matplotlib.org/stable/gallery/subplots_axes_and_figures/
+        subplots_demo.html
+        - subplots and gridspec
     http://www.acgeospatial.co.uk/colour-bar-for-discrete-rasters-with-matplotlib/
-        - discrete color maps
+        - color maps for discrete values
+    https://matplotlib.org/stable/users/explain/colors/colorbar_only.html
+        #colorbar-with-arbitrary-colors
+        - color bar with custom dimensions of discrete, categorical intervals
+
+
+
     https://stackoverflow.com/questions/14777066/matplotlib-discrete-colorbar
         - categorical color bars
         - helpful reference for figuring out how to set the thresholds between
@@ -275,6 +216,36 @@ def plot_heat_map_label_features_groups_cluster_observations(
         - normalization of information for color maps???
 
     arguments:
+        table (object): Pandas data-frame table of values of signal intensity
+            for features in columns across sample observations or groups of
+            sample observations in rows
+        format_table (int): value 1 for features across rows and observations
+            or groups of observations across columns, value 2 for features
+            across columns and observations across rows with potential special
+            column for groups of observations
+        index_columns (str): name to define an index corresponding to
+            information across columns in source table
+        index_rows (str): name of a column in source table which defines an
+            index corresponding to information across rows
+        column_group (str): name of column in table to use for groups
+        transpose_table (bool): whether to transpose matrix from table
+        fill_missing (bool): whether to fill any missing values in every
+            element of matrix
+        value_missing_fill (float): value with which to fill any missing values
+        constrain_signal_values (bool): whether to constrain all values in
+            matrix
+        value_minimum (float): minimal value for constraint on signals and
+            scale
+        value_maximum (float): maximal value for constraint on signals and
+            scale
+        labels_ordinate_categories (list<str>): optional, explicit labels for
+            ordinate or vertical axis
+        labels_abscissa_categories (list<str>): optional, explicit labels for
+            abscissa or horizontal axis
+
+        ...
+        ...
+        ...
 
         aspect (str): aspect ratio for MatPlotLib chart figure
         fonts (dict<object>): references to definitions of font properties
@@ -289,7 +260,23 @@ def plot_heat_map_label_features_groups_cluster_observations(
     """
 
     ##########
-    # Prepare data.
+    # Prepare information for figure.
+    pail = pplot.extract_prepare_table_signals_categories_for_heatmap(
+        table=table,
+        format_table=format_table, # 1: features in rows, observations in columns
+        index_columns=index_columns,
+        index_rows=index_rows,
+        column_group=column_group,
+        transpose_table=transpose_table,
+        fill_missing=fill_missing,
+        value_missing_fill=value_missing_fill,
+        constrain_signal_values=constrain_signal_values,
+        value_minimum=value_minimum,
+        value_maximum=value_maximum,
+        labels_ordinate_categories=labels_ordinate_categories,
+        labels_abscissa_categories=labels_abscissa_categories,
+        report=report,
+    )
 
 
     ##########
@@ -298,27 +285,155 @@ def plot_heat_map_label_features_groups_cluster_observations(
 
     ##########
     # Initialize figure.
-    figure = initialize_matplotlib_figure_aspect(
+    figure = pplot.initialize_matplotlib_figure_aspect(
         aspect=aspect,
     )
     # Initialize grid within figure.
     #matplotlib.gridspec.GridSpec()
-    grid = figure.add_gridspec(
+    #figure.add_gridspec()
+    #sharey=True, # sharey="row"
+    #sharex=True, # sharex="col",
+    grid = matplotlib.gridspec.GridSpec(
         nrows=2,
         ncols=1,
-        hspace=0.01,
-        wspace=0,
-        height_ratios=(1,10),
-        width_ratios=None, # all columns same width
-        sharex=True, # sharex="col",
-
+        wspace=0.0, # horizontal width space between grid blocks for subplots
+        hspace=0.0, # vertical height space between grid blocks for subplots
+        width_ratios=None, # all columns have same width
+        height_ratios=(1,15), # first row 1/10th height of second row
     )
     # Initialize axes within grid within figure.
     axes_group = figure.add_subplot(grid[0,0]) # first row, first column
     axes_main = figure.add_subplot(grid[1,0]) # second row, first column
 
+    # Keep axes, ticks, and labels, but remove border.
+    for position in ['right', 'top', 'bottom', 'left']:
+        matplotlib.pyplot.gca().spines[position].set_visible(False)
+
+    ##########
+    # axes: main
+
+    # Plot values as a grid of color on continuous scale.
+    # This function represents values acros matrix dimension 0 as vertical
+    # rows.
+    # This function represents values across matrix dimension 1 as horizontal
+    # columns.
+    # Diverging color maps: "PRGn", "PRGn_r", "PiYG", "PiYG_r",
+    # Diverging color maps: "PuOr", "PuOr_r",
+    # Diverging color maps: "PuOr", "PuOr_r", "RdBu", "RdBu_r", "BrBG",
+    # Sequential color maps: "Reds", "Reds_r", "Oranges", "Oranges_r",
+    # site: https://montoliu.naukas.com/2021/11/18/color-blindness-purple-and-
+    #     orange-are-the-solution/
+    image = axes_main.imshow(
+        pail["matrix_signal"],
+        cmap=matplotlib.colormaps["PuOr"], # RdBu_r, PuOr_r
+        vmin=pail["value_minimum"],
+        vmax=pail["value_maximum"],
+        aspect="auto", # "auto", "equal",
+        origin="upper",
+        # Extent: (left, right, bottom, top)
+        #extent=(-0.5, (matrix.shape[1] - 0.5), (matrix.shape[0] - 0.5), -0.5),
+    )
+
+    # Set titles for axes.
+    if (len(title_ordinate) > 0):
+        axes_main.set_ylabel(
+            ylabel=title_ordinate,
+            labelpad=30,
+            alpha=1.0,
+            backgroundcolor=colors["white"],
+            color=colors["black"],
+            fontproperties=fonts["properties"][size_title_ordinate]
+        )
+    if (len(title_abscissa) > 0):
+        axes_main.set_xlabel(
+            xlabel=title_abscissa,
+            labelpad=30,
+            alpha=1.0,
+            backgroundcolor=colors["white"],
+            color=colors["black"],
+            fontproperties=fonts["properties"][size_title_abscissa]
+        )
+    # Set tick parameters for axes.
+    axes_main.tick_params(
+        axis="y", # "y", "x", or "both"
+        which="both", # "major", "minor", or "both"
+        length=7.5, # 5.0
+        width=5, # 3.5
+        pad=10, # 7.5
+        direction="out",
+        color=colors["black"],
+        labelcolor=colors["black"],
+        top=False,
+        bottom=False,
+        left=True,
+        right=False,
+        labeltop=False,
+        labelbottom=False,
+        labelleft=True,
+        labelright=False,
+    )
+    # Set tick positions and labels on axes.
+    axes_main.set_yticks(
+        numpy.arange(pail["matrix_signal"].shape[0]),
+    )
+    axes_main.set_yticklabels(
+        pail["labels_ordinate_categories"],
+        #minor=False,
+        ha="right", # horizontal alignment
+        va="center", # vertical alignment
+        alpha=1.0,
+        backgroundcolor=colors["white"],
+        color=colors["black"],
+        fontproperties=fonts["properties"][size_label_ordinate]
+    )
+    axes_main.tick_params(
+        top=False,
+        labeltop=False,
+        bottom=False,
+        labelbottom=False,
+    )
+
+    ##########
+    # axes: group
+
+    # Define color map for discrete, integer representation of categorical
+    # groups.
+    #discrete_minimum = 0
+    #discrete_maximum = len(pail["labels_group_unique"])
+    discrete_minimum = numpy.nanmin(pail["matrix_group_integers"])
+    discrete_maximum = numpy.nanmax(pail["matrix_group_integers"])
+    color_map = matplotlib.pyplot.get_cmap(
+        "tab10",
+        ((discrete_maximum - discrete_minimum) + 1)
+    )
+    # Plot values as a grid of color on discrete scale.
+    image = axes_group.imshow(
+        pail["matrix_group_integers"],
+        cmap=color_map,
+        vmin=discrete_minimum,
+        vmax=discrete_maximum,
+        aspect="auto", # "auto", "equal",
+        origin="upper",
+        # Extent: (left, right, bottom, top)
+        #extent=(-0.5, (matrix.shape[1] - 0.5), (matrix.shape[0] - 0.5), -0.5),
+    )
+
+    axes_group.tick_params(
+        top=False,
+        bottom=False,
+        left=False,
+        right=False,
+        labeltop=False,
+        labelbottom=False,
+        labelleft=False,
+        labelright=False,
+    )
     ##########
     # Plot data on figure.
+
+
+
+
 
     # https://gist.github.com/Prukutu/7bfd668d792f76b8f99f7a5c9fc877a4
     # - maybe helpful example of creating a color bar in a grid spec subplot
@@ -332,11 +447,7 @@ def plot_heat_map_label_features_groups_cluster_observations(
 
     ##########
     # Return figure.
-    #return figure
-    pass
-
-
-
+    return figure
 
 
 

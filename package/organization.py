@@ -655,6 +655,78 @@ def sort_table_rows_by_list_indices(
     return table
 
 
+def sort_table_rows_by_single_column_reference(
+    table=None,
+    index_rows=None,
+    column_reference=None,
+    column_sort_temporary=None,
+    reference_sort=None,
+):
+    """
+    Sort the rows in a table by reference to categorical values in a single
+    column.
+
+    Original source table must not have an explicitly defined index across
+    rows.
+
+    Review: TCW; 17 October 2024
+
+    arguments:
+        table (object): Pandas data-frame table
+        index_rows (str): name of a column in source table which defines an
+            index corresponding to information across rows
+        column_reference (str): name of column to use for match with indices
+            in reference for sort
+        column_sort_temporary (str): name of temporary column for sort
+        reference_sort (dict<int>): indices for sort that match categorical
+            values in column in source table
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    # Copy information in table.
+    table = table.copy(deep=True)
+    # Copy other information.
+    reference_sort = copy.deepcopy(reference_sort)
+    # Organize indices in table.
+    table.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    # Sort rows in table by reference.
+    table[column_sort_temporary] = table[column_reference].copy(deep=True)
+    table[column_sort_temporary] = table[column_sort_temporary].replace(
+        reference_sort
+    )
+    # Sort rows in table.
+    table.sort_values(
+        by=[column_sort_temporary,],
+        axis="index",
+        ascending=True,
+        inplace=True,
+    )
+    # Remove unnecessary columns.
+    table.drop(
+        labels=[column_sort_temporary,],
+        axis="columns",
+        inplace=True
+    )
+    # Organize indices in table.
+    table.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    # Return information.
+    return table
+
+
+
 ##########
 # Filter.
 
@@ -3300,13 +3372,18 @@ def cluster_table_rows_by_group(
     Original source table must not have an explicitly defined index across
     rows.
 
-    Review: TCW; 16 October 2024
+    The split-apply-combine operation disrupts the original sequence of groups
+    in the source table. Refer to a sort operation such as in the functions
+    below.
+    partner.organization.sort_table_rows_by_single_column_reference()
+
+    Review: TCW; 17 October 2024
 
     arguments:
         table (object): Pandas data-frame table of floating-point values on
             continuous interval or ratio scales of measurement
-        index_rows (str): name for index across rows, which corresponds to a
-            column in the original source table
+        index_rows (str): name of a column in source table which defines an
+            index corresponding to information across rows
         column_group (str): name of column to use for groups
 
     raises:
