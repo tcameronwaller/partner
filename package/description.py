@@ -1572,6 +1572,38 @@ def extract_describe_signals_for_features_in_observations_groups(
         columns=features_available_translation,
         report=False,
     )
+    # Cluster rows in table by groups.
+    table_product_3 = porg.cluster_table_rows_by_group(
+        table=table_product_3,
+        index_rows=index_observations,
+        column_group="group",
+    )
+    # Organize indices in table.
+    table_product_3.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    table_product_3.set_index(
+        [index_observations, "group"],
+        append=False,
+        drop=True,
+        inplace=True,
+    )
+    # Cluster columns in table.
+    table_product_3 = porg.cluster_table_columns(
+        table=table_product_3,
+    )
+    table_product_3.index = pandas.MultiIndex.from_tuples(
+        table_product_3.index,
+        names=[index_observations, "group"]
+    )
+    # Organize indices in table.
+    table_product_3.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
 
     ##########
     # 6. Prepare product table 4.
