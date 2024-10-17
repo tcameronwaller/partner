@@ -3051,6 +3051,10 @@ def plot_boxes_groups(
         )
 
     # Fill boxes with colors.
+    if colors_groups is None:
+        colors_groups = (
+            matplotlib.colormaps["tab10"].colors[0:len(values_groups)]
+        )
     for box_patch, color_box in zip(handle["boxes"], colors_groups):
         box_patch.set_facecolor(color_box)
         pass
@@ -5111,7 +5115,7 @@ def write_product_plot_figure(
         resolution (int): dots per inch (dpi) density for raster image; set to
             '300' or '600' for raster or 'None' for format 'svg' or 'pdf'
         name_file (str): base name for file
-        path_parent (str): path to parent directory
+        path_directory (str): path to parent directory
 
     raises:
 
@@ -5136,7 +5140,9 @@ def write_product_plot_figure(
 
 def write_product_plots_parent_directory(
     pail_write=None,
-    path_directory_parent=None,
+    format=None,
+    resolution=None,
+    path_directory=None,
 ):
     """
     Writes product information to file.
@@ -5147,7 +5153,11 @@ def write_product_plots_parent_directory(
 
     arguments:
         pail_write (dict<object>): information to write to file
-        path_directory_parent (str): path to parent directory
+        format (str): format suffix, 'svg', 'pdf', 'png'
+        resolution (int): dots per inch (dpi) density for raster image; set to
+            '300' or '600' for raster or 'None' for format 'svg' or 'pdf'
+        name_file (str): base name for file
+        path_directory (str): path to parent directory
 
     raises:
 
@@ -5156,12 +5166,14 @@ def write_product_plots_parent_directory(
     """
 
     # Iterate across figures.
-    for name_figure in pail_write.keys():
+    for name_file in pail_write.keys():
         # Write figure object to file within parent directory.
         write_product_plot_figure(
-            name=name_figure,
-            figure=pail_write[name_figure],
-            path_directory=path_directory_parent,
+            figure=pail_write[name_file],
+            format=format,
+            resolution=resolution,
+            name_file=name_file,
+            path_directory=path_directory,
         )
         pass
     pass

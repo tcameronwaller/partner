@@ -1274,6 +1274,8 @@ def report_table_range_variables(
 # Extract and describe signal intensity values for a selection of
 # features and within groups of observations
 
+# TODO: TCW; 16 October 2024
+# Sort the groups to match those in original parameter table...
 
 def extract_describe_signals_for_features_in_observations_groups(
     table=None,
