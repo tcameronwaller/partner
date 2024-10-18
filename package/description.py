@@ -1777,7 +1777,7 @@ def extract_describe_signals_for_features_in_observations_groups(
     )
 
     ##########
-    # 9. Collect information.
+    # Collect information.
     pail = dict()
     pail["table_1"] = table_product_1
     pail["table_2"] = table_product_2
