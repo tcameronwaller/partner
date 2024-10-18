@@ -1447,14 +1447,16 @@ def extract_prepare_table_signals_categories_for_heatmap(
 
     # Define discrete numerical representation of categorical groups.
     if ((format_table == 2) and (column_group is not None)):
-        sequence_groups = dict()
+        groups_indices = dict()
+        indices_groups = dict()
         index = 0
         for name in labels_group_unique:
-            sequence_groups[name] = index
+            groups_indices[name] = index
+            indices_groups[index] = name
             index += 1
             pass
         integers_group_rows = list(map(
-            lambda name: sequence_groups[name], labels_group_rows
+            lambda name: groups_indices[name], labels_group_rows
         ))
         #groups_representation = dict()
         #groups_representation["names"] = labels_group_rows
@@ -1468,7 +1470,8 @@ def extract_prepare_table_signals_categories_for_heatmap(
             1, len(integers_group_rows)
         )
     else:
-        sequence_groups = None
+        groups_indices = None
+        indices_groups = None
         integers_group_rows = None
         matrix_group_integers = None
         pass
@@ -1486,7 +1489,8 @@ def extract_prepare_table_signals_categories_for_heatmap(
     pail["labels_group_rows"] = labels_group_rows
     pail["integers_group_rows"] = integers_group_rows
     pail["labels_group_unique"] = labels_group_unique
-    pail["sequence_groups"] = sequence_groups
+    pail["groups_indices"] = groups_indices
+    pail["indices_groups"] = indices_groups
     pail["groups_counts"] = groups_counts
     pail["labels_ordinate_categories"] = labels_ordinate_categories
     pail["labels_abscissa_categories"] = labels_abscissa_categories

@@ -299,11 +299,11 @@ def plot_heatmap_signal_label_features_groups_of_observations(
         wspace=0.0, # horizontal width space between grid blocks for subplots
         hspace=0.0, # vertical height space between grid blocks for subplots
         width_ratios=None, # all columns have same width
-        height_ratios=(1,15), # first row 1/10th height of second row
+        height_ratios=(25,1), # first row 1/10th height of second row
     )
     # Initialize axes within grid within figure.
-    axes_group = figure.add_subplot(grid[0,0]) # first row, first column
-    axes_main = figure.add_subplot(grid[1,0]) # second row, first column
+    axes_main = figure.add_subplot(grid[0,0]) # second row, first column
+    axes_group = figure.add_subplot(grid[1,0]) # first row, first column
 
     # Keep axes, ticks, and labels, but remove border.
     for position in ['right', 'top', 'bottom', 'left']:
@@ -428,6 +428,17 @@ def plot_heatmap_signal_label_features_groups_of_observations(
         labelleft=False,
         labelright=False,
     )
+
+    handles = [matplotlib.patches.Patch(color=color_map(i), label=pail["indices_groups"][i]) for i in pail["indices_groups"].keys()]
+
+    axes_group.legend(
+        handles=handles,
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.05),
+        ncol=4,
+    )
+
+
     ##########
     # Plot data on figure.
 
