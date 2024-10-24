@@ -70,6 +70,12 @@ sudo apt update
 sudo apt upgrade
 sudo apt remove zoom
 
+# darktable
+# description: edit digital photographs in raw format
+# site: https://www.darktable.org/
+# Install the "universal package formats" using flatpak.
+flatpak install flathub darktable
+
 # GIMP
 #sudo add-apt-repository ppa:otto-kesselgulasch/gimp
 #sudo apt update

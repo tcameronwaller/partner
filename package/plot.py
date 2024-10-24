@@ -1149,7 +1149,7 @@ def plot_heat_map_few_signal_significance_labels(
             orientation="vertical",
             ax=axes,
             location="right",
-            shrink=0.7, # 0.7; factor for dimensions of the Scale Bar.
+            shrink=0.9, # 0.7; factor for dimensions of the Scale Bar.
         )
         if (len(title_bar) > 0):
             bar.ax.set_ylabel(
@@ -1530,6 +1530,61 @@ def extract_prepare_table_signals_categories_for_heatmap(
     return pail
 
 
+def determine_size_axis_labels_features_categories(
+    count_labels=None,
+):
+    """
+    Determine appropriate size of font for text labels on an axis to represent
+    explicit names of features or categories.
+
+    The maximal count of labels is 200.
+
+    These sizes of font correspond to definitions in the function below.
+    package: partner
+    module: plot.py
+    function: define_font_properties()
+
+    Review: 24 October 2024
+
+    arguments:
+        count_labels (int): count of labels for axis
+
+    raises:
+
+    returns:
+        (str): text designation of size for font in labels
+
+    """
+
+    # Determine appropriate size of font for text labels of explicit names of
+    # features or categories along axis.
+    if (150 <= count_labels and count_labels < 201):
+        size_label = "nineteen"
+    elif (120 <= count_labels and count_labels < 150):
+        size_label = "eighteen"
+    elif (100 <= count_labels and count_labels < 120):
+        size_label = "seventeen"
+    elif (80 <= count_labels and count_labels < 100):
+        size_label = "sixteen"
+    elif (60 <= count_labels and count_labels < 80):
+        size_label = "fifteen"
+    elif (40 <= count_labels and count_labels < 60):
+        size_label = "fourteen"
+    elif (30 <= count_labels and count_labels < 40):
+        size_label = "thirteen"
+    elif (20 <= count_labels and count_labels < 30):
+        size_label = "twelve"
+    elif (10 <= count_labels and count_labels < 20):
+        size_label = "eleven"
+    elif (1 <= count_labels and count_labels < 10):
+        size_label = "ten"
+    else:
+        size_label = None
+        pass
+    # Return information.
+    return size_label
+
+
 def plot_heatmap_signal_label_features_observations(
     table=None,
     format_table=None,
@@ -1541,6 +1596,7 @@ def plot_heatmap_signal_label_features_observations(
     constrain_signal_values=None,
     value_minimum=None,
     value_maximum=None,
+    show_labels_ordinate=None,
     labels_ordinate_categories=None,
     labels_abscissa_categories=None,
     show_scale_bar=None,
@@ -1594,7 +1650,7 @@ def plot_heatmap_signal_label_features_observations(
     MatPlotLib color maps.
     https://matplotlib.org/stable/tutorials/colors/colormaps.html
 
-    Review: 17 October 2024
+    Review: 24 October 2024
 
     arguments:
         table (object): Pandas data-frame table of values of signal intensity
@@ -1618,6 +1674,9 @@ def plot_heatmap_signal_label_features_observations(
             scale
         value_maximum (float): maximal value for constraint on signals and
             scale
+        show_labels_ordinate (bool): whether to show on vertical ordinate axis
+            of plot chart explicit text labels for individual features or
+            categories
         labels_ordinate_categories (list<str>): optional, explicit labels for
             ordinate or vertical axis
         labels_abscissa_categories (list<str>): optional, explicit labels for
@@ -1722,8 +1781,8 @@ def plot_heatmap_signal_label_features_observations(
     axes.tick_params(
         axis="both", # "y", "x", or "both"
         which="both", # "major", "minor", or "both"
-        length=7.5, # 5.0
-        width=5, # 3.5
+        length=5.0, # 5.0
+        width=3.5, # 3.5
         pad=10, # 7.5
         direction="out",
         color=colors["black"],
@@ -1737,20 +1796,38 @@ def plot_heatmap_signal_label_features_observations(
         labelleft=True,
         labelright=False,
     )
-    # Set tick positions and labels on axes.
-    axes.set_yticks(
-        numpy.arange(pail["matrix_signal"].shape[0]),
-    )
-    axes.set_yticklabels(
-        pail["labels_ordinate_categories"],
-        #minor=False,
-        ha="right", # horizontal alignment
-        va="center", # vertical alignment
-        alpha=1.0,
-        backgroundcolor=colors["white"],
-        color=colors["black"],
-        fontproperties=fonts["properties"][size_label_ordinate]
-    )
+    # Determine whether to show labels for features or categories along the
+    # vertical ordinate axis.
+    count_labels_ordinate = len(pail["labels_ordinate_categories"])
+    if (show_labels_ordinate):
+        # Determine appropriate size of font for text labels of explicit names of
+        # features or categories along axis.
+        size_label_ordinate = determine_size_axis_labels_features_categories(
+            count_labels=count_labels_ordinate,
+        )
+        pass
+    if (
+        (show_labels_ordinate) and
+        (size_label_ordinate is not None) and
+        (pail["labels_ordinate_categories"] is not None) and
+        (count_labels_ordinate > 1)
+    ):
+        # Set tick positions and labels on vertical ordinate axis.
+        axes.set_yticks(
+            numpy.arange(pail["matrix_signal"].shape[0]),
+        )
+        axes.set_yticklabels(
+            pail["labels_ordinate_categories"],
+            #minor=False,
+            ha="right", # horizontal alignment
+            va="center", # vertical alignment
+            alpha=1.0,
+            backgroundcolor=colors["white"],
+            color=colors["black"],
+            fontproperties=fonts["properties"][size_label_ordinate]
+        )
+        pass
+    # Set tick positions and labels on horizontal abscissa axis.
     axes.set_xticks(
         numpy.arange(pail["matrix_signal"].shape[1]),
     )
@@ -1812,13 +1889,368 @@ def plot_heatmap_signal_label_features_observations(
     return figure
 
 
+##########
+# Heatmap plots with many cells
+
+# TODO: TCW; 24 October 2024
+# TODO: simplify arguments... some are unnecessary
+def plot_heatmap_signal_label_features_groups_of_observations(
+    table=None,
+    format_table=None,
+    index_columns=None,
+    index_rows=None,
+    column_group=None,
+    transpose_table=None,
+    fill_missing=None,
+    value_missing_fill=None,
+    constrain_signal_values=None,
+    value_minimum=None,
+    value_maximum=None,
+    show_labels_ordinate=None,
+    labels_ordinate_categories=None,
+    labels_abscissa_categories=None,
+    show_scale_bar=None,
+    title_ordinate=None,
+    title_abscissa=None,
+    title_bar=None,
+    size_title_ordinate=None,
+    size_title_abscissa=None,
+    size_label_ordinate=None,
+    size_label_abscissa=None,
+    size_title_bar=None,
+    size_label_bar=None,
+    aspect=None,
+    fonts=None,
+    colors=None,
+    report=None,
+):
+    """
+    Heat map.
+
+    Format of source table
+
+    Format of source table is in wide format with floating-point values of
+    signal intensities corresponding to features across columns and distinct
+    observations across rows. A special column gives identifiers corresponding
+    to each observation across rows. Another special column provides names
+    of categorical groups of observations. For convenience in separating the
+    values from their labels or identifiers, the source table must have
+    explicitly defined indices across columns and rows.
+    ----------
+    observation     group   feature_1 feature_2 feature_3 feature_4 feature_5
+    observation_1   group_1 0.001     0.001     0.001     0.001     0.001
+    observation_2   group_1 0.001     0.001     0.001     0.001     0.001
+    observation_3   group_2 0.001     0.001     0.001     0.001     0.001
+    observation_4   group_2 0.001     0.001     0.001     0.001     0.001
+    observation_5   group_3 0.001     0.001     0.001     0.001     0.001
+    ----------
+
+    For versatility, the source table does not have explicitly defined indices
+    across columns or rows.
+
+    This function preserves the original sequence of features. This function
+    also preserves the original sequence of groups and observations within
+    groups.
+
+    This function assumes that the table has many more observations than
+    features, and for this reason, the design orients features across the
+    vertical axis and observations across the horizontal axis. With a landscape
+    aspect ratio, this design allows more space for the horizontal axis.
+
+    ----------
+
+
+    Reference:
+    https://www.kaggle.com/code/sgalella/correlation-heatmaps-with-
+        hierarchical-clustering
+    https://www.kaggle.com/code/chinoysen/beginners-guide-to-heatmaps-cluster-
+        heatmap
+    https://seaborn.pydata.org/generated/seaborn.clustermap.html
+    https://scanpy.readthedocs.io/en/stable/generated/scanpy.pl.heatmap.html
+    https://gist.github.com/peterk87/5505691
+    https://matplotlib.org/stable/tutorials/colors/colormaps.html
+
+    Maybe useful for problem-solving:
+    https://matplotlib.org/stable/gallery/subplots_axes_and_figures/
+        subplots_demo.html
+        - subplots and gridspec
+    http://www.acgeospatial.co.uk/colour-bar-for-discrete-rasters-with-matplotlib/
+        - color maps for discrete values
+    https://matplotlib.org/stable/users/explain/colors/colorbar_only.html
+        #colorbar-with-arbitrary-colors
+        - color bar with custom dimensions of discrete, categorical intervals
+
+    https://matplotlib.org/stable/gallery/color/colormap_reference.html
+        - color maps in MatPlotLib
+
+
+
+    https://stackoverflow.com/questions/14777066/matplotlib-discrete-colorbar
+        - categorical color bars
+        - helpful reference for figuring out how to set the thresholds between
+          the discrete levels of the color bar to correspond properly to the
+          columns of the main heatmap...
+    https://stackoverflow.com/questions/9707676/defining-a-discrete-colormap-for-imshow
+    https://stackoverflow.com/questions/7229971/2d-grid-data-visualization-in-python
+    https://matplotlib.org/stable/users/explain/colors/colormapnorms.html
+        - normalization of information for color maps???
+
+    arguments:
+        table (object): Pandas data-frame table of values of signal intensity
+            for features in columns across sample observations or groups of
+            sample observations in rows
+        format_table (int): value 1 for features across rows and observations
+            or groups of observations across columns, value 2 for features
+            across columns and observations across rows with potential special
+            column for groups of observations
+        index_columns (str): name to define an index corresponding to
+            information across columns in source table
+        index_rows (str): name of a column in source table which defines an
+            index corresponding to information across rows
+        column_group (str): name of column in table to use for groups
+        transpose_table (bool): whether to transpose matrix from table
+        fill_missing (bool): whether to fill any missing values in every
+            element of matrix
+        value_missing_fill (float): value with which to fill any missing values
+        constrain_signal_values (bool): whether to constrain all values in
+            matrix
+        value_minimum (float): minimal value for constraint on signals and
+            scale
+        value_maximum (float): maximal value for constraint on signals and
+            scale
+        show_labels_ordinate (bool): whether to show on vertical ordinate axis
+            of plot chart explicit text labels for individual features or
+            categories
+        labels_ordinate_categories (list<str>): optional, explicit labels for
+            ordinate or vertical axis
+        labels_abscissa_categories (list<str>): optional, explicit labels for
+            abscissa or horizontal axis
+
+        ...
+        ...
+        ...
+
+        aspect (str): aspect ratio for MatPlotLib chart figure
+        fonts (dict<object>): references to definitions of font properties
+        colors (dict<tuple>): references to definitions of color properties
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): MatPlotLib figure object
+
+    """
+
+    ##########
+    # Prepare information for figure.
+    pail = extract_prepare_table_signals_categories_for_heatmap(
+        table=table,
+        format_table=format_table, # 1: features in rows, observations in columns
+        index_columns=index_columns,
+        index_rows=index_rows,
+        column_group=column_group,
+        transpose_table=transpose_table,
+        fill_missing=fill_missing,
+        value_missing_fill=value_missing_fill,
+        constrain_signal_values=constrain_signal_values,
+        value_minimum=value_minimum,
+        value_maximum=value_maximum,
+        labels_ordinate_categories=labels_ordinate_categories,
+        labels_abscissa_categories=labels_abscissa_categories,
+        report=report,
+    )
+
+
+    ##########
+    # Create figure.
+
+
+    ##########
+    # Initialize figure.
+    figure = initialize_matplotlib_figure_aspect(
+        aspect=aspect,
+    )
+    # Initialize grid within figure.
+    #matplotlib.gridspec.GridSpec()
+    #figure.add_gridspec()
+    #sharey=True, # sharey="row"
+    #sharex=True, # sharex="col",
+    grid = matplotlib.gridspec.GridSpec(
+        nrows=2,
+        ncols=1,
+        wspace=0.0, # horizontal width space between grid blocks for subplots
+        hspace=0.0, # vertical height space between grid blocks for subplots
+        width_ratios=None, # all columns have same width
+        height_ratios=(25,1), # first row 1/10th height of second row
+    )
+    # Initialize axes within grid within figure.
+    axes_main = figure.add_subplot(grid[0,0]) # second row, first column
+    axes_group = figure.add_subplot(grid[1,0]) # first row, first column
+
+    # Keep axes, ticks, and labels, but remove border.
+    for position in ['right', 'top', 'bottom', 'left']:
+        matplotlib.pyplot.gca().spines[position].set_visible(False)
+
+    ##########
+    # axes: main
+
+    # Plot values as a grid of color on continuous scale.
+    # This function represents values acros matrix dimension 0 as vertical
+    # rows.
+    # This function represents values across matrix dimension 1 as horizontal
+    # columns.
+    # Diverging color maps: "PRGn", "PRGn_r", "PiYG", "PiYG_r",
+    # Diverging color maps: "PuOr", "PuOr_r",
+    # Diverging color maps: "PuOr", "PuOr_r", "RdBu", "RdBu_r", "BrBG",
+    # Sequential color maps: "Reds", "Reds_r", "Oranges", "Oranges_r",
+    # site: https://montoliu.naukas.com/2021/11/18/color-blindness-purple-and-
+    #     orange-are-the-solution/
+    image = axes_main.imshow(
+        pail["matrix_signal"],
+        cmap=matplotlib.colormaps["PuOr"], # RdBu_r, PuOr_r
+        vmin=pail["value_minimum"],
+        vmax=pail["value_maximum"],
+        aspect="auto", # "auto", "equal",
+        origin="upper",
+        # Extent: (left, right, bottom, top)
+        #extent=(-0.5, (matrix.shape[1] - 0.5), (matrix.shape[0] - 0.5), -0.5),
+    )
+
+    # Set titles for axes.
+    if (len(title_ordinate) > 0):
+        axes_main.set_ylabel(
+            ylabel=title_ordinate,
+            labelpad=30,
+            alpha=1.0,
+            backgroundcolor=colors["white"],
+            color=colors["black"],
+            fontproperties=fonts["properties"][size_title_ordinate]
+        )
+    if (len(title_abscissa) > 0):
+        axes_main.set_xlabel(
+            xlabel=title_abscissa,
+            labelpad=30,
+            alpha=1.0,
+            backgroundcolor=colors["white"],
+            color=colors["black"],
+            fontproperties=fonts["properties"][size_title_abscissa]
+        )
+    # This design only places explicit labels on the vertical ordinate axis for
+    # individual features or categories.
+    # Determine whether to show labels for features or categories along the
+    # vertical ordinate axis.
+    count_labels_ordinate = len(pail["labels_ordinate_categories"])
+    if (show_labels_ordinate):
+        # Determine appropriate size of font for text labels of explicit names of
+        # features or categories along axis.
+        size_label_ordinate = determine_size_axis_labels_features_categories(
+            count_labels=count_labels_ordinate,
+        )
+        pass
+    if (
+        (show_labels_ordinate) and
+        (size_label_ordinate is not None) and
+        (pail["labels_ordinate_categories"] is not None) and
+        (count_labels_ordinate > 1)
+    ):
+        # Set tick parameters for axes.
+        axes_main.tick_params(
+            axis="y", # "y", "x", or "both"
+            which="both", # "major", "minor", or "both"
+            length=5.0, # 5.0
+            width=3.5, # 3.5
+            pad=10, # 7.5
+            direction="out",
+            color=colors["black"],
+            labelcolor=colors["black"],
+            top=False,
+            bottom=False,
+            left=True,
+            right=False,
+            labeltop=False,
+            labelbottom=False,
+            labelleft=True,
+            labelright=False,
+        )
+        # Set tick positions and labels on axes.
+        axes_main.set_yticks(
+            numpy.arange(pail["matrix_signal"].shape[0]),
+        )
+        axes_main.set_yticklabels(
+            pail["labels_ordinate_categories"],
+            #minor=False,
+            ha="right", # horizontal alignment
+            va="center", # vertical alignment
+            alpha=1.0,
+            backgroundcolor=colors["white"],
+            color=colors["black"],
+            fontproperties=fonts["properties"][size_label_ordinate]
+        )
+        axes_main.tick_params(
+            top=False,
+            labeltop=False,
+            bottom=False,
+            labelbottom=False,
+        )
+        pass
+
+    ##########
+    # axes: group
+
+    # Define color map for discrete, integer representation of categorical
+    # groups.
+    #discrete_minimum = 0
+    #discrete_maximum = len(pail["labels_group_unique"])
+    discrete_minimum = numpy.nanmin(pail["matrix_group_integers"])
+    discrete_maximum = numpy.nanmax(pail["matrix_group_integers"])
+    color_map = matplotlib.pyplot.get_cmap(
+        "Dark2", # "Set1", "Set2", "Dark2", "tab10",
+        ((discrete_maximum - discrete_minimum) + 1)
+    )
+    # Plot values as a grid of color on discrete scale.
+    image = axes_group.imshow(
+        pail["matrix_group_integers"],
+        cmap=color_map,
+        vmin=discrete_minimum,
+        vmax=discrete_maximum,
+        aspect="auto", # "auto", "equal",
+        origin="upper",
+        # Extent: (left, right, bottom, top)
+        #extent=(-0.5, (matrix.shape[1] - 0.5), (matrix.shape[0] - 0.5), -0.5),
+    )
+    axes_group.tick_params(
+        top=False,
+        bottom=False,
+        left=False,
+        right=False,
+        labeltop=False,
+        labelbottom=False,
+        labelleft=False,
+        labelright=False,
+    )
+    handles = [matplotlib.patches.Patch(
+        color=color_map(i),
+        label=pail["indices_groups"][i]
+    ) for i in pail["indices_groups"].keys()]
+    axes_group.legend(
+        handles=handles,
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.05),
+        ncol=4,
+    )
+
+    ##########
+    # Return figure.
+    return figure
+
 
 
 
 
 
 ##########
-# Heatmap plots with many cells
+# Heatmap plots with many cells... old
 # These heatmap plots support options such as clustering.
 
 # TODO: pass variable for label on scale bar...
@@ -5440,7 +5872,6 @@ def write_product_plots_parent_directory(
         format (str): format suffix, 'svg', 'pdf', 'png'
         resolution (int): dots per inch (dpi) density for raster image; set to
             '300' or '600' for raster or 'None' for format 'svg' or 'pdf'
-        name_file (str): base name for file
         path_directory (str): path to parent directory
 
     raises:
@@ -5465,6 +5896,8 @@ def write_product_plots_parent_directory(
 
 def write_product_plots_child_directories(
     pail_write=None,
+    format=None,
+    resolution=None,
     path_parent=None,
 ):
     """
@@ -5475,6 +5908,9 @@ def write_product_plots_child_directories(
 
     arguments:
         pail_write (dict<dict<object>>): information to write to file
+        format (str): format suffix, 'svg', 'pdf', 'png'
+        resolution (int): dots per inch (dpi) density for raster image; set to
+            '300' or '600' for raster or 'None' for format 'svg' or 'pdf'
         path_parent (str): path to parent directory
 
     raises:
@@ -5496,15 +5932,14 @@ def write_product_plots_child_directories(
         putly.create_directories(
             path=path_child
         )
-        # Iterate across charts.
-        for name_file in pail_write[name_directory].keys():
-            # Write chart object to file in child directory.
-            write_product_plot_figure(
-                name=name_file,
-                figure=pail_write[name_directory][name_file],
-                path_directory=path_child,
-            )
-            pass
+        # Iterate across figure objects.
+        # Write chart objects to file in child directory.
+        write_product_plots_parent_directory(
+            pail_write=pail_write[name_directory],
+            format=format,
+            resolution=resolution,
+            path_directory=path_child,
+        )
         pass
     pass
 

@@ -2634,7 +2634,7 @@ def parse_extract_text_keys_values_semicolon_colon_comma(
     text = str(text).strip()
     #features = list()
     # Parse and extract information.
-    if ((text != "none") and (text != "") and (len(text) > 0)):
+    if ((text.lower() != "none") and (text != "") and (len(text) > 0)):
         pail_parse = dict()
         for part in text.split(";"):
             part_split = part.split(":")
