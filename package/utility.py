@@ -252,10 +252,10 @@ def extract_filter_child_file_names_paths(
     report=None,
 ):
     """
-    Extracts and filters the names of all child Reads all files within a parent
-    directory and then returns complete paths to each relevant child file.
+    Extract and filter the names of all child files within a parent
+    directory, and then return complete paths to each relevant child file.
 
-    Review: TCW; 22 May 2024
+    Review: TCW; 25 October 2024
 
     arguments:
         path_directory (str): path to parent directory
@@ -1337,6 +1337,83 @@ def read_file_text_list(
     return values_not_empty
 
 
+def read_child_files_text_list_count_unique_items(
+    path_directory=None,
+    name_file_prefix=None,
+    name_file_suffix=None,
+    name_file_not=None,
+    report=None,
+):
+    """
+    Read and count list items from text-format child files in a parent
+    directory.
+
+    Review: TCW; 25 October 2024
+
+    arguments:
+        path_directory (str): path to parent directory
+        name_file_prefix (str): string prefix in names of relevant child files
+            within parent directory
+        name_file_suffix (str): string suffix in names of relevant child files
+            within parent directory
+        name_file_not (str): string not in names of relevant child files within
+            parent directory
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    # Collect paths to child files within parent directory.
+    paths_file = extract_filter_child_file_names_paths(
+        path_directory=path_directory,
+        name_file_prefix=name_file_prefix,
+        name_file_suffix=name_file_suffix,
+        name_file_not=name_file_not,
+        report=False,
+    )
+
+    # Iterate on paths to child files, read information from file, and collect
+    # information from each iteration.
+    records = list()
+    for path_file in paths_file:
+        # Read information from file.
+        items = read_file_text_list(
+            delimiter="\n",
+            path_file=path_file,
+        )
+        # Collect unique items from list.
+        items_unique = collect_unique_elements(
+            elements=items,
+        )
+        # Collect information.
+        record = dict()
+        record["name"] = os.path.basename(path_file)
+        record["count"] = int(len(items_unique))
+        records.append(record)
+        pass
+    # Organize information in table.
+    table = pandas.DataFrame(data=records)
+    # Report.
+    if report:
+        print_terminal_partition(level=3)
+        print("package: partner")
+        print("module: utility.py")
+        print("function: read_child_files_text_list_count_unique_items()")
+        print_terminal_partition(level=4)
+        print("path to parent directory:")
+        print(str(path_directory))
+        print("count of child files: " + str(len(paths_file)))
+        print("summary table of counts of unique items in each list:")
+        print(table)
+        print_terminal_partition(level=4)
+    # Return information.
+    return table
+
+
 def read_file_text_lines(
     path_file=None,
     start=None,
@@ -1539,6 +1616,9 @@ def read_all_pandas_tables_files_within_parent_directory(
         pass
     # Return information.
     return pail
+
+
+
 
 
 ##########
