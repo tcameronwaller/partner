@@ -165,6 +165,7 @@ def translate_identifiers_table_indices_columns_rows(
     index_rows=None,
     translations_columns=None,
     translations_rows=None,
+    remove_redundancy=None,
     report=None,
 ):
     """
@@ -176,7 +177,11 @@ def translate_identifiers_table_indices_columns_rows(
 
     This function only translates names that are in the argument references.
 
-    Review: TCW; 15 October 2024
+    Sometimes translations introduce redundancy in the identifiers within
+    indices across columns or rows. This function offers the option to remove
+    this redundancy.
+
+    Review: TCW; 25 October 2024
 
     arguments:
         table (object): Pandas data-frame table
@@ -186,6 +191,8 @@ def translate_identifiers_table_indices_columns_rows(
             of columns
         translations_rows (dict<str>): translations for names or identifiers
             of columns
+        remove_redundancy (bool): whether to remove columns or rows with
+            redundant identifiers after translation
         report (bool): whether to print reports
 
     raises:
@@ -237,6 +244,20 @@ def translate_identifiers_table_indices_columns_rows(
             inplace=True
         )
         pass
+
+    # Determine whether to remove any redundancy in identifiers across columns
+    # and rows.
+    if remove_redundancy:
+        table.drop_duplicates(
+            subset=[index_rows,],
+            keep="first",
+            inplace=True,
+        )
+        table = table.loc[
+            :, ~table.columns.duplicated(
+                keep="first",
+            )
+        ].copy(deep=True)
 
     # Report.
     if report:
@@ -3224,6 +3245,7 @@ def cluster_table_columns(
     https://docs.scipy.org/doc/scipy/reference/cluster.hierarchy.html
     https://stackabuse.com/hierarchical-clustering-with-python-and-scikit-
         learn/
+        - description of linkage methods in hierarchical clustering
 
     Review: TCW; 17 September 2024
 
@@ -3251,7 +3273,7 @@ def cluster_table_columns(
     matrix = numpy.transpose(table.to_numpy())
     linkage = scipy.cluster.hierarchy.linkage(
         matrix,
-        method="average", # "single", "complete", "average"
+        method="average", # "average", "centroid", "ward",
         metric="euclidean",
         optimal_ordering=True,
     )
@@ -3299,6 +3321,7 @@ def cluster_table_rows(
     https://docs.scipy.org/doc/scipy/reference/cluster.hierarchy.html
     https://stackabuse.com/hierarchical-clustering-with-python-and-scikit-
         learn/
+        - description of linkage methods in hierarchical clustering
 
     Review: TCW; 17 September 2024
 

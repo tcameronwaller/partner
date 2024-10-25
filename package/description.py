@@ -1517,13 +1517,17 @@ def extract_describe_signals_for_features_in_observations_groups(
         sequence_groups_observations = {
             key: value for value, key in enumerate(names_groups_observations)
         }
+    # Ensure that features are unique.
+    features_unique = putly.collect_unique_elements(
+        elements=features,
+    )
     # Ensure that all features are in the source table.
     features_all = copy.deepcopy(
         table_source[index_features].unique().tolist()
     )
     features_available = list(filter(
         lambda feature: (feature in features_all),
-        features
+        features_unique
     ))
     # Translate identifiers of features.
     features_available_translation = copy.deepcopy(features_available)
@@ -1533,6 +1537,12 @@ def extract_describe_signals_for_features_in_observations_groups(
             features_available_translation
         ))
         pass
+    # Ensure that features are unique after translation.
+    features_available_translation = putly.collect_unique_elements(
+        elements=features_available_translation,
+    )
+
+
     # Ensure that all observations are in the source table.
     observations_all = copy.deepcopy(table_source.columns.to_list())
     observations_request = list()
@@ -1564,6 +1574,7 @@ def extract_describe_signals_for_features_in_observations_groups(
         index_rows=index_features,
         translations_columns=translations_observations,
         translations_rows=translations_features,
+        remove_redundancy=True,
         report=False,
     )
 
@@ -1621,6 +1632,7 @@ def extract_describe_signals_for_features_in_observations_groups(
         index_rows=index_observations,
         translations_columns=translations_features,
         translations_rows=translations_observations,
+        remove_redundancy=True,
         report=False,
     )
 
