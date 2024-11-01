@@ -304,7 +304,7 @@ def execute_procedure(
 
 if (__name__ == "__main__"):
     # Parse arguments from terminal.
-    name_script = sys.argv[0]
+    path_file_script = sys.argv[0] # always the first argument
     path_directory_source = sys.argv[1]
     name_file_source_prefix = sys.argv[2]
     name_file_source_suffix = sys.argv[3]

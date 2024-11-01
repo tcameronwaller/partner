@@ -1311,10 +1311,10 @@ def read_file_text_list(
     """
     Reads and organizes source information from file.
 
-    Delimiters include "\n", "\t", ",", " ".
+    Delimiters include "\n", "\t", ";", ":", ",", " ".
 
     arguments:
-        delimiter (str): delimiter between elements in list
+        delimiter (str): delimiter between items in text representation of list
         path_file (str): path to directory and file
 
     returns:
@@ -1660,21 +1660,27 @@ def write_file_text_table(
         writer.writerows(information)
 
 
+    putly.write_list_to_file_text(
+        elements=pail["items"],
+        delimiter=str(delimiter_product),
+        path_file=path_file_product,
+    )
+
+
 def write_list_to_file_text(
     elements=None,
     delimiter=None,
-    name_file=None,
-    path_directory=None,
+    path_file=None,
 ):
     """
     Writes to file in text format information from an array of strings.
 
-    Delimiters include "\n", "\t", ",", " ".
+    Delimiters include "\n", "\t", ";", ":", ",", " ".
 
     arguments:
         elements (list<str>): character elements
         delimiter (str): delimiter between elements in list
-        name_file (str): base name for file
+        path_file (str): path to file
         path_directory (str): path to directory within which to write file
 
 
@@ -1684,14 +1690,8 @@ def write_list_to_file_text(
 
     """
 
-    # Initialize directories.
-    create_directories(
-        path=path_directory,
-    )
-    # Specify directories and files.
-    path_file = os.path.join(
-        path_directory, str(name_file + ".txt")
-    )
+    # Extract name of file from path.
+    #name_file = os.path.basename(path_file_product).split(".")[0]
     # Write information to file
     with open(path_file, "w") as file_product:
         string = delimiter.join(elements)
@@ -1702,16 +1702,20 @@ def write_list_to_file_text(
 def write_lists_to_file_text(
     pail_write=None,
     path_directory=None,
+    delimiter=None,
 ):
     """
     Writes product information to file.
 
     First and only dictionary tier names the file.
 
+    Delimiters include "\n", "\t", ";", ":", ",", " ".
+
     arguments:
         pail_write (dict<object>): collection of information to write to file
         path_directory (str): path to directory within which to write
             information to files
+        delimiter (str): delimiter between elements in list
 
     raises:
 
@@ -1721,14 +1725,23 @@ def write_lists_to_file_text(
 
     # Structure of "pail_write" collection is "dict<object>".
     # First and only tier of dictionary tree gives names of files.
+
+    # Initialize directories.
+    #path_directory = os.path.dirname(path_file)
+    create_directories(
+        path=path_directory,
+    )
     # Iterate across charts.
     for name_file in pail_write.keys():
-        # Write chart object to file in child directory.
+        # Specify directories and files.
+        path_file = os.path.join(
+            path_directory, str(name_file + ".txt")
+        )
+        # Write information to file in child directory.
         write_list_to_file_text(
             elements=pail_write[name_file],
-            delimiter="\n",
-            name_file=name_file,
-            path_directory=path_directory,
+            delimiter=delimiter,
+            path_file=path_file,
         )
         pass
     pass

@@ -198,8 +198,8 @@ make install # TCW, 6 July 2021
 # path to environment: path_environment_htseq="${path_tool}/python/environments/main"
 # Notice that it is unnecessary to create the last directory ("main") before
 # creating the virtual environment.
-"${path_python_396}/bin/python3" -m venv --help
-"${path_python_396}/bin/python3" -m venv $path_environment_main # TCW; 17 July 2024
+"${path_python_3124}/bin/python3" -m venv --help
+"${path_python_3124}/bin/python3" -m venv $path_environment_main # TCW; 17 July 2024
 # Activate virtual environment.
 source "${path_environment_main}/bin/activate"
 which python3 # "${path_tool}/python/environments/main/bin/python3"; TCW; 17 July 2024
@@ -218,6 +218,7 @@ python3 -m pip install --upgrade scikit-learn
 python3 -m pip install --upgrade statsmodels
 python3 -m pip install --upgrade networkx
 python3 -m pip install --upgrade matplotlib
+python3 -m pip install --upgrade mygene # TCW; 31 October 2024
 deactivate
 which python3
 

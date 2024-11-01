@@ -55,6 +55,7 @@ path_directory_parameters_private_source=$(<"$path_directory_paths/path_paramete
 path_directory_parameters_private="$path_directory_dock/in_parameters_private"
 path_directory_repository_partner=$(<"$path_directory_paths/path_directory_repository_partner.txt")
 path_directory_repository_project_main=$(<"$path_directory_paths/path_directory_repository_${project_main}.txt")
+path_directory_scripts="$path_directory_process/scripts"
 path_directory_package="$path_directory_process/package"
 path_directory_package_partner_source="$path_directory_repository_partner/package"
 path_directory_package_project_main_source="$path_directory_repository_project_main/package"
@@ -62,15 +63,16 @@ path_directory_package_partner_product="$path_directory_package/partner"
 path_directory_package_project_main_product="$path_directory_package/${project_main}"
 
 # Initialize directories.
-if [ -d $path_directory_demonstration ] || [ -d $path_directory_parameters ] || [ -d $path_directory_parameters_private ] || [ -d $path_directory_package ] ; then
+if [ -d $path_directory_demonstration ] || [ -d $path_directory_parameters ] || [ -d $path_directory_parameters_private ] || [ -d $path_directory_scripts ] || [ -d $path_directory_package ] ; then
   # Remove previous versions of code from temporary location for execution.
   rm -rf $path_directory_demonstration
   rm -rf $path_directory_parameters
   rm -rf $path_directory_parameters_private
+  rm -rf $path_directory_scripts
   rm -rf $path_directory_package
 fi
 
-if [ ! -d $path_directory_process ] || [ ! -d $path_directory_package ] || [ ! -d $path_directory_dock ] || [ -d $path_directory_demonstration ] || [ ! -d $path_directory_parameters ] || [ ! -d $path_directory_parameters_private ] ; then
+if [ ! -d $path_directory_process ] || [ ! -d $path_directory_package ] || [ ! -d $path_directory_dock ] || [ -d $path_directory_demonstration ] || [ ! -d $path_directory_parameters ] || [ ! -d $path_directory_parameters_private ] || [ ! -d $path_directory_scripts ] ; then
   # Directory or directories do not already exist.
   # Create directories.
   mkdir -p $path_directory_process
@@ -79,6 +81,7 @@ if [ ! -d $path_directory_process ] || [ ! -d $path_directory_package ] || [ ! -
   mkdir -p $path_directory_demonstration
   mkdir -p $path_directory_parameters
   mkdir -p $path_directory_parameters_private
+  mkdir -p $path_directory_scripts
 fi
 
 ################################################################################
@@ -95,6 +98,13 @@ mv "$path_directory_parameters/parameters" "$path_directory_parameters/${project
 cp -r $path_directory_parameters_private_source $path_directory_dock
 mv "${path_directory_dock}/parameters" "${path_directory_dock}/${project_main}"
 mv "${path_directory_dock}/${project_main}" $path_directory_parameters_private
+
+##########
+# Organize scripts.
+cp -r "$path_directory_repository_partner/scripts" "$path_directory_scripts/scripts"
+mv "$path_directory_scripts/scripts" "$path_directory_scripts/partner"
+cp -r "$path_directory_repository_project_main/scripts" "$path_directory_scripts/scripts"
+mv "$path_directory_scripts/scripts" "$path_directory_scripts/${project_main}"
 
 ##########
 # Organize Python packages.
