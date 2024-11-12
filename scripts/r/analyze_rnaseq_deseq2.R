@@ -572,6 +572,9 @@ if (
 #  )
 #}
 
+print("... describe results with method 'mcols' ...")
+mcols(table_result)$description
+
 # Calculate negative base-ten logarithm of p-value.
 table_result$neglog10pvalue <- (log(table_result$pvalue, base=10) * -1)
 # Calculate rank metric.
@@ -686,6 +689,16 @@ print("Table of results of gene differential expression analysis in DESeq2.")
 cat("----------\n")
 print(paste("path: ", path_file_product_table))
 cat("----------\n")
+cat("\n--------------------------------------------------\n")
+cat("\n--------------------------------------------------\n")
+cat("\n--------------------------------------------------\n\n")
+cat("\n--------------------------------------------------\n")
+cat("\n--------------------------------------------------\n")
+cat("\n--------------------------------------------------\n\n")
+cat("\n--------------------------------------------------\n")
+cat("\n--------------------------------------------------\n")
+cat("\n--------------------------------------------------\n\n")
+
 
 
 ###############################################################################

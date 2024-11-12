@@ -1773,6 +1773,22 @@ def extract_describe_signals_for_features_in_observations_groups(
         inplace=True,
         drop=False, # remove index; do not move to regular columns
     )
+    table_product_7.set_index(
+        ["feature"],
+        append=False,
+        drop=True,
+        inplace=True,
+    )
+    # Cluster rows in table.
+    table_product_7 = porg.cluster_table_rows(
+        table=table_product_7,
+    )
+    # Organize indices in table.
+    table_product_7.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
     table_product_7.columns.rename(
         None,
         inplace=True,

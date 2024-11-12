@@ -1827,6 +1827,8 @@ def write_table_to_file(
     reset_index=None,
     write_index=None,
     type=None,
+    delimiter=None,
+    suffix=None,
 ):
     """
     Writes product information to file.
@@ -1838,13 +1840,19 @@ def write_table_to_file(
     not have a named index, then setting parameter "index" to "True" would only
     print the default index of sequential integers across rows.
 
+    Delimiters between items in rows include "\t", ";", ":", ",", " ".
+    By default, the delimiter between rows is new line "\n".
+
     arguments:
         table (object): Pandas data-frame table of information to write to file
         name_file (str): base name for file
         path_directory (str): path to directory within which to write file
         reset_index (bool): whether to reset index
         write_index (bool): whether to write index to file
+        delimiter (str):
         type (str): type of file to save, 'text' or 'pickle'
+        delimiter (str): delimiter between items in rows
+        suffix (str): suffix for file name to indicate format
 
     raises:
 
@@ -1869,12 +1877,12 @@ def write_table_to_file(
             )
         # Specify directories and files.
         path_file_table = os.path.join(
-            path_directory, str(name_file + ".tsv")
+            path_directory, str(name_file + suffix)
         )
         # Write information to file.
         table_copy.to_csv(
             path_or_buf=path_file_table,
-            sep="\t",
+            sep=delimiter,
             na_rep="NA",
             header=True,
             index=write_index,
@@ -1883,7 +1891,7 @@ def write_table_to_file(
     elif (type == "pickle"):
         # Specify directories and files.
         path_file_table = os.path.join(
-            path_directory, str(name_file + ".pickle")
+            path_directory, str(name_file + suffix)
         )
         # Write information to file.
         table.to_pickle(
@@ -1897,7 +1905,9 @@ def write_tables_to_file(
     path_directory=None,
     reset_index=None,
     write_index=None,
-    type="text",
+    type=None,
+    delimiter=None,
+    suffix=None,
 ):
     """
     Writes product information to file.
@@ -1911,6 +1921,8 @@ def write_tables_to_file(
         reset_index (bool): whether to reset index
         write_index (bool): whether to write index to file
         type (str): type of file to save, 'text' or 'pickle'
+        delimiter (str): delimiter between items in rows
+        suffix (str): suffix for file name to indicate format
 
     raises:
 
@@ -1930,6 +1942,8 @@ def write_tables_to_file(
             reset_index=reset_index,
             write_index=write_index,
             type=type,
+            delimiter=delimiter,
+            suffix=suffix,
         )
         pass
     pass
