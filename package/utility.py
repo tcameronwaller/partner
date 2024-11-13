@@ -1824,8 +1824,9 @@ def write_table_to_file(
     table=None,
     name_file=None,
     path_directory=None,
-    reset_index=None,
-    write_index=None,
+    reset_index_rows=None,
+    write_index_rows=None,
+    write_index_columns=None,
     type=None,
     delimiter=None,
     suffix=None,
@@ -1847,9 +1848,10 @@ def write_table_to_file(
         table (object): Pandas data-frame table of information to write to file
         name_file (str): base name for file
         path_directory (str): path to directory within which to write file
-        reset_index (bool): whether to reset index
-        write_index (bool): whether to write index to file
-        delimiter (str):
+        reset_index_rows (bool): whether to reset index across rows
+        write_index_rows (bool): whether to write to file index across rows
+        write_index_columns (bool): whether to write to file index across
+            columns, often called the header row
         type (str): type of file to save, 'text' or 'pickle'
         delimiter (str): delimiter between items in rows
         suffix (str): suffix for file name to indicate format
@@ -1869,7 +1871,7 @@ def write_table_to_file(
         # Copy information in table.
         table_copy = table.copy(deep=True)
         # Organize indices in table.
-        if reset_index:
+        if reset_index_rows:
             table_copy.reset_index(
                 level=None,
                 inplace=True,
@@ -1884,8 +1886,8 @@ def write_table_to_file(
             path_or_buf=path_file_table,
             sep=delimiter,
             na_rep="NA",
-            header=True,
-            index=write_index,
+            header=write_index_columns,
+            index=write_index_rows,
             encoding="utf-8",
         )
     elif (type == "pickle"):
@@ -1903,8 +1905,9 @@ def write_table_to_file(
 def write_tables_to_file(
     pail_write=None,
     path_directory=None,
-    reset_index=None,
-    write_index=None,
+    reset_index_rows=None,
+    write_index_rows=None,
+    write_index_columns=None,
     type=None,
     delimiter=None,
     suffix=None,
@@ -1918,8 +1921,10 @@ def write_tables_to_file(
         pail_write (dict<object>): collection of information to write to file
         path_directory (str): path to directory within which to write
             information to files
-        reset_index (bool): whether to reset index
-        write_index (bool): whether to write index to file
+        reset_index_rows (bool): whether to reset index across rows
+        write_index_rows (bool): whether to write to file index across rows
+        write_index_columns (bool): whether to write to file index across
+            columns, often called the header row
         type (str): type of file to save, 'text' or 'pickle'
         delimiter (str): delimiter between items in rows
         suffix (str): suffix for file name to indicate format
@@ -1939,8 +1944,9 @@ def write_tables_to_file(
             table=pail_write[name_file],
             name_file=name_file,
             path_directory=path_directory,
-            reset_index=reset_index,
-            write_index=write_index,
+            reset_index_rows=reset_index_rows,
+            write_index_rows=write_index_rows,
+            write_index_columns=write_index_columns,
             type=type,
             delimiter=delimiter,
             suffix=suffix,
@@ -1952,9 +1958,12 @@ def write_tables_to_file(
 def write_tables_to_file_in_child_directories(
     pail_write=None,
     path_directory_parent=None,
-    reset_index=None,
-    write_index=None,
-    type="text",
+    reset_index_rows=None,
+    write_index_rows=None,
+    write_index_columns=None,
+    type=None,
+    delimiter=None,
+    suffix=None,
 ):
     """
     Writes product information to file.
@@ -1966,9 +1975,13 @@ def write_tables_to_file_in_child_directories(
         pail_write (dict<dict<object>>): collection of information to write to
             file
         path_directory_parent (str): path to parent directory
-        reset_index (bool): whether to reset index
-        write_index (bool): whether to write index to file
+        reset_index_rows (bool): whether to reset index across rows
+        write_index_rows (bool): whether to write to file index across rows
+        write_index_columns (bool): whether to write to file index across
+            columns, often called the header row
         type (str): type of file to save, 'text' or 'pickle'
+        delimiter (str): delimiter between items in rows
+        suffix (str): suffix for file name to indicate format
 
     raises:
 
@@ -1989,9 +2002,12 @@ def write_tables_to_file_in_child_directories(
         write_tables_to_file(
             pail_write=pail_write[name_directory],
             path_directory=path_directory_child,
-            reset_index=reset_index,
-            write_index=write_index,
+            reset_index_rows=reset_index_rows,
+            write_index_rows=write_index_rows,
+            write_index_columns=write_index_columns,
             type=type,
+            delimiter=delimiter,
+            suffix=suffix,
         )
         pass
     pass
