@@ -3307,6 +3307,196 @@ def cluster_table_columns(
     return table_cluster
 
 
+def cluster_table_columns_by_external_group(
+    table=None,
+    indices_rows=None,
+    groups_columns=None,
+    names_groups_sequence=None,
+    report=None,
+):
+    """
+    Cluster the sequence of a table's columns within separate groups by
+    similarity in their values across columns.
+
+    A separate dictionary defines the columns in each group, and the product
+    table will only include columns that this dictionary assigns to groups.
+    This definition of columns in each group must not include the columns that
+    define the index across rows.
+
+    A separate list of names of groups enforces a specific sequence.
+
+    Original source table must not have an explicitly defined index across
+    rows.
+
+    Review: TCW; 15 November 2024
+
+    arguments:
+        table (object): Pandas data-frame table of floating-point values on
+            continuous interval or ratio scales of measurement
+        indices_rows (list<str>): names of columns in source table which
+            define an index corresponding to information across rows
+        groups_columns (dict<list<str>>): names of columns in groups
+        names_groups_sequence (list<str>): names of groups in sequence
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table of values
+
+    """
+
+    # Copy information in table.
+    table_source = table.copy(deep=True)
+    table_temporary = table.copy(deep=True)
+    # Copy other information.
+    indices_rows = copy.deepcopy(indices_rows)
+    groups_columns = copy.deepcopy(groups_columns)
+    names_groups_sequence = copy.deepcopy(names_groups_sequence)
+    # Organize indices in table.
+    table_temporary.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    table_temporary.set_index(
+        indices_rows,
+        append=False,
+        drop=True,
+        inplace=True
+    )
+    # Create empty table with identical index for collection of columns.
+    table_collection = pandas.DataFrame(
+        index=table_temporary.index.copy(),
+    )
+    # Iterate on groups of columns, apply operations, and collect information
+    # from each.
+    for group in names_groups_sequence:
+        # Copy information in table with selection of columns in group.
+        table_group = table_temporary.loc[
+            :, table_temporary.columns.isin(groups_columns[group])
+        ].copy(deep=True)
+        table_group = table_group[[*groups_columns[group]]]
+        # Cluster table's columns.
+        table_cluster = cluster_table_columns(
+            table=table_group,
+        )
+        # Organize indices in table.
+        table_cluster.index = pandas.MultiIndex.from_tuples(
+            table_cluster.index,
+            names=indices_rows,
+        )
+        # Collect columns from group table with collection table.
+        # Merge data tables using database-style join.
+        # Use Pandas "DataFrame.join()" to preserve sequence of original source
+        # index across rows.
+        # Otherwise it would be necessary to sort rows in product table.
+        table_collection = table_collection.join(
+            table_cluster,
+            on=list(table_collection.index.names),
+        )
+        if False:
+            table_collection = pandas.merge(
+                table_collection, # left table
+                table_cluster, # right table
+                left_on=None, # "identifier_first"
+                right_on=None, # "identifier_second"
+                left_index=True, # "identifier_first"
+                right_index=True, # "identifier_second"
+                how="outer", # keep union of keys from both tables
+                #suffixes=("_main", "_identifiers"), # deprecated?
+            )
+        pass
+    # Copy information in table.
+    table_product = table_collection.copy(deep=True)
+    # Sort rows in table.
+    # This strategy does not work for an index with multiple levels.
+    # Attempt to collapse the indices, sort, and then split the indices.
+    #table_product = table_product.reindex(table_temporary)
+    # Organize indices in table.
+    table_product.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("module: partner.organization.py")
+        print("function: cluster_table_columns_by_external_group()")
+        putly.print_terminal_partition(level=4)
+        # Copy information in table.
+        table_source_report = table_source.copy(deep=True)
+        table_product_report = table_product.copy(deep=True)
+        # Organize indices in table.
+        table_source_report.set_index(
+            indices_rows,
+            append=False,
+            drop=True,
+            inplace=True
+        )
+        table_product_report.set_index(
+            indices_rows,
+            append=False,
+            drop=True,
+            inplace=True
+        )
+        # Extract information.
+        count_columns_source = (table_source_report.shape[1])
+        count_rows_source = (table_source_report.shape[0])
+        count_columns_product = (table_product_report.shape[1])
+        count_rows_product = (table_product_report.shape[0])
+        # Collapse and extract multi-level index across rows for comparison.
+        values_index_rows_source = copy.deepcopy(
+            table_source_report.index.map("|".join).to_list()
+        )
+        values_index_rows_product = copy.deepcopy(
+            table_product_report.index.map("|".join).to_list()
+        )
+        # Confirm that both sets of samples are inclusive.
+        check_inclusion = putly.compare_lists_by_mutual_inclusion(
+            list_primary=values_index_rows_source,
+            list_secondary=values_index_rows_product,
+        )
+        # Confirm that both sets of samples are identical across sequence.
+        check_identity = putly.compare_lists_by_elemental_identity(
+            list_primary=values_index_rows_source,
+            list_secondary=values_index_rows_product,
+        )
+        # Confirm that both sets of samples are equal.
+        check_equality = (
+            values_index_rows_source == values_index_rows_product
+        )
+        putly.print_terminal_partition(level=4)
+        print("source table before cluster")
+        print("count columns: " + str(count_columns_source))
+        print("count rows: " + str(count_rows_source))
+        putly.print_terminal_partition(level=5)
+        print("product table after cluster")
+        print("count columns: " + str(count_columns_product))
+        print("count rows: " + str(count_rows_product))
+        putly.print_terminal_partition(level=4)
+        print(
+            "confirm that indices across rows are identical between source " +
+            "and product tables"
+        )
+        print(
+            "check coherence of indices across rows before and after " +
+            "cluster operation"
+        )
+        print("check inclusion: " + str(check_inclusion))
+        print("check identity: " + str(check_identity))
+        print("check equality: " + str(check_equality))
+        putly.print_terminal_partition(level=5)
+        print("product table")
+        print(table_product)
+        putly.print_terminal_partition(level=5)
+        pass
+    # Return information.
+    return table_product
+
+
 def cluster_table_rows(
     table=None,
 ):
