@@ -1367,9 +1367,9 @@ def describe_signals_for_features_sets_in_observations_groups(
     each feature across all observations such that these values have a mean of
     zero and standard deviation of one. This standardization simplifies the
     scale and distribution of values for subsequent visual representation on
-    charts, especially heatmaps. The clustering by observations across columns
-    occurs within groups. The clustering by features occurs across all
-    features.
+    charts, especially heatmaps. The clustering by observations in the table's
+    rows occurs within the constraint of groups. The clustering by features in
+    the table's columns also occurs within the constraint of groups.
     ----------
     observation     group   feature_1 feature_2 feature_3 feature_4 feature_5
     observation_1   group_1 0.001     0.001     0.001     0.001     0.001
@@ -1393,12 +1393,14 @@ def describe_signals_for_features_sets_in_observations_groups(
     each feature across all observations such that these values have a mean of
     zero and standard deviation of one. This standardization simplifies the
     scale and distribution of values for subsequent visual representation on
-    charts, especially heatmaps. The clustering by observations across columns
-    occurs within groups. The clustering by features occurs across all
-    features.
+    charts, especially heatmaps. The clustering by observations in the table's
+    rows occurs without the constraint of groups. The clustering by
+    features in the table's columns also occurs without the constraint of
+    groups.
     Product table 4 shares its format with product table 3. The difference
     between product table 3 and product table 4 is that product table 4
-    clusters across observations regardless of groups.
+    clusters across observations and across features without the constraint of
+    groups.
     ----------
     observation     group   feature_1 feature_2 feature_3 feature_4 feature_5
     observation_1   group_1 0.001     0.001     0.001     0.001     0.001
@@ -1504,37 +1506,47 @@ def describe_signals_for_features_sets_in_observations_groups(
     # Copy information in table.
     table_source = table.copy(deep=True)
     # Copy other information.
-    features = copy.deepcopy(features)
+    features_inclusion = copy.deepcopy(features_inclusion)
+    observations_inclusion = copy.deepcopy(observations_inclusion)
+    groups_features = copy.deepcopy(groups_features)
     groups_observations = copy.deepcopy(groups_observations)
+    names_groups_features_sequence = copy.deepcopy(
+        names_groups_features_sequence
+    )
+    names_groups_observations_sequence = copy.deepcopy(
+        names_groups_observations_sequence
+    )
     translations_features = copy.deepcopy(translations_features)
     translations_observations = copy.deepcopy(translations_observations)
 
     ##########
     # Prepare source information.
-    # Extract names and indices of groups to preserve their original sequence.
-    names_groups_observations = copy.deepcopy(list(groups_observations.keys()))
+    # Prepare reference to sort rows in a subsequent table by groups of
+    # observations.
     # Option 1.
     if True:
         sequence_groups_observations = dict()
         index = 0
-        for name in names_groups_observations:
+        for name in names_groups_observations_sequence:
             sequence_groups_observations[name] = index
             index += 1
             pass
     # Option 2.
     if False:
         sequence_groups_observations = dict(zip(
-            names_groups_observations,
-            range(len(names_groups_observations))
+            names_groups_observations_sequence,
+            range(len(names_groups_observations_sequence))
         ))
     # Option 3.
     if False:
         sequence_groups_observations = {
-            key: value for value, key in enumerate(names_groups_observations)
+            key: value for value, key in enumerate(
+                names_groups_observations_sequence
+            )
         }
     # Ensure that features are unique.
-    features_unique = putly.collect_unique_elements(
-        elements=features,
+    features_inclusion_unique = putly.collect_unique_elements(
+        elements=features_inclusion,
     )
     # Ensure that all features are in the source table.
     features_all = copy.deepcopy(
@@ -1542,10 +1554,12 @@ def describe_signals_for_features_sets_in_observations_groups(
     )
     features_available = list(filter(
         lambda feature: (feature in features_all),
-        features_unique
+        features_inclusion_unique
     ))
     # Translate identifiers of features.
-    features_available_translation = copy.deepcopy(features_available)
+    features_available_translation = copy.deepcopy(
+        features_available
+    )
     if (translations_features is not None):
         features_available_translation = list(map(
             lambda feature: (translations_features[feature]),
@@ -1556,22 +1570,30 @@ def describe_signals_for_features_sets_in_observations_groups(
     features_available_translation = putly.collect_unique_elements(
         elements=features_available_translation,
     )
-
-
+    # Ensure that observations are unique.
+    observations_inclusion_unique = putly.collect_unique_elements(
+        elements=observations_inclusion,
+    )
     # Ensure that all observations are in the source table.
     observations_all = copy.deepcopy(table_source.columns.to_list())
-    observations_request = list()
-    for group in groups_observations.keys():
-        group_observations = copy.deepcopy(groups_observations[group])
-        observations_request.extend(group_observations)
-        pass
-    observations_request_unique = putly.collect_unique_elements(
-        elements=observations_request,
-    )
     observations_available = list(filter(
         lambda observation: (observation in observations_all),
-        observations_request_unique
+        observations_inclusion_unique
     ))
+    # Translate identifiers of features.
+    observations_available_translation = copy.deepcopy(
+        observations_available
+    )
+    if (translations_observations is not None):
+        observations_available_translation = list(map(
+            lambda observation: (translations_observations[observation]),
+            observations_available_translation
+        ))
+        pass
+    # Ensure that features are unique after translation.
+    observations_available_translation = putly.collect_unique_elements(
+        elements=observations_available_translation,
+    )
 
     ##########
     # Prepare product table 1.
@@ -1656,37 +1678,11 @@ def describe_signals_for_features_sets_in_observations_groups(
     # Calculate z scores of values for each feature across observations to
     # standardize their scales and distributions.
     table_product_3 = pscl.transform_standard_z_score_by_table_columns(
-        table=table_product_2,
-        columns=features_available_translation,
+        table=table_flip_group,
+        columns=features_available,
         report=False,
     )
-    # Organize indices in table.
-    table_product_3.reset_index(
-        level=None,
-        inplace=True,
-        drop=True, # remove index; do not move to regular columns
-    )
-    table_product_3.set_index(
-        [index_observations, "group"],
-        append=False,
-        drop=True,
-        inplace=True,
-    )
-    # Cluster columns in table.
-    table_product_3 = porg.cluster_table_columns(
-        table=table_product_3,
-    )
-    table_product_3.index = pandas.MultiIndex.from_tuples(
-        table_product_3.index,
-        names=[index_observations, "group"]
-    )
-    # Organize indices in table.
-    table_product_3.reset_index(
-        level=None,
-        inplace=True,
-        drop=False, # remove index; do not move to regular columns
-    )
-    # Cluster rows in table by groups.
+    # Cluster rows in table by groups of observations.
     table_product_3 = porg.cluster_table_rows_by_group(
         table=table_product_3,
         index_rows=index_observations,
@@ -1700,14 +1696,31 @@ def describe_signals_for_features_sets_in_observations_groups(
         column_sort_temporary="sort_temporary",
         reference_sort=sequence_groups_observations,
     )
+    # Cluster columns in table by groups of features.
+    table_product_3 = porg.cluster_table_columns_by_external_group(
+        table=table_product_3,
+        indices_rows=[index_observations, "group",],
+        groups_columns=groups_features,
+        names_groups_sequence=names_groups_features_sequence,
+        report=False,
+    )
+    # Translate names of features and observations.
+    table_product_3 = porg.translate_identifiers_table_indices_columns_rows(
+        table=table_product_3,
+        index_rows=index_observations,
+        translations_columns=translations_features,
+        translations_rows=translations_observations,
+        remove_redundancy=True,
+        report=False,
+    )
 
     ##########
     # Prepare product table 4.
     # Calculate z scores of values for each feature across observations to
     # standardize their scales and distributions.
     table_product_4 = pscl.transform_standard_z_score_by_table_columns(
-        table=table_product_2,
-        columns=features_available_translation,
+        table=table_flip_group,
+        columns=features_available,
         report=False,
     )
     # Organize indices in table.
@@ -1722,16 +1735,16 @@ def describe_signals_for_features_sets_in_observations_groups(
         drop=True,
         inplace=True,
     )
-    # Cluster columns in table.
-    table_product_4 = porg.cluster_table_columns(
+    # Cluster rows in table.
+    table_product_4 = porg.cluster_table_rows(
         table=table_product_4,
     )
     table_product_4.index = pandas.MultiIndex.from_tuples(
         table_product_4.index,
         names=[index_observations, "group"]
     )
-    # Cluster rows in table.
-    table_product_4 = porg.cluster_table_rows(
+    # Cluster columns in table.
+    table_product_4 = porg.cluster_table_columns(
         table=table_product_4,
     )
     table_product_4.index = pandas.MultiIndex.from_tuples(
@@ -1743,6 +1756,15 @@ def describe_signals_for_features_sets_in_observations_groups(
         level=None,
         inplace=True,
         drop=False, # remove index; do not move to regular columns
+    )
+    # Translate names of features and observations.
+    table_product_4 = porg.translate_identifiers_table_indices_columns_rows(
+        table=table_product_4,
+        index_rows=index_observations,
+        translations_columns=translations_features,
+        translations_rows=translations_observations,
+        remove_redundancy=True,
+        report=False,
     )
 
     ##########
@@ -1809,7 +1831,7 @@ def describe_signals_for_features_sets_in_observations_groups(
         inplace=True,
     ) # single-dimensional index
     # Filter and sort columns in table.
-    columns_sequence = copy.deepcopy(names_groups_observations)
+    columns_sequence = copy.deepcopy(names_groups_observations_sequence)
     columns_sequence.insert(0, "feature")
     table_product_7 = porg.filter_sort_table_columns(
         table=table_product_7,
