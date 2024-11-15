@@ -909,8 +909,8 @@ def calculate_table_long_false_discovery_rate_q_values(
         type_p_value (str): name of category for p-values
         threshold (float): value of alpha, or family-wise error rate in
             calculation of false discovery rate
-        names_indices_rows (list<str>): names of columns for indices across rows
-            in original source table
+        names_indices_rows (list<str>): names of columns for indices across
+            rows in original source table
         report (bool): whether to print reports
 
     raises:
@@ -995,7 +995,7 @@ def calculate_table_long_false_discovery_rate_q_values(
         ignore_index=False,
         copy=True,
     )
-    # Organize information in table.
+    # Organize indices in table.
     table_product.reset_index(
         level=None,
         inplace=True,

@@ -50,6 +50,8 @@ License:
 # source and to deliver multiple annotations, attributes, or features from each
 # gene's record.
 
+# Simple process of converting delimiters in a list of gene identifiers.
+# $ sed 's/,/\n/g' input.txt > output.txt
 
 ################################################################################
 # Installation and importation

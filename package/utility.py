@@ -2730,7 +2730,7 @@ def parse_extract_text_keys_values_semicolon_colon_comma(
     text=None,
 ):
     """
-    Defines the types of variables for columns in a table.
+    Extract information from a text string with specific syntax structure.
 
     Format of source text (name: "text_source")
     Format of source text is a character string with delimiter semicolon ";"
@@ -2740,7 +2740,10 @@ def parse_extract_text_keys_values_semicolon_colon_comma(
     "feature_a:value_a1,value_a2,value_a3;feature_b:value_b1,value_b2,value_b3"
     ----------
 
-    Review: 16 October 2024
+    The list of features preserves the original sequence in which these keys
+    appeared within the string.
+
+    Review: 14 November 2024
 
     arguments:
         text_source (str): flat text with delimiters in specific format for
@@ -2749,13 +2752,13 @@ def parse_extract_text_keys_values_semicolon_colon_comma(
     raises:
 
     returns:
-        (dict<list<str>>): collection of features and their values
+        (dict<dict<list<str>>>): collection of features and their values
 
     """
 
     # Organize information.
     text = str(text).strip()
-    #features = list()
+    features = list()
     # Parse and extract information.
     if ((text.lower() != "none") and (text != "") and (len(text) > 0)):
         pail_parse = dict()
@@ -2764,23 +2767,22 @@ def parse_extract_text_keys_values_semicolon_colon_comma(
             part_feature = str(part_split[0])
             part_values = str(part_split[1]).split(",")
             pail_parse[part_feature] = part_values
-            #features.append(part_feature)
+            features.append(part_feature)
             pass
-        #features.extend(list(pail.keys()))
         pass
     else:
         pail_parse = None
         pass
     # Collect unique names of features.
-    #features_unique = putly.collect_unique_elements(
-    #    elements=features,
-    #)
+    features_unique = collect_unique_elements(
+        elements=features,
+    )
     # Collect information.
-    #pail_return = dict()
-    #pail_return["parse"] = pail_parse
-    #pail_return["features"] = features
+    pail_return = dict()
+    pail_return["features_values"] = pail_parse
+    pail_return["features"] = features
     # Return information.
-    return pail_parse
+    return pail_return
 
 
 
