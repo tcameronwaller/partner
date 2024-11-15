@@ -1275,12 +1275,16 @@ def report_table_range_variables(
 # features and within groups of observations
 
 
-def extract_describe_signals_for_features_in_observations_groups(
+def describe_signals_for_features_sets_in_observations_groups(
     table=None,
     index_features=None,
     index_observations=None,
-    features=None,
+    features_inclusion=None,
+    observations_inclusion=None,
+    groups_features=None,
     groups_observations=None,
+    names_groups_features_sequence=None,
+    names_groups_observations_sequence=None,
     translations_features=None,
     translations_observations=None,
     report=None,
@@ -1457,7 +1461,7 @@ def extract_describe_signals_for_features_in_observations_groups(
     feature_5 0.01    0.001   0.001   0.015
     ----------
 
-    Review: 18 October 2024
+    Review: 15 November 2024
 
     arguments:
         table (object): Pandas data-frame table of values of signal intensity
@@ -1468,10 +1472,21 @@ def extract_describe_signals_for_features_in_observations_groups(
         index_observations (str): name for index corresponding to observations,
             which is not a column in the original source table but will be in
             novel product table 2
-        features (list<str>): identifiers of features for which to filter
-            and describe values of signal intensity across observations
+        features_inclusion (list<str>): identifiers of features for which to
+            include and describe values of signal intensity across observations
+        observations_inclusion (list<str>): identifiers of observations for
+            which to include and describe values of signal intensity across
+            features
+        groups_features (dict<list<str>>): names of groups and identifiers
+            of features that belong to each of these groups; clustering of
+            features will have constraint within these groups
         groups_observations (dict<list<str>>): names of groups and identifiers
-            of observations that belong to each of these groups
+            of observations that belong to each of these groups; clustering of
+            observations will have constraint within these groups
+        names_groups_features_sequence (list<str>): names of groups for
+            features in specific sequence
+        names_groups_observations_sequence (list<str>): names of groups for
+            observations in specific sequence
         translations_features (dict<str>): translations for names or
             identifiers of features
         translations_observations (dict<str>): translations for names or
@@ -1818,7 +1833,7 @@ def extract_describe_signals_for_features_in_observations_groups(
         putly.print_terminal_partition(level=3)
         print("module: partner.description.py")
         function = str(
-            "extract_describe_signals_for_features_in_observations_groups" +
+            "describe_signals_for_features_sets_in_observations_groups" +
             "()"
         )
         print("function: " + function)
