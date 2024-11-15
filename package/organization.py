@@ -3539,7 +3539,7 @@ def cluster_table_rows(
     matrix = table.to_numpy()
     linkage = scipy.cluster.hierarchy.linkage(
         matrix,
-        method="average", # "single", "complete", "average"
+        method="average", # "average", "centroid", "ward",
         metric="euclidean",
         optimal_ordering=True,
     )
