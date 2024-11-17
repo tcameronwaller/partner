@@ -1675,10 +1675,12 @@ def describe_signals_for_features_sets_in_observations_groups(
 
     ##########
     # Prepare product table 3.
+    # Copy information in table.
+    table_product_3 = table_flip_group.copy(deep=True)
     # Calculate z scores of values for each feature across observations to
     # standardize their scales and distributions.
     table_product_3 = pscl.transform_standard_z_score_by_table_columns(
-        table=table_flip_group,
+        table=table_product_3,
         columns=features_available,
         report=False,
     )
@@ -1716,10 +1718,12 @@ def describe_signals_for_features_sets_in_observations_groups(
 
     ##########
     # Prepare product table 4.
+    # Copy information in table.
+    table_product_4 = table_flip_group.copy(deep=True)
     # Calculate z scores of values for each feature across observations to
     # standardize their scales and distributions.
     table_product_4 = pscl.transform_standard_z_score_by_table_columns(
-        table=table_flip_group,
+        table=table_product_4,
         columns=features_available,
         report=False,
     )

@@ -690,7 +690,27 @@ def sort_table_rows_by_single_column_reference(
     Original source table must not have an explicitly defined index across
     rows.
 
-    Review: TCW; 17 October 2024
+    There are multiple convenient options to create the reference indices
+    for the sort on the basis of a list of categorical values.
+
+    Option 1.
+    reference_sort = dict()
+    index = 0
+    for name in names_sequence:
+        reference_sort[name] = index
+        index += 1
+        pass
+
+    Option 2.
+    reference_sort = dict(zip(names_sequence, range(len(names_sequence))))
+
+    Option 3.
+    reference_sort = {key: value for value, key in enumerate(
+        names_sequence
+        )
+    }
+
+    Review: TCW; 16 November 2024
 
     arguments:
         table (object): Pandas data-frame table
@@ -3454,17 +3474,18 @@ def cluster_table_columns_by_external_group(
         values_index_rows_product = copy.deepcopy(
             table_product_report.index.map("|".join).to_list()
         )
-        # Confirm that both sets of samples are inclusive.
+        # Confirm that sets of indices from both sources are inclusive.
         check_inclusion = putly.compare_lists_by_mutual_inclusion(
             list_primary=values_index_rows_source,
             list_secondary=values_index_rows_product,
         )
-        # Confirm that both sets of samples are identical across sequence.
+        # Confirm that sets of indices from both sources are identical across
+        # their respective sequences.
         check_identity = putly.compare_lists_by_elemental_identity(
             list_primary=values_index_rows_source,
             list_secondary=values_index_rows_product,
         )
-        # Confirm that both sets of samples are equal.
+        # Confirm that sets of indices from both sources are equal.
         check_equality = (
             values_index_rows_source == values_index_rows_product
         )
