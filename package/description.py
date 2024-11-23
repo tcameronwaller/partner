@@ -1255,11 +1255,11 @@ def report_table_range_variables(
         array = copy.deepcopy(table[variable].dropna().to_numpy()) # non-missing
         count_values = int(array.size)
         if (count_values > 1):
-            minimum = numpy.nanmin(array)
-            maximum = numpy.nanmax(array)
+            minimum = round(float(numpy.nanmin(array)), 9)
+            maximum = round(float(numpy.nanmax(array)), 9)
         elif (count_values == 1):
-            minimum = array[0]
-            maximum = array[0]
+            minimum = round(float(array[0]), 9)
+            maximum = round(float(array[0]), 9)
         # Report.
         putly.print_terminal_partition(level=5)
         print("Variable: " + str(variable))

@@ -1937,6 +1937,10 @@ def match_table_row_exclusion_identifiers_primary_secondary(
     Determines whether values of two interchangeable identifiers from a single
     row in a table match a list of exclusions.
 
+    Notice that this implementation does not automatically handle reciprocity
+    between the interchangeable pairs. Instead, it is necessary to represent
+    this reciprocity explicitly in the 'exclusions' parameter.
+
     arguments:
         row_primary (str): current row's value of primary identifier
         row_secondary (str): current row's value of secondary identifier
@@ -2007,6 +2011,8 @@ def query_table_correlation_range_variables(
 
     # Copy information in table.
     table_query = table.copy(deep=True)
+    # Copy other information.
+    exclusions = copy.deepcopy(exclusions)
     # Filter table's rows by identifiers of studies.
     table_query = table_query.loc[
         (
@@ -2052,9 +2058,9 @@ def query_table_correlation_range_variables(
     )
     # Report.
     if report:
-        putly.print_terminal_partition(level=3)
+        putly.print_terminal_partition(level=2)
         print(label)
-        putly.print_terminal_partition(level=5)
+        putly.print_terminal_partition(level=3)
         print("Primary studies in query: ")
         print("Count: " + str(len(studies_primary)))
         print("Studies: ")
