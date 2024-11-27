@@ -85,6 +85,10 @@ import partner.organization as porg
 # Functionality
 
 
+##########
+# Utility general purpose
+
+
 def define_font_properties():
     """
     Defines font properties.
@@ -1901,6 +1905,7 @@ def plot_heatmap_signal_label_features_observations(
 ##########
 # Heatmap plots with many cells
 
+
 # TODO: TCW; 16 November 2024
 # Further customization of this function would be necessary if the counts of
 # groups of samples was different than 4.
@@ -2151,7 +2156,7 @@ def plot_heatmap_signal_features_sets_in_observations_groups(
         #pad=1.0,
         #h_pad=1.0,
         #w_pad=1.0,
-        rect=[0,0.03,1.0,1.0], # left, bottom, right, top
+        rect=[0,0.05,1.0,1.0], # left, bottom, right, top
     )
     grid.update(
         wspace=0.005, # horizontal width space between grid blocks for subplots
@@ -2604,9 +2609,6 @@ def plot_heatmap_symmetric_diverge(
         pass
     # Return figure.
     return figure
-
-
-# TODO: accommodate different variable types... categorical, continuous divergent, continuous, ordinal, etc...
 
 
 def organize_heatmap_asymmetric_data(
@@ -3697,8 +3699,8 @@ def plot_bar_stack(
     legend=None,
 ):
     """
-    Creates a figure of a chart of type histogram to represent the frequency
-    distribution of a single series of values.
+    Creates a figure of a chart of type bar chart to represent the values on
+    a continuous scale.
 
     arguments:
         data (object): Pandas data frame of groups, series, and values
@@ -4582,6 +4584,38 @@ def plot_scatter_factor_groups(
 
     """
 
+    def create_legend_elements(
+        colors=None,
+        labels=None,
+    ):
+        """
+        Creates custom elements for legend.
+
+        arguments:
+            colors (list<dict>): colors
+            labels (str): name of data column with independent variable
+
+        raises:
+
+        returns:
+            (list<object>): elements for legend
+
+        """
+
+        elements = []
+        for index in range(len(labels)):
+            element = matplotlib.lines.Line2D(
+                [0],
+                [0],
+                marker="o",
+                color=colors[index],
+                label=labels[index],
+                markerfacecolor=colors[index],
+                markersize=15,
+            )
+            elements.append(element)
+        return elements
+
     ##########
     # Organize data.
     data = data.copy(deep=True)
@@ -5056,6 +5090,9 @@ def plot_scatter_qq_gwas(
 
     # Return figure.
     return figure
+
+
+# Dot, Point, Forest plots
 
 
 def plot_scatter_points_forest_category_ordinate_two_groups(
@@ -5716,7 +5753,7 @@ def plot_scatter_label_emphasis_points(
 ):
     """
     Creates a figure of a chart of type scatter with thresholds on each
-        dimension.
+    dimension. <-- outdated description? (TCW; 26 November 2024)
 
     arguments:
         emphasis_keys (list<str>): keys for rows of points for emphasis
@@ -5887,37 +5924,7 @@ def plot_scatter_label_emphasis_points(
     return figure
 
 
-def create_legend_elements(
-    colors=None,
-    labels=None,
-):
-    """
-    Creates custom elements for legend.
-
-    arguments:
-        colors (list<dict>): colors
-        labels (str): name of data column with independent variable
-
-    raises:
-
-    returns:
-        (list<object>): elements for legend
-
-    """
-
-    elements = []
-    for index in range(len(labels)):
-        element = matplotlib.lines.Line2D(
-            [0],
-            [0],
-            marker="o",
-            color=colors[index],
-            label=labels[index],
-            markerfacecolor=colors[index],
-            markersize=15,
-        )
-        elements.append(element)
-    return elements
+# Venn
 
 
 def plot_overlap_sets(
