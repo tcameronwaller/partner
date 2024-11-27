@@ -70,7 +70,7 @@ import statsmodels.api
 
 # Custom
 import partner.utility as utility # this import path for subpackage
-
+import partner.organization as porg
 
 #dir()
 #importlib.reload()
@@ -1064,10 +1064,15 @@ def organize_principal_components_by_singular_value_decomposition(
     Organizes a Principal Components Analysis (PCA) by Singular Value
     Decomposition (SVD).
 
-    Table format: Pandas data frame with variables (features) across columns and
-    their samples (cases, observations) across rows with an explicit index
+    Format of source table
+    Format of source table is in wide format with floating-point values
+    corresponding to features across columns and distinct observations across
+    rows. A special index column gives identifiers corresponding to each
+    observation across rows. This table has an explicitly defined index across
+    rows.
 
-    Relevant dimension: Principal Components represent variance across features
+    In terms of the relevant dimension, the Principal Components represent
+    variance across features.
 
     Principal Components factorize covariance or correlation into direction
     (Eigenvectors) and scale (Eigenvalues).
@@ -1126,21 +1131,18 @@ def organize_principal_components_by_singular_value_decomposition(
     Principal Component Scores = U <dot> S_diagonal
 
     Reference:
-
     "https://towardsdatascience.com/singular-value-decomposition-and-its-"
     + "applications-in-principal-component-analysis-5b7a5f08d0bd"
-
     "https://towardsdatascience.com/principal-component-analysis-for-"
     + "dimensionality-reduction-115a3d157bad
-
     "https://stats.stackexchange.com/questions/134282/relationship-between-svd-"
     + "and-pca-how-to-use-svd-to-perform-pca"
-
     "https://stats.stackexchange.com/questions/143905/loadings-vs-eigenvectors-"
     + "in-pca-when-to-use-one-or-another"
-
     "https://stats.stackexchange.com/questions/126885/methods-to-compute-"
     + "factor-scores-and-what-is-the-score-coefficient-matrix-in"
+
+    Review: 27 November 2024
 
     arguments:
         table (object): Pandas data frame of variables (features) across
@@ -1244,6 +1246,7 @@ def organize_principal_components_by_singular_value_decomposition(
     pail["table_component_variance_proportions"] = (
         table_component_variance_proportions
     )
+    pail["loadings"] = loadings
     # Return.
     return pail
 
@@ -1507,5 +1510,164 @@ def compare_principal_components_methods(
     pass
 
 
+# Convenient calculation of principal components on a selection of a table's
+# columns
 
-#
+
+def calculate_principal_components_table_columns_selection(
+    table=None,
+    index_rows=None,
+    columns_selection=None,
+    prefix=None,
+    report=None,
+):
+    """
+    Calculate principal components for features corresponding to a selection of
+    columns in a table and integrate scores as new columns with a name prefix
+    within the original table.
+
+    Review: TCW; 27 November 2024
+
+    arguments:
+        table (object): Pandas data-frame table of information about samples
+        index_rows (str): name of a column in source table which defines an
+            index corresponding to information across rows
+        columns_selection (list<str>): names of columns corresponding to
+            features for which to calculate principal components
+        prefix (str): prefix for names of columns corresponding to scores for
+            principal components
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    # Copy information in table.
+    table_main = table.copy(deep=True)
+    table_excerpt = table.copy(deep=True)
+    # Copy other information.
+    columns_selection = copy.deepcopy(columns_selection)
+    # Organize indices in table.
+    table_main.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    table_main.set_index(
+        [index_rows],
+        append=False,
+        drop=True,
+        inplace=True,
+    )
+    table_excerpt.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+
+    # Separate information in table for proteomics from measurements by O-Link
+    # technology.
+    columns_excerpt = copy.deepcopy(columns_selection)
+    columns_excerpt.insert(0, index_rows)
+    #table_excerpt = table_excerpt.loc[
+    #    :, table_excerpt.columns.isin(columns_excerpt)
+    #].copy(deep=True)
+    table_excerpt = table_excerpt.filter(
+        items=columns_excerpt,
+        axis="columns",
+    )
+    table_excerpt.set_index(
+        [index_rows],
+        append=False,
+        drop=True,
+        inplace=True,
+    )
+
+    # Calculate principal components to represent variance with a reduction of
+    # dimensionality.
+    pail_reduction = (
+        organize_principal_components_by_singular_value_decomposition(
+            table=table_excerpt,
+            index_name=index_rows,
+            prefix=prefix,
+            separator="_",
+            report=False, # report is extensive
+        )
+    )
+    #pail_reduction["table_component_scores"]
+    #pail_reduction["table_component_variance_proportions"]
+    #pail_reduction["loadings"]
+    table_component_scores = (
+        pail_reduction["table_component_scores"].copy(deep=True)
+    )
+    # Organize indices in table.
+    table_component_scores.reset_index(
+        level=None,
+        inplace=True,
+        drop=False,
+    )
+    table_component_scores.set_index(
+        index_rows,
+        append=False,
+        drop=True,
+        inplace=True
+    )
+    # Extract names of columns corresponding to scores for principal
+    # components.
+    columns_component_scores = (
+        copy.deepcopy(table_component_scores.columns.to_list())
+    )
+    # Merge scores for principal components with the main table.
+    table_merge = porg.merge_columns_two_tables(
+        identifier_first=index_rows,
+        identifier_second=index_rows,
+        table_first=table_main,
+        table_second=table_component_scores,
+        preserve_index=True,
+        report=report,
+    )
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        print("module: partner.decomposition.py")
+        print("function: calculate_principal_components_columns_selection()")
+        putly.print_terminal_partition(level=5)
+        print("table of excerpt information for decomposition: ")
+        print(table_excerpt)
+        putly.print_terminal_partition(level=5)
+        print("table of scores for principal components: ")
+        print(table_component_scores.iloc[0:10, 0:])
+        putly.print_terminal_partition(level=5)
+        print("columns of scores for principal components: ")
+        count_columns_component_scores = len(columns_component_scores)
+        print(columns_component_scores)
+        print(str(
+            "count of scores for principal components: " +
+            str(count_columns_component_scores)
+        ))
+        putly.print_terminal_partition(level=5)
+        # Compare methods for calculation of Pincipal Component Analysis.
+        pdecomp.compare_principal_components_methods(
+            table=table_excerpt,
+            index_name=index_rows,
+            prefix=prefix,
+            separator="_",
+            report=True,
+        )
+        pass
+    # Collect information.
+    pail = dict()
+    pail["table"] = table_merge
+    pail["columns_component_scores"] = columns_component_scores
+    # Return information.
+    return pail
+
+
+
+
+# End

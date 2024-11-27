@@ -5974,6 +5974,9 @@ def plot_overlap_sets(
     return figure
 
 
+# Write to file
+
+
 def write_figure(
     figure=None,
     format=None,
