@@ -1663,11 +1663,14 @@ def calculate_principal_components_table_columns_selection(
     # Collect information.
     pail = dict()
     pail["table"] = table_merge
+    pail["table_component_scores"] = pail_reduction["table_component_scores"]
+    pail["table_component_variance_proportions"] = (
+        pail_reduction["table_component_variance_proportions"]
+    )
+    pail["loadings"] = pail_reduction["loadings"]
     pail["columns_component_scores"] = columns_component_scores
     # Return information.
     return pail
-
-
 
 
 # End
