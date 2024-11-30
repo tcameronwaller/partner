@@ -637,8 +637,8 @@ def calculate_principal_component_explanation_variance_proportions(
     report=None,
 ):
     """
-    Calculates the proportion of variance explained by Eigenvectors of Principal
-    Components Analysis (PCA).
+    Calculates the proportion of variance explained by Eigenvectors of
+    Principal Components Analysis (PCA).
 
     Sum of proportional variance explained across all Eigenvectors is one.
 
@@ -820,18 +820,20 @@ def calculate_principal_component_loadings(
     """
 
     # Eigenvectors and Eigenvalues.
-    loadings_eigen = calculate_loadings_from_eigenvalues_eigenvectors(
-        eigenvectors=eigenvectors,
-        eigenvalues=eigenvalues,
-        report=report,
-    )
+    if True:
+        loadings_eigen = calculate_loadings_from_eigenvalues_eigenvectors(
+            eigenvectors=eigenvectors,
+            eigenvalues=eigenvalues,
+            report=report,
+        )
     # Raw decomposition factors.
-    loadings_factor = calculate_loadings_from_decomposition_factors(
-        s_singular_values=s_singular_values,
-        vt_right_singular_vectors_rows=vt_right_singular_vectors_rows,
-        count_samples=count_samples,
-        report=report,
-    )
+    if True:
+        loadings_factor = calculate_loadings_from_decomposition_factors(
+            s_singular_values=s_singular_values,
+            vt_right_singular_vectors_rows=vt_right_singular_vectors_rows,
+            count_samples=count_samples,
+            report=report,
+        )
 
     # Report.
     if report:
@@ -1116,12 +1118,18 @@ def organize_principal_components_by_singular_value_decomposition(
     Loadings = Eigenvectors <dot> (Eigenvalues)^0.5
     - - matrix multiplication involves rows of first matrix and columns of
     - - second
-    - - Eigenvectors are Vt in this case so that singular fectors are across
+    - - Eigenvectors are Vt in this case so that singular factors are across
     - - rows
+    - - That might be incorrect.
+    - - Eigenvectors might actually need to be V to match orientation of the
+    - - Eigenvalues.
     Loadings = Vt <dot> (S / ( (m - 1)^0.5 ))
     - - matrix multiplication involves rows of first matrix and columns of
     - - second
-    - - use Vt in this case so that singular fectors are across rows
+    - - use Vt in this case so that singular factors are across rows
+    - - That might be incorrect.
+    - - Eigenvectors might actually need to be V to match orientation of the
+    - - Singular Values.
 
     A = U <dot> S_diagonal <dot> Vt
     A / Vt = U <dot> S_diagonal
@@ -1199,12 +1207,16 @@ def organize_principal_components_by_singular_value_decomposition(
     ))
 
     # Loadings
+    # The orientation of the Eigenvectors must match the orientation and
+    # dimensionality of the Singular Values or the Eigenvalues.
+    # pail_decomposition["vt_right_singular_vectors_rows"]
+    # pail_decomposition["v_right_singular_vectors_columns"]
     loadings = calculate_principal_component_loadings(
-        eigenvectors=pail_decomposition["vt_right_singular_vectors_rows"],
+        eigenvectors=pail_decomposition["v_right_singular_vectors_columns"],
         eigenvalues=eigenvalues,
         s_singular_values=pail_decomposition["s_singular_values"],
         vt_right_singular_vectors_rows=(
-            pail_decomposition["vt_right_singular_vectors_rows"]
+            pail_decomposition["v_right_singular_vectors_columns"]
         ),
         count_samples=pail_organization["count_samples"],
         report=report,
@@ -1247,6 +1259,217 @@ def organize_principal_components_by_singular_value_decomposition(
         table_component_variance_proportions
     )
     pail["loadings"] = loadings
+    # Return.
+    return pail
+
+
+# StatsModels
+
+# TODO: TCW; 27 November 2024
+# Need to derive more information from the statsmodels method
+# table_component_variance_proportions
+# loadings... preferably with labels
+
+def calculate_principal_components_by_statsmodels(
+    matrix_source=None,
+    standard_scale=False,
+    report=None,
+):
+    """
+    Calculate Principal Components (PCs) by StatsModels.
+
+    arguments:
+        matrix_source (object): NumPy matrix with samples (cases, observations)
+            across rows (dimension 0) and variables (features) across columns
+            (dimension 1)
+        standard_scale (bool): whether to apply StatsModels conversion to
+            standard scale
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict): collection of information about the Principal Components
+            Analysis (PCA)
+
+    """
+
+    # Copy information.
+    matrix_source = numpy.copy(matrix_source)
+    # Determine whether to apply StatsModels conversion to standard scale.
+    if standard_scale:
+        # Execute principle component analysis.
+        pca = statsmodels.multivariate.pca.PCA(
+            matrix_source,
+            ncomp=None, # determine number of components automatically
+            standardize=True, # calculate standard z scores
+            demean=True, # center mean if not calculating standard z scores
+            normalize=False, # normalize factors and loadings to have unit inner product
+            method="svd", # 'svd', 'eig', 'nipals'
+            missing="drop-row",
+        )
+    else:
+        # Execute principle component analysis.
+        pca = statsmodels.multivariate.pca.PCA(
+            matrix_source,
+            ncomp=None, # determine number of components automatically
+            standardize=False, # calculate standard z scores
+            demean=False, # center mean if not calculating standard z scores
+            normalize=False, # normalize factors and loadings to have unit inner product
+            method="svd", # 'svd', 'eig', 'nipals'
+            missing="drop-row",
+        )
+        pass
+    #pca.factors
+    #pca.scores
+    #pca.loadings
+    matrix_scores = pca.scores
+    loadings = pca.loadings
+    eigenvalues = pca.eigenvals
+
+    # Report.
+    if report:
+        utility.print_terminal_partition(level=2)
+        print(
+            "Report from: " +
+            "calculate_principal_components_by_statsmodels()"
+        )
+        utility.print_terminal_partition(level=4)
+        # Compare matrices.
+        print("Shape of source matrix: " + str(matrix_source.shape))
+        print(
+            "Shape of score matrix: " + str(matrix_scores.shape)
+        )
+        utility.print_terminal_partition(level=4)
+        #print("Proportional variance for each component...")
+        #print(table_component_variance_proportions)
+    # Compile information.
+    pail = dict()
+    #pail["table_component_variance_proportions"] = (
+    #    table_component_variance_proportions
+    #)
+    pail["matrix_scores"] = matrix_scores
+    pail["loadings"] = loadings
+    pail["eigenvalues"] = eigenvalues
+    # Return.
+    return pail
+
+
+def organize_principal_components_by_statsmodels(
+    table=None,
+    index_name=None,
+    custom_scale=None,
+    prefix=None,
+    separator=None,
+    report=None,
+):
+    """
+    Organize a Principal Components Analysis (PCA) by StatsModels.
+
+    Format of source table
+    Format of source table is in wide format with floating-point values
+    corresponding to features across columns and distinct observations across
+    rows. A special index column gives identifiers corresponding to each
+    observation across rows. This table has an explicitly defined index across
+    rows.
+
+    In terms of the relevant dimension, the Principal Components represent
+    variance across features.
+
+    Reference:
+    https://www.statsmodels.org/dev/examples/notebooks/generated/
+    + pca_fertility_factors.html
+    https://www.statsmodels.org/dev/generated/
+    + statsmodels.multivariate.pca.PCA.html
+
+    arguments:
+        table (object): Pandas data frame of variables (features) across
+            columns and samples (cases, observations) across rows with an
+            explicit index
+        index_name (str): name of table's index column
+        custom_scale (bool): whether to apply a custom set of filters and
+            conversion to standard scale
+        prefix (str): prefix for names of new principal component columns in
+            table
+        separator (str): separator for names of new columns
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict): collection of information about the Principal Components
+            Analysis (PCA)
+
+    """
+
+    # Threshold and organize information from original table.
+    pail_organization = organize_table_matrix_for_decomposition(
+        table=table,
+        report=report,
+    )
+    # Determine whether to apply a custom set of filters and conversion to
+    # standard scale.
+    if custom_scale:
+        # Use matrix after custom filters and conversion to standard scale.
+        matrix = pail_organization["matrix"]
+        # Calculate Principal Component Scores in SKLearn.
+        pail_statsmodels = calculate_principal_components_by_statsmodels(
+            matrix_source=matrix,
+            standard_scale=False,
+            report=report,
+        )
+    else:
+        # Extract matrix of values.
+        matrix = numpy.copy(table.to_numpy())
+        # Calculate Principal Component Scores in SKLearn.
+        pail_statsmodels = calculate_principal_components_by_statsmodels(
+            matrix_source=matrix,
+            standard_scale=True,
+            report=report,
+        )
+        pass
+
+    #Shape of Eigen loadings: (208, 80)
+    #Shape of factor loadings: (208, 80)
+
+    # Table of principal component factors or scores for original features and
+    # observations.
+    table_component_scores = organize_principal_component_scores_table(
+        matrix=pail_statsmodels["matrix_scores"],
+        index=pail_organization["index"],
+        index_name=index_name,
+        prefix=prefix,
+        separator=separator,
+        report=report,
+    )
+    variance_proportions = (
+        calculate_principal_component_explanation_variance_proportions(
+            eigenvalues=pail_statsmodels["eigenvalues"],
+            report=report,
+    ))
+    table_component_variance_proportions = (
+        organize_principal_component_variance_proportion_table(
+            variance_proportions=variance_proportions,
+            prefix="component_",
+            index_name="eigenvectors_components",
+            report=report,
+    ))
+
+
+    # Compile information.
+    pail = dict()
+    #pail["table_source_threshold"] = (pail_organization["table_threshold"])
+    #pail["table_source_threshold_scale"] = (
+    #    pail_organization["table_threshold_scale"]
+    #)
+    #pail["count_samples"] = pail_organization["count_samples"]
+    #pail["count_variables"] = pail_organization["count_variables"]
+    pail["matrix_component_scores"] = pail_statsmodels["matrix_scores"]
+    pail["table_component_scores"] = table_component_scores
+    pail["table_component_variance_proportions"] = (
+        table_component_variance_proportions
+    )
+    pail["loadings"] = pail_statsmodels["loadings"]
     # Return.
     return pail
 
@@ -1453,16 +1676,25 @@ def compare_principal_components_methods(
         table=table,
         report=False,
     )
-    # Calculate Principal Component Scores in SKLearn.
-    pail_sklearn = organize_principal_components_by_sklearn(
+    # Calculate Prinicipal Component Scores by Singular Value Decomposition.
+    pail_svd = organize_principal_components_by_singular_value_decomposition(
         table=table,
         index_name=index_name,
         prefix=prefix,
         separator=separator,
         report=False,
     )
-    # Calculate Prinicipal Component Scores by Singular Value Decomposition.
-    pail_svd = organize_principal_components_by_singular_value_decomposition(
+    # Calculate Principal Component Scores in StatsModels.
+    pail_statsmodels = organize_principal_components_by_statsmodels(
+        table=table,
+        index_name=index_name,
+        custom_scale=True,
+        prefix=prefix,
+        separator=separator,
+        report=False,
+    )
+    # Calculate Principal Component Scores in SKLearn.
+    pail_sklearn = organize_principal_components_by_sklearn(
         table=table,
         index_name=index_name,
         prefix=prefix,
@@ -1472,11 +1704,10 @@ def compare_principal_components_methods(
 
     # Report.
     if report:
-        utility.print_terminal_partition(level=2)
-        print(
-            "Report from: " +
-            "compare_principal_components_methods()"
-        )
+        utility.print_terminal_partition(level=3)
+        print("package: partner")
+        print("module: partner.decomposition.py")
+        print("function: compare_principal_components_methods()")
         utility.print_terminal_partition(level=4)
         # Compare original matrix to matrix calculation from SVD factors.
         print(
@@ -1484,28 +1715,43 @@ def compare_principal_components_methods(
         )
         utility.print_terminal_partition(level=4)
         print("Shapes of matrices for Principal Component Scores")
-        print("SKLearn: " + str(pail_sklearn["matrix_component_scores"].shape))
         print(
             "SVD factor product: " +
             str(pail_svd["matrix_component_scores"].shape)
         )
+        print("StatsModels: " + str(
+            pail_statsmodels["matrix_component_scores"].shape)
+        )
+        print("SKLearn: " + str(pail_sklearn["matrix_component_scores"].shape))
         utility.print_terminal_partition(level=4)
         print("Compare score matrices between methods...")
-        print("SKLearn versus SVD match:")
+        print("SVD versus Statsmodels match:")
         print(numpy.allclose(
-            numpy.absolute(pail_sklearn["matrix_component_scores"]),
             numpy.absolute(pail_svd["matrix_component_scores"]),
+            numpy.absolute(pail_statsmodels["matrix_component_scores"]),
+            rtol=1e-2, # relative tolerance, 1%
+            atol=1e-3,
+            equal_nan=False,
+        ))
+        print("SVD versus SKLearn match:")
+        print(numpy.allclose(
+            numpy.absolute(pail_svd["matrix_component_scores"]),
+            numpy.absolute(pail_sklearn["matrix_component_scores"]),
             rtol=1e-2, # relative tolerance, 1%
             atol=1e-3,
             equal_nan=False,
         ))
         utility.print_terminal_partition(level=4)
         print("Compare proportions of variance for principal components...")
+        print("SVD:")
+        print(pail_svd["table_component_variance_proportions"])
+        utility.print_terminal_partition(level=5)
+        print("StatsModels:")
+        print(pail_statsmodels["table_component_variance_proportions"])
+        utility.print_terminal_partition(level=5)
         print("SKLearn:")
         print(pail_sklearn["table_component_variance_proportions"])
         utility.print_terminal_partition(level=5)
-        print("SVD:")
-        print(pail_svd["table_component_variance_proportions"])
 
     pass
 
@@ -1513,12 +1759,18 @@ def compare_principal_components_methods(
 # Convenient calculation of principal components on a selection of a table's
 # columns
 
+# TODO: TCW; 29 November 2024
+# I attempted to implement in this function a convenience filter on the principal components
+# by the proportion of original variance that they explain.
+# This filter is not working.
+
 
 def calculate_principal_components_table_columns_selection(
     table=None,
     index_rows=None,
     columns_selection=None,
     prefix=None,
+    threshold_proportion=None,
     report=None,
 ):
     """
@@ -1536,6 +1788,9 @@ def calculate_principal_components_table_columns_selection(
             features for which to calculate principal components
         prefix (str): prefix for names of columns corresponding to scores for
             principal components
+        threshold_proportion (float): threshold on the proportion of total
+            variance in the values of the original features across observations
+            that each principal component must explain
         report (bool): whether to print reports
 
     raises:
@@ -1568,8 +1823,7 @@ def calculate_principal_components_table_columns_selection(
         drop=True, # remove index; do not move to regular columns
     )
 
-    # Separate information in table for proteomics from measurements by O-Link
-    # technology.
+    # Separate information in table for a specific selection of columns.
     columns_excerpt = copy.deepcopy(columns_selection)
     columns_excerpt.insert(0, index_rows)
     #table_excerpt = table_excerpt.loc[
@@ -1585,23 +1839,52 @@ def calculate_principal_components_table_columns_selection(
         drop=True,
         inplace=True,
     )
+    # Filter rows in table for non-missing values across relevant columns.
+    table_excerpt.dropna(
+        axis="index",
+        how="any",
+        subset=columns_selection,
+        inplace=True,
+    )
 
     # Calculate principal components to represent variance with a reduction of
     # dimensionality.
-    pail_reduction = (
-        organize_principal_components_by_singular_value_decomposition(
-            table=table_excerpt,
-            index_name=index_rows,
-            prefix=prefix,
-            separator="_",
-            report=False, # report is extensive
-        )
+    pail_reduction = organize_principal_components_by_statsmodels(
+        table=table_excerpt,
+        index_name=index_rows,
+        custom_scale=False,
+        prefix=prefix,
+        separator="_",
+        report=False,
     )
     #pail_reduction["table_component_scores"]
     #pail_reduction["table_component_variance_proportions"]
     #pail_reduction["loadings"]
     table_component_scores = (
         pail_reduction["table_component_scores"].copy(deep=True)
+    )
+    # Filter principal components by the proportion of variance that they
+    # explain in values of the original features across observations.
+    table_proportions = (
+        pail_reduction["table_component_variance_proportions"]
+    )
+    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!1")
+    print(table_proportions)
+    table_proportions["variance_proportion"] = (
+        table_proportions["variance_proportion"].astype("float32")
+    )
+    table_proportions = table_proportions.loc[
+        (table_proportions["variance_proportion"] > threshold_proportion), :
+    ].copy(deep=True)
+    components_keep = copy.deepcopy(
+        table_proportions["eigenvectors_components"].unique().tolist()
+    )
+    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!1")
+    print(table_proportions)
+
+    table_component_scores = table_component_scores.filter(
+        items=components_keep,
+        axis="columns",
     )
     # Organize indices in table.
     table_component_scores.reset_index(
@@ -1632,17 +1915,17 @@ def calculate_principal_components_table_columns_selection(
 
     # Report.
     if report:
-        putly.print_terminal_partition(level=3)
+        utility.print_terminal_partition(level=3)
         print("package: partner")
         print("module: partner.decomposition.py")
         print("function: calculate_principal_components_columns_selection()")
-        putly.print_terminal_partition(level=5)
+        utility.print_terminal_partition(level=5)
         print("table of excerpt information for decomposition: ")
         print(table_excerpt)
-        putly.print_terminal_partition(level=5)
+        utility.print_terminal_partition(level=5)
         print("table of scores for principal components: ")
         print(table_component_scores.iloc[0:10, 0:])
-        putly.print_terminal_partition(level=5)
+        utility.print_terminal_partition(level=5)
         print("columns of scores for principal components: ")
         count_columns_component_scores = len(columns_component_scores)
         print(columns_component_scores)
@@ -1650,14 +1933,14 @@ def calculate_principal_components_table_columns_selection(
             "count of scores for principal components: " +
             str(count_columns_component_scores)
         ))
-        putly.print_terminal_partition(level=5)
+        utility.print_terminal_partition(level=5)
         # Compare methods for calculation of Pincipal Component Analysis.
-        pdecomp.compare_principal_components_methods(
+        compare_principal_components_methods(
             table=table_excerpt,
             index_name=index_rows,
             prefix=prefix,
             separator="_",
-            report=True,
+            report=report,
         )
         pass
     # Collect information.
