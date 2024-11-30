@@ -859,8 +859,9 @@ def calculate_principal_component_loadings(
 
 def organize_principal_component_variance_proportion_table(
     variance_proportions=None,
-    prefix=None,
     index_name=None,
+    prefix=None,
+    separator=None,
     report=None,
 ):
     """
@@ -870,8 +871,10 @@ def organize_principal_component_variance_proportion_table(
     arguments:
         variance_proportions (object): NumPy array of proportions of variance
             explained
-        prefix (str): prefix for names of component columns
         index_name (str): name for table's index column
+        prefix (str): prefix for names of new columns in table corresponding to
+            scores or factors for principal components
+        separator (str): separator for names of new columns
         report (bool): whether to print reports
 
     raises:
@@ -888,7 +891,7 @@ def organize_principal_component_variance_proportion_table(
     records = list()
     for variance_proportion in variance_proportions:
         record = dict()
-        record[index_name] = str(prefix + str(count))
+        record[index_name] = str(str(prefix) + str(separator) + str(count))
         record["variance_proportion"] = variance_proportion
         records.append(record)
         count += 1
@@ -998,8 +1001,8 @@ def organize_principal_component_scores_table(
         matrix (object): NumPy matrix of Principal Component Scores
         index (object): Pandas series of index from original table
         index_name (str): name of table's index column
-        prefix (str): prefix for names of new principal component columns in
-            table
+        prefix (str): prefix for names of new columns in table corresponding to
+            scores or factors for principal components
         separator (str): separator for names of new columns
         report (bool): whether to print reports
 
@@ -1157,8 +1160,8 @@ def organize_principal_components_by_singular_value_decomposition(
             columns and samples (cases, observations) across rows with an
             explicit index
         index_name (str): name of table's index column
-        prefix (str): prefix for names of new principal component columns in
-            table
+        prefix (str): prefix for names of new columns in table corresponding to
+            scores or factors for principal components
         separator (str): separator for names of new columns
         report (bool): whether to print reports
 
@@ -1201,8 +1204,9 @@ def organize_principal_components_by_singular_value_decomposition(
     table_component_variance_proportions = (
         organize_principal_component_variance_proportion_table(
             variance_proportions=variance_proportions,
-            prefix="component_",
             index_name="eigenvectors_components",
+            prefix=prefix, # "component_"
+            separator=separator,
             report=report,
     ))
 
@@ -1265,10 +1269,9 @@ def organize_principal_components_by_singular_value_decomposition(
 
 # StatsModels
 
-# TODO: TCW; 27 November 2024
-# Need to derive more information from the statsmodels method
-# table_component_variance_proportions
-# loadings... preferably with labels
+# TODO: TCW; 30 November 2024
+# It would still be nice to organize the loadings better for readability.
+
 
 def calculate_principal_components_by_statsmodels(
     matrix_source=None,
@@ -1389,8 +1392,8 @@ def organize_principal_components_by_statsmodels(
         index_name (str): name of table's index column
         custom_scale (bool): whether to apply a custom set of filters and
             conversion to standard scale
-        prefix (str): prefix for names of new principal component columns in
-            table
+        prefix (str): prefix for names of new columns in table corresponding to
+            scores or factors for principal components
         separator (str): separator for names of new columns
         report (bool): whether to print reports
 
@@ -1450,8 +1453,9 @@ def organize_principal_components_by_statsmodels(
     table_component_variance_proportions = (
         organize_principal_component_variance_proportion_table(
             variance_proportions=variance_proportions,
-            prefix="component_",
             index_name="eigenvectors_components",
+            prefix=prefix, # "component_"
+            separator=separator,
             report=report,
     ))
 
@@ -1759,17 +1763,13 @@ def compare_principal_components_methods(
 # Convenient calculation of principal components on a selection of a table's
 # columns
 
-# TODO: TCW; 29 November 2024
-# I attempted to implement in this function a convenience filter on the principal components
-# by the proportion of original variance that they explain.
-# This filter is not working.
-
 
 def calculate_principal_components_table_columns_selection(
     table=None,
     index_rows=None,
     columns_selection=None,
     prefix=None,
+    separator=None,
     threshold_proportion=None,
     report=None,
 ):
@@ -1778,7 +1778,7 @@ def calculate_principal_components_table_columns_selection(
     columns in a table and integrate scores as new columns with a name prefix
     within the original table.
 
-    Review: TCW; 27 November 2024
+    Review: TCW; 30 November 2024
 
     arguments:
         table (object): Pandas data-frame table of information about samples
@@ -1786,8 +1786,9 @@ def calculate_principal_components_table_columns_selection(
             index corresponding to information across rows
         columns_selection (list<str>): names of columns corresponding to
             features for which to calculate principal components
-        prefix (str): prefix for names of columns corresponding to scores for
-            principal components
+        prefix (str): prefix for names of new columns in table corresponding to
+            scores or factors for principal components
+        separator (str): separator for names of new columns
         threshold_proportion (float): threshold on the proportion of total
             variance in the values of the original features across observations
             that each principal component must explain
@@ -1805,6 +1806,8 @@ def calculate_principal_components_table_columns_selection(
     table_excerpt = table.copy(deep=True)
     # Copy other information.
     columns_selection = copy.deepcopy(columns_selection)
+    count_columns_selection = len(columns_selection)
+
     # Organize indices in table.
     table_main.reset_index(
         level=None,
@@ -1865,27 +1868,35 @@ def calculate_principal_components_table_columns_selection(
     )
     # Filter principal components by the proportion of variance that they
     # explain in values of the original features across observations.
-    table_proportions = (
+    table_proportions = copy.deepcopy(
         pail_reduction["table_component_variance_proportions"]
     )
-    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!1")
-    print(table_proportions)
-    table_proportions["variance_proportion"] = (
-        table_proportions["variance_proportion"].astype("float32")
+    table_prop_filter = copy.deepcopy(
+        pail_reduction["table_component_variance_proportions"]
     )
-    table_proportions = table_proportions.loc[
-        (table_proportions["variance_proportion"] > threshold_proportion), :
-    ].copy(deep=True)
-    components_keep = copy.deepcopy(
-        table_proportions["eigenvectors_components"].unique().tolist()
-    )
-    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!1")
-    print(table_proportions)
+    #table_proportions["variance_proportion"] = (
+    #    table_proportions["variance_proportion"].astype("float32")
+    #)
+    if (threshold_proportion is not None):
+        table_prop_filter = table_prop_filter.loc[
+            (table_prop_filter["variance_proportion"] > threshold_proportion),
+            :
+        ].copy(deep=True)
+        components_keep = copy.deepcopy(
+            table_prop_filter["eigenvectors_components"].unique().tolist()
+        )
+        count_components_keep = len(components_keep)
+        table_component_scores = table_component_scores.filter(
+            items=components_keep,
+            axis="columns",
+        )
+    else:
+        components_keep = (
+            copy.deepcopy(table_component_scores.columns.to_list())
+        )
+        count_components_keep = len(components_keep)
+        pass
 
-    table_component_scores = table_component_scores.filter(
-        items=components_keep,
-        axis="columns",
-    )
     # Organize indices in table.
     table_component_scores.reset_index(
         level=None,
@@ -1910,7 +1921,7 @@ def calculate_principal_components_table_columns_selection(
         table_first=table_main,
         table_second=table_component_scores,
         preserve_index=True,
-        report=report,
+        report=False,
     )
 
     # Report.
@@ -1920,28 +1931,52 @@ def calculate_principal_components_table_columns_selection(
         print("module: partner.decomposition.py")
         print("function: calculate_principal_components_columns_selection()")
         utility.print_terminal_partition(level=5)
-        print("table of excerpt information for decomposition: ")
-        print(table_excerpt)
+        #print("table of excerpt information for decomposition: ")
+        #print(table_excerpt)
+        #utility.print_terminal_partition(level=5)
+        #print("table of scores for principal components: ")
+        #print(table_component_scores.iloc[0:10, 0:])
         utility.print_terminal_partition(level=5)
-        print("table of scores for principal components: ")
-        print(table_component_scores.iloc[0:10, 0:])
-        utility.print_terminal_partition(level=5)
-        print("columns of scores for principal components: ")
-        count_columns_component_scores = len(columns_component_scores)
-        print(columns_component_scores)
         print(str(
-            "count of scores for principal components: " +
-            str(count_columns_component_scores)
+            "names of original features: "
+        ))
+        print(columns_selection)
+        print(str(
+            "count of original features: " +
+            str(count_columns_selection)
         ))
         utility.print_terminal_partition(level=5)
+        print(str(
+            "table of proportions of variance in original features across " +
+            "observations that each principal component explains: "
+        ))
+        print(table_proportions.iloc[0:25, 0:])
+        utility.print_terminal_partition(level=5)
+        print(str(
+            "threshold on proportion of variance explained by components: " +
+            str(threshold_proportion)
+        ))
+        print(str(
+            "names of components that pass threshold filter: "
+        ))
+        print(components_keep)
+        print(str(
+            "count of components above threshold: " +
+            str(count_components_keep)
+        ))
+        utility.print_terminal_partition(level=5)
+        print("columns of scores for principal components: ")
+        print(columns_component_scores)
+        utility.print_terminal_partition(level=5)
         # Compare methods for calculation of Pincipal Component Analysis.
-        compare_principal_components_methods(
-            table=table_excerpt,
-            index_name=index_rows,
-            prefix=prefix,
-            separator="_",
-            report=report,
-        )
+        if False:
+            compare_principal_components_methods(
+                table=table_excerpt,
+                index_name=index_rows,
+                prefix=prefix,
+                separator="_",
+                report=report,
+            )
         pass
     # Collect information.
     pail = dict()
