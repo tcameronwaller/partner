@@ -1909,6 +1909,10 @@ def plot_heatmap_signal_label_features_observations(
 # TODO: TCW; 16 November 2024
 # Further customization of this function would be necessary if the counts of
 # groups of samples was different than 4.
+
+# TODO: TCW; 2 December 2024
+# This heatmap still needs a reference color bar.
+
 def plot_heatmap_signal_features_sets_in_observations_groups(
     table_signal=None,
     table_feature_sets=None,
@@ -2424,6 +2428,9 @@ def plot_heatmap_signal_features_sets_in_observations_groups(
         labelleft=False,
         labelright=False,
     )
+    # Create legend.
+    # See nested function "create_legend_elements()" within main function
+    # "plot_scatter_factor_groups()".
     handles = [matplotlib.patches.Patch(
         color=color_map(i),
         label=pail["indices_groups"][i]
@@ -4541,6 +4548,587 @@ def plot_scatter_fold_change_volcano(
     return figure
 
 
+def plot_scatter_point_color_response_discrete_or_continuous(
+    table=None,
+    column_identifier=None,
+    column_name=None,
+    column_response=None,
+    column_abscissa=None,
+    column_ordinate=None,
+    type_response=None,
+    minimum_abscissa=None,
+    maximum_abscissa=None,
+    minimum_ordinate=None,
+    maximum_ordinate=None,
+    set_axis_limits=None,
+    title_response=None,
+    title_abscissa=None,
+    title_ordinate=None,
+    identifiers_emphasis=None,
+    emphasis_label=None,
+    line_diagonal=None,
+    size_title_abscissa=None,
+    size_title_ordinate=None,
+    size_title_legend_bar=None,
+    size_label_abscissa=None,
+    size_label_ordinate=None,
+    size_label_emphasis=None,
+    size_label_legend_bar=None,
+    aspect=None,
+    fonts=None,
+    colors=None,
+    report=None,
+):
+    """
+    Create a plot chart of type scatter point with color representation of a
+    third feature variable on either a discrete on continuous measurement
+    scale.
+
+    Scatter Plot with color representation of a third feature for points
+    chart type: scatter
+    response
+       - representation: color of points
+    abscissa
+       - representation: position along horizontal abscissa x axis
+    ordinate
+       - representation: position along vertical ordinate y axis
+
+    Review: TCW; 2 December 2024
+
+    arguments:
+        table (object): Pandas data-frame table of features across columns and
+            values for observations across rows
+        column_identifier (str): name of column in table corresponding to the
+            unique identifier of records for each point
+        column_name (str): name of column in table corresponding to the name of
+            records for each point
+        column_response (str): name of column in table corresponding to values
+            for representation as color of individual points
+        column_abscissa (str): name of column in table corresponding to values
+            for representation on the abscissa horizontal axis
+        column_ordinate (str): name of column in table corresponding to values
+            for representation on the ordinate vertical axis
+        type_response (bool): type of the response feature, either 'continuity'
+            or 'category'
+        minimum_abscissa (float): value for minimal limit to represent on the
+            abscissa horizontal axis
+        maximum_abscissa (float): value for maximal limit to represent on the
+            abscissa horizontal axis
+        minimum_ordinate (float): value for minimal limit to represent on the
+            ordinate horizontal axis
+        maximum_ordinate (float): value for maximal limit to represent on the
+            ordinate horizontal axis
+        set_axis_limits (bool): whether to set explicity limits on axes
+        title_response (str): title of the feature to represent as colors of
+            individual points
+        title_abscissa (str): title of the feature to represent on the abscissa
+            horizontal axis
+        title_ordinate (str): title of the feature to represent on the ordinate
+            vertical axis
+        identifiers_emphasis (list<str>): identifiers corresponding to a
+            special selection of records for which to emphasize points on
+            chart and for which to create individual text labels adjacent to
+            the points on the chart
+        emphasis_label (bool): whether to create text labels adjacent to
+            the special selection of points for special emphasis
+        line_diagonal (bool): whether to draw diagonal line for equality
+            between abscissa and ordinate
+        size_title_abscissa (str): font size for title on abscissa horizontal
+            axis
+        size_title_ordinate (str): font size for title on ordinate vertical
+            axis
+        size_title_legend_bar (str): font size for title on the legend for
+            discrete categorical values or on the scale bar for continuous
+            values
+        size_label_abscissa (str): font size for labels on abscissa horizontal
+            axis
+        size_label_ordinate (str): font size for labels on ordinate vertical
+            axis
+        size_label_emphasis (str): font size for labels adjacent to points for
+            special emphasis
+        size_label_legend_bar (str): font size for labels on the legend or on
+            the scale bar
+        aspect (str): aspect ratio for MatPlotLib chart figure
+        fonts (dict<object>): definitions of font properties
+        colors (dict<tuple>): definitions of color properties
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): chart figure object
+
+    """
+
+    ##########
+    # Organize information for chart.
+
+    # Copy information in table.
+    table = table.copy(deep=True)
+    # Filter columns in table.
+    #table = table.loc[
+    #    :, table.columns.isin(columns_sequence)
+    #]
+    table = table.filter(
+        items=[
+            column_identifier,
+            column_name,
+            column_response,
+            column_abscissa,
+            column_ordinate,
+        ],
+        axis="columns",
+    )
+    # Organize information in table.
+    table.dropna(
+        axis="index",
+        how="any",
+        inplace=True,
+    )
+    limits = [
+        {
+            "type": "low",
+            "value": minimum_abscissa,
+            "column": column_abscissa,
+        },
+        {
+            "type": "high",
+            "value": maximum_abscissa,
+            "column": column_abscissa,
+        },
+        {
+            "type": "low",
+            "value": minimum_ordinate,
+            "column": column_ordinate,
+        },
+        {
+            "type": "high",
+            "value": maximum_ordinate,
+            "column": column_ordinate,
+        },
+    ]
+    for limit in limits:
+        if (limit["value"] is not None):
+            if (limit["type"] == "low"):
+                table = table.loc[
+                    (table[limit["column"]] >= limit["value"]), :
+                ].copy(deep=True)
+            elif (limit["type"] == "high"):
+                table = table.loc[
+                    (table[limit["column"]] <= limit["value"]), :
+                ].copy(deep=True)
+                pass
+            pass
+        pass
+    # Extract information about ranges of first and second features for
+    # representation as position.
+    values_abscissa_raw = table[column_abscissa].to_numpy(
+        dtype="float64",
+        na_value=numpy.nan,
+        copy=True,
+    )
+    values_ordinate_raw = table[column_ordinate].to_numpy(
+        dtype="float64",
+        na_value=numpy.nan,
+        copy=True,
+    )
+    if (minimum_abscissa is None):
+        minimum_abscissa = numpy.nanmin(values_abscissa_raw)
+    if (maximum_abscissa is None):
+        maximum_abscissa = numpy.nanmax(values_abscissa_raw)
+    if (minimum_ordinate is None):
+        minimum_ordinate = numpy.nanmin(values_ordinate_raw)
+    if (maximum_ordinate is None):
+        maximum_ordinate = numpy.nanmax(values_ordinate_raw)
+        pass
+    center_abscissa = ((maximum_abscissa - minimum_abscissa)/2)
+    center_ordinate = ((maximum_ordinate - minimum_ordinate)/2)
+    # Extract information about range of third response feature for
+    # representation as color.
+    if (
+        (column_response is not None) and
+        (column_response != "") and
+        (type_response is not None) and
+        (type_response == "continuity")
+    ):
+        values_response_raw = table[column_response].to_numpy(
+            dtype="float64",
+            na_value=numpy.nan,
+            copy=True,
+        )
+        minimum_response = numpy.nanmin(values_response_raw)
+        maximum_response = numpy.nanmax(values_response_raw)
+        pass
+
+    # Extract information about selection of records for special emphasis.
+    if (
+        (identifiers_emphasis is not None) and
+        (len(identifiers_emphasis) > 0)
+    ):
+        table_standard = table.loc[
+            ~table[column_identifier].isin(identifiers_emphasis), :
+        ].copy(deep=True)
+        table_special = table.loc[
+            table[column_identifier].isin(identifiers_emphasis), :
+        ].copy(deep=True)
+        pass
+    else:
+        table_standard = table.copy(deep=True)
+        table_special = pandas.DataFrame()
+
+    # Stratify groups of records by categorical factor response feature.
+    if (
+        (column_response is not None) and
+        (column_response != "") and
+        (type_response is not None) and
+        (type_response == "category")
+    ):
+        # Copy information in table.
+        table_standard_group = table_standard.copy(deep=True)
+        # Count unique categorical values.
+        count_category_response = (
+            table_standard[column_response].nunique(dropna=True)
+        )
+        # Organize indices in table.
+        table_standard_group.reset_index(
+            level=None,
+            inplace=True,
+            drop=True, # remove index; do not move to regular columns
+        )
+        table_standard_group.set_index(
+            [column_identifier, column_response],
+            append=False,
+            drop=True,
+            inplace=True
+        )
+        # Split rows within table by factor columns.
+        groups_response = table_standard_group.groupby(
+            level=column_response,
+        )
+        pass
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        print("module: plot.py")
+        function = "plot_scatter_point_color_response_discrete_or_continuous()"
+        print("function: " + function)
+        putly.print_terminal_partition(level=5)
+        pass
+
+    ##########
+    # Create and initialize figure chart object.
+
+    # Create figure.
+    figure = initialize_matplotlib_figure_aspect(
+        aspect=aspect,
+    )
+    # Create axes.
+    axes = matplotlib.pyplot.axes()
+    #axes.margins(
+    #    x=1,
+    #    y=1,
+    #    tight=True,
+    #)
+    # Define limits for axes.
+    if (set_axis_limits):
+        if (minimum_abscissa is not None):
+            axes.set_xlim(xmin=minimum_abscissa)
+        if (maximum_abscissa is not None):
+            axes.set_xlim(xmax=maximum_abscissa)
+        if (minimum_ordinate is not None):
+            axes.set_ylim(ymin=minimum_ordinate)
+        if (maximum_ordinate is not None):
+            axes.set_ylim(ymax=maximum_ordinate)
+            pass
+        pass
+
+    # Set titles for axes.
+    if (len(title_abscissa) > 0):
+        axes.set_xlabel(
+            xlabel=title_abscissa,
+            labelpad=30,
+            alpha=1.0,
+            loc="left",
+            backgroundcolor=colors["white"],
+            color=colors["black"],
+            fontproperties=fonts["properties"][size_title_abscissa]
+        )
+    if (len(title_ordinate) > 0):
+        axes.set_ylabel(
+            ylabel=title_ordinate,
+            labelpad=30,
+            alpha=1.0,
+            backgroundcolor=colors["white"],
+            color=colors["black"],
+            fontproperties=fonts["properties"][size_title_ordinate]
+        )
+    # Define parameters for tick labels on axes.
+    axes.tick_params(
+        axis="both", # "y", "x", or "both"
+        which="both", # "major", "minor", or "both"
+        direction="out",
+        top=False,
+        labeltop=False,
+        bottom=True,
+        labelbottom=True,
+        left=True,
+        labelleft=True,
+        right=False,
+        labelright=False,
+        length=7.5, # 5.0
+        width=5.0, # 3.0, 5.0
+        pad=10.0, # 5.0, 7.5
+        color=colors["black"],
+        labelcolor=colors["black"],
+    )
+    axes.tick_params(
+        axis="x",
+        which="both",
+        labelsize=fonts["values"][size_label_abscissa]["size"],
+    )
+    axes.tick_params(
+        axis="y",
+        which="both",
+        labelsize=fonts["values"][size_label_ordinate]["size"],
+    )
+    # Keep axes, ticks, and labels, but remove border.
+    # ["left", "top", "right", "bottom",]
+    for position in ["top", "right",]:
+        matplotlib.pyplot.gca().spines[position].set_visible(False)
+
+    # Create diagonal line to represent equality between abscissa and ordinate.
+    # Notice that the current definition does not actually correspond to a 1:1
+    # relationship between abscissa and ordinate scales. Instead, it depends on
+    # the relative ranges of the abscissa and ordinate axes.
+    if (line_diagonal):
+        axes.plot(
+            [0, 1,],
+            [0, 1,],
+            transform=axes.transAxes,
+            alpha=1.0,
+            color=colors["black"],
+            linestyle="--",
+            linewidth=2,
+        )
+        axes.text(
+            0.02,
+            0.025,
+            str(
+                "diagonal line for visual reference only; " +
+                "not proportional to respective ranges of axes"
+            ),
+            transform=axes.transAxes, # positions in coordinates relative to scope of axes
+            transform_rotates_text=True, # match rotation to scope of axes
+            rotation_mode="anchor",
+            rotation=45,
+            backgroundcolor=colors["white_faint"],
+            color=colors["black"],
+            fontproperties=fonts["properties"]["seventeen"],
+        )
+        pass
+
+    ##########
+    # Represent information on the chart figure object.
+    # For table of standard selection of records, determine whether to set
+    # color of points to represent a third response feature.
+    if (
+        (column_response is None) or
+        (column_response == "") or
+        (type_response is None)
+    ):
+        handle_standard = axes.plot(
+            table_standard[column_abscissa].values,
+            table_standard[column_ordinate].values,
+            linestyle="",
+            marker="o",
+            markersize=10,
+            markeredgecolor=colors["blue_navy"],
+            markerfacecolor=colors["blue_navy"],
+        )
+    elif (
+        (column_response is not None) and
+        (column_response != "") and
+        (type_response is not None) and
+        (type_response == "continuity")
+    ):
+        handle_standard = axes.scatter(
+            table_standard[column_abscissa].values,
+            table_standard[column_ordinate].values,
+            c=table_standard[column_response].values,
+            s=300, # scale with area (dimension squared)
+            norm="linear",
+            cmap="binary", # 'binary', 'plasma', 'viridis', 'civids'
+            vmin=minimum_response,
+            vmax=maximum_response,
+            alpha=1,
+            marker="o",
+            linewidths=1,
+            edgecolors=colors["black"],
+            #linestyle="",
+        )
+    elif (
+        (column_response is not None) and
+        (column_response != "") and
+        (type_response is not None) and
+        (type_response == "category")
+    ):
+        # An alternative would be to map categorical values to discrete
+        # integers that respectively map to colors. Then create discrete color
+        # bar as a reference in place of a legend.
+        # Create discrete color map for categorical values.
+        color_map = matplotlib.cm.get_cmap("Accent")
+        colors_groups = [color_map(i) for i in range(count_category_response)]
+        # Collect information.
+        labels_groups = []
+        counter = 0
+        # Iterate on groups of records from table.
+        for name_group, table_group in groups_response:
+            # Copy information in table.
+            table_group = table_group.copy(deep=True)
+            # Collect information.
+            label_group = str(name_group)
+            labels_groups.append(label_group)
+            # Create points on plot chart.
+            handle_group = axes.plot(
+                table_group[column_abscissa].values,
+                table_group[column_ordinate].values,
+                linestyle="",
+                marker="o",
+                markersize=10,
+                markeredgecolor=colors_groups[counter],
+                markerfacecolor=colors_groups[counter],
+            )
+            # Update index counter.
+            counter += 1
+            pass
+        pass
+
+    # For table of special selection of records, plot points with a special
+    # color for emphasis.
+    if (
+        (identifiers_emphasis is not None) and
+        (len(identifiers_emphasis) > 0) and
+        (not table_special.empty)
+    ):
+        handle_special = axes.plot(
+            table_special[column_abscissa].values,
+            table_special[column_ordinate].values,
+            linestyle="",
+            marker="o",
+            markersize=5,
+            markeredgecolor=colors["red_crimson"],
+            markerfacecolor=colors["red_crimson"]
+        )
+    # For table of special selection of records, create text labels adjacent
+    # to points.
+    if emphasis_label:
+        for index, row in table_special.iterrows():
+            # Determine position coordinates of label.
+            abscissa_label_raw = row[column_abscissa]
+            if (abscissa_label_raw >= center_abscissa):
+                alignment_horizontal = "right"
+                abscissa_label = (
+                    abscissa_label_raw - (
+                        0.01 * (maximum_abscissa - minimum_abscissa)
+                    )
+                )
+            if (abscissa_label_raw < center_abscissa):
+                alignment_horizontal = "left"
+                abscissa_label = (
+                    abscissa_label_raw + (
+                        0.01 * (maximum_abscissa - minimum_abscissa)
+                    )
+                )
+            ordinate_label = row[column_ordinate]
+            # Create label on chart.
+            axes.text(
+                abscissa_label,
+                ordinate_label,
+                str(row[column_name]),
+                horizontalalignment=alignment_horizontal,
+                verticalalignment="center",
+                backgroundcolor=colors["white_faint"],
+                color=colors["black"],
+                fontproperties=fonts["properties"][size_label_emphasis],
+            )
+            pass
+        pass
+
+    # Create legend or reference bar for color map.
+    if (
+        (column_response is not None) and
+        (column_response != "") and
+        (type_response is not None) and
+        (type_response == "continuity")
+    ):
+        bar = axes.figure.colorbar(
+            handle_standard,
+            orientation="vertical",
+            ax=axes,
+            location="right",
+            shrink=0.9, # 0.7; factor for dimensions of the Scale Bar.
+        )
+        if (len(title_response) > 0):
+            bar.ax.set_ylabel(
+                title_response,
+                rotation=-90,
+                va="bottom",
+                labelpad=5, # 5
+                alpha=1.0,
+                backgroundcolor=colors["white"],
+                color=colors["black"],
+                fontproperties=fonts["properties"][size_title_legend_bar],
+            )
+        else:
+            bar.ax.set_ylabel(
+                column_response,
+                rotation=-90,
+                va="bottom",
+                labelpad=5, # 5
+                alpha=1.0,
+                backgroundcolor=colors["white"],
+                color=colors["black"],
+                fontproperties=fonts["properties"][size_title_legend_bar],
+            )
+            pass
+        bar.ax.tick_params(
+            axis="both",
+            which="both", # major, minor, or both
+            direction="out",
+            length=7.5, # 5.0, 7.5
+            width=3, # 2.5, 5.0
+            color=colors["black"],
+            pad=5, # 5, 7
+            labelsize=fonts["values"][size_label_legend_bar]["size"],
+            labelcolor=colors["black"],
+        )
+    elif (
+        (column_response is not None) and
+        (column_response != "") and
+        (type_response is not None) and
+        (type_response == "category")
+    ):
+        # Create legend.
+        handles_legend = [matplotlib.patches.Patch(
+            color=colors_groups[i],
+            label=labels_groups[i]
+        ) for i in range(count_category_response)]
+        figure.legend(
+            handles=handles_legend,
+            loc="lower right",
+            #bbox_to_anchor=(0.5, -0.05),
+            #ncol=4,
+            prop=fonts["properties"][size_label_legend_bar],
+        )
+        pass
+
+    ##########
+    # Return figure.
+    return figure
+
+
 def plot_scatter_factor_groups(
     data=None,
     abscissa=None,
@@ -4920,7 +5508,7 @@ def plot_scatter(
         inplace=True,
     )
     values_abscissa = data_selection[abscissa].to_numpy()
-    values_ordinate = data_selection[ordinate].to_nympy()
+    values_ordinate = data_selection[ordinate].to_numpy()
 
     ##########
     # Create figure.

@@ -1307,7 +1307,7 @@ def calculate_principal_components_by_statsmodels(
             ncomp=None, # determine number of components automatically
             standardize=True, # calculate standard z scores
             demean=True, # center mean if not calculating standard z scores
-            normalize=False, # normalize factors and loadings to have unit inner product
+            normalize=True, # normalize factors and loadings to have unit inner product
             method="svd", # 'svd', 'eig', 'nipals'
             missing="drop-row",
         )
@@ -1829,6 +1829,7 @@ def calculate_principal_components_table_columns_selection(
     # Separate information in table for a specific selection of columns.
     columns_excerpt = copy.deepcopy(columns_selection)
     columns_excerpt.insert(0, index_rows)
+    # Filter columns in table.
     #table_excerpt = table_excerpt.loc[
     #    :, table_excerpt.columns.isin(columns_excerpt)
     #].copy(deep=True)
