@@ -910,6 +910,71 @@ def filter_select_table_columns_rows_by_identifiers(
     return table_product
 
 
+def filter_select_table_rows_by_columns_categories(
+    table=None,
+    columns_categories=None,
+    report=None,
+):
+    """
+    Filters rows in a table to select those with specific discrete categorical
+    values in specific columns
+
+    This function preserves the original sequence of rows from the source
+    table.
+
+    arguments:
+        table (object): Pandas data-frame table
+        columns_categories (dict<list<str>>): specific columns for features and
+            their categorical values by which to filter rows in table
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        table (object): Pandas data-frame table
+
+    """
+
+    # Copy information in table.
+    table_source = table.copy(deep=True)
+    table_product = table.copy(deep=True)
+    # Copy other information.
+    columns_categories = copy.deepcopy(columns_categories)
+    # Filter rows in table by specific criteria.
+    # Iterate on columns for features and their categorical values for
+    # selection of rows from table.
+    if (columns_categories is not None):
+        for column in columns_categories.keys():
+            # (table_product[column] == columns_categories[column][0])
+            table_product = table_product.loc[(
+                table_product[column].isin(columns_categories[column])
+            ), :].copy(deep=True)
+            pass
+        pass
+    # Report.
+    if report:
+        count_rows_source = (table_source.shape[0])
+        count_rows_product = (table_product.shape[0])
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        print("module: organization.py")
+        function = (
+            "filter_select_table_rows_by_columns_categories" +
+            "()"
+        )
+        print(str("function: " + function))
+        putly.print_terminal_partition(level=5)
+        print("source table")
+        print("count of rows: " + str(count_rows_source))
+        putly.print_terminal_partition(level=5)
+        print("product table")
+        print("count of rows: " + str(count_rows_product))
+        putly.print_terminal_partition(level=5)
+        pass
+    # Return information.
+    return table_product
+
+
 def filter_extract_table_row_identifiers_by_columns_categories(
     table=None,
     column_identifier=None,
@@ -941,21 +1006,12 @@ def filter_extract_table_row_identifiers_by_columns_categories(
 
     """
 
-    # Copy information in table.
-    table = table.copy(deep=True)
-    # Copy other information.
-    columns_categories = copy.deepcopy(columns_categories)
-    # Filter rows in table by specific criteria.
-    # Iterate on columns for features and their categorical values for
-    # selection of rows from table.
-    table_selection = table.copy(deep=True)
-    if (columns_categories is not None):
-        for column in columns_categories.keys():
-            table_selection = table_selection.loc[(
-                table_selection[column].isin(columns_categories[column])
-            ), :].copy(deep=True)
-            pass
-        pass
+    # Filter rows in table by specific categorical values of specific columns.
+    table_selection = filter_select_table_rows_by_columns_categories(
+        table=table,
+        columns_categories=columns_categories,
+        report=report,
+    )
     # Extract identifiers from selection of rows from table.
     identifiers = copy.deepcopy(
         table_selection[column_identifier].unique().tolist()
@@ -964,7 +1020,8 @@ def filter_extract_table_row_identifiers_by_columns_categories(
     if report:
         count = len(identifiers)
         putly.print_terminal_partition(level=3)
-        print("module: exercise.transcriptomics.organize_signal.py")
+        print("package: partner")
+        print("module: organization.py")
         function = (
             "filter_extract_table_row_identifiers_by_columns_categories" +
             "()"

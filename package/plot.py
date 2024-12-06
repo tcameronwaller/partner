@@ -1913,6 +1913,12 @@ def plot_heatmap_signal_label_features_observations(
 # TODO: TCW; 2 December 2024
 # This heatmap still needs a reference color bar.
 
+# TODO: TCW; 4 December 2024
+# Enhance versatility by supporting counts of groups of observations other than
+# four. Refer to the handling of color maps in function below.
+# plot_scatter_point_color_response_discrete_or_continuous()
+# Matplotlib "tab10" seems like a good choice for categorical discrete colors.
+
 def plot_heatmap_signal_features_sets_in_observations_groups(
     table_signal=None,
     table_feature_sets=None,
@@ -4978,7 +4984,7 @@ def plot_scatter_point_color_response_discrete_or_continuous(
         # integers that respectively map to colors. Then create discrete color
         # bar as a reference in place of a legend.
         # Create discrete color map for categorical values.
-        color_map = matplotlib.cm.get_cmap("Accent")
+        color_map = matplotlib.cm.get_cmap("tab10")
         colors_groups = [color_map(i) for i in range(count_category_response)]
         # Collect information.
         labels_groups = []
