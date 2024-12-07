@@ -171,11 +171,12 @@ def drive_transform_variables_distribution_scale_logarithm(
     # Apply logarithmic transformation to multiple variables.
     for column in columns_relevant:
         column_transform = str(str(column) + str(suffix))
-        table[column_transform] = transform_values_distribution_scale_logarithm(
-            values_array=table[column].to_numpy(),
-            shift_minimum=1.0, # 0.001 or 1.0
-            base=math.e, # e, 2, 10, etc
-        )
+        table[column_transform] = (
+            transform_values_distribution_scale_logarithm(
+                values_array=table[column].to_numpy(),
+                shift_minimum=1.0, # 0.001 or 1.0
+                base=math.e, # e, 2, 10, etc
+        ))
     # Return information.
     return table
 
@@ -1223,11 +1224,12 @@ def apply_transformations_to_variable_distribution_scale(
     # Base e Natural Logarithmic Transformation.
     if ((str(column) in table.columns.to_list()) and (logarithm_e)):
         column_transform = str(str(column) + str(suffix_logarithm_e))
-        table[column_transform] = transform_values_distribution_scale_logarithm(
-            values_array=table[column].to_numpy(),
-            shift_minimum=1.0, # 0.001 or 1.0
-            base=math.e, # e, 2, 10, etc
-        )
+        table[column_transform] = (
+            transform_values_distribution_scale_logarithm(
+                values_array=table[column].to_numpy(),
+                shift_minimum=1.0, # 0.001 or 1.0
+                base=math.e, # e, 2, 10, etc
+        ))
 
     # Standard Z-Score Transformation.
     if ((str(column) in table.columns.to_list()) and (standard_z_score)):

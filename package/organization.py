@@ -1036,11 +1036,337 @@ def filter_extract_table_row_identifiers_by_columns_categories(
     return identifiers
 
 
-def test_extract_organize_values_from_series():
+def filter_table_rows_by_proportion_nonmissing_threshold(
+    table=None,
+    index_columns=None,
+    index_rows=None,
+    columns=None,
+    rows=None,
+    threshold_low=None,
+    threshold_high=None,
+    proportion=None,
+    report=None,
+):
+    """
+    Filter rows in a Pandas data-frame table by considering the proportion of
+    a specific selection of columns that have values that are nonmissing and
+    within specific low and high thresholds.
+
+    For versatility, this table does not have explicitly defined indices across
+    rows or columns.
+
+    Review: TCW; 6 December 2024
+
+    arguments:
+        table (object): Pandas data-frame table
+        index_columns (str): name for index corresponding to columns in the
+            original source table
+        index_rows (str): name for index corresponding to rows in the original
+            source table
+        columns (list<str>): identifiers or names of columns from which to
+            consider values
+        rows (list<str>): identifiers or names of rows from which to consider
+            values
+        threshold_low (float): threshold below which (value <= threshold) all
+            values are considered invalid
+        threshold_high (float): threshold above which (value > threshold) all
+            values are considered invalid
+        proportion (float): proportion of values across selection of columns
+            that must be nonmissing and within low and high thresholds in order
+            to keep the series
+
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    # Copy information in tables and other objects.
+    table_filter = table.copy(deep=True)
+    columns = copy.deepcopy(columns)
+    rows = copy.deepcopy(rows)
+
+    # Filter rows in table by proportion of values across a selection of
+    # columns that are nonmissing and within thresholds.
+    table_filter["match_keep_row_by_value_proportion"] = table_filter.apply(
+        lambda series_row: determine_series_signal_validity_threshold(
+            series=series_row,
+            keys_signal=columns,
+            threshold_low=threshold_low,
+            threshold_high=threshold_high,
+            proportion=proportion,
+            report=False,
+        ) if (series_row[index_rows] in rows) else 1,
+        axis="columns", # apply function to each row
+    )
+    table_filter = table_filter.loc[
+        (table_filter["match_keep_row_by_value_proportion"] == 1), :
+    ]
+
+    # Remove unnecessary columns.
+    table_filter.drop(
+        labels=["match_keep_row_by_value_proportion",],
+        axis="columns",
+        inplace=True
+    )
+
+    # Report.
+    if report:
+        count_rows_source = (table.shape[0])
+        count_rows_product = (table_filter.shape[0])
+        putly.print_terminal_partition(level=3)
+        print("module: partner.organization.py")
+        function = "filter_table_rows_by_proportion_nonmissing_threshold()"
+        print("function: " + function)
+        putly.print_terminal_partition(level=5)
+        print(
+            "count of rows in source table: " +
+            str(count_rows_source)
+        )
+        print(
+            "count of rows in product table: " +
+            str(count_rows_product)
+        )
+        putly.print_terminal_partition(level=5)
+        print("product table:")
+        print(table_filter)
+        putly.print_terminal_partition(level=5)
+    # Return information.
+    return table_filter
+
+
+def filter_table_columns_by_proportion_nonmissing_threshold(
+    table=None,
+    index_columns=None,
+    index_rows=None,
+    columns=None,
+    rows=None,
+    threshold_low=None,
+    threshold_high=None,
+    proportion=None,
+    report=None,
+):
+    """
+    Filter columns in a Pandas data-frame table by considering the proportion
+    of a specific selection of rows that have values that are nonmissing and
+    within specific low and high thresholds.
+
+    For versatility, this table does not have explicitly defined indices across
+    rows or columns.
+
+    For some reason, a Pandas series from a column, even with a specific index
+    of row identifiers, seems to behave differently than a Pandas series from a
+    row. Whereas it is convenient to subset a Pandas series from a row using a
+    list of names of original columns, it seems impossible or impractical to
+    subset a Pandas series from a column using a list of index identifiers.
+
+    Review: TCW; 6 December 2024
+
+    arguments:
+        table (object): Pandas data-frame table
+        index_columns (str): name for index corresponding to columns in the
+            original source table
+        index_rows (str): name for index corresponding to rows in the original
+            source table
+        columns (list<str>): identifiers or names of columns from which to
+            consider values
+        rows (list<str>): identifiers or names of rows from which to consider
+            values
+        threshold_low (float): threshold below which (value <= threshold) all
+            values are considered invalid
+        threshold_high (float): threshold above which (value > threshold) all
+            values are considered invalid
+        proportion (float): proportion of values across selection of columns
+            that must be nonmissing and within low and high thresholds in order
+            to keep the series
+
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    # Copy information in tables and other objects.
+    table_filter = table.copy(deep=True)
+    table_check = table.copy(deep=True)
+    columns = copy.deepcopy(columns)
+    rows = copy.deepcopy(rows)
+
+    # Consier only specific rows from original source table.
+    table_check = table_check.loc[(
+        table_check[index_rows].isin(rows)
+    ), :]
+
+    # Collect information.
+    columns_drop = list()
+
+    # Iterate on columns.
+    #columns_original = copy.deepcopy(table_filter.columns.to_list())
+    for name_column in columns:
+        series_column = table_check[name_column]
+        match_keep_column = determine_series_signal_validity_threshold(
+            series=series_column,
+            keys_signal=list(),
+            threshold_low=threshold_low,
+            threshold_high=threshold_high,
+            proportion=proportion,
+            report=False,
+        )
+        if (match_keep_column != 1):
+            columns_drop.append(name_column)
+
+    # Remove unnecessary columns.
+    table_filter.drop(
+        labels=columns_drop,
+        axis="columns",
+        inplace=True
+    )
+
+    # Report.
+    if report:
+        count_columns_source = (table.shape[1])
+        count_columns_product = (table_filter.shape[1])
+        putly.print_terminal_partition(level=3)
+        print("module: partner.organization.py")
+        function = "filter_table_columns_by_proportion_nonmissing_threshold()"
+        print("function: " + function)
+        putly.print_terminal_partition(level=5)
+        print(
+            "count of columns in source table: " +
+            str(count_columns_source)
+        )
+        print(
+            "count of columns in product table: " +
+            str(count_columns_product)
+        )
+        putly.print_terminal_partition(level=5)
+        print("product table:")
+        print(table_filter)
+        putly.print_terminal_partition(level=5)
+    # Return information.
+    return table_filter
+
+
+def filter_table_rows_columns_by_proportion_nonmissing_threshold(
+    table=None,
+    index_columns=None,
+    index_rows=None,
+    columns=None,
+    rows=None,
+    threshold_low=None,
+    threshold_high=None,
+    proportion_columns=None,
+    proportion_rows=None,
+    report=None,
+):
+    """
+    Filter columns and rows in a Pandas data-frame table by considering the
+    proportion of values that are nonmissing and within specific low and high
+    thresholds.
+
+    For versatility, this table does not have explicitly defined indices across
+    rows or columns.
+
+    Review: TCW; 6 December 2024
+
+    arguments:
+        table (object): Pandas data-frame table
+        index_columns (str): name for index corresponding to columns in the
+            original source table
+        index_rows (str): name for index corresponding to rows in the original
+            source table
+        columns (list<str>): identifiers or names of columns from which to
+            consider values
+        rows (list<str>): identifiers or names of rows from which to consider
+            values
+        threshold_low (float): threshold below which (value <= threshold) all
+            values are considered invalid
+        threshold_high (float): threshold above which (value > threshold) all
+            values are considered invalid
+        proportion_columns (float): proportion of values across selection of
+            columns that must be nonmissing and within low and high thresholds
+            in order to keep a row
+        proportion_rows (float): proportion of values across selection of
+            rows that must be nonmissing and within low and high thresholds
+            in order to keep a column
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    # Copy information in table.
+    table_filter = table.copy(deep=True)
+
+    # Filter selection of rows and columns.
+    columns_all = copy.deepcopy(table_filter.columns.to_list())
+    columns_all.remove(index_rows)
+    rows_all = copy.deepcopy(
+        table_filter[index_rows].unique().tolist()
+    )
+    columns_available = list(filter(
+        lambda column: (column in columns_all),
+        columns
+    ))
+    rows_available = list(filter(
+        lambda row: (row in rows_all),
+        rows
+    ))
+    # Filter table's rows for observations.
+    table_filter = (
+        filter_table_rows_by_proportion_nonmissing_threshold(
+            table=table_filter,
+            index_columns=index_columns,
+            index_rows=index_rows,
+            columns=columns_available,
+            rows=rows_available,
+            threshold_low=None,
+            threshold_high=None,
+            proportion=proportion_columns,
+            report=report,
+    ))
+
+    # Filter table's columns for features.
+    table_filter = (
+        filter_table_columns_by_proportion_nonmissing_threshold(
+            table=table_filter,
+            index_columns=index_columns,
+            index_rows=index_rows,
+            columns=columns_available,
+            rows=rows_available,
+            threshold_low=None,
+            threshold_high=None,
+            proportion=proportion_rows,
+            report=report,
+    ))
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("module: partner.organization.py")
+        function = str(
+            "filter_table_rows_columns_by_proportion_nonmissing_threshold()"
+        )
+        print("function: " + function)
+        putly.print_terminal_partition(level=5)
+    # Return information.
+    return table_filter
+
+
+def test_extract_filter_array_values_from_series():
     """
     Test:
     This function tests the function below.
-    partner.organization.extract_organize_values_from_series()
+    partner.organization.extract_filter_array_values_from_series()
 
 
     Review: TCW; 24 July 2024
@@ -1094,10 +1420,10 @@ def test_extract_organize_values_from_series():
     # Call function to test.
     putly.print_terminal_partition(level=3)
     print("module: partner.organization.py")
-    print("function: test_extract_organize_values_from_series()")
+    print("function: test_extract_filter_array_values_from_series()")
     print("series type: integer")
     putly.print_terminal_partition(level=5)
-    pail_test = extract_organize_values_from_series(
+    pail_test = extract_filter_array_values_from_series(
         series=series_integer,
         threshold_low=1,
         threshold_high=9,
@@ -1106,10 +1432,10 @@ def test_extract_organize_values_from_series():
     # Call function to test.
     putly.print_terminal_partition(level=3)
     print("module: partner.organization.py")
-    print("function: test_extract_organize_values_from_series()")
+    print("function: test_extract_filter_array_values_from_series()")
     print("series type: float")
     putly.print_terminal_partition(level=5)
-    pail_test = extract_organize_values_from_series(
+    pail_test = extract_filter_array_values_from_series(
         series=series_float,
         threshold_low=0.01,
         threshold_high=0.8,
@@ -1118,7 +1444,7 @@ def test_extract_organize_values_from_series():
     pass
 
 
-def extract_organize_values_from_series(
+def extract_filter_array_values_from_series(
     series=None,
     threshold_low=None,
     threshold_high=None,
@@ -1130,10 +1456,10 @@ def extract_organize_values_from_series(
     partner.organization.determine_series_signal_validity_threshold()
     partner.organization.fill_missing_values_series()
 
-    Extracts and organizes values from a Pandas series, such as a single column
-    or row from a Pandas data-frame table.
+    Extract to a Numpy array and filter values from a Pandas series, such as a
+    single column or row from a Pandas data-frame table.
 
-    Review: TCW; 24 July 2024
+    Review: TCW; 6 December 2024
 
     arguments:
         series (object): Pandas series of values of signal intensity
@@ -1180,8 +1506,12 @@ def extract_organize_values_from_series(
         values_valid = values_temporary[~numpy.isnan(values_temporary)]
         pass
     # Values, logarithm.
-    values_log = numpy.copy(values_valid)
-    values_log = numpy.log(values_log)
+    # For reference only.
+    # Logarithm is only defined for values greater than zero.
+    #values_log = numpy.copy(values_valid)
+    #values_log = numpy.log(values_log)
+    #values_log = numpy.log2(values_log)
+    #values_log = numpy.log10(values_log)
     # Counts.
     #count_nonmissing = numpy.count_nonzero(~numpy.isnan(values_raw))
     #count_nonmissing = int(values_nonmissing.size)
@@ -1191,12 +1521,11 @@ def extract_organize_values_from_series(
     pail["values_raw"] = values_raw
     pail["values_nonmissing"] = values_nonmissing
     pail["values_valid"] = values_valid
-    pail["values_log"] = values_log
     # Report.
     if report:
         putly.print_terminal_partition(level=3)
         print("module: partner.organization.py")
-        print("function: extract_organize_values_from_series()")
+        print("function: extract_filter_array_values_from_series()")
         putly.print_terminal_partition(level=5)
         print("original source series:")
         print(series)
@@ -1212,8 +1541,6 @@ def extract_organize_values_from_series(
         print("threshold, high (>): " + str(threshold_high))
         print(pail["values_valid"])
         putly.print_terminal_partition(level=4)
-        print("values, logarithm:")
-        print(values_log)
     # Return information.
     return pail
 
@@ -1229,13 +1556,13 @@ def determine_series_signal_validity_threshold(
     """
     Dependency:
     This function is a dependency of the function below.
-    exercise.transcriptomics.organize_signal.filter_table_main_rows_signal()
+    partner.organization.filter_table_rows_by_proportion_nonmissing_threshold()
 
-    Determines whether to keep a Pandas series on the basis of the
+    Determine whether to keep a Pandas series on the basis of the
     proportion of values of signal intensity that are nonmissing and greater
-    than zero. The series can come from the row or column in a table.
+    than zero. The series can come from a single row or column in a table.
 
-    Review: TCW; 24 July 2024
+    Review: TCW; 6 December 2024
 
     arguments:
         series (object): Pandas series of values of signal intensity
@@ -1253,21 +1580,39 @@ def determine_series_signal_validity_threshold(
     raises:
 
     returns:
-        (int): logical binary representation of whether to keep current row
+        (int): logical binary representation of whether to keep current series
+            has adequate proportion of values that are nonmissing and within
+            range of thresholds
 
     """
+
+
+    print("!!!!!!!!!!!!!!!!!determine_series_signal...")
+    print(series)
+
+
+
 
     # Copy information in series.
     series = series.copy(deep=True)
     # Copy other information.
     keys_signal = copy.deepcopy(keys_signal)
     # Extract and organize information from series.
-    pail_values = extract_organize_values_from_series(
-        series=series[keys_signal],
-        threshold_low=threshold_low,
-        threshold_high=threshold_high,
-        report=report,
-    )
+    if (len(keys_signal) > 0):
+        pail_values = extract_filter_array_values_from_series(
+            series=series[keys_signal],
+            threshold_low=threshold_low,
+            threshold_high=threshold_high,
+            report=report,
+        )
+    else:
+        pail_values = extract_filter_array_values_from_series(
+            series=series,
+            threshold_low=threshold_low,
+            threshold_high=threshold_high,
+            report=report,
+        )
+        pass
     count_raw = int(pail_values["values_raw"].size)
     count_valid = int(pail_values["values_valid"].size)
     proportion_actual = float(count_valid / count_raw)
@@ -2150,8 +2495,10 @@ def fill_missing_values_series(
     This function is a dependency of the function below.
     partner.organization.fill_missing_values_table_by_row()
 
-    Determines whether the current row from a table needs fill of missing
-    values.
+    Fill missing values that already exist within a Pandas series. The series
+    can come from a single row or column in a table. This function does not
+    introduce missing values, so any clip or threshold operations must happen
+    before calling this function.
 
     Within a normal distribution, 99.7% of values occur within 3 standard
     deviations of the mean, either above or below.
@@ -2159,11 +2506,11 @@ def fill_missing_values_series(
     2 standard deviations: 95.45%
     1 standard deviations: 68.27%
 
-    For the 'triple_standard_deviation_below' method, this function transforms
-    raw values via natural logarithm before determining their mean and
-    standard deviation so that these statistics are representative of a more
-    normal distribution. This function calculates the intermediate fill value
-    and then inverts the transformation by exponentiation.
+    For the methods 'mean' or 'triple_standard_deviation_below', it might be
+    advantageous to transform the scale of raw values via natural logarithm to
+    impart a more normal distribution. In this case it would be advisable to
+    calculate natural logarithm before calling this function and then revert
+    to the original scale afterwards by exponentiation.
 
     Reference:
     https://en.wikipedia.org/wiki/68-95-99.7_rule
@@ -2176,7 +2523,7 @@ def fill_missing_values_series(
     differed by whether the method transformed by logarithm before calculation
     of mean and standard deviation.
 
-    Review: TCW; 26 July 2024
+    Review: TCW; 6 December 2024
 
     arguments:
         fill_missing (int): logical binary representation of whether to fill,
@@ -2185,7 +2532,8 @@ def fill_missing_values_series(
         keys_signal (list<str>): names or identifiers of elements in the series
             that correspond to values of signal intensity
         method (str): name of method to use for filling missing values, either
-            'triple_standard_deviation_below', 'half_minimum', or 'zero'
+            'zero', 'minimum', 'half_minimum', 'median', 'mean', or
+            'triple_standard_deviation_below'
         report (bool): whether to print reports
 
     raises:
@@ -2209,21 +2557,22 @@ def fill_missing_values_series(
         # Fill missing value.
         check_fill = 1
         # Extract and organize information from series.
-        pail_values = extract_organize_values_from_series(
+        pail_values = extract_filter_array_values_from_series(
             series=series[keys_signal],
-            threshold_low=0, # necessary to make logarithm possible
+            threshold_low=None,
             threshold_high=None,
             report=report,
         )
         # Determine which method to use for fill.
-        if (method == "triple_standard_deviation_below"):
-            mean = numpy.nanmean(pail_values["values_log"])
-            standard_deviation = numpy.nanstd(
-                pail_values["values_log"],
-                ddof=1, # divisor is (n - 1) for sample standard deviation
+        if (method == "zero"):
+            value_fill = 0.0
+            series_fill = series.replace(
+                to_replace=pandas.NA,
+                value=value_fill,
             )
-            value_fill_log = float(mean - (3 * standard_deviation))
-            value_fill = numpy.exp(value_fill_log)
+        elif (method == "minimum"):
+            minimum = numpy.nanmin(pail_values["values_nonmissing"])
+            value_fill = minimum
             series_fill = series.replace(
                 to_replace=pandas.NA,
                 value=value_fill,
@@ -2235,8 +2584,27 @@ def fill_missing_values_series(
                 to_replace=pandas.NA,
                 value=value_fill,
             )
-        elif (method == "zero"):
-            value_fill = 0.0
+        elif (method == "median"):
+            median = numpy.nanmedian(pail_values["values_nonmissing"])
+            value_fill = median
+            series_fill = series.replace(
+                to_replace=pandas.NA,
+                value=value_fill,
+            )
+        elif (method == "mean"):
+            mean = numpy.nanmean(pail_values["values_nonmissing"])
+            value_fill = mean
+            series_fill = series.replace(
+                to_replace=pandas.NA,
+                value=value_fill,
+            )
+        elif (method == "triple_standard_deviation_below"):
+            mean = numpy.nanmean(pail_values["values_nonmissing"])
+            standard_deviation = numpy.nanstd(
+                pail_values["values_nonmissing"],
+                ddof=1, # divisor is (n - 1) for sample standard deviation
+            )
+            value_fill = float(mean - (3 * standard_deviation))
             series_fill = series.replace(
                 to_replace=pandas.NA,
                 value=value_fill,
@@ -2299,50 +2667,49 @@ def fill_missing_values_table_by_row(
     Fills missing values in a table row by row with support for multiple
     alternative methods of imputation.
 
-    Within a normal distribution, 99.7% of values occur within 3 standard
-    deviations of the mean, either above or below.
-    3 standard deviations: 99.73%
-    2 standard deviations: 95.45%
-    1 standard deviations: 68.27%
-
-    Reference:
-    https://en.wikipedia.org/wiki/68-95-99.7_rule
-
     Table's format and orientation
 
-    Table has each type of feature oriented across rows with their individual
-    observations oriented across columns. All values are on a continous ratio
-    scale of measurement and have the same type, such as corresponding to
-    signal intensities from a particular type of measurement.
+    Features could correspond to columns in an original source table, or they
+    could correspond to rows. Likewise, observations could correspond either
+    to rows or columns. For versatility, it is unnecessary for this table to
+    have explicitly defined indices across rows or columns.
 
-    The table must have a single-level index (potentially with name
-    "observations") across columns and a single-level index (potentially with
-    name "features") across rows.
+    ----------
+    features        feature_1 feature_2 feature_3 feature_4 feature_5 ...
+    observations
+    observation_1   0.001     0.001     0.001     0.001     0.001     ...
+    observation_2   0.001     0.001     0.001     0.001     0.001     ...
+    observation_3   0.001     0.001     0.001     0.001     0.001     ...
+    observation_4   0.001     0.001     0.001     0.001     0.001     ...
+    observation_5   0.001     0.001     0.001     0.001     0.001     ...
+    ----------
 
-    observations   observation_1 observation_2 observation_3 observation_4
+    ----------
+    observations observation_1 observation_2 observation_3 observation_4 ...
     features
-    feature_1      ...           ...           ...           ...
-    feature_2      ...           ...           ...           ...
-    feature_3      ...           ...           ...           ...
-    feature_4      ...           ...           ...           ...
-    feature_5      ...           ...           ...           ...
-    feature_6      ...           ...           ...           ...
-    feature_7      ...           ...           ...           ...
-    feature_8      ...           ...           ...           ...
-    feature_9      ...           ...           ...           ...
-    feature_10     ...           ...           ...           ...
+    feature_1    0.001         0.001         0.001         0.001         ...
+    feature_2    0.001         0.001         0.001         0.001         ...
+    feature_3    0.001         0.001         0.001         0.001         ...
+    feature_4    0.001         0.001         0.001         0.001         ...
+    feature_5    0.001         0.001         0.001         0.001         ...
+    ----------
+
+    Within the specific selection of columns, all values are on a continous
+    ratio or interval scale of measurement with the same semantic type and with
+    the same type of variable.
 
     This function does not modify the names of indices across columns or rows
     from the original table.
 
-    Review: 26 July 2024
+    Review: 6 December 2024
 
     arguments:
         table (object): Pandas data-frame table of values for observations
             across columns and for features across rows
         columns (list<str>): names of columns for which to fill missing values
         method (str): name of method to use for filling missing values, either
-            'triple_standard_deviation_below', 'half_minimum', or 'zero'
+            'zero', 'minimum', 'half_minimum', 'median', 'mean', or
+            'triple_standard_deviation_below'
         report (bool): whether to print reports
 
     raises:
