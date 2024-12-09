@@ -47,6 +47,10 @@ License:
 # "rg out of bounds", then access the rg, se, p-value, z-score, etc from the
 # tab-delimited summary information at the bottom of the report log.
 
+# TODO: TCW; 9 December 2024
+# Simple note to test Git upload from new file path...
+
+
 
 ################################################################################
 # Installation and importation
