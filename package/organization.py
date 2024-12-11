@@ -1044,8 +1044,8 @@ def filter_table_rows_by_proportion_nonmissing_threshold(
     table=None,
     index_columns=None,
     index_rows=None,
-    columns=None,
-    rows=None,
+    columns_selection=None,
+    rows_selection=None,
     threshold_low=None,
     threshold_high=None,
     proportion=None,
@@ -1059,7 +1059,7 @@ def filter_table_rows_by_proportion_nonmissing_threshold(
     For versatility, this table does not have explicitly defined indices across
     rows or columns.
 
-    Review: TCW; 6 December 2024
+    Review: TCW; 11 December 2024
 
     arguments:
         table (object): Pandas data-frame table
@@ -1067,10 +1067,12 @@ def filter_table_rows_by_proportion_nonmissing_threshold(
             original source table
         index_rows (str): name for index corresponding to rows in the original
             source table
-        columns (list<str>): identifiers or names of columns from which to
-            consider values
-        rows (list<str>): identifiers or names of rows from which to consider
-            values
+        columns_selection (list<str>): identifiers or names of columns which
+            are candidates for filters and from which to consider values in
+            filters on rows
+        rows_selection (list<str>): identifiers or names of rows which are
+            candidates for filters and from which to consider values in filters
+            on columns
         threshold_low (float): threshold below which (value <= threshold) all
             values are considered invalid
         threshold_high (float): threshold above which (value > threshold) all
@@ -1090,20 +1092,20 @@ def filter_table_rows_by_proportion_nonmissing_threshold(
 
     # Copy information in tables and other objects.
     table_filter = table.copy(deep=True)
-    columns = copy.deepcopy(columns)
-    rows = copy.deepcopy(rows)
+    columns_selection = copy.deepcopy(columns_selection)
+    rows_selection = copy.deepcopy(rows_selection)
 
     # Filter rows in table by proportion of values across a selection of
     # columns that are nonmissing and within thresholds.
     table_filter["match_keep_row_by_value_proportion"] = table_filter.apply(
         lambda series_row: determine_series_signal_validity_threshold(
             series=series_row,
-            keys_signal=columns,
+            keys_signal=columns_selection,
             threshold_low=threshold_low,
             threshold_high=threshold_high,
             proportion=proportion,
             report=False,
-        ) if (series_row[index_rows] in rows) else 1,
+        ) if (series_row[index_rows] in rows_selection) else 1,
         axis="columns", # apply function to each row
     )
     table_filter = table_filter.loc[
@@ -1122,7 +1124,8 @@ def filter_table_rows_by_proportion_nonmissing_threshold(
         count_rows_source = (table.shape[0])
         count_rows_product = (table_filter.shape[0])
         putly.print_terminal_partition(level=3)
-        print("module: partner.organization.py")
+        print("package: partner")
+        print("module: organization.py")
         function = "filter_table_rows_by_proportion_nonmissing_threshold()"
         print("function: " + function)
         putly.print_terminal_partition(level=5)
@@ -1146,8 +1149,8 @@ def filter_table_columns_by_proportion_nonmissing_threshold(
     table=None,
     index_columns=None,
     index_rows=None,
-    columns=None,
-    rows=None,
+    columns_selection=None,
+    rows_selection=None,
     threshold_low=None,
     threshold_high=None,
     proportion=None,
@@ -1167,7 +1170,7 @@ def filter_table_columns_by_proportion_nonmissing_threshold(
     list of names of original columns, it seems impossible or impractical to
     subset a Pandas series from a column using a list of index identifiers.
 
-    Review: TCW; 6 December 2024
+    Review: TCW; 11 December 2024
 
     arguments:
         table (object): Pandas data-frame table
@@ -1175,10 +1178,12 @@ def filter_table_columns_by_proportion_nonmissing_threshold(
             original source table
         index_rows (str): name for index corresponding to rows in the original
             source table
-        columns (list<str>): identifiers or names of columns from which to
-            consider values
-        rows (list<str>): identifiers or names of rows from which to consider
-            values
+        columns_selection (list<str>): identifiers or names of columns which
+            are candidates for filters and from which to consider values in
+            filters on rows
+        rows_selection (list<str>): identifiers or names of rows which are
+            candidates for filters and from which to consider values in filters
+            on columns
         threshold_low (float): threshold below which (value <= threshold) all
             values are considered invalid
         threshold_high (float): threshold above which (value > threshold) all
@@ -1199,12 +1204,12 @@ def filter_table_columns_by_proportion_nonmissing_threshold(
     # Copy information in tables and other objects.
     table_filter = table.copy(deep=True)
     table_check = table.copy(deep=True)
-    columns = copy.deepcopy(columns)
-    rows = copy.deepcopy(rows)
+    columns_selection = copy.deepcopy(columns_selection)
+    rows_selection = copy.deepcopy(rows_selection)
 
-    # Consier only specific rows from original source table.
+    # Consider only specific rows from original source table.
     table_check = table_check.loc[(
-        table_check[index_rows].isin(rows)
+        table_check[index_rows].isin(rows_selection)
     ), :]
 
     # Collect information.
@@ -1212,7 +1217,7 @@ def filter_table_columns_by_proportion_nonmissing_threshold(
 
     # Iterate on columns.
     #columns_original = copy.deepcopy(table_filter.columns.to_list())
-    for name_column in columns:
+    for name_column in columns_selection:
         series_column = table_check[name_column]
         match_keep_column = determine_series_signal_validity_threshold(
             series=series_column,
@@ -1237,7 +1242,8 @@ def filter_table_columns_by_proportion_nonmissing_threshold(
         count_columns_source = (table.shape[1])
         count_columns_product = (table_filter.shape[1])
         putly.print_terminal_partition(level=3)
-        print("module: partner.organization.py")
+        print("package: partner")
+        print("module: organization.py")
         function = "filter_table_columns_by_proportion_nonmissing_threshold()"
         print("function: " + function)
         putly.print_terminal_partition(level=5)
@@ -1261,8 +1267,8 @@ def filter_table_rows_columns_by_proportion_nonmissing_threshold(
     table=None,
     index_columns=None,
     index_rows=None,
-    columns=None,
-    rows=None,
+    columns_selection=None,
+    rows_selection=None,
     threshold_low=None,
     threshold_high=None,
     proportion_columns=None,
@@ -1277,7 +1283,17 @@ def filter_table_rows_columns_by_proportion_nonmissing_threshold(
     For versatility, this table does not have explicitly defined indices across
     rows or columns.
 
-    Review: TCW; 6 December 2024
+    This procedure considers a specific selection of columns and a special
+    selection of rows. When filtering columns, only the specific selection of
+    columns are candidates for exclusion, and only the specific selection of
+    rows are considered in the filter criteria for each column. When filtering
+    rows, only the specific selection of rows are candidates for exclusion, and
+    only the specific selection of columns are considered in the filter criteria
+    for each row. This specificity makes it possible to apply filters to a
+    selection of columns and rows from a table while leaving the other rest
+    alone.
+
+    Review: TCW; 11 December 2024
 
     arguments:
         table (object): Pandas data-frame table
@@ -1285,10 +1301,12 @@ def filter_table_rows_columns_by_proportion_nonmissing_threshold(
             original source table
         index_rows (str): name for index corresponding to rows in the original
             source table
-        columns (list<str>): identifiers or names of columns from which to
-            consider values
-        rows (list<str>): identifiers or names of rows from which to consider
-            values
+        columns_selection (list<str>): identifiers or names of columns which
+            are candidates for filters and from which to consider values in
+            filters on rows
+        rows_selection (list<str>): identifiers or names of rows which are
+            candidates for filters and from which to consider values in filters
+            on columns
         threshold_low (float): threshold below which (value <= threshold) all
             values are considered invalid
         threshold_high (float): threshold above which (value > threshold) all
@@ -1308,22 +1326,25 @@ def filter_table_rows_columns_by_proportion_nonmissing_threshold(
 
     """
 
-    # Copy information in table.
+    # Copy information in tables and other objects.
     table_filter = table.copy(deep=True)
+    columns_selection = copy.deepcopy(columns_selection)
+    rows_selection = copy.deepcopy(rows_selection)
 
-    # Filter selection of rows and columns.
+    # Extract names or identifiers of all columns and rows in the table.
     columns_all = copy.deepcopy(table_filter.columns.to_list())
     columns_all.remove(index_rows)
     rows_all = copy.deepcopy(
         table_filter[index_rows].unique().tolist()
     )
+    # Filter sets of features for those that are in the table.
     columns_available = list(filter(
         lambda column: (column in columns_all),
-        columns
+        columns_selection
     ))
     rows_available = list(filter(
         lambda row: (row in rows_all),
-        rows
+        rows_selection
     ))
     # Filter table's rows for observations.
     table_filter = (
@@ -1331,10 +1352,10 @@ def filter_table_rows_columns_by_proportion_nonmissing_threshold(
             table=table_filter,
             index_columns=index_columns,
             index_rows=index_rows,
-            columns=columns_available,
-            rows=rows_available,
-            threshold_low=None,
-            threshold_high=None,
+            columns_selection=columns_available,
+            rows_selection=rows_available,
+            threshold_low=threshold_low,
+            threshold_high=threshold_high,
             proportion=proportion_columns,
             report=report,
     ))
@@ -1345,10 +1366,10 @@ def filter_table_rows_columns_by_proportion_nonmissing_threshold(
             table=table_filter,
             index_columns=index_columns,
             index_rows=index_rows,
-            columns=columns_available,
-            rows=rows_available,
-            threshold_low=None,
-            threshold_high=None,
+            columns_selection=columns_available,
+            rows_selection=rows_available,
+            threshold_low=threshold_low,
+            threshold_high=threshold_high,
             proportion=proportion_rows,
             report=report,
     ))
@@ -1356,7 +1377,8 @@ def filter_table_rows_columns_by_proportion_nonmissing_threshold(
     # Report.
     if report:
         putly.print_terminal_partition(level=3)
-        print("module: partner.organization.py")
+        print("package: partner")
+        print("module: organization.py")
         function = str(
             "filter_table_rows_columns_by_proportion_nonmissing_threshold()"
         )
@@ -1560,7 +1582,9 @@ def determine_series_signal_validity_threshold(
     """
     Dependency:
     This function is a dependency of the function below.
-    partner.organization.filter_table_rows_by_proportion_nonmissing_threshold()
+    package: partner
+    module: organization
+    function: filter_table_rows_columns_by_proportion_nonmissing_threshold()
 
     Determine whether to keep a Pandas series on the basis of the
     proportion of values of signal intensity that are nonmissing and greater
@@ -1589,13 +1613,6 @@ def determine_series_signal_validity_threshold(
             range of thresholds
 
     """
-
-
-    print("!!!!!!!!!!!!!!!!!determine_series_signal...")
-    print(series)
-
-
-
 
     # Copy information in series.
     series = series.copy(deep=True)
