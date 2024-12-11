@@ -9,10 +9,7 @@ echo "read private file path variables and organize paths..."
 cd ~/paths
 path_tools=$(<"./waller_tools.txt")
 path_python="${path_tools}/python"
-path_python_3124="${path_python}/python-3.12.4"
-path_python_3111="${path_python}/python_3.11.1"
-path_python_396="${path_python}/python_3.9.6"
-path_python_3816="${path_python}/python_3.8.16"
+path_python_3131="${path_python}/python-3.13.1"
 path_python_2718="${path_python}/python_2.7.18"
 
 # Python 3 environments.
@@ -27,9 +24,7 @@ path_environment_ldsc="${path_tools}/python/environments/ldsc"
 
 # Initialize directories.
 mkdir -p $path_python
-mkdir -p $path_python_3124
-mkdir -p $path_python_3111
-mkdir -p $path_python_396
+mkdir -p $path_python_3131
 mkdir -p $path_python_2718
 
 ###############################################################################
@@ -61,16 +56,74 @@ mkdir -p $path_python_2718
 # Note: TCW; 23 January 2023
 # I do not have root (sudo) privileges on the server and cluster of my current
 # organization.
+# dependencies: https://devguide.python.org/getting-started/setup-building/index.html#deps-on-linux
+# https://manpages.ubuntu.com/manpages/xenial/man5/sources.list.5.html
+# View or edit the "sources.list" file, potentially to uncomment lines with "deb-src".
+sudo nano /etc/apt/sources.list.d/ubuntu.sources
+sudo nano /etc/apt/sources.list
+# Enable source packages in the sources list for "Ubuntu 24.04 LTS Noble Numbat".
+sudo apt install software-properties-common
+sudo add-apt-repository --enable-source http://archive.ubuntu.com/ubuntu/ noble main
+less /etc/apt/sources.list
+# "deb http://archive.ubuntu.com/ubuntu/ noble main"
+# "deb-src http://archive.ubuntu.com/ubuntu/ noble main"
+# Determine build dependencies.
 sudo apt update
+sudo apt build-dep python3
+# Install other packages just in case.
+sudo apt install pkg-config
 sudo apt install gcc g++ make wget
-sudo apt install dpkg-dev build-essential
-sudo apt install zlib1g-dev libbz2-dev libssl-dev uuid-dev libffi-dev libreadline-dev libsqlite3-dev tk-dev libbz2-dev libncurses5-dev libreadline6-dev libgdbm-dev liblzma-dev
-sudo apt install libgdbm-compat-dev
-sudo apt install libffi-dev libssl-dev openssl-devel
-sudo apt install python-dev python3-dev
+sudo apt install dpkg-dev build-essential gdb lcov
+sudo apt install zlib1g-dev libbz2-dev libssl-dev uuid-dev libffi-dev \
+libreadline-dev libsqlite3-dev libbz2-dev libncurses5-dev \
+libreadline6-dev liblzma-dev
+sudo apt install libgdbm-dev libgdbm-compat-dev
+sudo apt install libffi-dev libssl-dev openssl # openssl-devel
+sudo apt install lzma lzma-dev tk-dev uuid-dev zlib1g-dev # libmpdec-dev
+sudo apt install python-dev-is-python3 # python-dev python3-dev
+# Update.
+sudo apt update
+
 
 
 # Latest
+##########
+# Python v3.13.1
+# date, release: 3 December 2024
+# description: https://www.python.org/downloads/release/python-3131/
+# installation:
+# - installation from source
+# - system: halyard
+# - date, installation: 10 December 2024
+# - version, installation: v3.13.1
+# documentation: https://docs.python.org/3/using/unix.html#getting-and-installing-the-latest-version-of-python
+# dependencies: https://devguide.python.org/getting-started/setup-building/index.html#deps-on-linux
+cd "${path_tool}/python"
+wget https://www.python.org/ftp/python/3.13.1/Python-3.13.1.tar.xz
+tar -xJvf Python-3.13.1.tar.xz # Extract from tar ball with "xz" compression.
+rm Python-3.13.1.tar.xz
+mv Python-3.13.1 python-3.13.1
+cd python-3.13.1
+pwd
+# Argument "--prefix" needs a full, explicit file path.
+# This argument keeps installation within the specific directory path.
+./configure \
+--enable-optimizations \
+--prefix="/.../tool/python/python-3.13.1" # requires full, absolute path to directory; TCW; 10 December 2024
+make # TCW; 10 December 2024
+make test
+# halyard: 456 of 478 tests OK; TCW; 10 December 2024
+# halyard: Result: SUCCESS
+make install # halyard: ___ 2024
+"${path_tool}/python/python-3.13.1/bin/python3" -V # "Python 3.13.1"; TCW; 10 December 2024
+# Remove installation.
+#rm -rf $path_python_3131
+
+#WARNING: The scripts pip3 and pip3.13 are installed in '${path_tool}/python/python-3.13.1/bin' which is not on PATH.
+#Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location.
+
+
+
 ##########
 # Python v3.12.4
 # date, release: 6 June 2024
@@ -79,11 +132,6 @@ sudo apt install python-dev python3-dev
 # - installation from source
 # - system: NCSA, mForge, endocrinology workspace
 # - date, installation: 12 July 2024
-# - version, installation: v3.12.4
-# installation:
-# - installation from source
-# - system: halyard
-# - date, installation: 17 July 2024
 # - version, installation: v3.12.4
 # documentation: https://docs.python.org/3/using/unix.html#getting-and-installing-the-latest-version-of-python
 cd "${path_tool}/python"
@@ -191,24 +239,25 @@ make install # TCW, 6 July 2021
 # Python3 environment: "main"
 # installation:
 # - system: halyard
-# - date, installation: 17 July 2024
-# - version, installation: v3.12.4
-# Initialize virtual environment for Python v3.12.4.
-# path to python installation: path_python_3124="${path_tool}/python/python-3.12.4"
-# path to environment: path_environment_htseq="${path_tool}/python/environments/main"
+# - date, installation: 10 December 2024
+# - version, installation: v3.13.1
+# Initialize virtual environment for Python v3.13.1.
+# path to python installation: path_python_3131="${path_tools}/python/python-3.13.1"
+# path to environment: path_environment_main="${path_tools}/python/environments/main"
 # Notice that it is unnecessary to create the last directory ("main") before
 # creating the virtual environment.
-"${path_python_3124}/bin/python3" -m venv --help
-"${path_python_3124}/bin/python3" -m venv $path_environment_main # TCW; 17 July 2024
+"${path_python_3131}/bin/python3" -m venv --help
+"${path_python_3131}/bin/python3" -m venv $path_environment_main # TCW; 10 December 2024
 # Activate virtual environment.
 source "${path_environment_main}/bin/activate"
-which python3 # "${path_tool}/python/environments/main/bin/python3"; TCW; 17 July 2024
+which python3 # "${path_tools}/python/environments/main/bin/python3"; TCW; 10 December 2024
 # Pip installation within virtual environment should not require "sudo" root user permissions.
 # Documentation: https://docs.python.org/3/installing/index.html
 python3 -m pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org pip setuptools
-python3 -m pip --version # pip 24.0
+python3 -m pip --version # pip 24.3.1
 python3 -m pip install --upgrade pip
-python3 -m pip --version # pip 24.1.2
+python3 -m pip --version # pip 24.3.1
+
 python3 -m pip install --upgrade pytest
 python3 -m pip install --upgrade testresources
 python3 -m pip install --upgrade numpy
@@ -218,7 +267,7 @@ python3 -m pip install --upgrade scikit-learn
 python3 -m pip install --upgrade statsmodels
 python3 -m pip install --upgrade networkx
 python3 -m pip install --upgrade matplotlib
-python3 -m pip install --upgrade mygene # TCW; 31 October 2024
+python3 -m pip install --upgrade mygene
 deactivate
 which python3
 

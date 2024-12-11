@@ -79,11 +79,13 @@ set +v # disable print input to standard error
 # Activate Python virtual environment.
 source "${path_environment_main}/bin/activate"
 # Set paths for local packages and modules.
+
 #echo "Python path variable before update"
 #echo $PYTHONPATH
-export PYTHONPATH=$PYTHONPATH:$path_directory_package
-export PYTHONPATH=$PYTHONPATH:$path_directory_package_partner
-export PYTHONPATH=$PYTHONPATH:$path_directory_package_project_main
+#export PYTHONPATH=$PYTHONPATH:$path_directory_package
+#export PYTHONPATH=$PYTHONPATH:$path_directory_package_partner
+#export PYTHONPATH=$PYTHONPATH:$path_directory_package_project_main
+
 # Regulate concurrent or parallel process threads on node cores.
 # Force Python program (especially SciPy) not to use all available cores on a
 # cluster computation node.
@@ -96,7 +98,9 @@ if [ "$report" == "true" ]; then
   echo "Python virtual environment: main"
   echo "path to Python installation:"
   which python3
-  echo "Python path variable:"
+  echo "PYTHONHOME variable:"
+  echo $PYTHONHOME
+  echo "PYTHONPATH variable:"
   echo $PYTHONPATH
   sleep 1s
   echo "----------"

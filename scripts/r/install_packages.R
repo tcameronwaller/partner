@@ -49,6 +49,11 @@ BiocManager::valid() # "TRUE"; TCW; 24 July 2024
 
 
 ##########
+# WGCNA
+
+
+
+##########
 # DESeq2 v1.44.0
 # - description: DESeq2 analyzes differential gene expression using models for
 #   negative binomial distribution.
