@@ -75,10 +75,10 @@ if (!require("WGCNA", quietly = TRUE))
 # https://www.bioconductor.org/packages/release/bioc/vignettes/BioNERO/inst/doc/vignette_01_GCN_inference.html
 # installation:
 # - system: halyard
-# - date, installation: 11 December 2024
+# - date, installation: ___
 # - version, installation: v?
 # Execution from R console or R script.
-BiocManager::install("BioNERO")
+#BiocManager::install("BioNERO")
 
 
 
