@@ -6,7 +6,7 @@
 # Directories.
 cd ~
 path_directory_paths="./Downloads/paths_process_local"
-path_directory_tool=$(<"$path_directory_paths/path_directory_tool.txt")
+path_directory_tools=$(<"$path_directory_paths/path_directory_tools.txt")
 path_directory_repository_partner=$(<"$path_directory_paths/path_directory_repository_partner.txt")
 path_directory_scripts="$path_directory_repository_partner/scripts"
 
@@ -52,7 +52,7 @@ sudo apt install r-base-dev
 sudo apt build-dep r-base
 sudo apt update
 # Install R itself.
-cd "${path_directory_tool}/r"
+cd "${path_directory_tools}/r"
 wget https://mirror.las.iastate.edu/CRAN/src/base/R-4/R-4.4.2.tar.gz
 tar -xzvf R-4.4.2.tar.gz # Extract from tar ball with GZip compression.
 rm R-4.4.2.tar.gz
@@ -69,8 +69,8 @@ make
 make check # synonym for "make test"?; halyard; 10 December 2024
 make install # halyard; 10 December 2024
 # Rscript.
-"${path_directory_tool}/r/r-4.4.1/bin/Rscript" --help
-"${path_directory_tool}/r/r-4.4.1/bin/Rscript" --version # "Rscript (R) version 4.4.2 (2024-10-31)"; halyard; 10 December 2024
+"${path_directory_tools}/r/r-4.4.1/bin/Rscript" --help
+"${path_directory_tools}/r/r-4.4.1/bin/Rscript" --version # "Rscript (R) version 4.4.2 (2024-10-31)"; halyard; 10 December 2024
 # Initialize R console.
 # Execution from Bash terminal.
 # user@machine:/path$ "${path_tool}/r/r-4.4.1/bin/R"
@@ -92,8 +92,11 @@ make install # halyard; 10 December 2024
 ###############################################################################
 # Installation of Bioconductor repository and other packages
 
+# Initialize R console and execute installations interactively.
+# TCW; 11 December 2024
+
 # Execution from Bash terminal.
-"${path_directory_tool}/r/r-4.4.1/bin/Rscript" "$path_directory_scripts/r/install_packages.R"
+"${path_directory_tools}/r/r-4.4.1/bin/Rscript" "$path_directory_scripts/r/install_packages.R"
 
 #Rscript -e 'renv::run("/path/to/myscript.R")'
 
