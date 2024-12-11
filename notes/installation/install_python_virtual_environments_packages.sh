@@ -260,6 +260,9 @@ python3 -m pip --version # pip 24.3.1
 
 python3 -m pip install --upgrade pytest
 python3 -m pip install --upgrade testresources
+
+python3 -m pip install --upgrade python-math
+
 python3 -m pip install --upgrade numpy
 python3 -m pip install --upgrade scipy
 python3 -m pip install --upgrade pandas

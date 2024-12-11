@@ -78,11 +78,26 @@ set +v # disable print input to standard error
 
 # Activate Python virtual environment.
 source "${path_environment_main}/bin/activate"
-# Set paths for local packages and modules.
 
-#echo "Python path variable before update"
-#echo $PYTHONPATH
-#export PYTHONPATH=$PYTHONPATH:$path_directory_package
+# Set paths for local packages and modules.
+# Normally, activation of the Python virtual environment will update the
+# "PYTHONHOME" and "PYTHONPATH" variables as necessary to point to the proper
+# installations of Python and its packages.
+# Normally it is only necessary to update the "PYTHONPATH" variable to point to
+# custom packages and modules in a special location on the system.
+
+#export OLD_PYTHONHOME="$PYTHONHOME"
+export OLD_PYTHONPATH="$PYTHONPATH"
+#export PYTHONHOME="$PYTHONHOME:$VIRTUAL_ENV"
+#export PYTHONPATH="$PYTHONPATH:$VIRTUAL_ENV"
+#export PYTHONHOME="$PYTHONHOME:${path_environment_main}"
+#export PYTHONPATH="$PYTHONPATH:${path_environment_main}"
+#export PYTHONHOME="$PYTHONHOME:$path_directory_package"
+#export PYTHONHOME="$PYTHONHOME:$VIRTUAL_ENV/lib/python-3.13/site-packages"
+#export PYTHONPATH="$PYTHONPATH:$VIRTUAL_ENV/lib/python-3.13/site-packages"
+#export PYTHONHOME="$PYTHONHOME:${path_environment_main}/lib/python3.13/site-packages"
+#export PYTHONPATH="$PYTHONPATH:${path_environment_main}/lib/python3.13/site-packages"
+export PYTHONPATH="$PYTHONPATH:$path_directory_package"
 #export PYTHONPATH=$PYTHONPATH:$path_directory_package_partner
 #export PYTHONPATH=$PYTHONPATH:$path_directory_package_project_main
 
@@ -92,12 +107,15 @@ source "${path_environment_main}/bin/activate"
 export MKL_NUM_THREADS=$threads
 export NUMEXPR_NUM_THREADS=$threads
 export OMP_NUM_THREADS=$threads
+
 # Report.
 if [ "$report" == "true" ]; then
   echo "----------"
   echo "Python virtual environment: main"
   echo "path to Python installation:"
   which python3
+  echo "VIRTUAL_ENV variable:"
+  echo $VIRTUAL_ENV
   echo "PYTHONHOME variable:"
   echo $PYTHONHOME
   echo "PYTHONPATH variable:"
@@ -119,6 +137,10 @@ $interface_subparser \
 
 ###############################################################################
 # Deactivate Python virtual environment.
+
+# Restore paths.
+#export PYTHONHOME="$OLD_PYTHONHOME"
+export PYTHONPATH="$OLD_PYTHONPATH"
 
 # Deactivate Python virtual environment.
 deactivate
