@@ -1145,6 +1145,9 @@ def filter_table_rows_by_proportion_nonmissing_threshold(
     return table_filter
 
 
+
+# BLARG !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 def filter_table_columns_by_proportion_nonmissing_threshold(
     table=None,
     index_columns=None,
@@ -1207,6 +1210,13 @@ def filter_table_columns_by_proportion_nonmissing_threshold(
     columns_selection = copy.deepcopy(columns_selection)
     rows_selection = copy.deepcopy(rows_selection)
 
+    # Alternative approach.
+    # Select subset of elements from each column's series using names of the
+    # index across rows.
+    # This approach also does not seem to work for series extracted from the
+    # columns of a Pandas data-frame.
+    # series_selection = series_column.loc[rows_selection]
+
     # Consider only specific rows from original source table.
     table_check = table_check.loc[(
         table_check[index_rows].isin(rows_selection)
@@ -1221,7 +1231,7 @@ def filter_table_columns_by_proportion_nonmissing_threshold(
         series_column = table_check[name_column]
         match_keep_column = determine_series_signal_validity_threshold(
             series=series_column,
-            keys_signal=list(),
+            keys_signal=list(), # list()
             threshold_low=threshold_low,
             threshold_high=threshold_high,
             proportion=proportion,
@@ -1229,6 +1239,8 @@ def filter_table_columns_by_proportion_nonmissing_threshold(
         )
         if (match_keep_column != 1):
             columns_drop.append(name_column)
+            pass
+        pass
 
     # Remove unnecessary columns.
     table_filter.drop(
@@ -1261,6 +1273,8 @@ def filter_table_columns_by_proportion_nonmissing_threshold(
         putly.print_terminal_partition(level=5)
     # Return information.
     return table_filter
+
+
 
 
 def filter_table_rows_columns_by_proportion_nonmissing_threshold(
@@ -1502,7 +1516,7 @@ def extract_filter_array_values_from_series(
 
     """
 
-    # Copy information in series.
+    # Copy information in series and other objects.
     series = series.copy(deep=True)
     # Extract and organize information from series.
     # Values, raw.
@@ -1614,14 +1628,14 @@ def determine_series_signal_validity_threshold(
 
     """
 
-    # Copy information in series.
+    # Copy information in series and other objects.
     series = series.copy(deep=True)
-    # Copy other information.
     keys_signal = copy.deepcopy(keys_signal)
+
     # Extract and organize information from series.
     if (len(keys_signal) > 0):
         pail_values = extract_filter_array_values_from_series(
-            series=series[keys_signal],
+            series=series.loc[keys_signal],
             threshold_low=threshold_low,
             threshold_high=threshold_high,
             report=report,
@@ -2501,11 +2515,10 @@ def filter_rows_columns_by_threshold_outer_proportion(
 
 
 ##########
-# Fill missing values across rows.
+# Fill missing values across specific selections of columns and rows.
 
 
 def fill_missing_values_series(
-    fill_missing=None,
     series=None,
     keys_signal=None,
     method=None,
@@ -2544,11 +2557,9 @@ def fill_missing_values_series(
     differed by whether the method transformed by logarithm before calculation
     of mean and standard deviation.
 
-    Review: TCW; 6 December 2024
+    Review: TCW; 11 December 2024
 
     arguments:
-        fill_missing (int): logical binary representation of whether to fill,
-            that is replace, missing values in series
         series (object): Pandas series of values of signal intensity
         keys_signal (list<str>): names or identifiers of elements in the series
             that correspond to values of signal intensity
@@ -2565,99 +2576,80 @@ def fill_missing_values_series(
 
     """
 
-    # Copy information in series.
-    series = series.copy(deep=True)
-    # Copy other information.
+    # Copy information in series and other objects.
+    series_fill = series.copy(deep=True)
+    series_extract = series.copy(deep=True)
     keys_signal = copy.deepcopy(keys_signal)
 
-    # Determine whether the current row has a missing value in the current
-    # column.
-    check_fill = 0
-    value_fill = float("nan")
-    if (fill_missing == 1):
-        # Fill missing value.
-        check_fill = 1
-        # Extract and organize information from series.
+    # Extract and organize information from series.
+    if (len(keys_signal) > 0):
         pail_values = extract_filter_array_values_from_series(
-            series=series[keys_signal],
+            series=series_extract.loc[keys_signal], # series_extract[keys_signal]
             threshold_low=None,
             threshold_high=None,
             report=report,
         )
-        # Determine which method to use for fill.
-        if (method == "zero"):
-            value_fill = 0.0
-            series_fill = series.replace(
-                to_replace=pandas.NA,
-                value=value_fill,
-            )
-        elif (method == "minimum"):
-            minimum = numpy.nanmin(pail_values["values_nonmissing"])
-            value_fill = minimum
-            series_fill = series.replace(
-                to_replace=pandas.NA,
-                value=value_fill,
-            )
-        elif (method == "half_minimum"):
-            minimum = numpy.nanmin(pail_values["values_nonmissing"])
-            value_fill = float(minimum / 2)
-            series_fill = series.replace(
-                to_replace=pandas.NA,
-                value=value_fill,
-            )
-        elif (method == "median"):
-            median = numpy.nanmedian(pail_values["values_nonmissing"])
-            value_fill = median
-            series_fill = series.replace(
-                to_replace=pandas.NA,
-                value=value_fill,
-            )
-        elif (method == "mean"):
-            mean = numpy.nanmean(pail_values["values_nonmissing"])
-            value_fill = mean
-            series_fill = series.replace(
-                to_replace=pandas.NA,
-                value=value_fill,
-            )
-        elif (method == "triple_standard_deviation_below"):
-            mean = numpy.nanmean(pail_values["values_nonmissing"])
-            standard_deviation = numpy.nanstd(
-                pail_values["values_nonmissing"],
-                ddof=1, # divisor is (n - 1) for sample standard deviation
-            )
-            value_fill = float(mean - (3 * standard_deviation))
-            series_fill = series.replace(
-                to_replace=pandas.NA,
-                value=value_fill,
-            )
-        # Report.
-        if report:
-            if (value_fill <= 0):
-                putly.print_terminal_partition(level=1)
-                print("**********")
-                print("WARNING!")
-                print("**********")
-                print(
-                    "Method selection to fill missing values returned a " +
-                    "value less than or equal to zero!"
-                )
-                print("**********")
-                putly.print_terminal_partition(level=1)
-            putly.print_terminal_partition(level=4)
-            print("fill missing value check: " + str(check_fill))
-            print("fill value: " + str(value_fill))
-            putly.print_terminal_partition(level=4)
-            print("row with fill values: " + str(row_fill))
-            putly.print_terminal_partition(level=4)
-            pass
-        pass
     else:
-        series_fill = series
+        pail_values = extract_filter_array_values_from_series(
+            series=series_extract,
+            threshold_low=None,
+            threshold_high=None,
+            report=report,
+        )
+        pass
+    # Determine which method to use for fill.
+    if (method == "zero"):
+        value_fill = 0.0
+        series_fill = series_fill.replace(
+            to_replace=pandas.NA,
+            value=value_fill,
+        )
+    elif (method == "minimum"):
+        minimum = numpy.nanmin(pail_values["values_nonmissing"])
+        value_fill = minimum
+        series_fill = series_fill.replace(
+            to_replace=pandas.NA,
+            value=value_fill,
+        )
+    elif (method == "half_minimum"):
+        minimum = numpy.nanmin(pail_values["values_nonmissing"])
+        value_fill = float(minimum / 2)
+        series_fill = series_fill.replace(
+            to_replace=pandas.NA,
+            value=value_fill,
+        )
+    elif (method == "median"):
+        median = numpy.nanmedian(pail_values["values_nonmissing"])
+        value_fill = median
+        series_fill = series_fill.replace(
+            to_replace=pandas.NA,
+            value=value_fill,
+        )
+    elif (method == "mean"):
+        mean = numpy.nanmean(pail_values["values_nonmissing"])
+        value_fill = mean
+        series_fill = series_fill.replace(
+            to_replace=pandas.NA,
+            value=value_fill,
+        )
+    elif (method == "triple_standard_deviation_below"):
+        mean = numpy.nanmean(pail_values["values_nonmissing"])
+        standard_deviation = numpy.nanstd(
+            pail_values["values_nonmissing"],
+            ddof=1, # divisor is (n - 1) for sample standard deviation
+        )
+        value_fill = float(mean - (3 * standard_deviation))
+        series_fill = series_fill.replace(
+            to_replace=pandas.NA,
+            value=value_fill,
+        )
+    else:
+        value_fill = None
         pass
 
     # Report.
     if report:
-        if (value_fill <= 0):
+        if ((value_fill is not None) and (value_fill <= 0)):
             putly.print_terminal_partition(level=1)
             print("**********")
             print("WARNING!")
@@ -2668,19 +2660,21 @@ def fill_missing_values_series(
             )
             print("**********")
             putly.print_terminal_partition(level=1)
-        putly.print_terminal_partition(level=4)
-        print("fill missing value check: " + str(check_fill))
+        putly.print_terminal_partition(level=5)
         print("fill value: " + str(value_fill))
-        putly.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=5)
         print("series with fill values: " + str(series_fill))
-        putly.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=5)
     # Return information.
     return series_fill
 
 
-def fill_missing_values_table_by_row(
+def fill_missing_values_table_by_column(
     table=None,
-    columns=None,
+    index_columns=None,
+    index_rows=None,
+    columns_selection=None,
+    rows_selection=None,
     method=None,
     report=None,
 ):
@@ -2688,12 +2682,19 @@ def fill_missing_values_table_by_row(
     Fills missing values in a table row by row with support for multiple
     alternative methods of imputation.
 
-    Table's format and orientation
+    For fill methods such as 'minimum', 'half_minimum', 'median', 'mean', or
+    'triple_standard_deviation_below', it is important to pay attention to the
+    dimension of the table, across columns or rows, by which this procedure
+    calculates the values for fill. In most cases, it would only be reasonable
+    to calculate these statistics across the nonmissing observations of a
+    single, distinct feature. Hence this function's procedure is most
+    appropriate for a source table in a wide format with features across
+    columns.
 
-    Features could correspond to columns in an original source table, or they
-    could correspond to rows. Likewise, observations could correspond either
-    to rows or columns. For versatility, it is unnecessary for this table to
-    have explicitly defined indices across rows or columns.
+    Table's format and orientation
+    In the original source table, features correspond to columns with separate
+    observations across rows. For versatility, it is unnecessary for this
+    table to have explicitly defined indices across rows or columns.
 
     ----------
     features        feature_1 feature_2 feature_3 feature_4 feature_5 ...
@@ -2705,6 +2706,115 @@ def fill_missing_values_table_by_row(
     observation_5   0.001     0.001     0.001     0.001     0.001     ...
     ----------
 
+    Within the specific selections of features and observations, all values are
+    on a continous ratio or interval scale of measurement.
+
+    This function does not modify the names of indices across columns or rows
+    from the original table.
+
+    Review: 11 December 2024
+
+    arguments:
+        table (object): Pandas data-frame table of values corresponding to
+            features across columns and their observations across rows
+        index_columns (str): name for index corresponding to columns in the
+            original source table
+        index_rows (str): name for index corresponding to rows in the original
+            source table
+        columns_selection (list<str>): identifiers or names of columns for
+            which to fill missing values
+        rows_selection (list<str>): identifiers or names of rows for which to
+            fill missing values
+        method (str): name of method to use for filling missing values, either
+            'zero', 'minimum', 'half_minimum', 'median', 'mean', or
+            'triple_standard_deviation_below'
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table of values of measurements
+            corresponding to features across rows and observations across
+            columns
+
+
+    """
+
+    # Copy information.
+    table_fill = table.copy(deep=True)
+    columns_selection = copy.deepcopy(columns_selection)
+    rows_selection = copy.deepcopy(rows_selection)
+
+    # Separate table's rows for which to fill missing values from those in
+    # which to keep all values the same.
+    table_fill = table_fill.loc[(
+        table_fill[index_rows].isin(rows_selection)
+    ), :]
+    table_same = table_fill.loc[(
+        ~table_fill[index_rows].isin(rows_selection)
+    ), :]
+
+    # Iterate on columns.
+    for name_column in columns_selection:
+        series_column = table_fill[name_column]
+        table_fill[name_column] = fill_missing_values_series(
+            series=series_column,
+            keys_signal=list(), # list()
+            method=method,
+            report=False,
+        )
+        pass
+
+    # Combine together the columns from the tables that had fill or stayed the
+    # same.
+    table_merge = pandas.concat(
+        [table_fill, table_same],
+        ignore_index=False,
+    )
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        print("module: organization.py")
+        function = "fill_missing_values_table_by_column()"
+        print("function: " + function)
+        putly.print_terminal_partition(level=5)
+        print("table after fill: ")
+        print(table_merge)
+        putly.print_terminal_partition(level=5)
+    # Return information.
+    return table_merge
+
+
+# TODO: TCW; 11 December 2024
+# TODO: this function still needs review and testing.
+def fill_missing_values_table_by_row(
+    table=None,
+    index_columns=None,
+    index_rows=None,
+    columns_selection=None,
+    rows_selection=None,
+    method=None,
+    report=None,
+):
+    """
+    Fills missing values in a table row by row with support for multiple
+    alternative methods of imputation.
+
+    For fill methods such as 'minimum', 'half_minimum', 'median', 'mean', or
+    'triple_standard_deviation_below', it is important to pay attention to the
+    dimension of the table, across columns or rows, by which this procedure
+    calculates the values for fill. In most cases, it would only be reasonable
+    to calculate these statistics across the nonmissing observations of a
+    single, distinct feature. Hence this function's procedure is most
+    appropriate for a source table in a wide format with features across rows.
+
+    Table's format and orientation
+    In the original source table, features correspond to rows with separate
+    observations across columns. For versatility, it is unnecessary for this
+    table to have explicitly defined indices across rows or columns.
+
     ----------
     observations observation_1 observation_2 observation_3 observation_4 ...
     features
@@ -2715,19 +2825,25 @@ def fill_missing_values_table_by_row(
     feature_5    0.001         0.001         0.001         0.001         ...
     ----------
 
-    Within the specific selection of columns, all values are on a continous
-    ratio or interval scale of measurement with the same semantic type and with
-    the same type of variable.
+    Within the specific selections of features and observations, all values are
+    on a continous ratio or interval scale of measurement.
 
     This function does not modify the names of indices across columns or rows
     from the original table.
 
-    Review: 6 December 2024
+    Review: 11 December 2024
 
     arguments:
-        table (object): Pandas data-frame table of values for observations
-            across columns and for features across rows
-        columns (list<str>): names of columns for which to fill missing values
+        table (object): Pandas data-frame table of values corresponding to
+            features across rows and their observations across columns
+        index_columns (str): name for index corresponding to columns in the
+            original source table
+        index_rows (str): name for index corresponding to rows in the original
+            source table
+        columns_selection (list<str>): identifiers or names of columns for
+            which to fill missing values
+        rows_selection (list<str>): identifiers or names of rows for which to
+            fill missing values
         method (str): name of method to use for filling missing values, either
             'zero', 'minimum', 'half_minimum', 'median', 'mean', or
             'triple_standard_deviation_below'
@@ -2736,70 +2852,86 @@ def fill_missing_values_table_by_row(
     raises:
 
     returns:
-        (object): Pandas data-frame table of values for observations across
-            columns and for features across rows
-
+        (object): Pandas data-frame table of values of measurements
+            corresponding to features across rows and observations across
+            columns
     """
 
-    # Copy information in table.
+    # Copy information.
     table_fill = table.copy(deep=True)
-    # Copy other information.
-    columns = copy.deepcopy(columns)
+    table_same = table.copy(deep=True)
+    columns_selection = copy.deepcopy(columns_selection)
+    columns_selection_split = copy.deepcopy(columns_selection_split)
+    rows_selection = copy.deepcopy(rows_selection)
 
     # Determine which rows in table have missing values.
-    table_fill["match_missing"] = table_fill.apply(
-        lambda row:
-            1 if any(pandas.isna(row[columns]).to_list()) else 0,
-        axis="columns", # apply function to each row
-    )
-    table_fill_actual = table_fill.loc[
-        (table_fill["match_missing"] == 1), :
-    ].copy(deep=True)
+    if False:
+        table_fill["match_missing"] = table_fill.apply(
+            lambda row:
+                1 if any(pandas.isna(row[columns]).to_list()) else 0,
+            axis="columns", # apply function to each row
+        )
+        table_fill_actual = table_fill.loc[
+            (table_fill["match_missing"] == 1), :
+        ].copy(deep=True)
+        # Remove unnecessary columns.
+        table_fill.drop(
+            labels=["match_missing",],
+            axis="columns",
+            inplace=True
+        )
+        pass
 
-    # Fill missing values in all relevant columns and across all rows.
-    # Apply the function to each row.
-    table_fill = table_fill.apply(
-        lambda row:
-            fill_missing_values_series(
-                fill_missing=row["match_missing"],
-                series=row,
-                keys_signal=columns,
-                method=method,
-                report=False,
-            ),
-        axis="columns", # apply function to each row
+    # Separate table's columns for which to fill missing values from those in
+    # which to keep all values the same.
+    columns_selection_split.insert(0, index_rows)
+    table_fill = table_fill.filter(
+        items=columns_selection_split,
+        axis="columns",
     )
-    # Remove unnecessary columns.
-    table_fill.drop(
-        labels=["match_missing",],
+    table_same.drop(
+        labels=columns_selection,
         axis="columns",
         inplace=True
+    )
+
+    # Fill missing values in across a selection of columns and across a
+    # selection of rows.
+    table_fill = table_fill.apply(
+        lambda series_row:
+            fill_missing_values_series(
+                series=series_row,
+                keys_signal=columns_selection,
+                method=method,
+                report=False,
+            ) if (series_row[index_rows] in rows_selection) else series_row,
+        axis="columns", # apply function to each row
+    )
+
+    # Combine together the columns from the tables that had fill or stayed the
+    # same.
+    table_merge = merge_columns_two_tables(
+        identifier_first=index_rows,
+        identifier_second=index_rows,
+        table_first=table_fill,
+        table_second=table_same,
+        preserve_index=False,
+        report=report,
     )
 
     # Report.
     if report:
         putly.print_terminal_partition(level=3)
-        print("module: partner.organization.py")
-        print("function: fill_missing_values_table_by_row()")
+        print("package: partner")
+        print("module: organization.py")
+        function = "fill_missing_values_table_by_row()"
+        print("function: " + function)
         putly.print_terminal_partition(level=5)
-        count_rows_missing = (table_fill_actual.shape[0])
-        count_rows_total = (table_fill.shape[0])
-        proportion_missing = round(
-            float(count_rows_missing / count_rows_total), 2
-        )
-        print(
-            "count of rows requiring missing fill: " + str(count_rows_missing)
-        )
-        print(
-            "proportion of rows requiring missing fill: " +
-            str(proportion_missing)
-        )
-        putly.print_terminal_partition(level=4)
         print("table after fill: ")
-        print(table_fill)
-        putly.print_terminal_partition(level=4)
+        print(table_merge)
+        putly.print_terminal_partition(level=5)
     # Return information.
-    return table_fill
+    return table_merge
 
 
 ##########
@@ -2808,8 +2940,6 @@ def fill_missing_values_table_by_row(
 # TODO: TCW; 1 July 2024
 # From within these two "merge..." functions, call function "filter_sort_table_columns()"
 # to clean up the table after the combination.
-
-
 def merge_columns_tables_supplements_to_main(
     identifier_main=None,
     identifier_supplement=None,
