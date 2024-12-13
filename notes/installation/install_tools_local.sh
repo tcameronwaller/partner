@@ -24,13 +24,37 @@ sudo apt install curl
 sudo add-apt-repository universe
 sudo apt install gnome-tweaks
 
-# Install Atom syntax code editor.
+
+##########
+# Atom editor for text and code
+# site: https://atom-editor.cc/
+# source: https://github.com/atom/atom/releases/tag/v1.60.0
+# version: v1.60.0
+# date, release: 3 March 2023
+# date, installation: 10 December 2024
+# note:
+# - The Atom Editor project was formally discontinued in 2022 or 2023.
+# - Install from archive.
+# download
+$ wget https://github.com/atom/atom/releases/download/v1.60.0/atom-amd64.deb
+# install
+$ sudo apt install ./atom-amd64.deb
+# or alternatively
+$ sudo dpkg -i ./atom-amd64.deb
+# uninstall
+$ sudo apt remove atom
+$ sudo apt autoremove
+# Notes from previous installation while repository was active.
 #curl -sL https://packagecloud.io/AtomEditor/atom/gpgkey | sudo apt-key add -
 #sudo sh -c 'echo "deb [arch=amd64] https://packagecloud.io/AtomEditor/atom/any/ any main" > /etc/apt/sources.list.d/atom.list'
-wget -qO - https://packagecloud.io/AtomEditor/atom/gpgkey | sudo apt-key add -
-sudo add-apt-repository "deb [arch=amd64] https://packagecloud.io/AtomEditor/atom/any/ any main"
-sudo apt update
-sudo apt install atom
+#wget -qO - https://packagecloud.io/AtomEditor/atom/gpgkey | sudo apt-key add -
+#sudo add-apt-repository "deb [arch=amd64] https://packagecloud.io/AtomEditor/atom/any/ any main"
+#sudo apt update
+#sudo apt install atom
+
+
+
+
 
 # Discord
 # Or use the web browser application.

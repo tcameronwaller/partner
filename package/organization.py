@@ -80,6 +80,7 @@ import statsmodels.api
 # Custom
 import partner.utility as putly # this import path for subpackage
 import partner.scale as pscl
+import partner.description as pdesc
 
 #dir()
 #importlib.reload()
@@ -470,7 +471,6 @@ def determine_fill_table_groups_rows(
         putly.print_terminal_partition(level=5)
     # Return information.
     return table
-
 
 
 ##########
@@ -1145,9 +1145,6 @@ def filter_table_rows_by_proportion_nonmissing_threshold(
     return table_filter
 
 
-
-# BLARG !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 def filter_table_columns_by_proportion_nonmissing_threshold(
     table=None,
     index_columns=None,
@@ -1273,8 +1270,6 @@ def filter_table_columns_by_proportion_nonmissing_threshold(
         putly.print_terminal_partition(level=5)
     # Return information.
     return table_filter
-
-
 
 
 def filter_table_rows_columns_by_proportion_nonmissing_threshold(
@@ -3216,6 +3211,8 @@ def merge_columns_two_tables(
     return table
 
 
+
+##########
 # Shape.
 
 
@@ -3918,6 +3915,10 @@ def cluster_table_columns_by_external_group(
     table will only include columns that this dictionary assigns to groups.
     This definition of columns in each group must not include the columns that
     define the index across rows.
+
+    Notice that the implementation requires that the groups of columns to be
+    inclusive but that these groups of columns do not otherwise need to include
+    only columns that are actually available in the table.
 
     A separate list of names of groups enforces a specific sequence.
 
