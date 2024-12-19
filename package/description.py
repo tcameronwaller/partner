@@ -632,6 +632,130 @@ def determine_95_99_confidence_intervals_ranges(
 
 
 ##########
+# Correlation
+
+
+def calculate_correlations_table_columns_pair(
+    table=None,
+    column_primary=None,
+    column_secondary=None,
+    count_minimum_observations=None,
+    report=None,
+):
+    """
+    Calculates correlations between a pair of columns in a table.
+
+    Review: 17 December 2024
+
+    arguments:
+        table (object): Pandas data-frame table of values on continuous
+            interval or ratio scales of measurement corresponding to features
+            across columns and observations across rows
+        column_primary (str): name of column in table corresponding to first or
+            primary feature for correlation
+        column_secondary (str): name of second column in table corresponding to
+            second feature for correlation
+        count_minimum_observations (int): minimal count of observations that
+            must have nonmissing values for the two features in the pair
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict): collection of information about correlations
+
+
+
+    """
+
+    # Copy information in table.
+    table = table.copy(deep=True)
+    # Remove table rows with missing values in relevant columns.
+    table.dropna(
+        axis="index",
+        how="any",
+        subset=[column_primary, column_secondary],
+        inplace=True,
+    )
+
+    # Collect information.
+    pail = dict()
+    # Define names for values of statistical measures.
+    measures = list()
+    measures.append("correlation_pearson")
+    measures.append("probability_pearson")
+    measures.append("confidence_95_low_pearson")
+    measures.append("confidence_95_high_pearson")
+    measures.append("correlation_spearman")
+    measures.append("probability_spearman")
+    #measures.append("confidence_95_low_spearman")
+    #measures.append("confidence_95_high_spearman")
+    # Define sequence of values.
+    names = copy.deepcopy(measures)
+    names.insert(0, "count_observations")
+    pail["names"] = names
+
+    # Determine count of observations for which pair of features has matching
+    # values.
+    pail["count_observations"] = copy.deepcopy(table.shape[0])
+    # Calculate correlations.
+    if (pail["count_observations"] >= count_minimum_observations):
+        #if method == "pearson": ...
+        # Calculate correlations.
+        # Pearson.
+        results_pearson = scipy.stats.pearsonr(
+            table[column_primary].to_numpy(),
+            table[column_secondary].to_numpy(),
+            alternative="two-sided",
+        )
+        pail["correlation_pearson"] = results_pearson.statistic
+        pail["probability_pearson"] = results_pearson.pvalue
+        confidence_95_pearson = results_pearson.confidence_interval(
+            confidence_level=0.95
+        )
+        pail["confidence_95_low_pearson"] = confidence_95_pearson.low
+        pail["confidence_95_high_pearson"] = confidence_95_pearson.high
+        # Spearman.
+        results_spearman = scipy.stats.spearmanr(
+            table[column_primary].to_numpy(),
+            table[column_secondary].to_numpy(),
+            nan_policy="omit",
+            alternative="two-sided",
+        )
+        pail["correlation_spearman"] = results_spearman.statistic
+        pail["probability_spearman"] = results_spearman.pvalue
+        # Unfortunately the implementation of Spearman Correlation in SciPy
+        # does not offer a convenient method to calculate the confidence
+        # interval.
+        # Kendall.
+        #correlation_kendall, probability_kendall = scipy.stats.kendalltau(
+        #    table[column_one].to_numpy(),
+        #    table[column_two].to_numpy(),
+        #    alternative="two-sided",
+        #)
+    else:
+        for measure in measures:
+            pail[measure] = float("nan")
+        pass
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        print("module: description.py")
+        function = str(
+            "calculate_correlations_table_columns_pair()"
+        )
+        print("function: " + function)
+        putly.print_terminal_partition(level=5)
+        pass
+    # Return information.
+    return pail
+
+
+
+
+##########
 # Benjamini-Hochberg False-Discovery Rate (FDR) q-value
 
 

@@ -275,7 +275,6 @@ def translate_identifiers_table_indices_columns_rows(
     return table
 
 
-
 ##########
 # Transfer, Fill.
 

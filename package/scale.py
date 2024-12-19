@@ -76,6 +76,10 @@ import partner.utility as putly # this import path for subpackage
 # Functionality
 
 
+# Logarithm and exponent
+
+
+# TODO: obsolete? (TCW; 13 December 2024)
 def transform_values_distribution_scale_logarithm(
     values_array=None,
     shift_minimum=None,
@@ -124,6 +128,7 @@ def transform_values_distribution_scale_logarithm(
     return values_log_array
 
 
+# TODO: obsolete? (TCW; 13 December 2024)
 def drive_transform_variables_distribution_scale_logarithm(
     columns=None,
     suffix=None,
@@ -181,9 +186,219 @@ def drive_transform_variables_distribution_scale_logarithm(
     return table
 
 
+def transform_logarithm_by_table_columns(
+    table=None,
+    columns=None,
+    base=None,
+    report=None,
+):
+    """
+    Transform values by calculating the logarithm at a specific base to yield
+    the inverse operation of the exponent.
+
+    This function preserves the names and sequence of columns from the original
+    source table.
+
+    Review: TCW; 13 December 2024
+
+    arguments:
+        table (object): Pandas data-frame table of values on continuous ratio
+            or interval scale of measurement
+        columns (list<str>): names of columns in table for which to apply the
+            transformation
+        base (float): base for exponent
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table of values
+
+    """
+
+    # Define subordinate function.
+    def calculate_base_logarithm(
+        values=None,
+        base=None,
+    ):
+        """
+        Calculates the exponents by raise a specific base value to each of
+        multiple values in an array.
+
+        arguments:
+            values (array): NumPy array of values to be the power in the
+                exponential calculations
+            base (base): value to be the base in the exponential calculations
+
+        raises:
+
+        returns:
+            (array): novel exponents from calculating the base to the power of
+                each original value
+
+        """
+
+        # Calculate logarithm.
+        if (math.isclose(float(base), math.e, rel_tol=1e-7)):
+            logarithms = numpy.log(values)
+        elif (math.isclose(float(base), 2.0, rel_tol=1e-7)):
+            logarithms = numpy.log2(values)
+        elif (math.isclose(float(base), 10.0, rel_tol=1e-7)):
+            logarithms = numpy.log10(values)
+        else:
+            # math.log(value, base)
+            logarithms = (numpy.log(values) / numpy.log(base))
+            pass
+        return logarithms
+
+    # Copy information.
+    table = table.copy(deep=True)
+    columns = copy.deepcopy(columns)
+
+    # Filter columns by whether they are available in the table.
+    columns_relevant = list(filter(
+        lambda column: (str(column) in table.columns.to_list()),
+        columns
+    ))
+
+    # Calculate the standard z-score of values in each column of table.
+    # This method inserts missing values if the standard deviation is zero.
+    for column in columns_relevant:
+        table[column] = calculate_base_logarithm(
+            values=table[column].to_numpy(
+                    dtype="float64",
+                    na_value=numpy.nan,
+                    copy=True,
+            ),
+            base=base,
+        )
+        pass
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        print("module: scale.py")
+        function = (
+            "transform_logarithm_by_table_columns()"
+        )
+        print(str("function: " + function))
+        putly.print_terminal_partition(level=5)
+        print(str("base: " + str(base)))
+        putly.print_terminal_partition(level=5)
+        pass
+    # Return information.
+    return table
+
+
+def transform_exponent_by_table_columns(
+    table=None,
+    columns=None,
+    base=None,
+    report=None,
+):
+    """
+    Transform values by calculating the exponent at a specific base to yield
+    the inverse operation of the logarithm.
+
+    This function preserves the names and sequence of columns from the original
+    source table.
+
+    Review: TCW; 13 December 2024
+
+    arguments:
+        table (object): Pandas data-frame table of values on continuous ratio
+            or interval scale of measurement
+        columns (list<str>): names of columns in table for which to apply the
+            transformation
+        base (float): base for exponent
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table of values
+
+    """
+
+    # Define subordinate function.
+    def calculate_base_power_exponent(
+        values=None,
+        base=None,
+    ):
+        """
+        Calculates the exponents by raise a specific base value to each of
+        multiple values in an array.
+
+        arguments:
+            values (array): NumPy array of values to be the power in the
+                exponential calculations
+            base (base): value to be the base in the exponential calculations
+
+        raises:
+
+        returns:
+            (array): novel exponents from calculating the base to the power of
+                each original value
+
+        """
+
+        # Calculate logarithm.
+        if (math.isclose(float(base), math.e, rel_tol=1e-7)):
+            exponents = numpy.exp(values)
+        elif (math.isclose(float(base), 2.0, rel_tol=1e-7)):
+            exponents = numpy.exp2(values)
+        else:
+            exponents = numpy.power(base, values)
+            pass
+        return exponents
+
+    # Copy information.
+    table = table.copy(deep=True)
+    columns = copy.deepcopy(columns)
+
+    # Filter columns by whether they are available in the table.
+    columns_relevant = list(filter(
+        lambda column: (str(column) in table.columns.to_list()),
+        columns
+    ))
+
+    # Calculate the standard z-score of values in each column of table.
+    # This method inserts missing values if the standard deviation is zero.
+    for column in columns_relevant:
+        table[column] = calculate_base_power_exponent(
+            values=table[column].to_numpy(
+                    dtype="float64",
+                    na_value=numpy.nan,
+                    copy=True,
+            ),
+            base=base,
+        )
+        pass
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        print("module: scale.py")
+        function = (
+            "transform_exponent_by_table_columns()"
+        )
+        print(str("function: " + function))
+        putly.print_terminal_partition(level=5)
+        print(str("base: " + str(base)))
+        putly.print_terminal_partition(level=5)
+        pass
+    # Return information.
+    return table
+
+
 # Standard Z Score
 
 
+# TODO: TCW; 13 December 2024
+# Enhance this function by making it possible to apply the transformation only
+# across a selection of columns within in each rows.
 def transform_standard_z_score_by_table_rows(
     table=None,
     report=None,

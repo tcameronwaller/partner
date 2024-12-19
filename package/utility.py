@@ -3600,89 +3600,9 @@ def drive_extract_search_strings_from_table_columns_main_strings(
     return table
 
 
-# TODO: TCW; 21 March 2023
-# include standard error or confidence interval in the report...
-# https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.pearsonr.html
-
-def calculate_table_column_pair_correlations(
-    column_one=None,
-    column_two=None,
-    table=None,
-    report=None,
-):
-    """
-    Calculates correlations between a pair of columns in a table.
-
-    arguments:
-        column_one (str): name of first column
-        column_two (str): name of second column
-        table (object): Pandas data frame of phenotype variables across UK
-            Biobank cohort
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (dict): collection of information about correlations
-
-
-
-    """
-
-    # Copy information in table.
-    table = table.copy(deep=True)
-    # Convert columns to float.
-    table = convert_table_columns_variables_types_float(
-        columns=[column_one, column_two],
-        table=table,
-    )
-    # Remove table rows with missing values in relevant columns.
-    table.dropna(
-        axis="index",
-        how="any",
-        subset=[column_one, column_two],
-        inplace=True,
-    )
-    # Calculate correlations.
-    correlation_pearson, probability_pearson = scipy.stats.pearsonr(
-        table[column_one].to_numpy(),
-        table[column_two].to_numpy(),
-    )
-    correlation_spearman, probability_spearman = scipy.stats.spearmanr(
-        table[column_one].to_numpy(),
-        table[column_two].to_numpy(),
-    )
-    correlation_kendall, probability_kendall = scipy.stats.kendalltau(
-        table[column_one].to_numpy(),
-        table[column_two].to_numpy(),
-    )
-    # Report.
-    if report:
-        print_terminal_partition(level=4)
-        print("Correlations between pair of columns")
-        print("column one: " + str(column_one))
-        print("column_two: " + str(column_two))
-        print("valid value pairs for correlation: " + str(table.shape[0]))
-        print("Pearson correlation: " + str(correlation_pearson))
-        print("Pearson probability: " + str(probability_pearson))
-        print("Spearman correlation: " + str(correlation_spearman))
-        print("Spearman probability: " + str(probability_spearman))
-        print("Kendall correlation: " + str(correlation_kendall))
-        print("Kendall probability: " + str(probability_kendall))
-        pass
-    # Collect information.
-    pail = dict()
-    pail["pairs"] = copy.deepcopy(int(table.shape[0]))
-    pail["correlation_pearson"] = correlation_pearson
-    pail["probability_pearson"] = probability_pearson
-    pail["correlation_spearman"] = correlation_spearman
-    pail["probability_spearman"] = probability_spearman
-    pail["correlation_kendall"] = correlation_kendall
-    pail["probability_kendall"] = probability_kendall
-    # Return information.
-    return pail
-
-
+# TODO: TCW; 16 December 2024
+# Obsolete?
+# Specialized design for former project.
 def drive_calculate_table_column_pair_correlations(
     entries_cohorts=None,
     name_one=None,
@@ -3695,6 +3615,19 @@ def drive_calculate_table_column_pair_correlations(
     between pairs of variables (columns) within tables representing
     stratification cohorts. Organizes information from these correlations within
     a summary table.
+
+    ----------
+    Format of product table for correlations
+    ----------
+    cohort     feature_1 feature_2 pairs correlation_pearson probability_pea...
+
+    cohort_1   feature_1 feature_2 100   0.1                 0.1
+    cohort_1   feature_1 feature_2 100   0.1                 0.1
+    cohort_1   feature_1 feature_2 100   0.1                 0.1
+    cohort_2   feature_1 feature_2 100   0.1                 0.1
+    cohort_2   feature_1 feature_2 100   0.1                 0.1
+    ----------
+
 
     arguments:
         entries_cohorts (dict<dict<object>>): information about variables within
@@ -4867,6 +4800,7 @@ def organize_feature_signal_correlations(
     # Return information.
     return data_cluster
 
+############################################
 
 # Metabolic information.
 

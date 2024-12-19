@@ -2250,7 +2250,7 @@ def plot_heatmap_signal_features_sets_in_observations_groups(
     #     orange-are-the-solution/
     image = axes_main.imshow(
         pail["matrix_signal"],
-        cmap=matplotlib.colormaps["PuOr"], # RdBu_r, PuOr_r
+        cmap=matplotlib.colormaps["Reds"], # binary, Reds, RdBu_r, PuOr, PuOr_r
         vmin=pail["value_minimum"],
         vmax=pail["value_maximum"],
         aspect="auto", # "auto", "equal",
