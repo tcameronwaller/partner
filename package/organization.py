@@ -2807,6 +2807,9 @@ def fill_missing_values_table_by_row(
     observations across columns. For versatility, it is unnecessary for this
     table to have explicitly defined indices across rows or columns.
 
+    The selection of columns should not include the name of the column for the
+    index across rows.
+
     ----------
     observations observation_1 observation_2 observation_3 observation_4 ...
     features
@@ -2878,7 +2881,8 @@ def fill_missing_values_table_by_row(
     # which to keep all values the same.
     # Without this separation, the procedure would fill missing values in all
     # columns of each row.
-    columns_selection_split.insert(0, index_rows)
+    if (index_rows not in columns_selection):
+        columns_selection_split.insert(0, index_rows)
     table_fill = table_fill.filter(
         items=columns_selection_split,
         axis="columns",
@@ -2904,7 +2908,7 @@ def fill_missing_values_table_by_row(
 
     # Combine together the columns from the tables that had fill or stayed the
     # same.
-    if (table_sample.shape[1] > 1):
+    if (table_same.shape[1] > 1):
         table_merge = merge_columns_two_tables(
             identifier_first=index_rows,
             identifier_second=index_rows,
