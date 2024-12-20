@@ -2781,8 +2781,6 @@ def fill_missing_values_table_by_column(
     return table_merge
 
 
-# TODO: TCW; 11 December 2024
-# TODO: this function still needs review and testing.
 def fill_missing_values_table_by_row(
     table=None,
     index_columns=None,
@@ -2855,29 +2853,31 @@ def fill_missing_values_table_by_row(
     table_fill = table.copy(deep=True)
     table_same = table.copy(deep=True)
     columns_selection = copy.deepcopy(columns_selection)
-    columns_selection_split = copy.deepcopy(columns_selection_split)
+    columns_selection_split = copy.deepcopy(columns_selection)
     rows_selection = copy.deepcopy(rows_selection)
 
     # Determine which rows in table have missing values.
-    if False:
-        table_fill["match_missing"] = table_fill.apply(
-            lambda row:
-                1 if any(pandas.isna(row[columns]).to_list()) else 0,
-            axis="columns", # apply function to each row
-        )
-        table_fill_actual = table_fill.loc[
-            (table_fill["match_missing"] == 1), :
-        ].copy(deep=True)
-        # Remove unnecessary columns.
-        table_fill.drop(
-            labels=["match_missing",],
-            axis="columns",
-            inplace=True
-        )
-        pass
+    #if False:
+    #    table_fill["match_missing"] = table_fill.apply(
+    #        lambda row:
+    #            1 if any(pandas.isna(row[columns]).to_list()) else 0,
+    #        axis="columns", # apply function to each row
+    #    )
+    #    table_fill_actual = table_fill.loc[
+    #        (table_fill["match_missing"] == 1), :
+    #    ].copy(deep=True)
+    #    # Remove unnecessary columns.
+    #    table_fill.drop(
+    #        labels=["match_missing",],
+    #        axis="columns",
+    #        inplace=True
+    #    )
+    #    pass
 
     # Separate table's columns for which to fill missing values from those in
     # which to keep all values the same.
+    # Without this separation, the procedure would fill missing values in all
+    # columns of each row.
     columns_selection_split.insert(0, index_rows)
     table_fill = table_fill.filter(
         items=columns_selection_split,
@@ -2895,7 +2895,7 @@ def fill_missing_values_table_by_row(
         lambda series_row:
             fill_missing_values_series(
                 series=series_row,
-                keys_signal=columns_selection,
+                keys_signal=columns_selection, # to avoid index
                 method=method,
                 report=False,
             ) if (series_row[index_rows] in rows_selection) else series_row,
@@ -2904,14 +2904,17 @@ def fill_missing_values_table_by_row(
 
     # Combine together the columns from the tables that had fill or stayed the
     # same.
-    table_merge = merge_columns_two_tables(
-        identifier_first=index_rows,
-        identifier_second=index_rows,
-        table_first=table_fill,
-        table_second=table_same,
-        preserve_index=False,
-        report=report,
-    )
+    if (table_sample.shape[1] > 1):
+        table_merge = merge_columns_two_tables(
+            identifier_first=index_rows,
+            identifier_second=index_rows,
+            table_first=table_fill,
+            table_second=table_same,
+            preserve_index=False,
+            report=report,
+        )
+    else:
+        table_merge = table_fill
 
     # Report.
     if report:
