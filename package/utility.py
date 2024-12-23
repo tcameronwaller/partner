@@ -2758,10 +2758,10 @@ def parse_extract_text_keys_values_semicolon_colon_comma(
 
     # Organize information.
     text = str(text).strip()
-    features = list()
     # Parse and extract information.
     if ((text.lower() != "none") and (text != "") and (len(text) > 0)):
         pail_parse = dict()
+        features = list()
         for part in text.split(";"):
             part_split = part.split(":")
             part_feature = str(part_split[0])
@@ -2769,14 +2769,15 @@ def parse_extract_text_keys_values_semicolon_colon_comma(
             pail_parse[part_feature] = part_values
             features.append(part_feature)
             pass
+        # Collect unique names of features.
+        features = collect_unique_elements(
+            elements=features,
+        )
         pass
     else:
         pail_parse = None
+        features = None
         pass
-    # Collect unique names of features.
-    features_unique = collect_unique_elements(
-        elements=features,
-    )
     # Collect information.
     pail_return = dict()
     pail_return["features_values"] = pail_parse
