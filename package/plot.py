@@ -1598,6 +1598,9 @@ def determine_size_axis_labels_categories(
     return size_label
 
 
+# TODO: copy and modify "plot_heatmap_signal_label_features_observations"
+# Name of new function: plot_heatmap_signal_allocate_sets_label_groups
+
 def plot_heatmap_signal_label_features_observations(
     table=None,
     format_table=None,
@@ -1906,19 +1909,6 @@ def plot_heatmap_signal_label_features_observations(
 # Heatmap plots with many cells
 
 
-# TODO: TCW; 16 November 2024
-# Further customization of this function would be necessary if the counts of
-# groups of samples was different than 4.
-
-# TODO: TCW; 2 December 2024
-# This heatmap still needs a reference color bar.
-
-# TODO: TCW; 4 December 2024
-# Enhance versatility by supporting counts of groups of observations other than
-# four. Refer to the handling of color maps in function below.
-# plot_scatter_point_color_response_discrete_or_continuous()
-# Matplotlib "tab10" seems like a good choice for categorical discrete colors.
-
 def plot_heatmap_signal_features_sets_in_observations_groups(
     table_signal=None,
     table_feature_sets=None,
@@ -2028,7 +2018,7 @@ def plot_heatmap_signal_features_sets_in_observations_groups(
     https://matplotlib.org/stable/users/explain/colors/colormapnorms.html
         - normalization of information for color maps???
 
-    Review:
+    Review: 24 December 2024
 
     arguments:
         table_signal (object): Pandas data-frame table of values of signal
@@ -2066,11 +2056,16 @@ def plot_heatmap_signal_features_sets_in_observations_groups(
             ordinate or vertical axis
         labels_abscissa_categories (list<str>): optional, explicit labels for
             abscissa or horizontal axis
-
-        ...
-        ...
-        ...
-
+        show_scale_bar (bool): whether to create scale bar
+        title_ordinate (str): title for ordinate vertical axis
+        title_abscissa (str): title for abscissa horizontal axis
+        title_bar (str): title for scale bar
+        size_title_ordinate (str): font size
+        size_title_abscissa (str): font size
+        size_label_ordinate (str): font size
+        size_label_abscissa (str): font size
+        size_title_bar (str): font size
+        size_label_bar (str): font size
         aspect (str): aspect ratio for MatPlotLib chart figure
         fonts (dict<object>): references to definitions of font properties
         colors (dict<tuple>): references to definitions of color properties
@@ -2149,17 +2144,19 @@ def plot_heatmap_signal_features_sets_in_observations_groups(
     #sharey=True, # sharey="row"
     #sharex=True, # sharex="col",
     grid = matplotlib.gridspec.GridSpec(
-        nrows=2,
+        nrows=4,
         ncols=2,
         wspace=0.005, # horizontal width space between grid blocks for subplots
         hspace=0.005, # vertical height space between grid blocks for subplots
-        width_ratios=(1,7), # first column 1/10th width of second column
-        height_ratios=(30,1), # first row 30 times the height of second row
+        width_ratios=(10,90), # first column 1/10th width of second column
+        height_ratios=(90,3,5,2), # first row 30 times the height of second row
     )
     # Initialize axes within grid within figure.
     axes_set = figure.add_subplot(grid[0,0]) # first row, first column
     axes_main = figure.add_subplot(grid[0,1]) # first row, second column
     axes_group = figure.add_subplot(grid[1,1]) # second row, second column
+    axes_space = figure.add_subplot(grid[2,1]) # third row, second column
+    axes_bar = figure.add_subplot(grid[3,1]) # fourth row, second column
     # Adjust margins.
     grid.tight_layout(
         figure,
@@ -2176,6 +2173,8 @@ def plot_heatmap_signal_features_sets_in_observations_groups(
     for position in ['right', 'top', 'bottom', 'left']:
         matplotlib.pyplot.gca().spines[position].set_visible(False)
 
+    axes_space.axis("off")
+
     ##########
     # axes: set
 
@@ -2191,7 +2190,7 @@ def plot_heatmap_signal_features_sets_in_observations_groups(
         vmin=0,
         vmax=1,
         aspect="auto", # "auto", "equal",
-        origin="upper",
+        origin="lower",
         # Extent: (left, right, bottom, top)
         #extent=(-0.5, (matrix.shape[1] - 0.5), (matrix.shape[0] - 0.5), -0.5),
     )
@@ -2248,13 +2247,13 @@ def plot_heatmap_signal_features_sets_in_observations_groups(
     # Sequential color maps: "Reds", "Reds_r", "Oranges", "Oranges_r",
     # site: https://montoliu.naukas.com/2021/11/18/color-blindness-purple-and-
     #     orange-are-the-solution/
-    image = axes_main.imshow(
+    image_main = axes_main.imshow(
         pail["matrix_signal"],
-        cmap=matplotlib.colormaps["Reds"], # binary, Reds, RdBu_r, PuOr, PuOr_r
+        cmap=matplotlib.colormaps["PuOr"], # binary, Reds, RdBu_r, PuOr, PuOr_r
         vmin=pail["value_minimum"],
         vmax=pail["value_maximum"],
         aspect="auto", # "auto", "equal",
-        origin="upper",
+        origin="lower",
         # Extent: (left, right, bottom, top)
         #extent=(-0.5, (matrix.shape[1] - 0.5), (matrix.shape[0] - 0.5), -0.5),
     )
@@ -2410,19 +2409,24 @@ def plot_heatmap_signal_features_sets_in_observations_groups(
     discrete_minimum = numpy.nanmin(pail["matrix_group_integers"])
     discrete_maximum = numpy.nanmax(pail["matrix_group_integers"])
     color_map = matplotlib.pyplot.get_cmap(
-        "Dark2", # "Set1", "Set2", "Dark2", "tab10",
+        "tab10", # "Set1", "Set2", "Dark2", "tab10",
         ((discrete_maximum - discrete_minimum) + 1)
     )
     # Plot values as a grid of color on discrete scale.
-    image = axes_group.imshow(
+    image_group = axes_group.imshow(
         pail["matrix_group_integers"],
         cmap=color_map,
         vmin=discrete_minimum,
         vmax=discrete_maximum,
         aspect="auto", # "auto", "equal",
-        origin="upper",
+        origin="lower",
         # Extent: (left, right, bottom, top)
-        #extent=(-0.5, (matrix.shape[1] - 0.5), (matrix.shape[0] - 0.5), -0.5),
+        #extent=(
+        #    0.0,
+        #    (pail["matrix_group_integers"].shape[1]),
+        #    0.0,
+        #    (3*(pail["matrix_group_integers"].shape[0]))
+        #),
     )
     axes_group.tick_params(
         top=False,
@@ -2448,10 +2452,51 @@ def plot_heatmap_signal_features_sets_in_observations_groups(
         ncol=4,
     )
 
+    # Create legend for scale of color grid.
+    # Notice that use of the "cax" argument causes to ignore the "shrink"
+    # argument.
+    if show_scale_bar:
+        bar_main = axes_bar.figure.colorbar(
+            image_main,
+            orientation="horizontal",
+            cax=axes_bar,
+            location="bottom",
+            #shrink=0.5, # 0.7; factor for dimensions of the Scale Bar.
+        )
+        if (len(title_bar) > 0):
+            bar_main.ax.set_xlabel(
+                title_bar,
+                rotation=0,
+                loc="center",
+                va="bottom",
+                labelpad=20, # 5
+                alpha=1.0,
+                backgroundcolor=colors["white"],
+                color=colors["black"],
+                fontproperties=fonts["properties"][size_title_bar],
+            )
+        bar_main.ax.tick_params(
+            axis="both",
+            which="both", # major, minor, or both
+            direction="out",
+            length=7.5, # 5.0, 7.5
+            width=3, # 2.5, 5.0
+            color=colors["black"],
+            pad=3, # 5, 7
+            labelsize=fonts["values"][size_label_bar]["size"],
+            labelcolor=colors["black"],
+        )
+        pass
+
     ##########
     # Return figure.
     return figure
 
+
+
+
+#######################################
+########### Move this older scrap code to the "bimodality" legacy package
 
 ##########
 # Heatmap plots with many cells... old
@@ -3512,6 +3557,10 @@ def plot_heatmap_asymmetric_master_main_top_bottom(
 
     # Return figure.
     return figure
+
+########################3
+#############################################################
+
 
 
 ##########
