@@ -269,7 +269,7 @@ python3 -m pip install --upgrade pandas
 python3 -m pip install --upgrade scikit-learn
 python3 -m pip install --upgrade statsmodels
 python3 -m pip install --upgrade networkx
-python3 -m pip install --upgrade matplotlib
+python3 -m pip install --upgrade matplotlib # v3.10.0; 30 December 2024
 python3 -m pip install --upgrade mygene
 deactivate
 which python3

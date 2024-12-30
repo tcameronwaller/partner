@@ -540,6 +540,11 @@ def initialize_matplotlib_figure_aspect(
     """
     Initialize a MatPlotLib figure with a specific aspect ratio.
 
+    MatPlotLib Pyplot is an interface that can create artifacts relating to
+    global memory environment. For example, on 30 December 2024, TCW had to
+    avoid Pyplot to resolve an error of it drawing a rogue dendogram on an
+    otherwise empty figure.
+
     arguments:
         aspect (str): aspect ratio for MatPlotLib figure
 
@@ -552,13 +557,15 @@ def initialize_matplotlib_figure_aspect(
 
     ##########
     # Create figure.
+    # matplotlib.pyplot.figure()
+    # matplotlib.figure.Figure()
     if aspect == "portrait":
-        figure = matplotlib.pyplot.figure(
+        figure = matplotlib.figure.Figure(
             figsize=(11.811, 15.748), # aspect 3 X 4; 15.748 inches = 39.999 cm
             tight_layout=True
         )
     elif aspect == "portrait_half_width":
-        figure = matplotlib.pyplot.figure(
+        figure = matplotlib.figure.Figure(
             figsize=(5.906, 15.748), # aspect 1.5 X 4; 5.906 inches = 15.001 cm
             tight_layout=True
         )
@@ -569,20 +576,25 @@ def initialize_matplotlib_figure_aspect(
         #    tight_layout=True
         #)
     elif aspect == "landscape":
-        figure = matplotlib.pyplot.figure(
+        figure = matplotlib.figure.Figure(
             figsize=(15.748, 11.811), # aspect 4 X 3; 11.811 inches = 29.999 cm
             tight_layout=True
         )
     elif aspect == "landscape_half_height":
-        figure = matplotlib.pyplot.figure(
+        figure = matplotlib.figure.Figure(
             figsize=(15.748, 5.906), # aspect 4 X 1.5; 5.906 inches = 15.001 cm
             tight_layout=True
         )
     elif aspect == "square":
-        figure = matplotlib.pyplot.figure(
+        figure = matplotlib.figure.Figure(
             figsize=(15.748, 15.748), # aspect 1 X 1; 15.748 inches = 39.999 cm
             tight_layout=True
         )
+    # Initialize.
+    #matplotlib.pyplot.clf()
+    figure.clear()
+    #matplotlib.pyplot.close(figure)
+
     # Return information.
     return figure
 
@@ -595,8 +607,9 @@ def initialize_matplotlib_figure_aspect(
 # Current applications:
 # 1. genetic correlations
 # 2. regression coefficients against polygenic risk scores
-# review: TCW; 3 October 2024
-# TODO: rename to 'plot_heat_map_signal_label_features_observations_significance'
+# review: TCW; 30 December 2024
+# This design has advantages for representations of correlations or regression
+# coefficients along with their significance.
 def plot_heat_map_few_signal_significance_labels(
     table=None,
     transpose_table=None,
@@ -1199,7 +1212,6 @@ def plot_heat_map_few_signal_significance_labels(
     return figure
 
 
-
 # 1.
 # function: plot_heatmap_signal_features_observations_labels()
 # signal: individual signals or summaries (such as mean or median) for small
@@ -1681,7 +1693,7 @@ def plot_heatmap_signal_features_observations_labels(
     MatPlotLib color maps.
     https://matplotlib.org/stable/tutorials/colors/colormaps.html
 
-    Review: 27 December 2024
+    Review: 30 December 2024
 
     arguments:
         table (object): Pandas data-frame table of values of signal intensity
@@ -1760,16 +1772,18 @@ def plot_heatmap_signal_features_observations_labels(
         aspect=aspect,
     )
     # Create axes.
-    axes = matplotlib.pyplot.axes()
-    #figure.subplots_adjust(bottom=0.2) # Does this work?
-    #axes.margins(
-    #    x=1,
-    #    y=1,
-    #    tight=True,
-    #)
+    #axes_main = matplotlib.pyplot.axes()
+    axes_main = figure.add_subplot(111)
     # Keep axes, ticks, and labels, but remove border.
     for position in ['right', 'top', 'bottom', 'left']:
         matplotlib.pyplot.gca().spines[position].set_visible(False)
+    # Adjust margins.
+    figure.subplots_adjust(
+        left=0.02,
+        right=0.98,
+        top=0.98,
+        bottom=0.15,
+    )
 
     # Plot values as a grid of color on continuous scale.
     # This function represents values acros matrix dimension 0 as vertical
@@ -1782,7 +1796,7 @@ def plot_heatmap_signal_features_observations_labels(
     # Sequential color maps: "Reds", "Reds_r", "Oranges", "Oranges_r",
     # site: https://montoliu.naukas.com/2021/11/18/color-blindness-purple-and-
     #     orange-are-the-solution/
-    image = axes.imshow(
+    image_main = axes_main.imshow(
         pail["matrix_signal"],
         cmap=matplotlib.colormaps["PuOr"], # binary, Reds, RdBu_r, PuOr, PuOr_r
         vmin=pail["value_minimum"],
@@ -1794,7 +1808,7 @@ def plot_heatmap_signal_features_observations_labels(
     )
     # Set titles for axes.
     if (len(title_ordinate) > 0):
-        axes.set_ylabel(
+        axes_main.set_ylabel(
             ylabel=title_ordinate,
             labelpad=30,
             alpha=1.0,
@@ -1804,7 +1818,7 @@ def plot_heatmap_signal_features_observations_labels(
         )
         pass
     if (len(title_abscissa) > 0):
-        axes.set_xlabel(
+        axes_main.set_xlabel(
             xlabel=title_abscissa,
             labelpad=30,
             alpha=1.0,
@@ -1814,7 +1828,7 @@ def plot_heatmap_signal_features_observations_labels(
         )
         pass
     # Set tick parameters for axes.
-    axes.tick_params(
+    axes_main.tick_params(
         axis="both", # "y", "x", or "both"
         which="both", # "major", "minor", or "both"
         length=5.0, # 5.0
@@ -1856,10 +1870,10 @@ def plot_heatmap_signal_features_observations_labels(
         (count_labels_ordinate > 1)
     ):
         # Set tick positions and labels on vertical ordinate axis.
-        axes.set_yticks(
+        axes_main.set_yticks(
             numpy.arange(pail["matrix_signal"].shape[0]),
         )
-        axes.set_yticklabels(
+        axes_main.set_yticklabels(
             pail["labels_ordinate_categories"],
             #minor=False,
             ha="right", # horizontal alignment
@@ -1872,7 +1886,7 @@ def plot_heatmap_signal_features_observations_labels(
             fontproperties=fonts["properties"][size_label_ordinate]
         )
         # Set tick parameters for vertical ordinate axis.
-        axes.tick_params(
+        axes_main.tick_params(
             axis="y", # "y", "x", or "both"
             which="both", # "major", "minor", or "both"
             length=5.0, # 5.0
@@ -1896,10 +1910,10 @@ def plot_heatmap_signal_features_observations_labels(
         (count_labels_abscissa > 1)
     ):
         # Set tick positions and labels on horizontal abscissa axis.
-        axes.set_xticks(
+        axes_main.set_xticks(
             numpy.arange(pail["matrix_signal"].shape[1]),
         )
-        axes.set_xticklabels(
+        axes_main.set_xticklabels(
             pail["labels_abscissa_categories"],
             #minor=False,
             ha="left", # horizontal alignment
@@ -1912,7 +1926,7 @@ def plot_heatmap_signal_features_observations_labels(
             fontproperties=fonts["properties"][size_label_abscissa]
         )
         # Set tick parameters for horizontal abscissa axis.
-        axes.tick_params(
+        axes_main.tick_params(
             axis="x", # "y", "x", or "both"
             which="both", # "major", "minor", or "both"
             length=5.0, # 5.0
@@ -1930,10 +1944,10 @@ def plot_heatmap_signal_features_observations_labels(
 
     # Create legend for scale of color grid.
     if show_scale_bar:
-        bar = axes.figure.colorbar(
-            image,
+        bar = axes_main.figure.colorbar(
+            image_main,
             orientation="vertical",
-            ax=axes,
+            ax=axes_main,
             location="right",
             shrink=0.7, # 0.7; factor for dimensions of the Scale Bar.
         )
@@ -1964,11 +1978,6 @@ def plot_heatmap_signal_features_observations_labels(
     return figure
 
 
-# TODO: TCW; 27 December 2024
-# Troubleshoot the gridspec, and create a separate grid for the color bar
-# The current version is drawing the color bar overtop the main heatmap...
-# It will also be necessary to give extra space on the tight layout on the right side
-# to make room for the labels on the color bar...
 def plot_heatmap_signal_features_sets_observations_labels(
     table_signal=None,
     table_feature_sets=None,
@@ -2046,7 +2055,7 @@ def plot_heatmap_signal_features_sets_observations_labels(
 
     Reference:
 
-    Review: 27 December 2024
+    Review: 30 December 2024
 
     arguments:
         table_signal (object): Pandas data-frame table of values of signal
@@ -2165,31 +2174,50 @@ def plot_heatmap_signal_features_sets_observations_labels(
     #sharex=True, # sharex="col",
     grid = matplotlib.gridspec.GridSpec(
         nrows=1,
-        ncols=2,
+        ncols=4,
         wspace=0.005, # horizontal width space between grid blocks for subplots
         hspace=0.005, # vertical height space between grid blocks for subplots
-        width_ratios=(10,90), # first column 1/10th width of second column
-        height_ratios=(100,), # first row 30 times the height of second row
-    )
-    # Initialize axes within grid within figure.
-    axes_set = figure.add_subplot(grid[0,0]) # first row, first column
-    axes_main = figure.add_subplot(grid[0,1]) # first row, second column
-    # Adjust margins.
-    grid.tight_layout(
-        figure,
-        #pad=1.0,
-        #h_pad=1.0,
-        #w_pad=1.0,
-        rect=[0,0.05,1.0,1.0], # left, bottom, right, top
+        width_ratios=(10,85,2,3),
+        height_ratios=(100,),
     )
     grid.update(
         wspace=0.005, # horizontal width space between grid blocks for subplots
         hspace=0.005, # vertical height space between grid blocks for subplots
     )
+    # Initialize axes within grid within figure.
+    axes_set = figure.add_subplot(grid[0,0]) # first row, first column
+    axes_main = figure.add_subplot(grid[0,1]) # first row, second column
+    axes_space = figure.add_subplot(grid[0,2]) # first row, third column
+    axes_bar = figure.add_subplot(grid[0,3]) # first row, fourt column
+    axes_set.clear()
+    axes_main.clear()
+    axes_space.clear()
+    axes_bar.clear()
+    # Set axes to empty as a space holder.
+    axes_space.axis("off")
     # Keep axes, ticks, and labels, but remove border.
     for position in ['right', 'top', 'bottom', 'left']:
         matplotlib.pyplot.gca().spines[position].set_visible(False)
-        pass
+    # Adjust margins.
+    # Method "tight_layout()" does not function properly with object
+    # "GridSpec()".
+    #grid.tight_layout(
+    #    figure,
+    #    #pad=1.0,
+    #    #h_pad=1.0,
+    #    #w_pad=1.0,
+    #    rect=[0,0.05,1.0,1.0], # left, bottom, right, top
+    #)
+    #grid.update(
+    #    wspace=0.005, # horizontal width space between grid blocks for subplots
+    #    hspace=0.005, # vertical height space between grid blocks for subplots
+    #)
+    figure.subplots_adjust(
+        left=0.02,
+        right=0.93,
+        top=0.98,
+        bottom=0.15,
+    )
 
     ##########
     # axes: main
@@ -2303,41 +2331,6 @@ def plot_heatmap_signal_features_sets_observations_labels(
             labelbottom=True,
         )
         pass
-    # Create legend for scale of color grid.
-    # Notice that use of the "cax" argument causes to ignore the "shrink"
-    # argument.
-    if show_scale_bar:
-        bar_main = axes_main.figure.colorbar(
-            image_main,
-            orientation="vertical",
-            cax=axes_main,
-            location="right",
-            #shrink=0.5, # 0.7; factor for dimensions of the Scale Bar.
-        )
-        if (len(title_bar) > 0):
-            bar_main.ax.set_ylabel(
-                title_bar,
-                rotation=-90,
-                loc="center",
-                va="bottom",
-                labelpad=5, # 5
-                alpha=1.0,
-                backgroundcolor=colors["white"],
-                color=colors["black"],
-                fontproperties=fonts["properties"][size_title_bar],
-            )
-        bar_main.ax.tick_params(
-            axis="both",
-            which="both", # major, minor, or both
-            direction="out",
-            length=7.5, # 5.0, 7.5
-            width=3, # 2.5, 5.0
-            color=colors["black"],
-            pad=3, # 5, 7
-            labelsize=fonts["values"][size_label_bar]["size"],
-            labelcolor=colors["black"],
-        )
-        pass
 
     ##########
     # axes: set
@@ -2364,7 +2357,7 @@ def plot_heatmap_signal_features_sets_observations_labels(
     axes_set.set_xticklabels(
         labels_feature_sets_index_columns,
         #minor=False,
-        ha="right", # horizontal alignment
+        ha="center", # horizontal alignment
         va="top", # vertical alignment
         alpha=1.0,
         rotation=90, # negative: clockwise; positive: count-clockwise
@@ -2395,6 +2388,45 @@ def plot_heatmap_signal_features_sets_observations_labels(
         labeltop=False,
         labelbottom=True,
     )
+
+    ##########
+    # axes: bar
+    # Create legend for scale of color grid.
+    # Notice that use of the "cax" argument causes to ignore the "shrink"
+    # argument.
+    if show_scale_bar:
+        # Create scale bar.
+        bar_main = axes_bar.figure.colorbar(
+            image_main,
+            orientation="vertical",
+            cax=axes_bar,
+            location="right",
+            #shrink=0.5, # 0.7; factor for dimensions of the Scale Bar.
+        )
+        if (len(title_bar) > 0):
+            bar_main.ax.set_ylabel(
+                title_bar,
+                rotation=-90,
+                loc="center",
+                va="center",
+                labelpad=5, # 5
+                alpha=1.0,
+                backgroundcolor=colors["white"],
+                color=colors["black"],
+                fontproperties=fonts["properties"][size_title_bar],
+            )
+        bar_main.ax.tick_params(
+            axis="both",
+            which="both", # major, minor, or both
+            direction="out",
+            length=7.5, # 5.0, 7.5
+            width=3, # 2.5, 5.0
+            color=colors["black"],
+            pad=3, # 5, 7
+            labelsize=fonts["values"][size_label_bar]["size"],
+            labelcolor=colors["black"],
+        )
+        pass
 
     ##########
     # Return figure.
@@ -2508,7 +2540,7 @@ def plot_heatmap_signal_features_sets_observations_groups(
     https://matplotlib.org/stable/users/explain/colors/colormapnorms.html
         - normalization of information for color maps???
 
-    Review: 27 December 2024
+    Review: 30 December 2024
 
     arguments:
         table_signal (object): Pandas data-frame table of values of signal
@@ -2630,29 +2662,53 @@ def plot_heatmap_signal_features_sets_observations_groups(
         width_ratios=(10,90), # first column 1/10th width of second column
         height_ratios=(90,3,5,2), # first row 30 times the height of second row
     )
-    # Initialize axes within grid within figure.
-    axes_set = figure.add_subplot(grid[0,0]) # first row, first column
-    axes_main = figure.add_subplot(grid[0,1]) # first row, second column
-    axes_group = figure.add_subplot(grid[1,1]) # second row, second column
-    axes_space = figure.add_subplot(grid[2,1]) # third row, second column
-    axes_bar = figure.add_subplot(grid[3,1]) # fourth row, second column
-    # Adjust margins.
-    grid.tight_layout(
-        figure,
-        #pad=1.0,
-        #h_pad=1.0,
-        #w_pad=1.0,
-        rect=[0,0.05,1.0,1.0], # left, bottom, right, top
-    )
     grid.update(
         wspace=0.005, # horizontal width space between grid blocks for subplots
         hspace=0.005, # vertical height space between grid blocks for subplots
     )
+    # Initialize axes within grid within figure.
+    axes_set = figure.add_subplot(grid[0,0]) # first row, first column
+    axes_main = figure.add_subplot(grid[0,1]) # first row, second column
+    axes_space_first = figure.add_subplot(grid[1,0]) # second row, first column
+    axes_group = figure.add_subplot(grid[1,1]) # second row, second column
+    axes_space_second = figure.add_subplot(grid[2,1]) # third row, second column
+    axes_bar = figure.add_subplot(grid[3,1]) # fourth row, second column
+    axes_set.clear()
+    axes_main.clear()
+    axes_space_first.clear()
+    axes_group.clear()
+    axes_space_second.clear()
+    axes_bar.clear()
+    # Set axes to empty as a space holder.
+    axes_space_first.axis("off")
+    axes_space_second.axis("off")
+    #axes_set.axis("off")
+    #axes_group.axis("off")
+    #axes_bar.axis("off")
+    #axes_main.axis("off")
     # Keep axes, ticks, and labels, but remove border.
     for position in ['right', 'top', 'bottom', 'left']:
         matplotlib.pyplot.gca().spines[position].set_visible(False)
-    # Set axes to empty as a space holder.
-    axes_space.axis("off")
+    # Adjust margins.
+    # Method "tight_layout()" does not function properly with object
+    # "GridSpec()".
+    #grid.tight_layout(
+    #    figure,
+    #    #pad=1.0,
+    #    #h_pad=1.0,
+    #    #w_pad=1.0,
+    #    rect=[0,0.05,1.0,1.0], # left, bottom, right, top
+    #)
+    #grid.update(
+    #    wspace=0.005, # horizontal width space between grid blocks for subplots
+    #    hspace=0.005, # vertical height space between grid blocks for subplots
+    #)
+    figure.subplots_adjust(
+        left=0.02,
+        right=0.98,
+        top=0.98,
+        bottom=0.05,
+    )
 
     ##########
     # axes: main
@@ -2712,13 +2768,13 @@ def plot_heatmap_signal_features_sets_observations_groups(
     # axes: set
     # Define color map for discrete, binary integer representation of
     # allocation to sets.
-    color_map = matplotlib.colors.ListedColormap([
+    color_map_set = matplotlib.colors.ListedColormap([
         "white", "black"
     ])
     # Plot values as a grid of color on discrete scale.
-    image = axes_set.imshow(
+    image_set = axes_set.imshow(
         matrix_feature_sets,
-        cmap=color_map,
+        cmap=color_map_set,
         vmin=0,
         vmax=1,
         aspect="auto", # "auto", "equal",
@@ -2733,7 +2789,7 @@ def plot_heatmap_signal_features_sets_observations_groups(
     axes_set.set_xticklabels(
         labels_feature_sets_index_columns,
         #minor=False,
-        ha="right", # horizontal alignment
+        ha="center", # horizontal alignment
         va="top", # vertical alignment
         alpha=1.0,
         rotation=90, # negative: clockwise; positive: count-clockwise
@@ -2773,14 +2829,14 @@ def plot_heatmap_signal_features_sets_observations_groups(
     #discrete_maximum = len(pail["labels_group_unique"])
     discrete_minimum = numpy.nanmin(pail["matrix_group_integers"])
     discrete_maximum = numpy.nanmax(pail["matrix_group_integers"])
-    color_map = matplotlib.pyplot.get_cmap(
+    color_map_group = matplotlib.pyplot.get_cmap(
         "tab10", # "Set1", "Set2", "Dark2", "tab10",
         ((discrete_maximum - discrete_minimum) + 1)
     )
     # Plot values as a grid of color on discrete scale.
     image_group = axes_group.imshow(
         pail["matrix_group_integers"],
-        cmap=color_map,
+        cmap=color_map_group,
         vmin=discrete_minimum,
         vmax=discrete_maximum,
         aspect="auto", # "auto", "equal",
@@ -2807,7 +2863,7 @@ def plot_heatmap_signal_features_sets_observations_groups(
     # See nested function "create_legend_elements()" within main function
     # "plot_scatter_factor_groups()".
     handles = [matplotlib.patches.Patch(
-        color=color_map(i),
+        color=color_map_group(i),
         label=pail["indices_groups"][i]
     ) for i in pail["indices_groups"].keys()]
     axes_group.legend(
@@ -2824,8 +2880,18 @@ def plot_heatmap_signal_features_sets_observations_groups(
     # Notice that use of the "cax" argument causes to ignore the "shrink"
     # argument.
     if show_scale_bar:
+        # Set definitive scale to avoid conflicts with global objects.
+        #color_map_main = matplotlib.pyplot.cm.ScalarMappable(
+        #    cmap="PuOr",
+        #    norm=matplotlib.pyplot.Normalize(
+        #        vmin=pail["value_minimum"],
+        #        vmax=pail["value_maximum"],
+        #    ),
+        #)
+        #color_map_main.set_array(pail["matrix_signal"])
+        # Create scale bar.
         bar_main = axes_bar.figure.colorbar(
-            image_main,
+            image_main, # image_main, color_map_main
             orientation="horizontal",
             cax=axes_bar,
             location="bottom",
