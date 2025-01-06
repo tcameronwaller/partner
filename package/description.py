@@ -1487,6 +1487,7 @@ def describe_table_features_by_groups(
     table=None,
     column_group=None,
     columns_features=None,
+    index_feature=None,
     report=None,
 ):
     """
@@ -1517,6 +1518,8 @@ def describe_table_features_by_groups(
             observations
         columns_features (list<str>): names of columns in source table for
             features
+        index_feature (str): name for column of index across rows in product
+            table corresponding to names of features
         report (bool): whether to print reports
 
     raises:
@@ -1571,8 +1574,8 @@ def describe_table_features_by_groups(
             values_available = numpy.copy(values_raw[~numpy.isnan(values_raw)])
             # Collect information.
             record = dict()
-            record["feature"] = feature
-            record["group"] = group
+            record[index_feature] = feature
+            record[column_group] = group
             # Determine mean, median, standard deviation, and standard error of
             # values in array.
             record["mean"] = numpy.nanmean(values_available)
@@ -1608,8 +1611,8 @@ def describe_table_features_by_groups(
     table_product = pandas.DataFrame(data=records)
     # Specify sequence of columns within table.
     columns_sequence = [
-        "feature",
-        "group",
+        index_feature,
+        column_group,
         "mean",
         "standard_error",
         "standard_deviation",

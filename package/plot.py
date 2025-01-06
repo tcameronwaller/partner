@@ -2336,13 +2336,16 @@ def plot_heatmap_signal_features_sets_observations_labels(
     # axes: set
     # Define color map for discrete, binary integer representation of
     # allocation to sets.
-    color_map = matplotlib.colors.ListedColormap([
-        "white", "black"
+    # https://matplotlib.org/3.1.1/gallery/color/named_colors.html
+    # "white", "black"
+    # "white", "dimgray"
+    color_map_set = matplotlib.colors.ListedColormap([
+        "white", "dimgray"
     ])
     # Plot values as a grid of color on discrete scale.
     image = axes_set.imshow(
         matrix_feature_sets,
-        cmap=color_map,
+        cmap=color_map_set,
         vmin=0,
         vmax=1,
         aspect="auto", # "auto", "equal",
@@ -2768,8 +2771,11 @@ def plot_heatmap_signal_features_sets_observations_groups(
     # axes: set
     # Define color map for discrete, binary integer representation of
     # allocation to sets.
+    # https://matplotlib.org/3.1.1/gallery/color/named_colors.html
+    # "white", "black"
+    # "white", "dimgray"
     color_map_set = matplotlib.colors.ListedColormap([
-        "white", "black"
+        "white", "dimgray"
     ])
     # Plot values as a grid of color on discrete scale.
     image_set = axes_set.imshow(
@@ -4818,7 +4824,8 @@ def plot_scatter_fold_change_volcano(
         aspect=aspect,
     )
     # Create axes.
-    axes = matplotlib.pyplot.axes()
+    #axes = matplotlib.pyplot.axes()
+    axes = figure.add_subplot(111)
     #axes.margins(
     #    x=1,
     #    y=1,
