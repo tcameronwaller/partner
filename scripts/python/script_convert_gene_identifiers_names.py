@@ -224,6 +224,17 @@ def parse_delivery_mygene_information(
                         record[type_source] = record_delivery["query"]
                         record[type_product] = item["gene"]
                         records.append(record)
+            elif (str(type_product).strip() == "entrezgene"):
+                if ("entrezgene" in record_delivery.keys()):
+                    identifier_product = record_delivery["entrezgene"]
+                else:
+                    identifier_product = record_delivery["_id"]
+                    pass
+                # Collect information.
+                record = dict()
+                record[type_source] = record_delivery["query"]
+                record[type_product] = identifier_product
+                records.append(record)
             else:
                 # Collect information.
                 record = dict()
@@ -325,6 +336,8 @@ def execute_procedure(
 
     ##########
     # Read and extract identifiers or names in source.
+    delimiter_source = delimiter_source.replace("tab", "\t") # "\\t"
+    delimiter_source = delimiter_source.replace("newline", "\n") # "\\n"
     items_source = read_source_extract_items(
         path_file=path_file_source,
         delimiter=delimiter_source,
@@ -340,6 +353,8 @@ def execute_procedure(
         species=species,
         report=report,
     )
+    print("!!!!!!!!!!!!!!!! mygene delivery")
+    print(delivery)
     # Use temporary file for testing to avoid repetitive queries at
     # MyGene.info.
     if False:
@@ -374,8 +389,8 @@ def execute_procedure(
     #name_file = os.path.basename(path_file_product).split()
     #path_directory = os.path.dirname(path_file_product)
     # Resolve misinterpretation of delimiter strings.
-    delimiter_product = delimiter_product.replace("\\t", "\t")
-    delimiter_product = delimiter_product.replace("\\n", "\n")
+    delimiter_product = delimiter_product.replace("tab", "\t")
+    delimiter_product = delimiter_product.replace("newline", "\n")
     putly.write_list_to_file_text(
         elements=pail["items"],
         delimiter=delimiter_product,

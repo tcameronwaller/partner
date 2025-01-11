@@ -2177,7 +2177,7 @@ def plot_heatmap_signal_features_sets_observations_labels(
         ncols=4,
         wspace=0.005, # horizontal width space between grid blocks for subplots
         hspace=0.005, # vertical height space between grid blocks for subplots
-        width_ratios=(10,85,2,3),
+        width_ratios=(15,80,2,3),
         height_ratios=(100,),
     )
     grid.update(
@@ -2662,7 +2662,7 @@ def plot_heatmap_signal_features_sets_observations_groups(
         ncols=2,
         wspace=0.005, # horizontal width space between grid blocks for subplots
         hspace=0.005, # vertical height space between grid blocks for subplots
-        width_ratios=(10,90), # first column 1/10th width of second column
+        width_ratios=(15,85), # first column 1/10th width of second column
         height_ratios=(90,3,5,2), # first row 30 times the height of second row
     )
     grid.update(

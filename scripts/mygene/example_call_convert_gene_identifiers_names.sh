@@ -19,7 +19,7 @@
 # Directories.
 cd ~
 path_directory_paths="./Downloads/paths_process_local"
-path_directory_tool=$(<"$path_directory_paths/path_directory_tool.txt")
+path_directory_tools=$(<"$path_directory_paths/path_directory_tools.txt")
 path_directory_process=$(<"$path_directory_paths/path_directory_process_local.txt")
 path_directory_scripts="$path_directory_process/scripts"
 
@@ -41,8 +41,8 @@ path_file_script="${path_directory_scripts}/partner/mygene/convert_gene_identifi
 # Organize parameters.
 
 # Parameters.
-delimiter_source="," # "\n", "\t", ";", ":", ",", not " "
-delimiter_product="\n" # "\n", "\t", ";", ":", ",", not " "
+delimiter_source="," # "newline", "tab", "\n", "\t", ";", ":", ",", not " "
+delimiter_product="\n" # "newline", "tab", "\n", "\t", ";", ":", ",", not " "
 type_source="entrezgene" # "entrezgene", "ensembl.gene", "symbol",
 type_product="ensembl.gene" # "entrezgene", "ensembl.gene", "symbol",
 species="human" # "human"

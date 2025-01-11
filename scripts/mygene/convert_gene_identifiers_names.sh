@@ -34,7 +34,7 @@ species=${7} # name of species, either "human", "mouse", or another relevant opt
 # Directories.
 cd ~
 path_directory_paths="./Downloads/paths_process_local"
-path_directory_tool=$(<"$path_directory_paths/path_directory_tool.txt")
+path_directory_tools=$(<"$path_directory_paths/path_directory_tools.txt")
 path_directory_process=$(<"$path_directory_paths/path_directory_process_local.txt")
 path_directory_scripts="$path_directory_process/scripts"
 path_directory_package="$path_directory_process/package"
@@ -49,7 +49,7 @@ path_file_script_product="${path_directory_package}/script_convert_gene_identifi
 cp $path_file_script_source $path_file_script_product
 
 # Executable handles.
-path_environment_main="$path_directory_tool/python/environments/main"
+path_environment_main="$path_directory_tools/python/environments/main"
 echo $path_environment_main
 
 # Initialize directory.
