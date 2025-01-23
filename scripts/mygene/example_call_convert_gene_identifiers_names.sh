@@ -42,7 +42,7 @@ path_file_script="${path_directory_scripts}/partner/mygene/convert_gene_identifi
 
 # Parameters.
 delimiter_source="," # "newline", "tab", "\n", "\t", ";", ":", ",", not " "
-delimiter_product="\n" # "newline", "tab", "\n", "\t", ";", ":", ",", not " "
+delimiter_product="newline" # "newline", "tab", "\n", "\t", ";", ":", ",", not " "
 type_source="entrezgene" # "entrezgene", "ensembl.gene", "symbol",
 type_product="ensembl.gene" # "entrezgene", "ensembl.gene", "symbol",
 species="human" # "human"

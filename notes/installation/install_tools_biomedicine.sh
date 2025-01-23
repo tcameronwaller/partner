@@ -48,6 +48,55 @@ sudo add-apt-repository ppa:c2d4u.team/c2d4u4.0+
 # date, review:
 # note: a separate file describes installation of Python and its packages
 
+##################################################
+# Functional interpretation of bioentities and signals
+
+##########
+# name: Gene Set Enrichment Analysis (GSEA)
+# site: https://www.gsea-msigdb.org/gsea/index.jsp
+# version, latest: v4.3.3
+# date, installation: 16 January 2025
+# date, review: 16 January 2025
+# 1. download GSEA software
+# click the link instead of using 'wget'
+# https://www.gsea-msigdb.org/gsea/downloads.jsp
+# click: https://www.gsea-msigdb.org/gsea/msigdb/download_file.jsp?filePath=/gsea/software/desktop/4.3/GSEA_Linux_4.3.3.zip
+# 2. download MSigDB reference
+# https://www.gsea-msigdb.org/gsea/downloads.jsp
+# click: https://www.gsea-msigdb.org/gsea/msigdb/download_file.jsp?filePath=/msigdb/release/2024.1.Hs/h.all.v2024.1.Hs.entrez.gmt
+# click: https://www.gsea-msigdb.org/gsea/msigdb/download_file.jsp?filePath=/msigdb/release/2024.1.Hs/msigdb_v2024.1.Hs_files_to_download_locally.zip
+# 3. move GSEA software to directory within which to install
+mv ./GSEA_Linux_4.3.3.zip "$path_directory_tools/gsea_msigdb"
+mv ./msigdb_v2024.1.Hs_files_to_download_locally.zip "$path_directory_tools/gsea_msigdb"
+cd "$path_directory_tools/gsea_msigdb"
+# 4. decompress the archive of GSEA software
+unzip "GSEA_Linux_4.3.3.zip"
+# 5. decompress the archive of MSigDB reference
+unzip "msigdb_v2024.1.Hs_files_to_download_locally.zip"
+# 5. confirm and update installation of Java
+java -version # TCW; 16 January 2025
+# openjdk version "21.0.5" 2024-10-15
+# OpenJDK Runtime Environment (build 21.0.5+11-Ubuntu-1ubuntu124.04)
+# OpenJDK 64-Bit Server VM (build 21.0.5+11-Ubuntu-1ubuntu124.04, mixed mode, sharing)
+# 6. edit script to initialize GSEA with more memory
+# change "-Xmx4g" to "-Xmx8g" within file "gsea.sh" and file "gsea-cli.sh"
+# 7. call script to launch GSEA
+cd ./GSEA_Linux_4.3.3
+bash gsea.sh # desktop graphical interface
+bash gsea-cli.sh # command line interface
+# 8. set preferences
+# in "Preferences" menu, change "default output folder"
+# 9. execute analysis
+# 9.1. Load data
+#     - load rank files (rnk format)
+#     - load MSigDB files (gmt format)
+# 9.2. Run GSEAPreranked
+#     - ...
+#     - Collapse/Remap to gene symbols: No_Collapse
+#     - ...
+# 9.3. delete analysis results
+#     - path: ~/gsea_home/reports_cache
+
 ##########
 # name: Cytoscape
 # site: https://cytoscape.org/index.html
