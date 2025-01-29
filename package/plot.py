@@ -4406,7 +4406,8 @@ def plot_boxes_groups(
         aspect=aspect,
     )
     # Create axes.
-    axes = matplotlib.pyplot.axes()
+    #axes = matplotlib.pyplot.axes()
+    axes = figure.add_subplot(111)
     # Create boxes.
     if orientation_box == "horizontal":
         boxes_vertical = False
@@ -4436,8 +4437,8 @@ def plot_boxes_groups(
         meanprops={
             "marker": "D", # diamond
             "markersize": 10.0, # 10.0, 20.0
-            "markeredgecolor": colors["orange_burnt"],
-            "markerfacecolor": colors["orange_burnt"],
+            "markeredgecolor": colors["black"], # orange_burnt
+            "markerfacecolor": colors["black"],
         },
         whiskerprops={
             "linestyle": "solid",

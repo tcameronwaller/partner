@@ -771,6 +771,352 @@ def sort_table_rows_by_single_column_reference(
     return table
 
 
+##########
+# Extract values.
+
+
+def test_extract_filter_array_values_from_series():
+    """
+    Test:
+    This function tests the function below.
+    partner.organization.extract_filter_array_values_from_series()
+
+
+    Review: TCW; 24 July 2024
+
+    arguments:
+
+    raises:
+
+    returns:
+
+    """
+
+    # Dictionary.
+    dictionary_integer = {
+        "a": 1,
+        "b": 2,
+        "c": 3,
+        "d": float("nan"),
+        "e": 5,
+        "f": 6,
+        "g": 7,
+        "h": 8,
+        "i": 9,
+        "j": 10,
+    }
+    dictionary_float = {
+        "a": 0.001,
+        "b": 0.005,
+        "c": 0.01,
+        "d": 0.05,
+        "e": 0.1,
+        "f": 0.5,
+        "g": float("nan"),
+        "h": 0.7,
+        "i": 0.8,
+        "j": 0.9,
+    }
+    # Series.
+    series_integer = pandas.Series(
+        data=dictionary_integer,
+        index=[
+            "a", "b", "c", "d", "e", "f", "g", "h", "i", "j",
+        ],
+    )
+    series_float = pandas.Series(
+        data=dictionary_float,
+        index=[
+            "a", "b", "c", "d", "e", "f", "g", "h", "i", "j",
+        ],
+    )
+    # Call function to test.
+    putly.print_terminal_partition(level=3)
+    print("module: partner.organization.py")
+    print("function: test_extract_filter_array_values_from_series()")
+    print("series type: integer")
+    putly.print_terminal_partition(level=5)
+    pail_test = extract_filter_array_values_from_series(
+        series=series_integer,
+        threshold_low=1,
+        threshold_high=9,
+        report=True,
+    )
+    # Call function to test.
+    putly.print_terminal_partition(level=3)
+    print("module: partner.organization.py")
+    print("function: test_extract_filter_array_values_from_series()")
+    print("series type: float")
+    putly.print_terminal_partition(level=5)
+    pail_test = extract_filter_array_values_from_series(
+        series=series_float,
+        threshold_low=0.01,
+        threshold_high=0.8,
+        report=True,
+    )
+    pass
+
+
+def extract_filter_array_values_from_series(
+    series=None,
+    threshold_low=None,
+    threshold_high=None,
+    report=None,
+):
+    """
+    Dependency:
+    This function is a dependency of the functions below.
+    partner.organization.determine_series_signal_validity_threshold()
+    partner.organization.fill_missing_values_series()
+
+    Extract to a Numpy array and filter values from a Pandas series, such as a
+    single column or row from a Pandas data-frame table.
+
+    Review: TCW; 29 January 2025
+
+    arguments:
+        series (object): Pandas series of values of signal intensity
+        threshold_low (float): threshold below which (value <= threshold) all
+            values are considered invalid and missing
+        threshold_high (float): threshold above which (value > threshold) all
+            values are considered invalid and missing
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict<object>): collection of information
+
+    """
+
+    # Copy information in series and other objects.
+    series = series.copy(deep=True)
+    # Extract and organize information from series.
+    # Values, raw.
+    #values_raw = values_raw.astype(numpy.float32)
+    values_raw = series.to_numpy(
+        dtype="float64",
+        na_value=numpy.nan,
+        copy=True,
+    )
+    # Values, nonmissing.
+    values_nonmissing = numpy.copy(values_raw[~numpy.isnan(values_raw)])
+    # Values, valid.
+    if ((threshold_low is None) and (threshold_high is None)):
+        values_valid = numpy.copy(values_nonmissing)
+    elif ((threshold_low is not None) and (threshold_high is None)):
+        values_temporary = numpy.copy(values_raw)
+        values_temporary[values_temporary <= threshold_low] = numpy.nan
+        values_valid = values_temporary[~numpy.isnan(values_temporary)]
+    elif ((threshold_low is None) and (threshold_high is not None)):
+        values_temporary = numpy.copy(values_raw)
+        values_temporary[values_temporary > threshold_high] = numpy.nan
+        values_valid = values_temporary[~numpy.isnan(values_temporary)]
+    elif ((threshold_low is not None) and (threshold_high is not None)):
+        values_temporary = numpy.copy(values_raw)
+        values_temporary[values_temporary <= threshold_low] = numpy.nan
+        values_temporary[values_temporary > threshold_high] = numpy.nan
+        values_valid = values_temporary[~numpy.isnan(values_temporary)]
+        pass
+    # Values, logarithm.
+    # For reference only.
+    # Logarithm is only defined for values greater than zero.
+    #values_log = numpy.copy(values_valid)
+    #values_log = numpy.log(values_log)
+    #values_log = numpy.log2(values_log)
+    #values_log = numpy.log10(values_log)
+    # Counts.
+    #count_nonmissing = numpy.count_nonzero(~numpy.isnan(values_raw))
+    #count_nonmissing = int(values_nonmissing.size)
+    #count_positive = numpy.count_nonzero(values_nonmissing > 0)
+    # Collect information.
+    pail = dict()
+    pail["values_raw"] = values_raw
+    pail["values_nonmissing"] = values_nonmissing
+    pail["values_valid"] = values_valid
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("module: partner.organization.py")
+        print("function: extract_filter_array_values_from_series()")
+        putly.print_terminal_partition(level=5)
+        print("original source series:")
+        print(series)
+        putly.print_terminal_partition(level=5)
+        print("values, raw:")
+        print(pail["values_raw"])
+        putly.print_terminal_partition(level=5)
+        print("values, nonmissing:")
+        print(pail["values_nonmissing"])
+        putly.print_terminal_partition(level=5)
+        print("values, nonmissing and within thresholds:")
+        print("threshold, low (<=): " + str(threshold_low))
+        print("threshold, high (>): " + str(threshold_high))
+        print(pail["values_valid"])
+        putly.print_terminal_partition(level=4)
+    # Return information.
+    return pail
+
+
+def extract_array_values_from_table_column_by_groups_rows(
+    table=None,
+    column_feature=None,
+    column_group=None,
+    report=None,
+):
+    """
+    Dependency:
+    This function is a dependency of the functions below.
+    partner.description.describe_table_features_by_groups()
+
+    Extract to a Numpy array the values from a single column of a Pandas
+    data-frame table and store these within entries of a Python dictionary
+    corresponding to groups of rows.
+
+    Format of source table is in wide format with features across columns and
+    observations across rows. A special column gives identifiers corresponding
+    to each observation across rows. Another special column provides names
+    of categorical groups of observations, with multiple observations in each
+    group. For versatility, this table does not have explicitly defined indices
+    across columns or rows. Values for observations of features are on a
+    quantitative, continuous, interval or ratio scale of measurement.
+    ----------
+    observation     group     feature_1 feature_2 feature_3 feature_4 feature_5
+    observation_1   group_1   0.001     0.001     0.001     0.001     0.001
+    observation_2   group_1   0.001     0.001     0.001     0.001     0.001
+    observation_3   group_1   0.001     0.001     0.001     0.001     0.001
+    observation_4   group_2   0.001     0.001     0.001     0.001     0.001
+    observation_5   group_2   0.001     0.001     0.001     0.001     0.001
+    observation_6   group_2   0.001     0.001     0.001     0.001     0.001
+    ----------
+
+    Review: TCW; 29 January 2025
+
+    arguments:
+        table (object): Pandas data-frame table of features across columns and
+            observations across rows with values on a quantitative, continuous,
+            interval or ratio scale of measurement
+        column_feature (str): name of column in original source table for a
+            feature on a quantitative, continuous, interval, or ratio scale of
+            measurement
+        column_group (str): name of column in table to use for groups
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict): collection of information
+            groups_sequence (list<str>): names of groups in original sequence
+                as extracted initially from source table
+            names_groups (list<str>): names of groups in sort order to match
+                original sequence from source table
+            values_groups (list<array>): values for feature from observations
+                in groups in sort order to match original sequence from source
+                table
+            groups_values (dict<array>): values for feature from observations
+                in groups
+            groups_values_nonmissing (dict<array>): nonmissing values for
+                feature from observations in groups
+
+    """
+
+    # Copy information.
+    table = table.copy(deep=True)
+    # Collect information.
+    pail = dict()
+    # Extract names and indices of groups to preserve their original sequence.
+    pail["groups_sequence"] = copy.deepcopy(
+        table[column_group].unique().tolist()
+    )
+    pail["sequence_groups"] = dict()
+    index = 0
+    for name in pail["groups_sequence"]:
+        pail["sequence_groups"][name] = index
+        index += 1
+        pass
+    # Organize indices in table.
+    table.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    table.set_index(
+        [column_group],
+        append=False,
+        drop=True,
+        inplace=True
+    )
+    # Split rows within table by factor columns.
+    groups = table.groupby(
+        level=column_group,
+    )
+    # Collect information.
+    names_groups_collection = list()
+    values_groups_collection = list()
+    values_nonmissing_groups_collection = list()
+    # Iterate on groups, apply operations, and collect information from each.
+    for name_group, table_group in groups:
+        # Copy information in table.
+        table_group = table_group.copy(deep=True)
+        # Extract information.
+        values_group = table_group[column_feature].to_numpy(
+            dtype="float64",
+            na_value=numpy.nan,
+            copy=True,
+        )
+        values_nonmissing_group = numpy.copy(
+            values_group[~numpy.isnan(values_group)]
+        )
+        # Collect information.
+        names_groups_collection.append(name_group)
+        values_groups_collection.append(values_group)
+        values_nonmissing_groups_collection.append(values_nonmissing_group)
+        pass
+
+    # Sort information for groups and values.
+    sequence_sort = list()
+    for name in names_groups_collection:
+        sequence_sort.append(pail["sequence_groups"][name])
+        pass
+    pail["names_groups"] = [
+        y for _,y in sorted(zip(sequence_sort, names_groups_collection))
+    ]
+    pail["values_groups"] = [
+        y for _,y in sorted(zip(sequence_sort, values_groups_collection))
+    ]
+    pail["values_nonmissing_groups"] = [
+        y for _,y in sorted(
+            zip(sequence_sort, values_nonmissing_groups_collection)
+        )
+    ]
+    # Organize information.
+    names_groups = copy.deepcopy(pail["names_groups"])
+    values_groups = copy.deepcopy(pail["values_groups"])
+    values_nonmissing_groups = copy.deepcopy(pail["values_nonmissing_groups"])
+    # Collect information.
+    #names_values = {
+    #    names_groups[i]: values_groups[i] for i in range(len(names_groups))
+    #}
+    pail["groups_values"] = dict()
+    for name, values in zip(names_groups, values_groups):
+        pail["groups_values"][name] = numpy.copy(values)
+        pass
+    pail["groups_values_nonmissing"] = dict()
+    for name, values in zip(names_groups, values_nonmissing_groups):
+        pail["groups_values_nonmissing"][name] = numpy.copy(values)
+        pass
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("module: partner.organization.py")
+        function = str(
+            "extract_array_values_from_table_column_by_groups_rows()"
+        )
+        print("function: " + function)
+        putly.print_terminal_partition(level=5)
+    # Return information.
+    return pail
+
 
 ##########
 # Filter.
@@ -1394,189 +1740,6 @@ def filter_table_rows_columns_by_proportion_nonmissing_threshold(
         putly.print_terminal_partition(level=5)
     # Return information.
     return table_filter
-
-
-def test_extract_filter_array_values_from_series():
-    """
-    Test:
-    This function tests the function below.
-    partner.organization.extract_filter_array_values_from_series()
-
-
-    Review: TCW; 24 July 2024
-
-    arguments:
-
-    raises:
-
-    returns:
-
-    """
-
-    # Dictionary.
-    dictionary_integer = {
-        "a": 1,
-        "b": 2,
-        "c": 3,
-        "d": float("nan"),
-        "e": 5,
-        "f": 6,
-        "g": 7,
-        "h": 8,
-        "i": 9,
-        "j": 10,
-    }
-    dictionary_float = {
-        "a": 0.001,
-        "b": 0.005,
-        "c": 0.01,
-        "d": 0.05,
-        "e": 0.1,
-        "f": 0.5,
-        "g": float("nan"),
-        "h": 0.7,
-        "i": 0.8,
-        "j": 0.9,
-    }
-    # Series.
-    series_integer = pandas.Series(
-        data=dictionary_integer,
-        index=[
-            "a", "b", "c", "d", "e", "f", "g", "h", "i", "j",
-        ],
-    )
-    series_float = pandas.Series(
-        data=dictionary_float,
-        index=[
-            "a", "b", "c", "d", "e", "f", "g", "h", "i", "j",
-        ],
-    )
-    # Call function to test.
-    putly.print_terminal_partition(level=3)
-    print("module: partner.organization.py")
-    print("function: test_extract_filter_array_values_from_series()")
-    print("series type: integer")
-    putly.print_terminal_partition(level=5)
-    pail_test = extract_filter_array_values_from_series(
-        series=series_integer,
-        threshold_low=1,
-        threshold_high=9,
-        report=True,
-    )
-    # Call function to test.
-    putly.print_terminal_partition(level=3)
-    print("module: partner.organization.py")
-    print("function: test_extract_filter_array_values_from_series()")
-    print("series type: float")
-    putly.print_terminal_partition(level=5)
-    pail_test = extract_filter_array_values_from_series(
-        series=series_float,
-        threshold_low=0.01,
-        threshold_high=0.8,
-        report=True,
-    )
-    pass
-
-
-def extract_filter_array_values_from_series(
-    series=None,
-    threshold_low=None,
-    threshold_high=None,
-    report=None,
-):
-    """
-    Dependency:
-    This function is a dependency of the function below.
-    partner.organization.determine_series_signal_validity_threshold()
-    partner.organization.fill_missing_values_series()
-
-    Extract to a Numpy array and filter values from a Pandas series, such as a
-    single column or row from a Pandas data-frame table.
-
-    Review: TCW; 6 December 2024
-
-    arguments:
-        series (object): Pandas series of values of signal intensity
-        threshold_low (float): threshold below which (value <= threshold) all
-            values are considered invalid and missing
-        threshold_high (float): threshold above which (value > threshold) all
-            values are considered invalid and missing
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (dict<object>): collection of information
-
-    """
-
-    # Copy information in series and other objects.
-    series = series.copy(deep=True)
-    # Extract and organize information from series.
-    # Values, raw.
-    #values_raw = values_raw.astype(numpy.float32)
-    values_raw = series.to_numpy(
-        dtype="float64",
-        na_value=numpy.nan,
-        copy=True,
-    )
-    # Values, nonmissing.
-    values_nonmissing = numpy.copy(values_raw[~numpy.isnan(values_raw)])
-    # Values, valid.
-    if ((threshold_low is None) and (threshold_high is None)):
-        values_valid = numpy.copy(values_nonmissing)
-    elif ((threshold_low is not None) and (threshold_high is None)):
-        values_temporary = numpy.copy(values_raw)
-        values_temporary[values_temporary <= threshold_low] = numpy.nan
-        values_valid = values_temporary[~numpy.isnan(values_temporary)]
-    elif ((threshold_low is None) and (threshold_high is not None)):
-        values_temporary = numpy.copy(values_raw)
-        values_temporary[values_temporary > threshold_high] = numpy.nan
-        values_valid = values_temporary[~numpy.isnan(values_temporary)]
-    elif ((threshold_low is not None) and (threshold_high is not None)):
-        values_temporary = numpy.copy(values_raw)
-        values_temporary[values_temporary <= threshold_low] = numpy.nan
-        values_temporary[values_temporary > threshold_high] = numpy.nan
-        values_valid = values_temporary[~numpy.isnan(values_temporary)]
-        pass
-    # Values, logarithm.
-    # For reference only.
-    # Logarithm is only defined for values greater than zero.
-    #values_log = numpy.copy(values_valid)
-    #values_log = numpy.log(values_log)
-    #values_log = numpy.log2(values_log)
-    #values_log = numpy.log10(values_log)
-    # Counts.
-    #count_nonmissing = numpy.count_nonzero(~numpy.isnan(values_raw))
-    #count_nonmissing = int(values_nonmissing.size)
-    #count_positive = numpy.count_nonzero(values_nonmissing > 0)
-    # Collect information.
-    pail = dict()
-    pail["values_raw"] = values_raw
-    pail["values_nonmissing"] = values_nonmissing
-    pail["values_valid"] = values_valid
-    # Report.
-    if report:
-        putly.print_terminal_partition(level=3)
-        print("module: partner.organization.py")
-        print("function: extract_filter_array_values_from_series()")
-        putly.print_terminal_partition(level=5)
-        print("original source series:")
-        print(series)
-        putly.print_terminal_partition(level=5)
-        print("values, raw:")
-        print(pail["values_raw"])
-        putly.print_terminal_partition(level=5)
-        print("values, nonmissing:")
-        print(pail["values_nonmissing"])
-        putly.print_terminal_partition(level=5)
-        print("values, nonmissing and within thresholds:")
-        print("threshold, low (<=): " + str(threshold_low))
-        print("threshold, high (>): " + str(threshold_high))
-        print(pail["values_valid"])
-        putly.print_terminal_partition(level=4)
-    # Return information.
-    return pail
 
 
 def determine_series_signal_validity_threshold(

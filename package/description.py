@@ -1483,6 +1483,9 @@ def template_split_apply_table_groups(
     return table_collection
 
 
+# TODO: TCW; 29 January 2025
+# keep track of counts of total observations in each group and nonmissing observations
+
 def describe_table_features_by_groups(
     table=None,
     column_group=None,
@@ -1494,26 +1497,29 @@ def describe_table_features_by_groups(
     Describe values corresponding to columns for features within groups of rows
     for observations.
 
-    Format of source table is in wide format with floating-point values of
-    signal intensities corresponding to features across columns and distinct
+    Format of source table is in wide format with features across columns and
     observations across rows. A special column gives identifiers corresponding
     to each observation across rows. Another special column provides names
-    of categorical groups of observations. For versatility, this table does not
-    have explicitly defined indices across columns or rows. Values of signal
-    intensities are continuous on interval or ratio scales of measurement.
+    of categorical groups of observations, with multiple observations in each
+    group. For versatility, this table does not have explicitly defined indices
+    across columns or rows. Values for observations of features are on a
+    quantitative, continuous, interval or ratio scale of measurement.
     ----------
-    observation     group   feature_1 feature_2 feature_3 feature_4 feature_5
-    observation_1   group_1 0.001     0.001     0.001     0.001     0.001
-    observation_2   group_1 0.001     0.001     0.001     0.001     0.001
-    observation_3   group_2 0.001     0.001     0.001     0.001     0.001
-    observation_4   group_2 0.001     0.001     0.001     0.001     0.001
-    observation_5   group_3 0.001     0.001     0.001     0.001     0.001
+    observation     group     feature_1 feature_2 feature_3 feature_4 feature_5
+    observation_1   group_1   0.001     0.001     0.001     0.001     0.001
+    observation_2   group_1   0.001     0.001     0.001     0.001     0.001
+    observation_3   group_1   0.001     0.001     0.001     0.001     0.001
+    observation_4   group_2   0.001     0.001     0.001     0.001     0.001
+    observation_5   group_2   0.001     0.001     0.001     0.001     0.001
+    observation_6   group_2   0.001     0.001     0.001     0.001     0.001
     ----------
 
     Review; TCW; 15 October 2024
 
     arguments:
-        table (object): Pandas data-frame table
+        table (object): Pandas data-frame table of features across columns and
+            observations across rows with values on a quantitative, continuous,
+            interval or ratio scale of measurement
         column_group (str): name of column in source table for groups of
             observations
         columns_features (list<str>): names of columns in source table for
@@ -1533,23 +1539,6 @@ def describe_table_features_by_groups(
     table_source = table.copy(deep=True)
     # Copy other information.
     columns_features = copy.deepcopy(columns_features)
-
-    # Organize indices in table.
-    table_source.reset_index(
-        level=None,
-        inplace=True,
-        drop=True, # remove index; do not move to regular columns
-    )
-    table_source.set_index(
-        column_group,
-        append=False,
-        drop=True,
-        inplace=True
-    )
-    # Split rows within table by factor columns.
-    groups = table_source.groupby(
-        level=column_group,
-    )
 
     # Collect records of information, which will become rows in table.
     records = list()
