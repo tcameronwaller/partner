@@ -1483,20 +1483,62 @@ def template_split_apply_table_groups(
     return table_collection
 
 
-# TODO: TCW; 29 January 2025
-# keep track of counts of total observations in each group and nonmissing observations
+def define_sequence_columns_describe_table_features_by_groups():
+    """
+    Defines names of columns in sequence.
+
+    arguments:
+
+    raises:
+
+    returns:
+        (list<str>): names of columns in sequence by which to filter and sort
+            columns in table
+
+    """
+
+    # Specify sequence of columns within table.
+    columns_sequence = [
+        #index_feature,
+        #"feature_translation",
+        #column_group,
+        #"count_observations",
+        #"count_observations_nonmissing",
+        #"percentage_observations_nonmissing",
+        "minimum",
+        "maximum",
+        "mean",
+        "median",
+        "standard_error",
+        "standard_deviation",
+        "coefficient_variation",
+        "interquartile",
+        "range_95_low",
+        "range_95_high",
+        "range_99_low",
+        "range_99_high",
+    ]
+    # Return information.
+    return columns_sequence
+
 
 def describe_table_features_by_groups(
     table=None,
     column_group=None,
     columns_features=None,
     index_feature=None,
+    translations_feature=None,
+    threshold_observations=None,
+    digits_round=None,
     report=None,
 ):
     """
     Describe values corresponding to columns for features within groups of rows
     for observations.
 
+    ----------
+    Format of source table (name: "table_source")
+    ----------
     Format of source table is in wide format with features across columns and
     observations across rows. A special column gives identifiers corresponding
     to each observation across rows. Another special column provides names
@@ -1514,7 +1556,29 @@ def describe_table_features_by_groups(
     observation_6   group_2   0.001     0.001     0.001     0.001     0.001
     ----------
 
-    Review; TCW; 15 October 2024
+    ----------
+    Format of product table (name: "table_product")
+    ----------
+    Format of product table is in partial long format with summary statistics
+    and measures across columns and features across rows. A special column
+    gives identifiers corresponding to each feature across rows. Another
+    special column provides names of categorical groups of observations. For
+    versatility, this table does not have explicity defined indices across
+    columns or rows.
+    ----------
+    detail    group   mean standard_error standard_deviation median interqua...
+    feature
+    feature_1 group_1 0.01 0.001          0.001              0.015  0.5
+    feature_1 group_2 0.01 0.001          0.001              0.015  0.5
+    feature_1 group_3 0.01 0.001          0.001              0.015  0.5
+    feature_1 group_4 0.01 0.001          0.001              0.015  0.5
+    feature_2 group_1 0.01 0.001          0.001              0.015  0.5
+    feature_2 group_2 0.01 0.001          0.001              0.015  0.5
+    feature_2 group_3 0.01 0.001          0.001              0.015  0.5
+    feature_2 group_4 0.01 0.001          0.001              0.015  0.5
+    ----------
+
+    Review; TCW; 30 January 2025
 
     arguments:
         table (object): Pandas data-frame table of features across columns and
@@ -1522,10 +1586,16 @@ def describe_table_features_by_groups(
             interval or ratio scale of measurement
         column_group (str): name of column in source table for groups of
             observations
-        columns_features (list<str>): names of columns in source table for
-            features
+        column_features (list<str>): names of columns in original source table
+            for features on a quantitative, continuous, interval, or ratio
+            scale of measurement
         index_feature (str): name for column of index across rows in product
             table corresponding to names of features
+        translations_feature (dict<str>): translations for names of features
+        threshold_observations (int): minimal count of observations for which
+            to calculate summary statistics
+        digits_round (int): count of digits to right of decimal to which to
+            round measures
         report (bool): whether to print reports
 
     raises:
@@ -1535,63 +1605,128 @@ def describe_table_features_by_groups(
 
     """
 
-    # Copy information in table.
+    # Copy information.
     table_source = table.copy(deep=True)
     # Copy other information.
     columns_features = copy.deepcopy(columns_features)
+    translations_feature = copy.deepcopy(translations_feature)
 
     # Collect records of information, which will become rows in table.
     records = list()
     # Iterate on features, apply operations, and collect information.
-    for feature in columns_features:
-        # Iterate on groups, apply operations, and collect information.
-        for group, table_group in groups:
-            # Copy information in table.
-            table_group = table_group.copy(deep=True)
-            # Organize indices in table.
-            table_group.reset_index(
-                level=None,
-                inplace=True,
-                drop=True, # remove index; do not move to regular columns
-            )
-            # Extract and organize information from series.
-            values_raw = table_group[feature].dropna().to_numpy(
-                dtype="float64",
-                na_value=numpy.nan,
-                copy=True,
-            )
-            values_available = numpy.copy(values_raw[~numpy.isnan(values_raw)])
+    for column_feature in columns_features:
+        # Extract values from table for current feature across groups of
+        # observations.
+        pail_extract = (
+            porg.extract_array_values_from_table_column_by_groups_rows(
+                table=table_source,
+                column_group=column_group,
+                column_feature=column_feature,
+                report=False,
+        ))
+        # Iterate on groups.
+        for group in pail_extract["groups_sequence"]:
             # Collect information.
             record = dict()
-            record[index_feature] = feature
+            record[index_feature] = column_feature
+            if (
+                (translations_feature is not None) and
+                (column_feature in translations_feature.keys())
+            ):
+                record["feature_translation"] = (
+                    translations_feature[column_feature]
+                )
+            else:
+                record["feature_translation"] = column_feature
+                pass
             record[column_group] = group
-            # Determine mean, median, standard deviation, and standard error of
-            # values in array.
-            record["mean"] = numpy.nanmean(values_available)
-            record["standard_error"] = scipy.stats.sem(
-                values_available,
-                ddof=1, # divisor is (n - 1) for sample standard deviation
-                nan_policy="omit", # ignore missing values in calculation
-            )
-            record["standard_deviation"] = numpy.nanstd(
-                values_available,
-                ddof=1, # divisor is (n - 1) for sample standard deviation
-            )
-            record["median"] = numpy.nanmedian(values_available)
-            record["interquartile"] = scipy.stats.iqr(
-                values_available,
-                rng=(25, 75),
-                nan_policy="omit", # ignore missing values in calculation.
-            )
-            record["minimum"] = numpy.nanmin(values_available)
-            record["maximum"] = numpy.nanmax(values_available)
-            pail_95 = calculate_confidence_interval_range(
-                confidence=0.95,
-                standard_error=record["standard_error"],
-                estimate=record["mean"],
-            )
-            record["range_95_low"] = pail_95["minimum"]
-            record["range_95_high"] = pail_95["maximum"]
+            # Count.
+            record["count_observations"] = int(len(
+                pail_extract["groups_values"][group]
+            ))
+            record["count_observations_nonmissing"] = int(len(
+                pail_extract["groups_values_nonmissing"][group]
+            ))
+            # Percentage.
+            portion = record["count_observations_nonmissing"]
+            total = record["count_observations"]
+            if (total > 0):
+                record["percentage_observations_nonmissing"] = round(float(
+                    ((portion / total) * 100)), 2
+                )
+            else:
+                record["percentage_observations_nonmissing"] = float("nan")
+                pass
+            # Determine whether there are adequate observations.
+            count = record["count_observations_nonmissing"]
+            if (count >= threshold_observations):
+                # Range.
+                record["minimum"] = round(numpy.nanmin(
+                    pail_extract["groups_values"][group]
+                ), digits_round)
+                record["maximum"] = round(numpy.nanmax(
+                    pail_extract["groups_values"][group]
+                ), digits_round)
+                # Center.
+                record["mean"] = round(numpy.nanmean(
+                    pail_extract["groups_values"][group]
+                ), digits_round)
+                record["median"] = round(numpy.nanmedian(
+                    pail_extract["groups_values"][group]
+                ), digits_round)
+                # Spread, variance.
+                record["standard_error"] = round(scipy.stats.sem(
+                    pail_extract["groups_values"][group],
+                    ddof=1, # divisor is (n - 1) for sample standard deviation
+                    nan_policy="omit", # ignore missing values in calculation
+                ), digits_round)
+                record["standard_deviation"] = round(numpy.nanstd(
+                    pail_extract["groups_values"][group],
+                    ddof=1, # divisor is (n - 1) for sample standard deviation
+                ), digits_round)
+                if ((record["mean"] > 0.0) or (record["mean"] < 0.0)):
+                    record["coefficient_variation"] = round(float(
+                        record["standard_deviation"] / record["mean"]
+                    ), digits_round)
+                else:
+                    record["coefficient_variation"] = float("nan")
+                    pass
+                record["interquartile"] = round(scipy.stats.iqr(
+                    pail_extract["groups_values"][group],
+                    rng=(25, 75),
+                    nan_policy="omit", # ignore missing values in calculation.
+                ), digits_round)
+                pail_95 = calculate_confidence_interval_range(
+                    confidence=0.95,
+                    standard_error=record["standard_error"],
+                    estimate=record["mean"],
+                )
+                record["range_95_low"] = round(
+                    pail_95["minimum"], digits_round
+                )
+                record["range_95_high"] = round(
+                    pail_95["maximum"], digits_round
+                )
+                pail_99 = calculate_confidence_interval_range(
+                    confidence=0.99,
+                    standard_error=record["standard_error"],
+                    estimate=record["mean"],
+                )
+                record["range_99_low"] = round(
+                    pail_99["minimum"], digits_round
+                )
+                record["range_99_high"] = round(
+                    pail_99["maximum"], digits_round
+                )
+            else:
+                # Fill missing values.
+                columns_sequence = (
+                    define_sequence_columns_describe_table_features_by_groups()
+                )
+                for column in columns_sequence:
+                    record[column] = float("nan")
+                    pass
+                pass
             # Collect information.
             records.append(record)
             pass
@@ -1601,17 +1736,16 @@ def describe_table_features_by_groups(
     # Specify sequence of columns within table.
     columns_sequence = [
         index_feature,
+        "feature_translation",
         column_group,
-        "mean",
-        "standard_error",
-        "standard_deviation",
-        "median",
-        "interquartile",
-        "minimum",
-        "maximum",
-        "range_95_low",
-        "range_95_high",
+        "count_observations",
+        "count_observations_nonmissing",
+        "percentage_observations_nonmissing",
     ]
+    columns_sequence_extra = (
+        define_sequence_columns_describe_table_features_by_groups()
+    )
+    columns_sequence.extend(columns_sequence_extra)
     # Filter and sort columns within table.
     table_product = porg.filter_sort_table_columns(
         table=table_product,

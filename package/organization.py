@@ -960,8 +960,8 @@ def extract_filter_array_values_from_series(
 
 def extract_array_values_from_table_column_by_groups_rows(
     table=None,
-    column_feature=None,
     column_group=None,
+    column_feature=None,
     report=None,
 ):
     """
@@ -973,6 +973,9 @@ def extract_array_values_from_table_column_by_groups_rows(
     data-frame table and store these within entries of a Python dictionary
     corresponding to groups of rows.
 
+    ----------
+    Format of source table (name: "table")
+    ----------
     Format of source table is in wide format with features across columns and
     observations across rows. A special column gives identifiers corresponding
     to each observation across rows. Another special column provides names
@@ -996,10 +999,10 @@ def extract_array_values_from_table_column_by_groups_rows(
         table (object): Pandas data-frame table of features across columns and
             observations across rows with values on a quantitative, continuous,
             interval or ratio scale of measurement
+        column_group (str): name of column in table to use for groups
         column_feature (str): name of column in original source table for a
             feature on a quantitative, continuous, interval, or ratio scale of
             measurement
-        column_group (str): name of column in table to use for groups
         report (bool): whether to print reports
 
     raises:
@@ -1056,8 +1059,14 @@ def extract_array_values_from_table_column_by_groups_rows(
     values_nonmissing_groups_collection = list()
     # Iterate on groups, apply operations, and collect information from each.
     for name_group, table_group in groups:
-        # Copy information in table.
+        # Copy information.
         table_group = table_group.copy(deep=True)
+        # Organize indices in table.
+        table_group.reset_index(
+            level=None,
+            inplace=True,
+            drop=False, # remove index; do not move to regular columns
+        )
         # Extract information.
         values_group = table_group[column_feature].to_numpy(
             dtype="float64",

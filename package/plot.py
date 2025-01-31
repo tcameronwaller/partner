@@ -515,6 +515,7 @@ def define_color_properties():
     pail["green"] = (0.25, 0.75, 0.25, 1.0) # (red: 64; green: 191; blue: 64)
     pail["green_forest"] = (0.15, 0.55, 0.15, 1.0) # (red: 38; green: 140; blue: 38)
     pail["green_kelly"] = (0.3, 0.7, 0.1, 1.0) # (red: 77; green: 179; blue: 26)
+    pail["green_mint"] = (0.5, 0.9, 0.5, 1.0) # (red: 128; green: 230; blue: 128)
 
     pail["blue_navy"] = (0.039, 0.196, 0.588, 1.0) # (red: 10; green: 50; blue: 150)
     pail["blue_navy_faint"] = (0.039, 0.196, 0.588, 0.75)
@@ -529,6 +530,7 @@ def define_color_properties():
     pail["magenta"] = (0.784, 0.275, 0.784, 1.0) # (red: 200; green: 70; blue: 200)
     pail["purple_lavender"] = (0.784, 0.784, 1.0, 1.0) # (red: 200; green: 200; blue: 255)
     pail["purple_lilac"] = (0.784, 0.667, 0.784, 1.0) # (red: 200; green: 170; blue: 200)
+    pail["purple_violet"] = (0.5, 0.0, 1.0, 1.0) # (red: 127; green: 0; blue: 255)
 
     # Return information.
     return pail
@@ -4338,6 +4340,7 @@ def plot_boxes_groups(
     title_ordinate=None,
     title_abscissa=None,
     titles_abscissa_groups=None,
+    title_chart_top_center=None,
     colors_groups=None,
     label_top_center=None,
     label_top_left=None,
@@ -4377,6 +4380,8 @@ def plot_boxes_groups(
         title_abscissa (str): title for abscissa or horizontal axis
         titles_abscissa_groups (list<str>): titles for groups on abscissa or
             horizontal axis in same sort order as 'cohorts_groups'
+        title_chart_top_center (str): title for the chart's margin at top and
+            center
         colors_groups (list<tuple>): color parameters for boxes of groups in
             same sort order as 'values_groups'
         label_top_center (str): label for top center of plot area
@@ -4591,6 +4596,17 @@ def plot_boxes_groups(
             backgroundcolor=colors["white_faint"],
             color=colors["black"],
             fontproperties=fonts["properties"]["eight"]
+        )
+    # Include title in chart's margin.
+    if (
+        (title_chart_top_center is not None) and
+        (len(title_chart_top_center) > 0)
+    ):
+        axes.set_title(
+            title_chart_top_center,
+            loc="center",
+            pad=0.75,
+            fontproperties=fonts["properties"]["seven"],
         )
     return figure
 
