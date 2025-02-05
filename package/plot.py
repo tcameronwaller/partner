@@ -139,32 +139,32 @@ def define_font_properties():
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
-        "stretch": 850, # '1000' is the maximal permissable font stretch
-        "weight": 850, # '1000' is the maximal permissable font weight
+        "stretch": 800, # '1000' is the maximal permissable font stretch
+        "weight": 800, # '1000' is the maximal permissable font weight
         "size": 40,
     }
     values_6 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
-        "stretch": 800,
-        "weight": 800,
+        "stretch": 750,
+        "weight": 750,
         "size": 35,
     }
     values_7 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
-        "stretch": 750,
-        "weight": 750,
+        "stretch": 700,
+        "weight": 700,
         "size": 30,
     }
     values_8 = {
         "family": "sans-serif",
         "style": "normal",
         "variant": "normal",
-        "stretch": 700,
-        "weight": 700,
+        "stretch": 650,
+        "weight": 650,
         "size": 27,
     }
     values_9 = {
@@ -580,6 +580,11 @@ def initialize_matplotlib_figure_aspect(
     elif aspect == "landscape":
         figure = matplotlib.figure.Figure(
             figsize=(15.748, 11.811), # aspect 4 X 3; 11.811 inches = 29.999 cm
+            tight_layout=True
+        )
+    elif aspect == "landscape_two_thirds_height":
+        figure = matplotlib.figure.Figure(
+            figsize=(15.748, 7.874), # aspect 4 X 1.5; 5.906 inches = 15.001 cm
             tight_layout=True
         )
     elif aspect == "landscape_half_height":
@@ -4331,15 +4336,21 @@ def plot_bar_stack(
 # set minima and maxima definitively... refer to the Forest plots...
 
 
-
 # https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.violinplot.html#matplotlib.pyplot.violinplot
+# https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.violinplot.html#matplotlib.pyplot.violinplot
+# color the individual V's using the "bodies" item in the returned dictionary
+# "bodies" is analogous to "boxes"
 
-
+# TODO: TCW; 5 February 2025
+# Idea:
+# Make a "main" manager function "plot_groups_box_violin" to perform the more
+# generalizable tasks and then call the more specific functions to organize
+# code specific to boxes or violins.
 def plot_boxes_groups(
     values_groups=None,
+    names_groups=None,
     title_ordinate=None,
     title_abscissa=None,
-    titles_abscissa_groups=None,
     title_chart_top_center=None,
     colors_groups=None,
     label_top_center=None,
@@ -4371,15 +4382,23 @@ def plot_boxes_groups(
     https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.boxplot.html
     https://towardsdatascience.com/understanding-boxplots-5e2df7bcbd51
 
+    References:
+    - path: "https://matplotlib.org/stable/gallery/statistics/
+        boxplot_vs_violin.html#sphx-glr-gallery-statistics-boxplot-vs
+        -violin-py"
+    - path: "https://matplotlib.org/stable/gallery/statistics/
+        customized_violin.html#sphx-glr-gallery-statistics-customized
+        -violin-py"
+
     Review: 17 October 2024
 
     arguments:
         values_groups (list<array>): NumPy arrays of non-missing values for
             each group
+        names_groups (list<str>): names for groups of observations, in same
+            sort order corresponding to values and colors
         title_ordinate (str): title for ordinate or vertical axis
         title_abscissa (str): title for abscissa or horizontal axis
-        titles_abscissa_groups (list<str>): titles for groups on abscissa or
-            horizontal axis in same sort order as 'cohorts_groups'
         title_chart_top_center (str): title for the chart's margin at top and
             center
         colors_groups (list<tuple>): color parameters for boxes of groups in
@@ -4403,7 +4422,77 @@ def plot_boxes_groups(
 
     """
 
-    #colors_groups = list(seaborn.color_palette("hls", n_colors=color_count))
+    # Internal, subordinate functions.
+    def adjacent_values(vals, q1, q3):
+        upper_adjacent_value = q3 + (q3 - q1) * 1.5
+        upper_adjacent_value = numpy.clip(upper_adjacent_value, q3, vals[-1])
+        lower_adjacent_value = q1 - (q3 - q1) * 1.5
+        lower_adjacent_value = numpy.clip(lower_adjacent_value, vals[0], q1)
+        return lower_adjacent_value, upper_adjacent_value
+
+    def set_axis_style_violin(axis, labels):
+        axis.set_xticks(numpy.arange(1, len(labels) + 1), labels=labels)
+        axis.set_xlim(0.25, len(labels) + 0.75)
+        pass
+
+    def prepare_features_violin():
+        # The second quartile is the median.
+        means = list()
+        quartiles_1 = list()
+        quartiles_2 = list()
+        quartiles_3 = list()
+        for values_group in values_groups:
+            mean = numpy.nanmean(values_group)
+            quartile_1, quartile_2, quartile_3 = numpy.percentile(
+                values_group,
+                [25, 50, 75],
+                axis=0,
+            )
+            means.append(mean)
+            quartiles_1.append(quartile_1)
+            quartiles_2.append(quartile_2)
+            quartiles_3.append(quartile_3)
+        whiskers = numpy.array([
+            adjacent_values(sorted_array, q1, q3)
+            for sorted_array, q1, q3 in zip(
+                values_groups, quartiles_1, quartiles_3
+            )
+        ])
+        whiskers_minima, whiskers_maxima = whiskers[:, 0], whiskers[:, 1]
+        positions = numpy.arange(1, len(quartiles_2) + 1)
+        pail = dict()
+        pail["positions"] = positions
+        pail["means"] = means
+        pail["quartiles_1"] = quartiles_1
+        pail["quartiles_2"] = quartiles_2
+        pail["quartiles_3"] = quartiles_3
+        pail["whiskers_minima"] = whiskers_minima
+        pail["whiskers_maxima"] = whiskers_maxima
+        return pail
+
+    ##########
+    # Prepare information for plot.
+    # Prepare values.
+    values_groups_nonempty = list(filter(
+        lambda array: (len(array) > 0),
+        values_groups
+    ))
+    # MatPlotLib Violin Plot function does not accommodate empty arrays.
+    # Replace empty arrays with missing values.
+    missings = numpy.full(
+        shape=len(values_groups_nonempty[0]),
+        fill_value=numpy.nan,
+    )
+    values_groups = [
+        missings if len(array) == 0 else array for array in values_groups
+    ]
+    # Prepare parameters.
+    # Orientation.
+    if orientation_box == "horizontal":
+        boxes_vertical = False
+    elif orientation_box == "vertical":
+        boxes_vertical = True
+        pass
 
     ##########
     # Create figure.
@@ -4414,43 +4503,96 @@ def plot_boxes_groups(
     #axes = matplotlib.pyplot.axes()
     axes = figure.add_subplot(111)
     # Create boxes.
-    if orientation_box == "horizontal":
-        boxes_vertical = False
-    elif orientation_box == "vertical":
-        boxes_vertical = True
-    handle = axes.boxplot(
-        values_groups,
-        notch=False, # whether to draw notch at center of box
-        showfliers=False, # whether to show flier (outlier) points
-        vert=boxes_vertical, # whether box groups across horizontal axis
-        widths=0.7,
-        patch_artist=True,
-        labels=titles_abscissa_groups,
-        manage_ticks=True,
-        showmeans=True, # whether to show marker (point or line) for mean
-        meanline=False, # whether to show line for mean
-        boxprops={
-            "linestyle": "solid",
-            "linewidth": 1.0,
-            "color": colors["black"],
-        },
-        medianprops={
-            "linestyle": "solid",
-            "linewidth": 2.5, # 1.0, 2.5, 5.0
-            "color": colors["black"],
-        },
-        meanprops={
-            "marker": "D", # diamond
-            "markersize": 10.0, # 10.0, 20.0
-            "markeredgecolor": colors["black"], # orange_burnt
-            "markerfacecolor": colors["black"],
-        },
-        whiskerprops={
-            "linestyle": "solid",
-            "linewidth": 2.5,
-            "color": colors["black"],
-        },
-    )
+    if False:
+        handle = axes.boxplot(
+            values_groups,
+            notch=False, # whether to draw notch at center of box
+            showfliers=False, # whether to show flier (outlier) points
+            vert=boxes_vertical, # whether box groups across horizontal axis
+            widths=0.7,
+            patch_artist=True,
+            labels=names_groups,
+            manage_ticks=True,
+            showmeans=True, # whether to show marker (point or line) for mean
+            meanline=False, # whether to show line for mean
+            boxprops={
+                "linestyle": "solid",
+                "linewidth": 2.5,
+                "color": colors["black"],
+            },
+            medianprops={
+                "linestyle": "solid",
+                "linewidth": 3.5, # 1.0, 2.5, 5.0
+                "color": colors["black"],
+            },
+            meanprops={
+                "marker": "D", # diamond
+                "markersize": 20.0, # 10.0, 20.0
+                "markeredgecolor": colors["black"], # orange_burnt
+                "markerfacecolor": colors["black"],
+            },
+            whiskerprops={
+                "linestyle": "solid",
+                "linewidth": 3.5,
+                "color": colors["black"],
+            },
+            capprops={
+                "linestyle": "solid",
+                "linewidth": 3.5,
+                "color": colors["black"],
+            },
+        )
+    if True:
+        # white circle: mean
+        # horizontal bold line: median
+        # vertical bold line or rectangle: 25%-75% interquartile range
+        # whiskers: 1.5 * interquartile range
+        #quantiles=[[0.25,0.5,0.75,],...], # repeat for as many groups
+        handle = axes.violinplot(
+            values_groups,
+            showmeans=False,
+            showmedians=True,
+            showextrema=True,
+            orientation="vertical",
+            widths=0.75,
+            bw_method=0.5, # "scott", "silverman", float: 0-1
+        )
+        handle["cmedians"].set_linewidth(5)
+        handle["cmedians"].set_edgecolor("black")
+        handle["cmins"].set_linewidth(2.5)
+        handle["cmins"].set_edgecolor("black")
+        handle["cmaxes"].set_linewidth(2.5)
+        handle["cmaxes"].set_edgecolor("black")
+        handle["cbars"].set_linewidth(2.5)
+        handle["cbars"].set_edgecolor("black")
+        set_axis_style_violin(axes, names_groups)
+        pail = prepare_features_violin()
+        axes.scatter(
+            pail["positions"],
+            pail["means"],
+            marker="o",
+            color="white",
+            s=150,
+            zorder=3,
+        )
+        axes.vlines(
+            pail["positions"],
+            pail["quartiles_1"],
+            pail["quartiles_3"],
+            color="black",
+            linestyle="-",
+            lw=20,
+        )
+        if False:
+            axes.vlines(
+                pail["positions"],
+                pail["whiskers_minima"],
+                pail["whiskers_maxima"],
+                color="black",
+                linestyle="-",
+                lw=3,
+            )
+        pass
 
     # Set minimum value of linear axis.
     if orientation_box == "horizontal":
@@ -4467,28 +4609,38 @@ def plot_boxes_groups(
         colors_groups = (
             matplotlib.colormaps["tab10"].colors[0:len(values_groups)]
         )
-    for box_patch, color_box in zip(handle["boxes"], colors_groups):
-        box_patch.set_facecolor(color_box)
+    if False:
+        for box_patch, color_box in zip(handle["boxes"], colors_groups):
+            box_patch.set_facecolor(color_box)
+            #body_patch.set_alpha(1.0)
+            pass
+        pass
+    if True:
+        for body_patch, color_body in zip(handle["bodies"], colors_groups):
+            body_patch.set_facecolor(color_body)
+            body_patch.set_alpha(1.0)
+            body_patch.set_edgecolor("black")
+            pass
         pass
     # Label axes.
     if len(title_abscissa) > 0:
         axes.set_xlabel(
             xlabel=title_abscissa,
-            labelpad=20,
+            labelpad=15,
             alpha=1.0,
             backgroundcolor=colors["white"],
             color=colors["black"],
-            fontproperties=fonts["properties"]["seven"],
+            fontproperties=fonts["properties"]["seven"], # seven
             rotation="horizontal",
         )
     if len(title_ordinate) > 0:
         axes.set_ylabel(
             ylabel=title_ordinate,
-            labelpad=20,
+            labelpad=25,
             alpha=1.0,
             backgroundcolor=colors["white"],
             color=colors["black"],
-            fontproperties=fonts["properties"]["seven"]
+            fontproperties=fonts["properties"]["five"], # seven
         )
 
     # Set tick parameters for axes.
@@ -4523,7 +4675,7 @@ def plot_boxes_groups(
             which="both",
             direction="out",
             length=10.0, # 5.0, 10.0, 15.0
-            width=7.5, # 3.0, 7.5, 11.0
+            width=5.0, # 3.0, 7.5, 11.0
             color=colors["black"],
             pad=10,
             labelsize=fonts["values"]["seven"]["size"],
@@ -4534,10 +4686,10 @@ def plot_boxes_groups(
             which="both",
             direction="out",
             length=10.0, # 5.0, 10.0, 15.0
-            width=7.5, # 3.0, 7.5, 11.0
+            width=5.0, # 3.0, 7.5, 11.0
             color=colors["black"],
             pad=10,
-            labelsize=fonts["values"]["seven"]["size"],
+            labelsize=fonts["values"]["five"]["size"], #seven
             labelcolor=colors["black"],
             #labelrotation=45.0, # 45.0, 60,0
             #rotation_mode="anchor",
@@ -4559,6 +4711,13 @@ def plot_boxes_groups(
                 horizontalalignment="right",
                 verticalalignment="top",
             )
+
+    # For specific design requirements, such as stacking multiple charts with
+    # identical groups on horizontal axis, hide the tick marks on the
+    # horizontal axis.
+    axes.tick_params(
+        bottom=False,
+    )
 
     # Include label or labels on plot area.
     if len(label_top_center) > 0:
@@ -4605,7 +4764,7 @@ def plot_boxes_groups(
         axes.set_title(
             title_chart_top_center,
             loc="center",
-            pad=0.75,
+            pad=1.0,
             fontproperties=fonts["properties"]["seven"],
         )
     return figure
