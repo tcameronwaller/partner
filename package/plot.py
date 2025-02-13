@@ -517,13 +517,14 @@ def define_color_properties():
     pail["green_kelly"] = (0.3, 0.7, 0.1, 1.0) # (red: 77; green: 179; blue: 26)
     pail["green_mint"] = (0.5, 0.9, 0.5, 1.0) # (red: 128; green: 230; blue: 128)
 
-    pail["blue_navy"] = (0.039, 0.196, 0.588, 1.0) # (red: 10; green: 50; blue: 150)
+    #pail["blue_navy"] = (0.039, 0.196, 0.588, 1.0) # (red: 10; green: 50; blue: 150)
+    pail["blue_navy"] = (0.118, 0.118, 0.510, 1.0) # (red: 30; green: 30; blue: 130) # TCW; 11 February 2025
     pail["blue_navy_faint"] = (0.039, 0.196, 0.588, 0.75)
     pail["blue_navy_light"] = (0.118, 0.314, 0.706, 1.0) # (r: 30; g: 80; b: 180)
     pail["blue_sky"] = (0.196, 0.588, 1.0, 1.0) # (red: 50; green: 150; blue: 255)
     pail["blue_navy_bright"] = (0.784, 0.824, 1.0, 1.0) # (r: 200; g: 210; b: 255)
     pail["blue_periwinkle"] = (0.667, 0.667, 1.0, 1.0) # (red: 170; green: 170; blue: 255)
-    pail["blue_indigo"] = (0.196, 0.0, 0.588, 1.0) # (red: 50; green: 0; blue: 150)
+    pail["blue_indigo"] = (0.196, 0.0, 0.588, 1.0) # (red: 50; green: 0; blue: 150) # TCW; 11 February 2025
 
     pail["purple"] = (0.510, 0.039, 0.510, 1.0) # (red: 130; green: 10; blue: 130)
     pail["purple_light"] = (0.588, 0.196, 0.588, 1.0) # (red: 150; green: 50; blue: 150)
@@ -1956,7 +1957,7 @@ def plot_heatmap_signal_features_observations_labels(
             orientation="vertical",
             ax=axes_main,
             location="right",
-            shrink=0.7, # 0.7; factor for dimensions of the Scale Bar.
+            shrink=0.9, # 0.7; factor for dimensions of the Scale Bar.
         )
         if (len(title_bar) > 0):
             bar.ax.set_ylabel(
@@ -4688,8 +4689,8 @@ def plot_boxes_groups(
             length=10.0, # 5.0, 10.0, 15.0
             width=5.0, # 3.0, 7.5, 11.0
             color=colors["black"],
-            pad=10,
-            labelsize=fonts["values"]["five"]["size"], #seven
+            pad=15,
+            labelsize=fonts["values"]["three"]["size"], #seven
             labelcolor=colors["black"],
             #labelrotation=45.0, # 45.0, 60,0
             #rotation_mode="anchor",
@@ -4715,9 +4716,9 @@ def plot_boxes_groups(
     # For specific design requirements, such as stacking multiple charts with
     # identical groups on horizontal axis, hide the tick marks on the
     # horizontal axis.
-    axes.tick_params(
-        bottom=False,
-    )
+    #axes.tick_params(
+    #    bottom=False,
+    #)
 
     # Include label or labels on plot area.
     if len(label_top_center) > 0:
@@ -5021,7 +5022,7 @@ def plot_scatter_fold_change_volcano(
     if (len(title_abscissa) > 0):
         axes.set_xlabel(
             xlabel=title_abscissa,
-            labelpad=30,
+            labelpad=15,
             alpha=1.0,
             backgroundcolor=colors["white"],
             color=colors["black"],
@@ -5030,7 +5031,7 @@ def plot_scatter_fold_change_volcano(
     if (len(title_ordinate) > 0):
         axes.set_ylabel(
             ylabel=title_ordinate,
-            labelpad=30,
+            labelpad=15,
             alpha=1.0,
             backgroundcolor=colors["white"],
             color=colors["black"],
@@ -5120,7 +5121,7 @@ def plot_scatter_fold_change_volcano(
         pail_threshold["table_fail"][column_plot_p].values,
         linestyle="",
         marker="o",
-        markersize=2.5,
+        markersize=5,
         markeredgecolor=colors["gray"],
         markerfacecolor=colors["gray"]
     )
@@ -5129,7 +5130,7 @@ def plot_scatter_fold_change_volcano(
         pail_threshold["table_pass_any"][column_plot_p].values,
         linestyle="",
         marker="o",
-        markersize=5,
+        markersize=10, # 5, 7.5, 10
         markeredgecolor=colors["blue_navy"],
         markerfacecolor=colors["blue_navy"]
     )
@@ -5138,7 +5139,7 @@ def plot_scatter_fold_change_volcano(
         table_emphasis[column_plot_p].values,
         linestyle="",
         marker="o",
-        markersize=5,
+        markersize=10, # 5, 7.5, 10
         markeredgecolor=colors["orange"],
         markerfacecolor=colors["orange"]
     )

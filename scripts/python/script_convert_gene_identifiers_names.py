@@ -211,19 +211,25 @@ def parse_delivery_mygene_information(
             print(record_delivery)
             query_source = record_delivery["query"]
             if (str(type_product).strip() == "ensembl.gene"):
-                if (isinstance(record_delivery["ensembl"], dict)):
-                    # Collect information.
-                    record = dict()
-                    record[type_source] = record_delivery["query"]
-                    record[type_product] = record_delivery["ensembl"]["gene"]
-                    records.append(record)
-                elif (isinstance(record_delivery["ensembl"], list)):
-                    for item in record_delivery["ensembl"]:
+                if ("ensembl" in record_delivery.keys()):
+                    if (isinstance(record_delivery["ensembl"], dict)):
                         # Collect information.
                         record = dict()
                         record[type_source] = record_delivery["query"]
-                        record[type_product] = item["gene"]
+                        record[type_product] = (
+                            record_delivery["ensembl"]["gene"]
+                        )
                         records.append(record)
+                    elif (isinstance(record_delivery["ensembl"], list)):
+                        for item in record_delivery["ensembl"]:
+                            # Collect information.
+                            record = dict()
+                            record[type_source] = record_delivery["query"]
+                            record[type_product] = item["gene"]
+                            records.append(record)
+                            pass
+                        pass
+                    pass
             elif (str(type_product).strip() == "entrezgene"):
                 if ("entrezgene" in record_delivery.keys()):
                     identifier_product = record_delivery["entrezgene"]
