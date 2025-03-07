@@ -26,6 +26,29 @@ sudo apt install gnome-tweaks
 
 
 ##########
+# Libre Office
+# site: https://www.libreoffice.org/
+# note:
+# While Libre Office is available as a Snap application on Ubuntu, this version
+# tends to have performance issues of lag.
+# uninstall snap version
+# sudo snap remove --purge libreoffice
+# installation:
+# - date, installation: 5 March 2025
+# - version, installation: v25.2.1
+# confirm installation of dependency, Java Runtime Environment
+java -version
+wget https://www.libreoffice.org/donate/dl/deb-x86_64/25.2.1/en-US/LibreOffice_25.2.1_Linux_x86-64_deb.tar.gz
+wget https://www.libreoffice.org/donate/dl/deb-x86_64/25.2.1/en-US/LibreOffice_25.2.1_Linux_x86-64_deb.tar.gz
+tar -xzvf ./LibreOffice_25.2.1_Linux_x86-64_deb.tar.gz -C ./
+#tar --extract --file="LibreOffice_25.2.1_Linux_x86-64_deb.tar.gz" --gzip --verbose
+cd ./LibreOffice_25.2.1_Linux_x86-64_deb/DEBS/
+sudo dpkg -i ./LibreOffice_25.2.1_Linux_x86-64_deb/DEBS/*.deb
+# uninstall
+sudo dpkg -r packagename
+
+
+##########
 # Atom editor for text and code
 # site: https://atom-editor.cc/
 # source: https://github.com/atom/atom/releases/tag/v1.60.0
@@ -51,9 +74,6 @@ $ sudo apt autoremove
 #sudo add-apt-repository "deb [arch=amd64] https://packagecloud.io/AtomEditor/atom/any/ any main"
 #sudo apt update
 #sudo apt install atom
-
-
-
 
 
 # Discord
@@ -135,11 +155,25 @@ sudo apt upgrade
 sudo apt remove inkscape
 
 # Audacity
-# https://www.audacityteam.org/
-cd ~/Downloads
-wget https://github.com/audacity/audacity/releases/download/Audacity-3.0.3/audacity-linux-3.0.3-x86_64.AppImage
-chmod +x ./audacity-linux-3.0.3-x86_64.AppImage
-./audacity-linux-3.0.3-x86_64.AppImage
+# site: https://www.audacityteam.org/
+# option: install from Ubuntu App Store
+sudo snap connect audacity:alsa
+# "If you choose to continue and later wish to change your mind, you can remove the file
+# /home/tcameronwaller/snap/audacity/common/Always use PulseAudio."
+#cd ~/Downloads
+#wget https://github.com/audacity/audacity/releases/download/Audacity-3.0.3/audacity-linux-3.0.3-x86_64.AppImage
+#chmod +x ./audacity-linux-3.0.3-x86_64.AppImage
+#./audacity-linux-3.0.3-x86_64.AppImage
+
+# VLC Media Player
+# site: https://www.videolan.org/vlc/download-ubuntu.html
+# date, installation: 16 February 2025
+sudo snap install vlc
+sudo snap remove --purge vlc
+
+# Rhythmbox
+# site: http://www.rhythmbox.org/
+
 
 # MuseScore
 # https://musescore.org/en
@@ -181,8 +215,15 @@ sudo cpupower -c all frequency-set -g performance
 
 # Ardour
 # http://ardour.org/first_time_linux.html
+# date: 15 February 2025
 cd /folder/where/you/saved/the/file
-/bin/sh ./<DOWNLOADED_FILENAME>.run
+# Make file executable as a program.
+chmod +x ./Ardour-8.11.0-x86_64.run
+#/bin/sh ./Ardour-8.11.0-x86_64.run
+./Ardour-8.11.0-x86_64.run
+# !!! WARNING !!! - Your system seems to use frequency scaling.
+# This can have a serious impact on audio latency.
+# For best results turn it off, e.g. by choosing the 'performance' governor.
 # Uninstall
 cd /opt
 /bin/sh ./Ardour_<VERSION>.uninstall.sh

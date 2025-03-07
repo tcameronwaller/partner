@@ -28,8 +28,8 @@ path_directory_data="$path_directory_dock/in_data" # restore script does not mod
 path_directory_parameters="$path_directory_dock/in_parameters"
 path_directory_parameters_private="$path_directory_dock/in_parameters_private"
 
-path_directory_source="${path_directory_dock}/in_data/mygene_2025-02-12/sets_gene_msigdb_2025-02-12_clean_symbol"
-path_directory_product="${path_directory_dock}/in_data/mygene_2025-02-12/sets_gene_msigdb_2025-02-12_clean_ensembl"
+path_directory_source="${path_directory_dock}/in_data/mygene_2025-02-14/sets_gene_msigdb_2025-02-14_clean_symbol"
+path_directory_product="${path_directory_dock}/in_data/mygene_2025-02-14/sets_gene_msigdb_2025-02-14_clean_ensembl"
 path_directory_temporary="${path_directory_product}/temporary_process" # hopefully unique
 
 # File suffix.
@@ -132,6 +132,10 @@ if [ "$report" == "true" ]; then
   echo "done"
   echo "----------"
 fi
+
+##########
+# Remove temporary, intermediate files.
+rm -r $path_directory_temporary
 
 
 #

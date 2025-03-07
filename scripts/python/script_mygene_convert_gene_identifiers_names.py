@@ -106,7 +106,7 @@ def read_source_extract_items(
     # Report.
     if report:
         putly.print_terminal_partition(level=3)
-        print("module: script_convert_gene_identifiers_names.py")
+        print("module: script_mygene_convert_gene_identifiers_names.py")
         function = "read_source_extract_items"
         print(str("function: " + function + "()"))
         putly.print_terminal_partition(level=4)
@@ -163,7 +163,7 @@ def query_mygene_information(
     # Report.
     if report:
         putly.print_terminal_partition(level=4)
-        print("module: script_convert_gene_identifiers_names.py")
+        print("module: script_mygene_convert_gene_identifiers_names.py")
         function = "query_mygene_information"
         print(str("function: " + function + "()"))
         putly.print_terminal_partition(level=5)
@@ -269,7 +269,7 @@ def parse_delivery_mygene_information(
     # Report.
     if report:
         putly.print_terminal_partition(level=4)
-        print("module: script_convert_gene_identifiers_names.py")
+        print("module: script_mygene_convert_gene_identifiers_names.py")
         function = "parse_delivery_mygene_information"
         print(str("function: " + function + "()"))
         putly.print_terminal_partition(level=5)
@@ -326,7 +326,7 @@ def execute_procedure(
     # Report.
     if report:
         putly.print_terminal_partition(level=3)
-        print("module: script_convert_gene_identifiers_names.py")
+        print("module: script_mygene_convert_gene_identifiers_names.py")
         print("function: execute_procedure()")
         putly.print_terminal_partition(level=5)
         print("system: local")

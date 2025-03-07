@@ -531,7 +531,7 @@ def define_color_properties():
     pail["magenta"] = (0.784, 0.275, 0.784, 1.0) # (red: 200; green: 70; blue: 200)
     pail["purple_lavender"] = (0.784, 0.784, 1.0, 1.0) # (red: 200; green: 200; blue: 255)
     pail["purple_lilac"] = (0.784, 0.667, 0.784, 1.0) # (red: 200; green: 170; blue: 200)
-    pail["purple_violet"] = (0.5, 0.0, 1.0, 1.0) # (red: 127; green: 0; blue: 255)
+    pail["purple_violet"] = (0.5, 0.0, 1.0, 1.0) # (red: 128; green: 0; blue: 255)
 
     # Return information.
     return pail
@@ -1788,7 +1788,7 @@ def plot_heatmap_signal_features_observations_labels(
     # Adjust margins.
     figure.subplots_adjust(
         left=0.02,
-        right=0.98,
+        right=0.99,
         top=0.98,
         bottom=0.15,
     )
@@ -2185,7 +2185,7 @@ def plot_heatmap_signal_features_sets_observations_labels(
         ncols=4,
         wspace=0.005, # horizontal width space between grid blocks for subplots
         hspace=0.005, # vertical height space between grid blocks for subplots
-        width_ratios=(15,80,2,3),
+        width_ratios=(40,55,1,4),
         height_ratios=(100,),
     )
     grid.update(
@@ -2221,10 +2221,10 @@ def plot_heatmap_signal_features_sets_observations_labels(
     #    hspace=0.005, # vertical height space between grid blocks for subplots
     #)
     figure.subplots_adjust(
-        left=0.02,
-        right=0.93,
-        top=0.98,
-        bottom=0.15,
+        left=0.01,
+        right=0.90,
+        top=0.99,
+        bottom=0.20,
     )
 
     ##########
@@ -2420,7 +2420,7 @@ def plot_heatmap_signal_features_sets_observations_labels(
                 rotation=-90,
                 loc="center",
                 va="center",
-                labelpad=5, # 5
+                labelpad=15, # 5
                 alpha=1.0,
                 backgroundcolor=colors["white"],
                 color=colors["black"],
