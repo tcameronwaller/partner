@@ -19,6 +19,7 @@ cd ~
 sudo apt install software-properties-common
 sudo apt install wget
 sudo apt install curl
+sudo apt install unzip
 
 # Install Tweak tool to customize Ubuntu's appearance and behavior.
 sudo add-apt-repository universe
