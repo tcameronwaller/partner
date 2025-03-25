@@ -515,7 +515,7 @@ def define_color_properties():
     pail["green"] = (0.25, 0.75, 0.25, 1.0) # (red: 64; green: 191; blue: 64)
     pail["green_forest"] = (0.15, 0.55, 0.15, 1.0) # (red: 38; green: 140; blue: 38)
     pail["green_kelly"] = (0.3, 0.7, 0.1, 1.0) # (red: 77; green: 179; blue: 26)
-    pail["green_mint"] = (0.5, 0.9, 0.5, 1.0) # (red: 128; green: 230; blue: 128)
+    pail["green_mint"] = (0.5, 0.9, 0.5, 1.0) # (red: 128; green: 230; blue: 128) # TCW; 24 March 2025
 
     #pail["blue_navy"] = (0.039, 0.196, 0.588, 1.0) # (red: 10; green: 50; blue: 150)
     pail["blue_navy"] = (0.118, 0.118, 0.510, 1.0) # (red: 30; green: 30; blue: 130) # TCW; 11 February 2025

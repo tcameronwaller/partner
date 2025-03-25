@@ -50,6 +50,11 @@ sudo dpkg -r packagename
 
 
 ##########
+# Notepad++ editor for text and code
+# site: https://notepad-plus-plus.org
+
+
+##########
 # Atom editor for text and code
 # site: https://atom-editor.cc/
 # source: https://github.com/atom/atom/releases/tag/v1.60.0
@@ -98,11 +103,14 @@ snap install spotify
 # - Ubuntu Linux
 # - 64 bit
 # - 16.04+
-sudo apt install libglib2.0-0 libxcb-shape0 libxcb-shm0 libxcb-xfixes0 libxcb-randr0 libxcb-image0 libfontconfig1 libgl1-mesa-glx libxi6 libsm6 libxrender1 libpulse0 libxcomposite1 libxslt1.1 libsqlite3-0 libxcb-keysyms1 libxcb-xtest0 ibus
+# sudo apt install libgl1-mesa-glx # "Package 'libgl1-mesa-glx' has no installation candidate"
+sudo apt install libglib2.0-0t64 libxcb-shape0 libxcb-shm0 libxcb-xfixes0 libxcb-randr0 libxcb-image0 libfontconfig1 libxi6 libsm6 libxrender1 libpulse0 libxcomposite1 libxslt1.1 libsqlite3-0 libxcb-keysyms1 libxcb-xtest0 ibus
 sudo apt install libxcb-cursor0 # TCW; 23 March 2023
+sudo apt --fix-broken install
 # libgstreamer-plugins-base0.10-0
 cd ~/Downloads
-wget https://zoom.us/client/6.1.0.198/zoom_amd64.deb
+wget https://zoom.us/client/6.4.1.587/zoom_amd64.deb # TCW; 25 March 2025
+#wget https://zoom.us/client/6.1.0.198/zoom_amd64.deb
 #wget https://zoom.us/client/5.15.11.7239/zoom_amd64.deb
 #wget https://zoom.us/client/5.17.10.3512/zoom_amd64.deb
 #wget https://zoom.us/client/latest/zoom_amd64.deb
