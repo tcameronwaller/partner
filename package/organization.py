@@ -275,6 +275,79 @@ def translate_identifiers_table_indices_columns_rows(
     return table
 
 
+def explicate_table_indices_columns_rows_single_level(
+    table=None,
+    index_columns=None,
+    index_rows=None,
+    explicate_indices=None,
+    report=None,
+):
+    """
+    Either define explicit, specific indices or reset generic indices across
+    the columns and rows in a table.
+
+    The source table does not have explicit defininitions of indices across
+    columns or rows.
+
+    Review: TCW; 27 March 2025
+
+    arguments:
+        table (object): Pandas data-frame table
+        index_columns (str): name of single-level index across columns
+        index_rows (str): name of single-level index across rows
+        explicate_indices (bool): whether to explicate, define, or specify
+            explicit indices across columns and rows in table
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    # Copy information.
+    table = table.copy(deep=True)
+    # Restore or reset indices to generic default.
+    table.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    table.columns.rename(
+        None,
+        inplace=True,
+    ) # single-dimensional index
+    # Determine whether to define explicit, specific indices.
+    if (explicate_indices):
+        table.set_index(
+            index_rows,
+            append=False,
+            drop=True,
+            inplace=True,
+        )
+        table.columns.rename(
+            index_columns,
+            inplace=True,
+        ) # single-dimensional index
+        pass
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        print("module: organization.py")
+        function = str(
+            "explicate_table_indices_columns_rows_single_level()"
+        )
+        print("function: " + function)
+        putly.print_terminal_partition(level=4)
+        print("table, with organization of indices:")
+        print(table)
+        pass
+    # Return information.
+    return table
+
+
 ##########
 # Transfer, Fill.
 
