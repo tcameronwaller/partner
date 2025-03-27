@@ -872,13 +872,18 @@ def extract_filter_array_values_from_series(
     Extract to a Numpy array and filter values from a Pandas series, such as a
     single column or row from a Pandas data-frame table.
 
-    Review: TCW; 29 January 2025
+    This function applies thresholds as filters. In this context, it seems most
+    reasonable to treat the lower threshold as inclusive (remove values <
+    threshold) while treating the upper threshold as exclusive (remove values
+    >= threshold).
+
+    Review: TCW; 27 March 2025
 
     arguments:
         series (object): Pandas series of values of signal intensity
-        threshold_low (float): threshold below which (value <= threshold) all
+        threshold_low (float): threshold below which (value < threshold) all
             values are considered invalid and missing
-        threshold_high (float): threshold above which (value > threshold) all
+        threshold_high (float): threshold above which (value >= threshold) all
             values are considered invalid and missing
         report (bool): whether to print reports
 
@@ -906,16 +911,16 @@ def extract_filter_array_values_from_series(
         values_valid = numpy.copy(values_nonmissing)
     elif ((threshold_low is not None) and (threshold_high is None)):
         values_temporary = numpy.copy(values_raw)
-        values_temporary[values_temporary <= threshold_low] = numpy.nan
+        values_temporary[values_temporary < threshold_low] = numpy.nan
         values_valid = values_temporary[~numpy.isnan(values_temporary)]
     elif ((threshold_low is None) and (threshold_high is not None)):
         values_temporary = numpy.copy(values_raw)
-        values_temporary[values_temporary > threshold_high] = numpy.nan
+        values_temporary[values_temporary >= threshold_high] = numpy.nan
         values_valid = values_temporary[~numpy.isnan(values_temporary)]
     elif ((threshold_low is not None) and (threshold_high is not None)):
         values_temporary = numpy.copy(values_raw)
-        values_temporary[values_temporary <= threshold_low] = numpy.nan
-        values_temporary[values_temporary > threshold_high] = numpy.nan
+        values_temporary[values_temporary < threshold_low] = numpy.nan
+        values_temporary[values_temporary >= threshold_high] = numpy.nan
         values_valid = values_temporary[~numpy.isnan(values_temporary)]
         pass
     # Values, logarithm.
@@ -1157,7 +1162,7 @@ def filter_sort_table_columns(
 
     """
 
-    # Copy information in table.
+    # Copy information.
     table_filter_sort = table.copy(deep=True)
 
     # Remove unnecessary columns.
@@ -1333,6 +1338,99 @@ def filter_select_table_rows_by_columns_categories(
     return table_product
 
 
+def determine_series_signal_validity_threshold(
+    series=None,
+    keys_signal=None,
+    threshold_low=None,
+    threshold_high=None,
+    proportion=None,
+    report=None,
+):
+    """
+    Dependency:
+    This function is a dependency of the function below.
+    package: partner
+    module: organization
+    function: filter_table_rows_columns_by_proportion_nonmissing_threshold()
+
+    Determine whether to keep a Pandas series on the basis of the
+    proportion of values of signal intensity that are nonmissing and greater
+    than zero. The series can come from a single row or column in a table.
+
+    Review: TCW; 6 December 2024
+
+    arguments:
+        series (object): Pandas series of values of signal intensity
+        keys_signal (list<str>): names or identifiers of elements in the series
+            that correspond to values of signal intensity
+        threshold_low (float): threshold below which (value < threshold) all
+            values are considered invalid and missing
+        threshold_high (float): threshold above which (value >= threshold) all
+            values are considered invalid and missing
+        proportion (float): proportion of values of signal intensity that
+            must be nonmissing and within low and high thresholds in order to
+            keep the series
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (int): logical binary representation of whether to keep current series
+            has adequate proportion of values that are nonmissing and within
+            range of thresholds
+
+    """
+
+    # Copy information in series and other objects.
+    series = series.copy(deep=True)
+    keys_signal = copy.deepcopy(keys_signal)
+
+    # Extract and organize information from series.
+    if (len(keys_signal) > 0):
+        pail_values = extract_filter_array_values_from_series(
+            series=series.loc[keys_signal],
+            threshold_low=threshold_low,
+            threshold_high=threshold_high,
+            report=report,
+        )
+    else:
+        pail_values = extract_filter_array_values_from_series(
+            series=series,
+            threshold_low=threshold_low,
+            threshold_high=threshold_high,
+            report=report,
+        )
+        pass
+    count_raw = int(pail_values["values_raw"].size)
+    count_valid = int(pail_values["values_valid"].size)
+    proportion_actual = float(count_valid / count_raw)
+    # Determine whether to keep current row from table.
+    if (
+        (proportion_actual >= proportion)
+    ):
+        indicator = 1
+    else:
+        indicator = 0
+        pass
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("module: partner.organization.py")
+        print("function: determine_series_signal_validity_threshold()")
+        putly.print_terminal_partition(level=5)
+        print("count of total values: " + str(count_raw))
+        print(
+            "count valid values, nonmissing and threshold: " + str(count_valid)
+        )
+        putly.print_terminal_partition(level=5)
+        print("proportion valid, actual: " + str(proportion_actual))
+        print("proportion valid, threshold: " + str(proportion))
+        print("indicator: " + str(indicator))
+        putly.print_terminal_partition(level=5)
+    # Return information.
+    return indicator
+
+
 def filter_extract_table_row_identifiers_by_columns_categories(
     table=None,
     column_identifier=None,
@@ -1427,9 +1525,9 @@ def filter_table_rows_by_proportion_nonmissing_threshold(
         rows_selection (list<str>): identifiers or names of rows which are
             candidates for filters and from which to consider values in filters
             on columns
-        threshold_low (float): threshold below which (value <= threshold) all
+        threshold_low (float): threshold below which (value < threshold) all
             values are considered invalid
-        threshold_high (float): threshold above which (value > threshold) all
+        threshold_high (float): threshold above which (value >= threshold) all
             values are considered invalid
         proportion (float): proportion of values across selection of columns
             that must be nonmissing and within low and high thresholds in order
@@ -1538,9 +1636,9 @@ def filter_table_columns_by_proportion_nonmissing_threshold(
         rows_selection (list<str>): identifiers or names of rows which are
             candidates for filters and from which to consider values in filters
             on columns
-        threshold_low (float): threshold below which (value <= threshold) all
+        threshold_low (float): threshold below which (value < threshold) all
             values are considered invalid
-        threshold_high (float): threshold above which (value > threshold) all
+        threshold_high (float): threshold above which (value >= threshold) all
             values are considered invalid
         proportion (float): proportion of values across selection of columns
             that must be nonmissing and within low and high thresholds in order
@@ -1670,9 +1768,9 @@ def filter_table_rows_columns_by_proportion_nonmissing_threshold(
         rows_selection (list<str>): identifiers or names of rows which are
             candidates for filters and from which to consider values in filters
             on columns
-        threshold_low (float): threshold below which (value <= threshold) all
+        threshold_low (float): threshold below which (value < threshold) all
             values are considered invalid
-        threshold_high (float): threshold above which (value > threshold) all
+        threshold_high (float): threshold above which (value >= threshold) all
             values are considered invalid
         proportion_columns (float): proportion of values across selection of
             columns that must be nonmissing and within low and high thresholds
@@ -1749,99 +1847,6 @@ def filter_table_rows_columns_by_proportion_nonmissing_threshold(
         putly.print_terminal_partition(level=5)
     # Return information.
     return table_filter
-
-
-def determine_series_signal_validity_threshold(
-    series=None,
-    keys_signal=None,
-    threshold_low=None,
-    threshold_high=None,
-    proportion=None,
-    report=None,
-):
-    """
-    Dependency:
-    This function is a dependency of the function below.
-    package: partner
-    module: organization
-    function: filter_table_rows_columns_by_proportion_nonmissing_threshold()
-
-    Determine whether to keep a Pandas series on the basis of the
-    proportion of values of signal intensity that are nonmissing and greater
-    than zero. The series can come from a single row or column in a table.
-
-    Review: TCW; 6 December 2024
-
-    arguments:
-        series (object): Pandas series of values of signal intensity
-        keys_signal (list<str>): names or identifiers of elements in the series
-            that correspond to values of signal intensity
-        threshold_low (float): threshold below which (value <= threshold) all
-            values are considered invalid and missing
-        threshold_high (float): threshold above which (value > threshold) all
-            values are considered invalid and missing
-        proportion (float): proportion of values of signal intensity that
-            must be nonmissing and within low and high thresholds in order to
-            keep the series
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (int): logical binary representation of whether to keep current series
-            has adequate proportion of values that are nonmissing and within
-            range of thresholds
-
-    """
-
-    # Copy information in series and other objects.
-    series = series.copy(deep=True)
-    keys_signal = copy.deepcopy(keys_signal)
-
-    # Extract and organize information from series.
-    if (len(keys_signal) > 0):
-        pail_values = extract_filter_array_values_from_series(
-            series=series.loc[keys_signal],
-            threshold_low=threshold_low,
-            threshold_high=threshold_high,
-            report=report,
-        )
-    else:
-        pail_values = extract_filter_array_values_from_series(
-            series=series,
-            threshold_low=threshold_low,
-            threshold_high=threshold_high,
-            report=report,
-        )
-        pass
-    count_raw = int(pail_values["values_raw"].size)
-    count_valid = int(pail_values["values_valid"].size)
-    proportion_actual = float(count_valid / count_raw)
-    # Determine whether to keep current row from table.
-    if (
-        (proportion_actual >= proportion)
-    ):
-        indicator = 1
-    else:
-        indicator = 0
-        pass
-    # Report.
-    if report:
-        putly.print_terminal_partition(level=3)
-        print("module: partner.organization.py")
-        print("function: determine_series_signal_validity_threshold()")
-        putly.print_terminal_partition(level=5)
-        print("count of total values: " + str(count_raw))
-        print(
-            "count valid values, nonmissing and threshold: " + str(count_valid)
-        )
-        putly.print_terminal_partition(level=5)
-        print("proportion valid, actual: " + str(proportion_actual))
-        print("proportion valid, threshold: " + str(proportion))
-        print("indicator: " + str(indicator))
-        putly.print_terminal_partition(level=5)
-    # Return information.
-    return indicator
 
 
 def segregate_fold_change_values_by_thresholds(
