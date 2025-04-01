@@ -176,9 +176,10 @@ sudo snap connect audacity:alsa
 
 # VLC Media Player
 # site: https://www.videolan.org/vlc/download-ubuntu.html
-# date, installation: 16 February 2025
-sudo snap install vlc
-sudo snap remove --purge vlc
+# date, installation: 31 March 2025
+# Do not use the Snap version.
+sudo apt install vlc
+sudo apt remove vlc
 
 # Rhythmbox
 # site: http://www.rhythmbox.org/
