@@ -2045,14 +2045,24 @@ def print_file_lines(path_file=None, start=None, stop=None):
 
 
 def parse_text_list_values(
-    collection=None,
+    text=None,
     delimiter=None,
 ):
     """
     Parse a textual representation of a list or array of values.
 
+    Format of source text (name: "text")
+    Format of source text is a character string with delimiters of characters
+    such as comma ",", semicolon ";", colon ":", period ".", or hyphen "-"
+    between items or elements.
+    ----------
+    "item_1,item_2,item_3,item_4,item_5"
+    ----------
+
+    Review: TCW; 31 March 2025
+
     arguments:
-        collection (str): textual string of values in a list or array
+        text (str): textual string of values in a list or array
         delimiter (str): delimiter between values
 
     raises:
@@ -2062,10 +2072,14 @@ def parse_text_list_values(
 
     """
 
+    # if (delimiter in str(text)): # including could discard valid source
+
     if (
-        (len(str(collection)) > 0) and (delimiter in str(collection))
+        (text is not None) and
+        (len(str(text)) > 0) and
+        (str(text).strip().lower() != "none")
     ):
-        values_split = str(collection).split(delimiter)
+        values_split = str(text).strip().split(delimiter)
         #values = list()
         #for value_raw in values_split:
         #    value = str(value_raw).strip()
@@ -2249,6 +2263,7 @@ def collect_unique_elements(elements=None):
 
     """
 
+    elements = copy.deepcopy(elements)
     elements_unique = []
     for element in elements:
         if element not in elements_unique:
@@ -2743,11 +2758,11 @@ def parse_extract_text_keys_values_semicolon_colon_comma(
     The list of features preserves the original sequence in which these keys
     appeared within the string.
 
-    Review: 14 November 2024
+    Review: 31 March 2025
 
     arguments:
-        text_source (str): flat text with delimiters in specific format for
-            rules of parse
+        text_source (str): flat text string with delimiters in specific format
+            for rules of parse
 
     raises:
 
@@ -2757,6 +2772,7 @@ def parse_extract_text_keys_values_semicolon_colon_comma(
     """
 
     # Organize information.
+    # text = str(text).strip().lower()
     text = str(text).strip()
     # Parse and extract information.
     if ((text.lower() != "none") and (text != "") and (len(text) > 0)):
