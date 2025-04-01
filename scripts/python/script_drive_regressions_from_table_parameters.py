@@ -197,9 +197,13 @@ def read_source(
                 text=row["features_predictor_random"],
                 delimiter=",",
             )
-            record["data_path_directory"] = str(
-                row["data_path_directory"]
-            ).strip()
+            data_path_directory = putly.parse_text_list_values(
+                text=row["data_path_directory"],
+                delimiter=",",
+            )
+            record["data_path_directory"] = os.path.join(
+                *data_path_directory, # 'splat' operator unpacks list items
+            )
             record["data_file"] = str(row["data_file"]).strip()
             record["review"] = str(row["review"]).strip()
             record["note"] = str(row["note"]).strip()
@@ -260,6 +264,283 @@ def read_source(
 
 ################################################################################
 # Procedure
+
+
+
+##########
+# Control procedure within branch for parallelization.
+
+
+def control_procedure_part_branch(
+    execution=None,
+    sequence=None,
+    group=None,
+    instance=None,
+    name_instance=None,
+    selection_observations=None,
+    features_continuity_scale=None,
+    type_regression=None,
+    formula_text=None,
+    feature_response=None,
+    features_predictor_fixed=None,
+    features_predictor_random=None,
+    features_relevant=None,
+    data_path_directory=None,
+    data_file=None,
+    review=None,
+    note=None,
+    path_file_table_parameters=None,
+    path_directory_dock=None,
+    report=None,
+):
+    """
+    Execute module's main behavior for a single parallel branch.
+
+    arguments:
+        execution (int): logical binary indicator of whether to execute and
+            handle the parameters for the current instance
+        sequence (int): sequential index for instance's name and sort order
+        group (str): categorical group of instances
+        instance (str): name or designator of instance
+        name_instance (str): compound name for instance of parameters
+        selection_observations (dict<list<str>>): names of columns in data
+            table for feature variables and their categorical values by
+            which to filter rows for observations in data table
+        features_continuity_scale (list<str>): names of columns in data table
+            for feature variables with values on quantitative, continuous scale
+            of measurement, interval or ratio, for which to standardize the
+            scale by z score
+        type_regression (str): name of type of regression model to use
+        formula_text (str): human readable formula for regression model,
+            treated as a note for clarification
+        feature_response (str): name of column in data table for feature
+            variable to include in regression model as response dependent
+            variable
+        features_predictor_fixed (list<str>): names of columns in data table
+            for feature variables to include in regression model as predictor
+            independent variables with fixed effects
+        features_predictor_random (list<str>): names of columns in data table
+            for feature variables to include in regression model as predictor
+            independent variables with random effects
+        features_relevant (list<str>): names of columns in data table for
+            feature variables that are relevant to the current instance of
+            parameters
+        data_path_directory (str): path to parent directory in which to find
+            the file for the data table of information about features and
+            observations
+        data_file (str): path to file for the data table of information about
+            features and observations
+        review (str): notes about review of instance in table of parameters
+        note (str): notes about instance in table of parameters
+        path_file_table_parameters (str): path to source file in text format as
+            a table with tab delimiters between columns and newline delimiters
+            between rows, with parameters for multiple regressions
+        path_directory_dock (str): path to dock directory for procedure's
+            source and product directories and files
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+
+    """
+
+    ##########
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        print("module: script_drive_regressions_from_table_parameters.py")
+        print("function: control_procedure_part_branch()")
+        putly.print_terminal_partition(level=5)
+        print("instance: " + instance)
+        putly.print_terminal_partition(level=5)
+        pass
+
+    pass
+
+
+##########
+# Manage parallelization.
+
+
+def control_parallel_instance(
+    instance=None,
+    parameters=None,
+):
+    """
+    Control procedure for a single instance in parallel with others.
+
+    Review: TCW; 31 March 2025
+
+    arguments:
+        instance (dict): parameters specific to current instance
+            execution (int): logical binary indicator of whether to execute
+                and handle the parameters for the current instance
+            sequence (int): sequential index for instance's name and sort
+                order
+            group (str): categorical group of instances
+            instance (str): name or designator of instance
+            name_instance (str): compound name for instance of parameters
+            selection_observations (dict<list<str>>): names of columns in data
+                table for feature variables and their categorical values by
+                which to filter rows for observations in data table
+            features_continuity_scale (list<str>): names of columns in data
+                table for feature variables with values on quantitative,
+                continuous scale of measurement, interval or ratio, for which
+                to standardize the scale by z score
+            type_regression (str): name of type of regression model to use
+            formula_text (str): human readable formula for regression model,
+                treated as a note for clarification
+            feature_response (str): name of column in data table for feature
+                variable to include in regression model as response dependent
+                variable
+            features_predictor_fixed (list<str>): names of columns in data
+                table for feature variables to include in regression model as
+                predictor independent variables with fixed effects
+            features_predictor_random (list<str>): names of columns in data
+                table for feature variables to include in regression model as
+                predictor independent variables with random effects
+            features_relevant (list<str>): names of columns in data table for
+                feature variables that are relevant to the current instance of
+                parameters
+            data_path_directory (str): path to parent directory in which to
+                find the file for the data table of information about features
+                and observations
+            data_file (str): path to file for the data table of information
+                about features and observations
+            review (str): notes about review of instance in table of parameters
+            note (str): notes about instance in table of parameters
+
+        parameters (dict): parameters common to all instances
+            path_file_table_parameters (str): path to source file in text format as
+                a table with tab delimiters between columns and newline delimiters
+                between rows, with parameters for multiple regressions
+            path_directory_dock (str): path to dock directory for procedure's
+                source and product directories and files
+            report (bool): whether to print reports
+
+
+    raises:
+
+    returns:
+
+    """
+
+    ##########
+    # Copy information.
+    instance_record = copy.deepcopy(instance)
+
+    ##########
+    # Extract parameters.
+
+    # Extract parameters specific to each instance.
+    execution = instance_record["execution"]
+    sequence = instance_record["sequence"]
+    group = instance_record["group"]
+    instance = instance_record["instance"]
+    name_instance = instance_record["name_instance"]
+    selection_observations = instance_record["selection_observations"]
+    features_continuity_scale = instance_record["features_continuity_scale"]
+    type_regression = instance_record["type_regression"]
+    formula_text = instance_record["formula_text"]
+    feature_response = instance_record["feature_response"]
+    features_predictor_fixed = instance_record["features_predictor_fixed"]
+    features_predictor_random = instance_record["features_predictor_random"]
+    features_relevant = instance_record["features_relevant"]
+    data_path_directory = instance_record["data_path_directory"]
+    data_file = instance_record["data_file"]
+    review = instance_record["review"]
+    note = instance_record["note"]
+
+    # Extract parameters common across all instances.
+    path_file_table_parameters = parameters["path_file_table_parameters"]
+    path_directory_dock = parameters["path_directory_dock"]
+    report = parameters["report"]
+
+    ##########
+    # Control procedure with split branch for parallelization.
+    control_procedure_part_branch(
+        execution=execution,
+        sequence=sequence,
+        group=group,
+        instance=instance,
+        name_instance=name_instance,
+        selection_observations=selection_observations,
+        features_continuity_scale=features_continuity_scale,
+        type_regression=type_regression,
+        formula_text=formula_text,
+        feature_response=feature_response,
+        features_predictor_fixed=features_predictor_fixed,
+        features_predictor_random=features_predictor_random,
+        features_relevant=features_relevant,
+        data_path_directory=data_path_directory,
+        data_file=data_file,
+        review=review,
+        note=note,
+        path_file_table_parameters=path_file_table_parameters,
+        path_directory_dock=path_directory_dock,
+        report=report,
+    )
+    pass
+
+
+def control_parallel_instances(
+    instances=None,
+    path_file_table_parameters=None,
+    path_directory_dock=None,
+    report=None,
+):
+    """
+    Control procedure for parallel instances.
+
+    Review: TCW; 31 March 2025
+
+    arguments:
+        instances (list<dict>): parameters to control individual instances in
+            parallel
+        path_file_table_parameters (str): path to source file in text format as
+            a table with tab delimiters between columns and newline delimiters
+            between rows, with parameters for multiple regressions
+        path_directory_dock (str): path to dock directory for procedure's
+            source and product directories and files
+        report (bool): whether to print reports
+
+
+    raises:
+
+    returns:
+
+    """
+
+    # Collect parameters common across all instances.
+    parameters = dict()
+    parameters["path_file_table_parameters"] = path_file_table_parameters
+    parameters["path_directory_dock"] = path_directory_dock
+    parameters["report"] = report
+
+    # Execute procedure iteratively with parallelization across instances.
+    if False:
+        prall.drive_procedure_parallel(
+            function_control=(
+                control_parallel_instance
+            ),
+            instances=instances,
+            parameters=parameters,
+            cores=5,
+            report=True,
+        )
+    else:
+        # Execute procedure directly for testing.
+        control_parallel_instance(
+            instance=instances[0],
+            parameters=parameters,
+        )
+    pass
+
+
+##########
+# Call main procedure.
 
 
 def execute_procedure(
@@ -323,7 +604,13 @@ def execute_procedure(
 
 
     ##########
-    # Write product information to file.
+    # Control procedure for parallel instances.
+    control_parallel_instances(
+        instances=pail_source["records"],
+        path_file_table_parameters=path_file_table_parameters,
+        path_directory_dock=path_directory_dock,
+        report=report,
+    )
 
     pass
 
