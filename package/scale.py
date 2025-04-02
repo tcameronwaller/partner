@@ -499,17 +499,36 @@ def transform_standard_z_score_by_table_columns(
     report=None,
 ):
     """
+    Transform values for features corresponding to specific columns in table
+    to have mean zero (0) and standard deviation one (1) across all rows
+    corresponding to observations.
+
     Transform values to z-scores to standardize their scales and distributions
     within each separate column of a table.
 
-    The mean of values in each column will be zero (mean = 0).
-    The standard deviation of values in each column will be one (standard
-    deviation = 1).
+    The z score forces all values to have mean of zero (mean = 0) and standard
+    deviation of one (standard deviation = 1).
 
     This function preserves the names and sequence of columns from the original
     source table.
 
-    Review: TCW; 16 October 2024
+    formula:
+    z-score = (value - mean) / (standard deviation)
+
+    References:
+
+    1. Comparison of methods to adjust scale in 'Scikit Learn'
+       title: 'Compare the effect of different scalers on data with outliers'
+       site: https://scikit-learn.org/stable/auto_examples/preprocessing/
+          plot_all_scaling.html#plot-all-scaling-minmax-scaler-section
+
+    2. Documentation on 'StandardScaler' in 'Scikit Learn'
+       title: 'StandardScaler'
+       site: https://scikit-learn.org/stable/modules/generated/sklearn.
+          preprocessing.StandardScaler.html#sklearn.preprocessing.
+          StandardScaler
+
+    Review: TCW; 2 April 2025
 
     arguments:
         table (object): Pandas data-frame table of values on continuous ratio
@@ -554,13 +573,14 @@ def transform_standard_z_score_by_table_columns(
 
     # Report.
     if report:
-        putly.print_terminal_partition(level=2)
-        print("module: partner.scale.py")
-        function = (
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        print("module: scale.py")
+        name_function = (
             "transform_standard_z_score_by_table_columns()"
         )
-        print(str("function: " + function))
-        putly.print_terminal_partition(level=3)
+        print(str("function: " + name_function))
+        putly.print_terminal_partition(level=5)
         table_report = table.copy(deep=True)
         table_report = table_report.loc[
             :, table_report.columns.isin(columns_relevant)
@@ -708,6 +728,148 @@ def calculate_p_value_from_z_statistic(
         )
     # Return information.
     return p_value
+
+
+# Unit range
+
+
+def transform_unit_range_by_table_columns(
+    table=None,
+    columns=None,
+    report=None,
+):
+    """
+    Transform values for features corresponding to specific columns in table
+    to have unit range from zero (0) to one (1) across all rows corresponding
+    to observations.
+
+    This function preserves the names and sequence of columns from the original
+    source table.
+
+    formula:
+    unit-range = (value - minimum) / (maximum - minimum)
+
+    References:
+
+    1. Comparison of methods to adjust scale in 'Scikit Learn'
+       title: 'Compare the effect of different scalers on data with outliers'
+       site: https://scikit-learn.org/stable/auto_examples/preprocessing/
+          plot_all_scaling.html#plot-all-scaling-minmax-scaler-section
+
+    2. Documentation on 'MinMaxScaler' in 'Scikit Learn'
+       title: 'MinMaxScaler'
+       site: https://scikit-learn.org/stable/modules/generated/sklearn.
+          preprocessing.MinMaxScaler.html
+
+    Review: TCW; 2 April 2025
+
+    arguments:
+        table (object): Pandas data-frame table of values on continuous ratio
+            or interval scale of measurement
+        columns (list<str>): names of columns in table for which to apply the
+            transformation
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table of values
+
+    """
+
+    def transform_values_unit_range(
+        series=None,
+    ):
+        """
+        Define subordinate function for internal use within dominant function.
+        """
+        def unit_range(value, minimum, maximum):
+            return ((value - minimum) / (maximum - minimum))
+        vectorized_unit_range = numpy.vectorize(unit_range)
+        series = series.copy(deep=True)
+        values_raw = series.to_numpy(
+            dtype="float64",
+            na_value=numpy.nan,
+            copy=True,
+        )
+        minimum = numpy.nanmin(values_raw)
+        maximum = numpy.nanmax(values_raw)
+        values_scale = vectorized_unit_range(
+            values_raw, minimum, maximum
+        )
+        return values_scale
+
+    # Copy information in table.
+    table = table.copy(deep=True)
+    table_scale = table.copy(deep=True)
+    # Copy other information.
+    columns = copy.deepcopy(columns)
+
+    # Filter columns by whether they are in the table.
+    columns_relevant = list(filter(
+        lambda column: (str(column) in table.columns.to_list()),
+        columns
+    ))
+
+    # Calculate the standard z-score of values in each column of table.
+    # This method inserts missing values if the standard deviation is zero.
+    for column in columns_relevant:
+        table_scale[column] = transform_values_unit_range(
+            series=table_scale[column]
+        )
+        pass
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        print("module: scale.py")
+        name_function = (
+            "transform_standard_z_score_by_table_columns()"
+        )
+        print(str("function: " + name_function))
+        putly.print_terminal_partition(level=5)
+        table_report = table.copy(deep=True)
+        table_report = table_report.loc[
+            :, table_report.columns.isin(columns_relevant)
+        ]
+        table_scale_report = table_scale.copy(deep=True)
+        table_scale_report = table_scale_report.loc[
+            :, table_scale_report.columns.isin(columns_relevant)
+        ]
+        print("... summary statistics before scale ...")
+        table_minimum = table_report.aggregate(
+            lambda series: series.min(),
+            axis="index", # apply function to each column
+        )
+        print("minimum:")
+        print(table_minimum.iloc[0:10])
+        putly.print_terminal_partition(level=5)
+        table_maximum = table_report.aggregate(
+            lambda series: series.max(),
+            axis="index", # apply function to each column
+        )
+        print("maximum:")
+        print(table_maximum.iloc[0:10])
+        putly.print_terminal_partition(level=4)
+        print("... summary statistics after scale ...")
+        table_minimum = table_scale_report.aggregate(
+            lambda series: series.min(),
+            axis="index", # apply function to each column
+        )
+        print("minimum:")
+        print(table_minimum.iloc[0:10])
+        putly.print_terminal_partition(level=5)
+        table_maximum = table_scale_report.aggregate(
+            lambda series: series.max(),
+            axis="index", # apply function to each column
+        )
+        print("maximum:")
+        print(table_maximum.iloc[0:10])
+        pass
+    # Return information.
+    return table_scale
+
 
 
 ##########

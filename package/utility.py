@@ -538,13 +538,46 @@ def print_terminal_partition(level=None):
         partition = textwrap.dedent("""\
 
             ----------
-
+            ----------
+            ----------
         """)
     elif level == 5:
+        partition = textwrap.dedent("""\
+        
+            ----------
+        """)
+    elif level == 6:
         partition = textwrap.dedent("""----------""")
+    elif level == 7:
+        partition = textwrap.dedent("""...""")
     else:
         partition = ""
     print(partition)
+    pass
+
+
+def print_terminal_warning():
+    """
+    Prints string to terminal to warn the user of important information.
+
+    arguments:
+
+    raises:
+
+    returns:
+
+    """
+
+    warning = textwrap.dedent("""\
+
+        --------------------------------------------------
+        ***** !!!!! *****
+        ...  WARNING  ...
+        ***** !!!!! *****
+        --------------------------------------------------
+
+    """)
+    print(warning)
     pass
 
 
@@ -2313,17 +2346,19 @@ def collect_values_from_records(key=None, records=None):
 
 
 def compare_lists_by_inclusion(
-    list_primary=None,
-    list_secondary=None
+    items_dominant=None,
+    items_subordinate=None,
 ):
     """
     Compares lists by inclusion.
 
-    Returns True if all elements in list_secondary are in list_primary.
+    Returns True if all elements in items_subordinate are in items_dominant.
+
+    Review: TCW; 2 April 2025
 
     arguments:
-        list_primary (list): list of elements
-        list_secondary (list): list of elements
+        items_dominant (list<str>): list of items as strings of text characters
+        items_subordinate (list): list of items as strings of text characters
 
     returns:
         (bool): whether first list includes all elements from second
@@ -2332,9 +2367,9 @@ def compare_lists_by_inclusion(
 
     """
 
-    def match(element_two=None):
-        return element_two in list_primary
-    matches = list(map(match, list_secondary))
+    def match(item=None):
+        return item in items_dominant
+    matches = list(map(match, items_subordinate))
     comparison = all(matches)
     return comparison
 
@@ -2970,37 +3005,6 @@ def impute_continuous_variables_missing_values_half_minimum(
         )
     # Return information.
     return table
-
-
-# osolete? possibly replace with coefficient of variation?
-def calculate_relative_variance(
-    array=None,
-):
-    """
-    Calculates the relative variance.
-
-    Variance is mathematically never negative.
-    Use the absolute value of the mean.
-
-    arguments:
-        array (object): NumPy array of ratio-scale values
-
-    raises:
-
-    returns:
-        (float): value of relative variance
-
-    """
-
-    mean = numpy.nanmean(array)
-    mean_absolute = math.fabs(mean)
-    variance = numpy.nanvar(array)
-    if (mean_absolute > 0.0000001):
-        relative_variance = (variance / mean_absolute)
-    else:
-        relative_variance = float("nan")
-    # Return information.
-    return relative_variance
 
 
 def count_data_factors_groups_elements(

@@ -93,7 +93,8 @@ import partner.description as pdesc
 
 
 
-
+# TODO: TCW; 2 April 2025
+# Obsolete, I think. See "script_drive_regressions_from_table_parameters".
 def organize_table_cohort_model_variables_for_regression(
     dependence=None,
     independence=None,
@@ -778,7 +779,7 @@ def create_missing_values_regression_logistic(
     # Return information.
     return pail
 
-
+# inspect
 def create_regression_missing_values(
     dependence=None,
     independence=None,
@@ -947,6 +948,8 @@ def organize_regression_summary_table_for_forest_plots(
 # Drivers
 
 
+# inspect
+# order: 2
 def organize_check_table_information_for_regression(
     dependence=None,
     independence=None,
@@ -1044,6 +1047,8 @@ def organize_check_table_information_for_regression(
     return pail_organization
 
 
+# inspect
+# order: 1
 def organize_check_table_drive_regression(
     table=None,
     type=None,
@@ -1133,6 +1138,8 @@ def organize_check_table_drive_regression(
     return pail_regression
 
 
+# inspect
+# order: last, I think
 def organize_regressions_summary_table_long(
     records_regressions=None,
     independences_summary=None,
@@ -1229,6 +1236,7 @@ def organize_regressions_summary_table_long(
     return table
 
 
+# inspect
 def organize_table_regression_summary(
     type=None,
     table=None,
@@ -1301,6 +1309,9 @@ def organize_table_regression_summary(
     return table
 
 
+
+# TODO: TCW; 2 April 2025
+# Obsolete, I think. See "script_drive_regressions_from_table_parameters".
 def drive_linear_logistic_regression_cohort_model(
     record_cohort_model=None,
     entries_cohorts=None,
@@ -1395,6 +1406,8 @@ def drive_linear_logistic_regression_cohort_model(
     return record_regression
 
 
+# TODO: TCW; 2 April 2025
+# Obsolete, I think. See "script_drive_regressions_from_table_parameters".
 def drive_linear_logistic_regressions_cohorts_models(
     entries_cohorts=None,
     table_cohorts_models=None,

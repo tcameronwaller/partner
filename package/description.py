@@ -467,6 +467,70 @@ def drive_assemble_quantitation_table(
 
 
 ##########
+# Variance
+
+
+def calculate_variance_measures(
+    array=None,
+):
+    """
+    Calculates measures of variance.
+
+    Variance is mathematically never negative.
+
+    A synonymous common name for the 'coefficient of variation' is the 'relative
+    standard deviation (RSD)'.
+
+    Review: TCW; 2 April 2025
+
+    arguments:
+        array (object): NumPy array of values on a quantitative, continuous
+           scale of measurement, such as ratio or interval
+
+    raises:
+
+    returns:
+        (float): value of relative variance
+
+    """
+
+    # Copy information.
+    values_raw = copy.deepcopy(array)
+    # Filter to nonmissing values.
+    values_nonmissing = numpy.copy(
+        values_raw[~numpy.isnan(values_raw)]
+    )
+    # Calculate descriptive statistical measures.
+    mean = numpy.nanmean(values_nonmissing)
+    mean_absolute = math.fabs(mean)
+    variance = numpy.nanvar(
+            values_nonmissing,
+            ddof=1, # divisor is (n - 1) for sample variance
+    )
+    standard_deviation = numpy.nanstd(
+            values_nonmissing,
+            ddof=1, # divisor is (n - 1) for sample standard deviation
+    )
+    # ((mean > 0.0) or (mean < 0.0))
+    if (mean != 0.0):
+        #scipy.stats.variation()
+        coefficient_variation = float(
+            standard_deviation / mean
+        )
+    else:
+        coefficient_variation = float("nan")
+        pass
+    # Collect information.
+    pail = dict()
+    pail["variance"] = variance
+    pail["standard_deviation"] = standard_deviation
+    pail["coefficient_variation"] = coefficient_variation
+    # Return information.
+    return pail
+
+
+
+##########
 # Confidence Intervals
 
 
