@@ -319,7 +319,11 @@ def explicate_table_indices_columns_rows_single_level(
         inplace=True,
     ) # single-dimensional index
     # Determine whether to define explicit, specific indices.
-    if (explicate_indices):
+    if (
+        (index_columns is not None) and
+        (index_rows is not None) and
+        (explicate_indices)
+    ):
         table.set_index(
             index_rows,
             append=False,
@@ -1357,6 +1361,8 @@ def filter_select_table_rows_by_columns_categories(
 
     This function preserves the original sequence of rows from the source
     table.
+
+    Review: TCW; 2 April 2025
 
     arguments:
         table (object): Pandas data-frame table

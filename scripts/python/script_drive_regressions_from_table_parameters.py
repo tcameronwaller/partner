@@ -62,6 +62,8 @@ import numpy
 # Custom
 import partner.utility as putly
 import partner.parallelization as prall
+import partner.organization as porg
+import partner.scale as pscl
 import partner.regression as preg
 
 #dir()
@@ -96,12 +98,13 @@ def define_column_types_table_parameters():
     types_columns["group"] = "string"
     types_columns["instance"] = "string"
     types_columns["selection_observations"] = "string"
-    types_columns["features_continuity_scale"] = "string"
     types_columns["type_regression"] = "string"
     types_columns["formula_text"] = "string"
     types_columns["feature_response"] = "string"
     types_columns["features_predictor_fixed"] = "string"
     types_columns["features_predictor_random"] = "string"
+    types_columns["features_continuity_scale"] = "string"
+    types_columns["identifier_observations"] = "string"
     types_columns["data_path_directory"] = "string"
     types_columns["data_file"] = "string"
     types_columns["review"] = "string"
@@ -110,8 +113,9 @@ def define_column_types_table_parameters():
     return types_columns
 
 
-def read_source(
+def read_source_table_parameters(
     path_file_table_parameters=None,
+    path_directory_dock=None,
     report=None,
 ):
     """
@@ -126,6 +130,8 @@ def read_source(
         path_file_table_parameters (str): path to source file in text format as
             a table with tab delimiters between columns and newline delimiters
             between rows, with parameters for multiple regressions
+        path_directory_dock (str): path to dock directory for procedure's
+            source and product directories and files
         report (bool): whether to print reports
 
     raises:
@@ -162,6 +168,10 @@ def read_source(
         errors="coerce",
     )
 
+    print("!!!!!!!!!!!!!!!!!!!!!!!!")
+    print(table)
+    print(table.columns.tolist())
+
     # Collect information.
     records = list()
     for index, row in table.iterrows():
@@ -182,10 +192,6 @@ def read_source(
                     text=row["selection_observations"],
                 )
             )["features_values"]
-            record["features_continuity_scale"] = putly.parse_text_list_values(
-                text=row["features_continuity_scale"],
-                delimiter=",",
-            )
             record["type_regression"] = str(row["type_regression"]).strip()
             record["formula_text"] = str(row["formula_text"]).strip()
             record["feature_response"] = str(row["feature_response"]).strip()
@@ -197,12 +203,24 @@ def read_source(
                 text=row["features_predictor_random"],
                 delimiter=",",
             )
-            data_path_directory = putly.parse_text_list_values(
-                text=row["data_path_directory"],
+            record["features_continuity_scale"] = putly.parse_text_list_values(
+                text=row["features_continuity_scale"],
                 delimiter=",",
             )
-            record["data_path_directory"] = os.path.join(
-                *data_path_directory, # 'splat' operator unpacks list items
+            if (
+                (row["identifier_observations"] is not None) and
+                (len(str(row["identifier_observations"])) > 0) and
+                (str(row["identifier_observations"]).strip().lower() != "none")
+            ):
+                record["identifier_observations"] = str(
+                    row["identifier_observations"]
+                ).strip()
+            else:
+                record["identifier_observations"] = None
+                pass
+            record["data_path_directory"] = putly.parse_text_list_values(
+                text=row["data_path_directory"],
+                delimiter=",",
             )
             record["data_file"] = str(row["data_file"]).strip()
             record["review"] = str(row["review"]).strip()
@@ -210,6 +228,20 @@ def read_source(
 
             # Collect unique names of columns relevant to instance of
             # parameters from current row in table.
+            features_regression = list()
+            features_regression.append(record["feature_response"])
+            features_regression.extend(record["features_predictor_fixed"])
+            features_regression.extend(record["features_predictor_random"])
+            if (record["identifier_observations"] is not None):
+                features_regression.insert(
+                    0,
+                    record["identifier_observations"],
+                )
+                pass
+            features_regression = putly.collect_unique_elements(
+                elements=features_regression,
+            )
+            record["features_regression"] = copy.deepcopy(features_regression)
             features_relevant = list()
             dictionaries = [
                 "selection_observations",
@@ -220,14 +252,11 @@ def read_source(
                     pass
                 pass
             features_relevant.extend(record["features_continuity_scale"])
-            features_relevant.append(record["feature_response"])
-            features_relevant.extend(record["features_predictor_fixed"])
-            features_relevant.extend(record["features_predictor_random"])
-            features_unique = putly.collect_unique_elements(
+            features_relevant.extend(features_regression)
+            features_relevant = putly.collect_unique_elements(
                 elements=features_relevant,
             )
-            record["features_relevant"] = copy.deepcopy(features_unique)
-
+            record["features_relevant"] = copy.deepcopy(features_relevant)
             # Collect information and parameters for current row in table.
             records.append(record)
             pass
@@ -245,7 +274,7 @@ def read_source(
         putly.print_terminal_partition(level=3)
         print("package: partner")
         print("module: script_drive_regressions_from_table_parameters.py")
-        print("function: read_source()")
+        print("function: read_source_table_parameters()")
         putly.print_terminal_partition(level=5)
         print("parameter table:")
         print(table)
@@ -258,6 +287,273 @@ def read_source(
         pass
     # Return information.
     return pail
+
+
+def read_source_table_data(
+    name_file_table_data=None,
+    directories_path_data=None,
+    path_directory_dock=None,
+    report=None,
+):
+    """
+    Read and organize source information about data for regression.
+
+    Notice that Pandas does not accommodate missing values within series of
+    integer variable types.
+
+    Review: TCW; 1 April 2025
+
+    arguments:
+        name_file_table_data (str): name of file for the table of data with
+            features and observations for regression
+        directories_path_data (list<str>): names of directories in path at
+            which to find the file for the table of data with features and
+            observations for regression
+        path_directory_dock (str): path to dock directory for procedure's
+            source and product directories and files
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict): collection of source information about parameters for selection
+            of sets from MSigDB
+
+    """
+
+    # Define paths to directories and files.
+    if ("dock" in directories_path_data):
+        directories_path_data = list(filter(
+            lambda directory: (directory != "dock"),
+            directories_path_data
+        ))
+        pass
+    path_directory_data = os.path.join(
+        path_directory_dock,
+        *directories_path_data, # 'splat' operator unpacks list items
+    )
+    path_file_table = os.path.join(
+        path_directory_data, name_file_table_data,
+    )
+
+    # Read information from file.
+
+    # Table of data with values for observations of features.
+    table = pandas.read_csv(
+        path_file_table,
+        sep="\t",
+        header=0,
+        na_values=[
+            "nan", "na", "NAN", "NA", "<nan>", "<na>", "<NAN>", "<NA>",
+        ],
+        encoding="utf-8",
+    )
+
+    # Report.
+    if report:
+        # Organize.
+        # Print.
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        print("module: script_drive_regressions_from_table_parameters.py")
+        print("function: read_source_table_data()")
+        putly.print_terminal_partition(level=5)
+        print("data table:")
+        print(table)
+        putly.print_terminal_partition(level=5)
+        pass
+    # Return information.
+    return table
+
+
+# Organize information in table for features and observations.
+
+
+def organize_table_data(
+    table=None,
+    selection_observations=None,
+    features_relevant=None,
+    features_regression=None,
+    features_continuity_scale=None,
+    index_columns_source=None,
+    index_columns_product=None,
+    index_rows_source=None,
+    index_rows_product=None,
+    explicate_indices=None,
+    report=None,
+):
+    """
+    Organize table of data with features and observations for regression.
+
+    1. filter columns in table for relevant features
+    2. filter rows in table for relevant observations
+    3. standardize scale of features with measurement values on quantitative,
+       continuous scale of measurement, ratio or interval
+
+    ----------
+    Format of source data table (name: "table")
+    ----------
+    Format of source data table is in wide format with values for features
+    across columns corresponding to observations across rows. A special header
+    row gives identifiers or names corresponding to each feature across
+    columns, and a special column gives identifiers or names corresponding to
+    each observation across rows. For versatility, this table does not have
+    explicitly defined indices across rows or columns.
+    ----------
+    identifiers     feature_1 feature_2 feature_3 feature_4 feature_5 ...
+
+    observation_1   0.001     0.001     0.001     0.001     0.001     ...
+    observation_2   0.001     0.001     0.001     0.001     0.001     ...
+    observation_3   0.001     0.001     0.001     0.001     0.001     ...
+    observation_4   0.001     0.001     0.001     0.001     0.001     ...
+    observation_5   0.001     0.001     0.001     0.001     0.001     ...
+    ----------
+
+    ----------
+    Format of product data table (name: "table")
+    ----------
+    The table has explicitly named indices across columns and rows.
+    ----------
+    features        feature_1 feature_2 feature_3 feature_4 feature_5 ...
+    observations
+    observation_1   0.001     0.001     0.001     0.001     0.001     ...
+    observation_2   0.001     0.001     0.001     0.001     0.001     ...
+    observation_3   0.001     0.001     0.001     0.001     0.001     ...
+    observation_4   0.001     0.001     0.001     0.001     0.001     ...
+    observation_5   0.001     0.001     0.001     0.001     0.001     ...
+    ----------
+
+    Review: TCW; 2 April 2025
+
+    arguments:
+        table (object): Pandas data-frame table of data with features
+            and observations for regression
+        selection_observations (dict<list<str>>): names of columns in data
+            table for feature variables and their categorical values by
+            which to filter rows for observations in data table
+        features_relevant (list<str>): names of columns in data table for
+            feature variables that are relevant to the current instance of
+            parameters
+        features_regression (list<str>): names of columns in data table for
+            feature variables that are relevant to the actual regression model
+        features_continuity_scale (list<str>): names of columns in data table
+            for feature variables with values on quantitative, continuous scale
+            of measurement, interval or ratio, for which to standardize the
+            scale by z score
+        index_columns_source (str): name of single-level index across columns
+            in table
+        index_columns_product (str): name of single-level index across columns
+            in table
+        index_rows_source (str): name of single-level index across rows in
+            table
+        index_rows_product (str): name of single-level index across rows in
+            table
+        explicate_indices (bool): whether to explicate, define, or specify
+            explicit indices across columns and rows in table
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict<object>): collection of information
+
+    """
+
+    # Copy information.
+    table = table.copy(deep=True)
+    selection_observations = copy.deepcopy(selection_observations)
+    features_continuity_scale = copy.deepcopy(features_continuity_scale)
+    features_relevant = copy.deepcopy(features_relevant)
+
+    # Restore or reset indices to generic default.
+    table.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    table.columns.rename(
+        None,
+        inplace=True,
+    ) # single-dimensional index
+
+    # Filter columns in table for features.
+    table = porg.filter_sort_table_columns(
+        table=table,
+        columns_sequence=features_relevant,
+        report=report,
+    )
+    # Filter rows in table for observations.
+    table = porg.filter_select_table_rows_by_columns_categories(
+        table=table,
+        columns_categories=selection_observations,
+        report=report,
+    )
+
+    # Remove rows from table for observations with any missing values for
+    # relevant features that are part of the model for regression.
+    table.dropna(
+        axis="index",
+        how="any",
+        subset=features_regression,
+        inplace=True,
+    )
+
+    # Standardize scale of values for observations of features.
+    table = pscl.transform_standard_z_score_by_table_columns(
+            table=table,
+            columns=features_continuity_scale,
+            report=report,
+    )
+
+    # Organize indices in table.
+    # Determine whether parameters specified a column in the table for
+    # identifiers of observations that will become index across rows.
+    if (
+        (index_rows_source is not None) and
+        (index_rows_source in (table.columns.tolist()))
+    ):
+        # Create index across rows from column that already exists in table.
+        table = porg.explicate_table_indices_columns_rows_single_level(
+            table=table,
+            index_columns=index_columns_source,
+            index_rows=index_rows_source,
+            explicate_indices=explicate_indices,
+            report=False,
+        )
+    else:
+        # Name generic index in table.
+        table.reset_index(
+            level=None,
+            inplace=True,
+            drop=True, # remove index; do not move to regular columns
+        )
+        table.index.set_names(index_rows_source, inplace=True)
+        pass
+    # Standardize names of indices.
+    table = porg.translate_names_table_indices_columns_rows(
+        table=table,
+        index_columns_product=index_columns_product,
+        index_rows_source=index_rows_source,
+        index_rows_product=index_rows_product,
+        report=None,
+    )
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=4)
+        print("package: partner")
+        print("module: script_drive_regressions_from_table_parameters.py")
+        name_function = str(
+            "organize_table_data()"
+        )
+        print("function: " + name_function)
+        putly.print_terminal_partition(level=5)
+        print(table)
+        putly.print_terminal_partition(level=5)
+        pass
+    # Return information.
+    return table
+
 
 
 
@@ -278,13 +574,15 @@ def control_procedure_part_branch(
     instance=None,
     name_instance=None,
     selection_observations=None,
-    features_continuity_scale=None,
     type_regression=None,
     formula_text=None,
     feature_response=None,
     features_predictor_fixed=None,
     features_predictor_random=None,
+    features_regression=None,
+    features_continuity_scale=None,
     features_relevant=None,
+    identifier_observations=None,
     data_path_directory=None,
     data_file=None,
     review=None,
@@ -322,14 +620,18 @@ def control_procedure_part_branch(
         features_predictor_random (list<str>): names of columns in data table
             for feature variables to include in regression model as predictor
             independent variables with random effects
+        features_regression (list<str>): names of columns in data table for
+            feature variables that are relevant to the actual regression model
         features_relevant (list<str>): names of columns in data table for
             feature variables that are relevant to the current instance of
             parameters
-        data_path_directory (str): path to parent directory in which to find
-            the file for the data table of information about features and
-            observations
-        data_file (str): path to file for the data table of information about
-            features and observations
+        identifier_observations (str): name of column in data table for unique
+            identifiers of observations across rows
+        data_path_directory (list<str>): names of directories in path at which
+            to find the file for the table of data with features and
+            observations for regression
+        data_file (str): name of file for the table of data with features and
+            observations for regression
         review (str): notes about review of instance in table of parameters
         note (str): notes about instance in table of parameters
         path_file_table_parameters (str): path to source file in text format as
@@ -344,6 +646,31 @@ def control_procedure_part_branch(
     returns:
 
     """
+
+    ##########
+    # Read source information from file.
+    table = read_source_table_data(
+        name_file_table_data=data_file,
+        directories_path_data=data_path_directory,
+        path_directory_dock=path_directory_dock,
+        report=report,
+    )
+
+    ##########
+    # Organize information in table.
+    table = organize_table_data(
+        table=table,
+        selection_observations=selection_observations,
+        features_relevant=features_relevant,
+        features_regression=features_regression,
+        features_continuity_scale=features_continuity_scale,
+        index_columns_source="features",
+        index_columns_product="features",
+        index_rows_source=identifier_observations,
+        index_rows_product="observations",
+        explicate_indices=True,
+        report=report,
+    )
 
     ##########
     # Report.
@@ -385,10 +712,6 @@ def control_parallel_instance(
             selection_observations (dict<list<str>>): names of columns in data
                 table for feature variables and their categorical values by
                 which to filter rows for observations in data table
-            features_continuity_scale (list<str>): names of columns in data
-                table for feature variables with values on quantitative,
-                continuous scale of measurement, interval or ratio, for which
-                to standardize the scale by z score
             type_regression (str): name of type of regression model to use
             formula_text (str): human readable formula for regression model,
                 treated as a note for clarification
@@ -401,13 +724,22 @@ def control_parallel_instance(
             features_predictor_random (list<str>): names of columns in data
                 table for feature variables to include in regression model as
                 predictor independent variables with random effects
+            features_regression (list<str>): names of columns in data table for
+                feature variables that are relevant to the actual regression
+                model
+            features_continuity_scale (list<str>): names of columns in data
+                table for feature variables with values on quantitative,
+                continuous scale of measurement, interval or ratio, for which
+                to standardize the scale by z score
             features_relevant (list<str>): names of columns in data table for
                 feature variables that are relevant to the current instance of
                 parameters
-            data_path_directory (str): path to parent directory in which to
-                find the file for the data table of information about features
-                and observations
-            data_file (str): path to file for the data table of information
+            identifier_observations (str): name of column in data table for
+                unique identifiers of observations across rows
+            data_path_directory (list<str>): names of directories in path at
+                which to find the file for the table of data with features and
+                observations for regression
+            data_file (str): name of file for the data table of information
                 about features and observations
             review (str): notes about review of instance in table of parameters
             note (str): notes about instance in table of parameters
@@ -441,13 +773,15 @@ def control_parallel_instance(
     instance = instance_record["instance"]
     name_instance = instance_record["name_instance"]
     selection_observations = instance_record["selection_observations"]
-    features_continuity_scale = instance_record["features_continuity_scale"]
     type_regression = instance_record["type_regression"]
     formula_text = instance_record["formula_text"]
     feature_response = instance_record["feature_response"]
     features_predictor_fixed = instance_record["features_predictor_fixed"]
     features_predictor_random = instance_record["features_predictor_random"]
+    features_regression = instance_record["features_regression"]
+    features_continuity_scale = instance_record["features_continuity_scale"]
     features_relevant = instance_record["features_relevant"]
+    identifier_observations = instance_record["identifier_observations"]
     data_path_directory = instance_record["data_path_directory"]
     data_file = instance_record["data_file"]
     review = instance_record["review"]
@@ -467,13 +801,15 @@ def control_parallel_instance(
         instance=instance,
         name_instance=name_instance,
         selection_observations=selection_observations,
-        features_continuity_scale=features_continuity_scale,
         type_regression=type_regression,
         formula_text=formula_text,
         feature_response=feature_response,
         features_predictor_fixed=features_predictor_fixed,
         features_predictor_random=features_predictor_random,
+        features_regression=features_regression,
+        features_continuity_scale=features_continuity_scale,
         features_relevant=features_relevant,
+        identifier_observations=identifier_observations,
         data_path_directory=data_path_directory,
         data_file=data_file,
         review=review,
@@ -551,6 +887,22 @@ def execute_procedure(
     """
     Function to execute module's main behavior.
 
+    1. read source information from file
+       - source information at this level consists of a table of parameters for
+          regressions
+       - it is necessary to parse information with hierarchical structure from
+          the flat text
+    2. drive multiple, concurrent procedures in parallel branches
+    3. within each procedural branch, read from file and organize the data
+       table consisting of features across observations
+       - filter features and observations in table
+       - standardize scale of values within specific feature variables
+    4. within each procedural branch, execute regression analysis using type of
+       model, features, and other parameters from the source table of
+       parameters
+    5. organize report summary information from the regression analysis and
+       write this information to file
+
     arguments:
         path_file_table_parameters (str): path to source file in text format as
             a table with tab delimiters between columns and newline delimiters
@@ -579,8 +931,9 @@ def execute_procedure(
 
     ##########
     # Read source information from file.
-    pail_source = read_source(
+    pail_source = read_source_table_parameters(
         path_file_table_parameters=path_file_table_parameters,
+        path_directory_dock=path_directory_dock,
         report=report,
     )
     for record in pail_source["records"]:

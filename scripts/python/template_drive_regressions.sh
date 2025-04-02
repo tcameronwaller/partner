@@ -31,6 +31,7 @@ path_directory_package_partner="$path_directory_package/partner"
 
 path_directory_dock="$path_directory_process/dock"
 path_directory_data="$path_directory_dock/in_data" # restore script does not modify "in_data" for efficiency
+path_directory_demonstration="$path_directory_dock/in_demonstration"
 path_directory_parameters="$path_directory_dock/in_parameters"
 path_directory_parameters_private="$path_directory_dock/in_parameters_private"
 
@@ -40,7 +41,8 @@ path_directory_parameters_private="$path_directory_dock/in_parameters_private"
 #path_directory_temporary="${path_directory_product}/temporary_${stamp_date}" # hopefully unique
 
 # Files.
-path_file_table_parameters="${path_directory_parameters_private}/age_exercise/regression/table_regression_parameters.tsv"
+path_file_table_parameters="${path_directory_demonstration}/partner/table_regression_parameters.tsv"
+#path_file_table_parameters="${path_directory_parameters_private}/age_exercise/regression/table_regression_parameters.tsv"
 
 # Scripts.
 path_file_script_source="${path_directory_scripts}/partner/python/script_drive_regressions_from_table_parameters.py"
