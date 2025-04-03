@@ -792,6 +792,7 @@ def manage_regression_continuous_linear_ordinary_least_squares(
         "degrees_freedom_residual",
         "r_square",
         "r_square_adjust",
+        "r_square_pseudo",
         "log_likelihood",
         "akaike",
         "bayes",
@@ -810,6 +811,7 @@ def manage_regression_continuous_linear_ordinary_least_squares(
     )
     pail["r_square"] = pail_regression["model"].rsquared
     pail["r_square_adjust"] = pail_regression["model"].rsquared_adj
+    pail["r_square_pseudo"] = float("nan") # hold place for logistic regression
     pail["log_likelihood"] = pail_regression["model"].llf
     pail["akaike"] = pail_regression["model"].aic
     pail["bayes"] = pail_regression["model"].bic
@@ -1122,19 +1124,14 @@ def collect_organize_record_regression_analysis(
     #     entries_parameter_instance (list<str>): names and sequence of entries
     #         with information about the instance of parameters for the
     #         regression
-    #     entries_model (list<str): names and sequence of entries with
+    #     entries_model (list<str>): names and sequence of entries with
     #         information about the regression model as a whole
-    #     entries_intercept_predictors (list<str): names and sequence of
+    #     entries_intercept_predictors (list<str>): names and sequence of
     #         entries with with information about model's intercept and
     #         predictors
     #     record (dict<str>): record for collection and assembly as rows within
     #         a Pandas data-frame table, using the lists of entries to sort the
     #         columns in the table
-
-    # When creating a Pandas data-frame table from a list of dictionary
-    # records, if one or more records have key entries that do not match those
-    # from other records, then the operation automatically introduces missing
-    # values.
 
     # Collect information.
     pail = dict()

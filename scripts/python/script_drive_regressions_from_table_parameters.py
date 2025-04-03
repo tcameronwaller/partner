@@ -365,17 +365,11 @@ def read_source_table_data(
     return table
 
 
-
 def read_source_parallel_branch_products(
     path_directory_parent=None,
     name_file_child_prefix=None,
     name_file_child_suffix=None,
     name_file_child_not=None,
-    name_column_identifier=None,
-    name_column_allele_total=None,
-    name_column_allele_dosage=None,
-    name_column_score_sum=None,
-    name_column_score_mean=None,
     report=None,
 ):
     """
@@ -389,24 +383,13 @@ def read_source_parallel_branch_products(
         name_file_child_suffix (str): suffix in name by which to recognize
             relevant child files within parent directory
         name_file_child_not (str): character string in names of files to exclude
-        name_column_identifier (str): name of column in source table for
-            identifier of genotypes
-        name_column_allele_total (str): name of column in source table for
-            count of total non-missing alleles in genotypes
-        name_column_allele_dosage (str): name of column in source table for
-            count of alleles considered in calculation of polygenic score
-        name_column_score_sum (str): name of column in source table for
-            polygenic score as sum of allelic effects across genotypes
-        name_column_score_mean (str): name of column in source table for
-            polygenic score as mean of allelic effects (sum divided by count of
-            total nonmissing alleles) across genotypes
         report (bool): whether to print reports
 
     raises:
 
     returns:
-        (dict<object>): collection of Pandas data-frame tables with entry names
-            (keys) derived from original names of files
+        (list<dict<str>>): collections of information from files of parallel
+            branch procedures
 
     """
 
@@ -418,35 +401,19 @@ def read_source_parallel_branch_products(
         name_file_not=name_file_child_not,
         report=report,
     )
-    # Read files as Pandas dataframe tables.
-    # Iterate on names of files to read and organize tables.
-    # Collect tables.
-    pail = dict()
+    # Iterate on paths to files.
+    # Collect information from files.
+    pails = list()
     for path in paths:
-        # Extract name of file and table that distinguishes it from all others.
-        name_file = os.path.basename(path)
-        name_table_1 = name_file.replace(str(name_file_child_prefix), "")
-        name_table = name_table_1.replace(str(name_file_child_suffix), "")
-        # Read file and organize information in table.
-        table = read_organize_table_polygenic_scores(
-            path_table=path,
-            name_table=name_table,
-            name_column_identifier=name_column_identifier,
-            name_column_allele_total=name_column_allele_total,
-            name_column_allele_dosage=name_column_allele_dosage,
-            name_column_score_sum=name_column_score_sum,
-            name_column_score_mean=name_column_score_mean,
-            report=report,
+        # Read information from file.
+        pail = putly.read_object_from_file_pickle(
+            path_file=path,
         )
-        # Collect table.
-        pail[name_table] = table.copy(deep=True)
+        # Collect information.
+        pails.append(pail)
         pass
     # Return information.
-    return pail
-
-
-
-
+    return pails
 
 
 ##########
@@ -1093,6 +1060,112 @@ def check_parameters_table_data_regression(
     return pail
 
 
+##########
+# Organize information from regressions in a table.
+
+
+def organize_summary_table_regressions(
+    pails_regression=None,
+    report=None,
+):
+    """
+    Organize information from multiple regressions within a table for summary.
+
+    arguments:
+        pails_regression (list<dict<str>>): collections of information from
+            files of parallel branch procedures
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table of information that summarizes
+            multiple regression analyses
+
+    """
+
+    # pail (dict): collection of information about a regression analysis
+    #     entries_parameter_instance (list<str>): names and sequence of entries
+    #         with information about the instance of parameters for the
+    #         regression
+    #     entries_model (list<str>): names and sequence of entries with
+    #         information about the regression model as a whole
+    #     entries_intercept_predictors (list<str>): names and sequence of
+    #         entries with with information about model's intercept and
+    #         predictors
+    #     record (dict<str>): record for collection and assembly as rows within
+    #         a Pandas data-frame table, using the lists of entries to sort the
+    #         columns in the table
+
+    # When creating a Pandas data-frame table from a list of dictionary
+    # records, if one or more records have key entries that do not match those
+    # from other records, then the operation automatically introduces missing
+    # values.
+
+    # Collect information about all entries that the records represent
+    # collectively.
+    entries = dict()
+    entries["entries_parameter_instance"] = list() # expect to be same for all
+    #                                                 records
+    entries["entries_model"] = list() # composition depends on types of
+    #                                    regression
+    entries["entries_intercept_predictors"] = list() # composition depends on
+    #                                                   count of predictors in
+    #                                                   regression model
+    # Example.
+    # For linear ordinary least squares regression, "entries_model" includes
+    # "r_square", "r_square_adjust", and "condition", all of which are not in
+    # "entries_model" for logistic regression. In contrast, for logistic
+    # regression, "entries_model" includes "r_square_pseudo", which is not in
+    # "entries_model" for linear ordinary least squares regression.
+    # Here is the preferrable sequence of columns.
+    # "r_square", "r_square_adjust", "log_likelihood", "akaike", "bayes",
+    # "condition",
+    # A simple solution is to insert missing values for the respective types of
+    # regression.
+    # Collect records.
+    records = list()
+    for pail in pails_regression:
+        for entry_type in entries.keys():
+            # Filter to keep novel entries only.
+            entries_novel = list(filter(
+                lambda entry: (entry not in entries[entry_type]),
+                pail[entry_type]
+            ))
+            entries[entry_type].extend(entries_novel)
+            pass
+        # Collect records.
+        records.append(pail["record"])
+        pass
+
+    # Create table.
+    table = pandas.DataFrame(data=records)
+    # Organize information in table.
+    entries_total = list()
+    entries_total.extend(entries["entries_parameter_instance"])
+    entries_total.extend(entries["entries_model"])
+    entries_total.extend(entries["entries_intercept_predictors"])
+    # Filter and sort columns in table.
+    table = porg.filter_sort_table_columns(
+        table=table,
+        columns_sequence=entries_total,
+        report=report,
+    )
+    # Sort rows in table.
+    table.sort_values(
+        by=["sequence"],
+        axis="index",
+        ascending=True,
+        inplace=True,
+    )
+    table.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+
+    # Return information.
+    return table
 
 
 ################################################################################
@@ -1297,7 +1370,7 @@ def control_procedure_part_branch(
     # Collect information.
     # Collections of files.
     pail_write_objects = dict()
-    pail_write_objects[str(name_instance)] = pail_regression
+    pail_write_objects[str("branch_" + name_instance)] = pail_regression
     # Write product information to file.
     putly.write_objects_to_file_pickle(
         pail_write=pail_write_objects,
@@ -1627,18 +1700,50 @@ def execute_procedure(
     # Collect information from all regressions in set.
     # Prepare table of information as a summary of all regressions in set.
     # Read source information from file.
-    pail_source_parallel = read_source_parallel_branch_products(
-        path_directory_parallel=path_directory_parallel,
-
+    pails_parallel = read_source_parallel_branch_products(
+        path_directory_parent=path_directory_parallel,
+        name_file_child_prefix="branch_",
+        name_file_child_suffix=".pickle",
+        name_file_child_not="nothing_to_see_here_blargh_actrumphication_317_",
         report=report,
     )
 
-
+    ##########
+    # Organize information within a table.
+    table_regressions = organize_summary_table_regressions(
+        pails_regression=pails_parallel,
+        report=report,
+    )
 
     ##########
     # Write information to file.
+    # Collect information.
+    # Collections of files.
+    pail_write_tables = dict()
+    pail_write_tables[str("table_regressions")] = table_regressions
 
-
+    ##########
+    # 5. Write product information to file.
+    putly.write_tables_to_file(
+        pail_write=pail_write_tables,
+        path_directory=path_directory_product,
+        reset_index_rows=False,
+        write_index_rows=False,
+        write_index_columns=True,
+        type="text",
+        delimiter="\t",
+        suffix=".tsv",
+    )
+    putly.write_tables_to_file(
+        pail_write=pail_write_tables,
+        path_directory=path_directory_product,
+        reset_index_rows=None,
+        write_index_rows=None,
+        write_index_columns=None,
+        type="pickle",
+        delimiter=None,
+        suffix=".pickle",
+    )
 
     pass
 
