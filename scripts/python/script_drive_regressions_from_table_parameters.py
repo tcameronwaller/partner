@@ -42,9 +42,8 @@ License:
 # parameters within a single table. This script calls versatile functionality
 # from the "regression.py" module within the "partner" Python package.
 
-
-# Eventually, this script ought to execute regressions with parallel processing...
-
+# Useful functionality for preparing the table of data for regression.
+# pandas.get_dummies(groups).values
 
 ################################################################################
 # Installation and importation
@@ -74,6 +73,7 @@ import partner.regression as preg
 # Functionality
 
 
+##########
 # Read source information from file.
 
 
@@ -365,7 +365,7 @@ def read_source_table_data(
     return table
 
 
-
+##########
 # Organize information in table for features and observations.
 
 
@@ -395,9 +395,9 @@ def organize_table_data(
     ----------
     Format of source data table (name: "table")
     ----------
-    Format of source data table is in wide format with values for features
-    across columns corresponding to observations across rows. A special header
-    row gives identifiers or names corresponding to each feature across
+    Format of source data table is in wide format with features across columns
+    and values corresponding to their observations across rows. A special
+    header row gives identifiers or names corresponding to each feature across
     columns, and a special column gives identifiers or names corresponding to
     each observation across rows. For versatility, this table does not have
     explicitly defined indices across rows or columns.
@@ -414,7 +414,12 @@ def organize_table_data(
     ----------
     Format of product data table (name: "table")
     ----------
-    The table has explicitly named indices across columns and rows.
+    Format of source data table is in wide format with features across columns
+    and values corresponding to their observations across rows. A special
+    header row gives identifiers or names corresponding to each feature across
+    columns, and a special column gives identifiers or names corresponding to
+    each observation across rows. The table has explicitly named indices across
+    columns and rows.
     ----------
     features        feature_1 feature_2 feature_3 feature_4 feature_5 ...
     observations
@@ -595,7 +600,7 @@ def evaluate_table_data(
     report=None,
 ):
     """
-    Evaluates table of data with features and observations for regression.
+    Evaluate table of data with features and observations for regression.
 
     This function is useful to evaluate the variance of values for features
     across observations after adjusting their scale to the common unit range.
@@ -761,7 +766,8 @@ def check_parameters_table_data_regression(
     report=None,
 ):
     """
-    Organize table of data with features and observations for regression.
+    Check parameters for regression, including the table of data with features
+    and observations.
 
     For the check on the variance of features across observations, it is most
     accurate and informative to compare the variances after transforming the
@@ -916,10 +922,6 @@ def check_parameters_table_data_regression(
             if (pail[measure_variance] >= threshold_features_variance):
                 checks.append(True)
             else:
-                putly.print_terminal_partition(level=5)
-                print("!!!!!!!!!!!!!!!!!!!")
-                print(feature)
-                print(pail[measure_variance])
                 checks.append(False)
                 pass
             pass
@@ -1005,10 +1007,6 @@ def check_parameters_table_data_regression(
         pass
     # Return information.
     return pail
-
-
-
-
 
 
 
@@ -1183,7 +1181,49 @@ def control_procedure_part_branch(
 
     ##########
     # Perform regression analysis.
-    #pail_check["check_overall"]
+    record_extra = dict()
+    record_extra["sequence"] = sequence
+    record_extra["group"] = group
+    record_extra["instance"] = instance
+    record_extra["name_instance"] = name_instance
+    pail_regression = preg.collect_record_regression_analysis(
+        table=table,
+        index_columns="features",
+        index_rows="observations",
+        check_overall=pail_check["check_overall"],
+        type_regression=type_regression,
+        formula_text=formula_text,
+        feature_response=feature_response,
+        features_predictor_fixed=features_predictor_fixed,
+        features_predictor_random=features_predictor_random,
+        record_extra=record_extra,
+        report=report,
+    )
+
+    ##########
+    # Write information to file.
+    # Write for each parallel instance of regression.
+    # A subsequent procedure will read the information from file and collect it
+    # within a summary for all instances of regression.
+
+    ##########
+    # Collect information from all regressions in set.
+    # Prepare summary.
+
+    # different instances of regression will have different predictors...
+    # that's a challenge for preparing the summary table.
+    # 1. for all regression instances, determine max count of predictors
+    # 2. summary table needs to accommodate that count of predictors
+    # 3. within each group of columns for each predictor, the first should be
+    # the name of the predictor variable, as below...
+    # predictor_1_name predictor_1_coefficient predictor_1_error predictor_1_p ...
+    # sex_y            0.0153                  0.0002            0.01
+    # use a for loop to assemble the standardized records (for item in range(max count predictors))
+    # access real information from predictors where available, then fill with missing
+
+
+    # "predictors": ";".join(predictors),
+
 
 
     ##########

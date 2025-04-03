@@ -1713,5 +1713,4 @@ def drive_transformations_on_multiple_variables_in_cohorts(
 
 
 ###############################################################################
-# Procedure
-# Currently, this module is not executable.
+# End

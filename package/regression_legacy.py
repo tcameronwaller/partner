@@ -86,15 +86,9 @@ import partner.description as pdesc
 ###############################################################################
 # Functionality
 
-# Note: TCW; 4 October 2022
-# There are many different methods to "standardize", "scale", "transform", or
-# "standardize" the distributions of multiple variables to simplify their
-# comparisons to each other.
-
-
 
 # TODO: TCW; 2 April 2025
-# Obsolete, I think. See "script_drive_regressions_from_table_parameters".
+# obsolete and not interesting or useful.
 def organize_table_cohort_model_variables_for_regression(
     dependence=None,
     independence=None,
@@ -217,135 +211,14 @@ def organize_table_cohort_model_variables_for_regression(
     return pail
 
 
-def organize_linear_logistic_regression_independence_tree(
-    independence=None,
-    model_parameters=None,
-    model_parameter_errors=None,
-    model_probabilities=None,
-    table_independence_intercept=None,
-):
-    """
-    Organizes a dictionary tree of information about each independent variable
-    from a logistic or linear regression.
+###############################################
+###
+##
+#
+# Interesting and useful...
 
-    arguments:
-        independence (list<str>): names of table's columns for independent
-            variables
-        model_parameters (dict): parameter coefficients
-        model_parameter_errors (dict): standard errors of estimates of parameter
-            coefficients
-        model_probabilities (dict): probabilities of estimates of parameter
-            coefficients
-        table_independence_intercept (object): Pandas data frame of independent
-            variables with a constant intercept, the same source from the
-            regression
-
-    raises:
-
-    returns:
-        (dict<dict>): dictionary tree of information about each independent
-            variable from a logistic or linear regression
-    """
-
-    # Copy information.
-    table_independence_intercept = table_independence_intercept.copy(deep=True)
-
-    # Collect information about independent variables.
-    pail_tree = dict()
-
-    # Intercept.
-    if (
-        ("const" in model_parameters.index) and
-        ("const" in model_parameter_errors.index) and
-        ("const" in model_probabilities.index)
-    ):
-        # Collect information for intercept.
-        pail_tree["intercept"] = dict()
-        pail_tree["intercept"]["variable"] = "intercept"
-        # Coefficient or parameter.
-        #pail_tree["intercept"]["parameter"] = report.params[0]
-        pail_tree["intercept"]["parameter"] = float(model_parameters["const"])
-        # Standard error of parameter.
-        pail_tree["intercept"]["error"] = float(model_parameter_errors["const"])
-        # Confidence intervals and ranges.
-        pail_confidence = pdesc.determine_95_99_confidence_intervals_ranges(
-            estimate=pail_tree["intercept"]["parameter"],
-            standard_error=pail_tree["intercept"]["error"],
-        )
-        pail_tree["intercept"].update(pail_confidence)
-        # Probability.
-        pail_tree["intercept"]["probability"] = float(
-            model_probabilities["const"]
-        )
-        # Variance Inflation Factor (VIF).
-        # Missing or undefined for intercept?
-        pail_tree["intercept"]["inflation"] = float("nan")
-        # Report summaries.
-        pail_tree["intercept"]["report_b95ci"] = str(
-            "b: " + str(round(pail_tree["intercept"]["parameter"], 5)) +
-            "; 95% CI: " + str(pail_tree["intercept"]["range_95"])
-        )
-        pail_tree["intercept"]["report_bep"] = str(
-            "b: " + str(round(pail_tree["intercept"]["parameter"], 5)) +
-            " (" + str(round(pail_tree["intercept"]["error"], 5)) +
-            "); p: " + str(round(pail_tree["intercept"]["probability"], 5))
-        )
-    else:
-        # Report.
-        if report:
-            print("Warning: regression data does not have constant intercept.")
-        # Create missing values for intercept.
-        pail_tree["intercept"] = create_missing_regression_independent_variable(
-            variable="intercept",
-        )
-    # Independent variables.
-    # Initiate counter at 1 to assume that intercept is at index 0.
-    counter = 1
-    # Accommodate index for intercept.
-    for variable in independence:
-        # Collect information for intercept.
-        pail_tree[variable] = dict()
-        pail_tree[variable]["variable"] = str(variable)
-        # Coefficient or parameter.
-        #pail_tree[variable]["parameter"] = report.params[counter]
-        pail_tree[variable]["parameter"] = float(model_parameters[variable])
-        # Standard error parameter.
-        pail_tree[variable]["error"] = float(model_parameter_errors[variable])
-        # Confidence intervals and ranges.
-        pail_confidence = pdesc.determine_95_99_confidence_intervals_ranges(
-            estimate=pail_tree[variable]["parameter"],
-            standard_error=pail_tree[variable]["error"],
-        )
-        pail_tree[variable].update(pail_confidence)
-        # Probability.
-        pail_tree[variable]["probability"] = float(
-            model_probabilities[variable]
-        )
-        # Variance Inflation Factor (VIF).
-        inflation_value = float(
-            statsmodels.stats.outliers_influence.variance_inflation_factor(
-                table_independence_intercept.to_numpy(),
-                counter
-            )
-        )
-        pail_tree[variable]["inflation"] = round(inflation_value, 5)
-        # Report summaries.
-        pail_tree[variable]["report_b95ci"] = str(
-            "b: " + str(round(pail_tree[variable]["parameter"], 5)) +
-            "; 95% CI: " + str(pail_tree[variable]["range_95"])
-        )
-        pail_tree[variable]["report_bep"] = str(
-            "b: " + str(round(pail_tree[variable]["parameter"], 5)) +
-            " (" + str(round(pail_tree[variable]["error"], 5)) +
-            "); p: " + str(round(pail_tree[variable]["probability"], 5))
-        )
-        # Increment index.
-        counter += 1
-        pass
-    # Return information.
-    return pail_tree
-
-
+# TODO: TCW; 2 April 2025
+# priority!
 def regress_discrete_logit(
     dependence=None,
     independence=None,
@@ -474,142 +347,6 @@ def regress_discrete_logit(
         "log_likelihood": pail_raw.llf,
         "akaike": pail_raw.aic,
         "bayes": pail_raw.bic,
-    }
-
-    ##########
-    # Collect parameters, errors, probabilities, and statistics for independent
-    # variables.
-    model_parameters = pandas.Series(data=pail_raw.params)
-    model_parameter_errors = pandas.Series(data=pail_raw.bse)
-    model_probabilities = pandas.Series(data=pail_raw.pvalues)
-    pail_tree = organize_linear_logistic_regression_independence_tree(
-        independence=independence,
-        model_parameters=model_parameters,
-        model_parameter_errors=model_parameter_errors,
-        model_probabilities=model_probabilities,
-        table_independence_intercept=table_independence_intercept,
-    )
-    # Collect information.
-    summary["independence_tree"] = pail_tree
-    pail = dict()
-    pail["summary"] = summary
-    pail["residuals"] = residuals
-    # Return information.
-    return pail
-
-
-def regress_linear_ordinary_least_squares(
-    dependence=None,
-    independence=None,
-    table=None,
-    report=None,
-):
-    """
-    Regresses a quantitative continuous dependent variable against multiple
-    independent variables and returns relevant parameters and statistics.
-
-    Table format must have samples (cases, observations) across rows and
-    dependent and independent variables (features) across columns.
-
-    Description of formats for StatsModels...
-
-    Format of dependent variable is a vector of scalar values.
-    [1.3, 1.5, 1.2, 1.0, 1.7, 1.5, 1.9, 1.1, 1.3, 1.4]
-
-    Format of independent variable(s) is a matrix: a first-dimension vector of
-    samples (observations) and for each sample a second-dimension vector of
-    variables' (features') scalar values.
-    StatsModels also requires a constant for the intercept.
-    [
-        [1.3, 5.2, 1.0],
-        [1.5, 5.1, 1.0],
-        [1.2, 5.5, 1.0],
-        ...
-    ]
-
-    arguments:
-        dependence (str): name of table's column for dependent variable
-        independence (list<str>): names of table's columns for independent
-            variables
-        table (object): Pandas data frame of dependent and independent variables
-            for regression
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (dict): collection of regression's residuals and statistics
-    """
-
-    # Copy information.
-    table = table.copy(deep=True)
-    # Determine count of valid samples (cases, observations).
-    count_samples = int(table.shape[0])
-    # Extract values of dependent and independent variables.
-    # Can pass values of dependent and independent variables as NumPy arrays or
-    # as Pandas Series and Dataframe respectively.
-    # Passing variables as Pandas Series and Dataframe preserves variable names.
-    values_dependence = table[dependence].to_numpy()
-
-    # Keep independent variables in Pandas dataframe to preserve variables'
-    # names.
-    #values_independence = data.loc[ :, independence].to_numpy()
-    table_independence = table.loc[ :, independence]
-    # Introduce constant value for intercept.
-    # If any column in the independent variables already has constant
-    # values, then the function skips it by default.
-    # It is necessary to change parameter "has_constant" to avoid this
-    # conditional behavior.
-    table_independence_intercept = statsmodels.api.add_constant(
-        table_independence,
-        prepend=True, # insert intercept constant first
-        has_constant="add", # introduce new intercept constant regardless
-    )
-    columns_independence = copy.deepcopy(
-        table_independence_intercept.columns.to_list()
-    )
-    #matrix_independence = table.to_numpy()
-    # Define model.
-    model = statsmodels.api.OLS(
-        table[dependence],
-        table_independence_intercept,
-        missing="drop",
-    )
-    pail_raw = model.fit()
-    # Report.
-    if report:
-        print("--------------------------------------------------")
-        print(
-            "Report source: " +
-            "regress_dependent_independent_variables_linear_ordinary()"
-        )
-        print("--------------------------------------------------")
-        print("Information from regression:")
-        print(pail_raw.summary())
-        #utility.print_terminal_partition(level=3)
-        #print(dir(pail_raw))
-        #print(pail_raw.params)
-        #print(pail_raw.pvalues)
-        pass
-
-    ##########
-    # Organize residuals.
-    residuals = pail_raw.resid
-
-    ##########
-    # Collect parameters, errors, probabilities, and statistics for whole model.
-    summary = {
-        "dependence_actual": str(dependence),
-        "independence_actual": ";".join(independence),
-        "freedom": pail_raw.df_model,
-        "observations": pail_raw.nobs,
-        "samples": count_samples,
-        "r_square": pail_raw.rsquared,
-        "r_square_adjust": pail_raw.rsquared_adj,
-        "log_likelihood": pail_raw.llf,
-        "akaike": pail_raw.aic,
-        "bayes": pail_raw.bic,
-        "condition": pail_raw.condition_number,
     }
 
     ##########
@@ -779,6 +516,7 @@ def create_missing_values_regression_logistic(
     # Return information.
     return pail
 
+
 # inspect
 def create_regression_missing_values(
     dependence=None,
@@ -944,12 +682,18 @@ def organize_regression_summary_table_for_forest_plots(
     # Return information.
     return pail_tables
 
+#
+##
+###
+########################################################3
 
 # Drivers
 
 
 # inspect
 # order: 2
+# TODO: TCW; 2 April 2025
+# obsolete and not interesting or useful.
 def organize_check_table_information_for_regression(
     dependence=None,
     independence=None,

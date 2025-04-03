@@ -90,6 +90,15 @@ import partner.organization as porg
 # I need to confirm that both methods deliver identical loadings.
 
 
+# TODO: TCW; 2 April 2025
+# This function needs substantial update.
+# It does not make sense to compare variance between features after than have
+# been standardized by z-score (standard deviation 1).
+# Rather, use the "unit_range" method to adjust scale of features and then
+# select or filter features by "variance thresholding".
+# Refer to "partner.script_drive_regressions_from_table_parameters".
+# Step 1: transform features to unit range, before any z-score standardization.
+# Step 2: filter features by their variance when at unit range (var >= 0.001).
 def filter_table_columns_by_nonmissing_variance(
     threshold_valid_proportion_per_column=None,
     threshold_column_variance=None,
