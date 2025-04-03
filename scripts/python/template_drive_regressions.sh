@@ -36,7 +36,7 @@ path_directory_parameters="$path_directory_dock/in_parameters"
 path_directory_parameters_private="$path_directory_dock/in_parameters_private"
 
 #path_directory_source="${path_directory_dock}/${demonstration}/source"
-#path_directory_product="${path_directory_dock}/${demonstration}/product"
+path_directory_product="${path_directory_dock}/out_regression/demonstration"
 #stamp_date=$(date +%Y-%m-%d)
 #path_directory_temporary="${path_directory_product}/temporary_${stamp_date}" # hopefully unique
 
@@ -56,8 +56,8 @@ path_environment_main="$path_directory_tools/python/environments/main"
 echo $path_environment_main
 
 # Initialize directory.
-#rm -r $path_directory_product # caution
-#mkdir -p $path_directory_product
+rm -r $path_directory_product # caution
+mkdir -p $path_directory_product
 #mkdir -p $path_directory_temporary
 
 # Initialize file.
@@ -111,6 +111,7 @@ fi
 # Execute program process in Python.
 python3 $path_file_script_product \
 $path_file_table_parameters \
+$path_directory_product \
 $path_directory_dock \
 $report
 

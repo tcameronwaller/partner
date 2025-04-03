@@ -219,7 +219,7 @@ def parse_regression_model_predictor(
     Parse raw information about predictor independent variables from a model
     of a linear or logistic regression.
 
-    Review: TCW; 2 April 2025
+    Review: TCW; 3 April 2025
 
     arguments:
         table_predictor_intercept (object): Pandas data-frame table of data
@@ -246,7 +246,7 @@ def parse_regression_model_predictor(
     # Collect information.
     pail = dict()
     pail["predictor"] = dict()
-    pail["sequence"] = [
+    pail["entries"] = [
         str(code + "_name"),
         str(code + "_parameter"),
         str(code + "_error"),
@@ -279,7 +279,7 @@ def parse_regression_model_predictor(
     return pail
 
 
-def parse_regression_model_predictors(
+def parse_regression_intercept_predictors(
     table_predictor_intercept=None,
     features_predictor=None,
     features_sequence=None,
@@ -293,7 +293,7 @@ def parse_regression_model_predictors(
     Parse raw information about predictor independent variables from a model
     of a linear or logistic regression.
 
-    Review: TCW; 2 April 2025
+    Review: TCW; 3 April 2025
 
     arguments:
         table_predictor_intercept (object): Pandas data-frame table of data
@@ -322,8 +322,8 @@ def parse_regression_model_predictors(
 
     # Collect information.
     pail = dict()
-    pail["predictors"] = dict()
-    pail["sequence"] = list()
+    pail["intercept_predictors"] = dict()
+    pail["entries"] = list()
 
     # Intercept.
     # Invert dictionary for convenience.
@@ -345,8 +345,8 @@ def parse_regression_model_predictors(
             pvalues=pvalues,
             variance_inflation=False,
         )
-        pail["predictors"].update(pail_predictor["predictor"])
-        pail["sequence"].extend(pail_predictor["sequence"])
+        pail["intercept_predictors"].update(pail_predictor["predictor"])
+        pail["entries"].extend(pail_predictor["entries"])
         pass
 
     # Main predictor features.
@@ -363,8 +363,8 @@ def parse_regression_model_predictors(
             pvalues=pvalues,
             variance_inflation=True,
         )
-        pail["predictors"].update(pail_predictor["predictor"])
-        pail["sequence"].extend(pail_predictor["sequence"])
+        pail["intercept_predictors"].update(pail_predictor["predictor"])
+        pail["entries"].extend(pail_predictor["entries"])
         pass
 
     # Return information.
@@ -503,7 +503,7 @@ def organize_linear_logistic_regression_independence_tree(
     return pail_tree
 
 
-def parse_organize_linear_logistic_predictors(
+def parse_organize_regression_intercept_predictors(
     table_predictor_intercept=None,
     features_predictor=None,
     parameters=None,
@@ -542,13 +542,13 @@ def parse_organize_linear_logistic_predictors(
 
     # Determine count and sequence of predictors.
     features_predictor_intercept.insert(0, "intercept")
-    count_predictors = len(features_predictor_intercept)
+    count_intercept_predictors = len(features_predictor_intercept)
     features_sequence = define_features_sequence(
         features=features_predictor_intercept,
     )
 
     # Parse information for predictor features from regression model.
-    pail_predictors = parse_regression_model_predictors(
+    pail = parse_regression_intercept_predictors(
         table_predictor_intercept=table_predictor_intercept,
         features_predictor=features_predictor,
         features_sequence=features_sequence,
@@ -558,56 +558,31 @@ def parse_organize_linear_logistic_predictors(
         standard_errors=standard_errors,
         pvalues=pvalues,
     )
-    pail_predictors["predictors"]["count_predictors"] = count_predictors
-    pail_predictors["sequence"].insert(0, "count_predictors")
 
-    print("!!!!!!!!!!!!!!!!!!!!!!")
-    print(pail_predictors["predictors"])
-    print(pail_predictors["sequence"]) # for filter and sort on table columns
-
-    ##########
-    # Collect parameters, errors, probabilities, and statistics for independent
-    # variables.
-    if False:
-        pail_tree = organize_linear_logistic_regression_independence_tree(
-            table_independence_intercept=table_predictor_intercept,
-            independence=features_predictor_fixed,
-            model_parameters=model_parameters,
-            model_parameter_errors=model_parameter_errors,
-            pvalues=pvalues,
-        )
-
+    # Collect information.
+    pail["intercept_predictors"]["count_intercept_predictors"] = (
+        count_intercept_predictors
+    )
+    pail["entries"].insert(0, "count_intercept_predictors")
 
     # Return information.
-    #return pail
-    pass
-
-
+    return pail
 
 
 ##########
 # Regression models
 
 
-
-
-
-
-
-##########
-# Manage regression analysis.
-
-
-
-def regress_linear_ordinary_least_squares(
+def regress_continuous_linear_ordinary_least_squares(
     table=None,
     feature_response=None,
     features_predictor_fixed=None,
     report=None,
 ):
     """
-    Regress by linear ordinary least squares, applying implementation from
-    the StatsModels package in Python.
+    Regress predictor features versus a continuous response feature by linear
+    ordinary least squares (OLS), applying implementation from the StatsModels
+    package in Python.
 
     ----------
     Format of source data table (name: "table")
@@ -648,7 +623,14 @@ def regress_linear_ordinary_least_squares(
 
     implementation: 'statsmodels.regression.linear_model.OLS()'
 
-    Review: TCW; 2 April 2025
+    References:
+
+    1. Documentation for implementation in StatsModels
+       - title: 'statsmodels.regression.linear_model.OLS'
+       - site: https://www.statsmodels.org/stable/generated/statsmodels.
+                regression.linear_model.OLS.html
+
+    Review: TCW; 3 April 2025
 
     arguments:
         table (object): Pandas data-frame table of data with features
@@ -711,7 +693,14 @@ def regress_linear_ordinary_least_squares(
     return pail
 
 
-def manage_regression_linear_ordinary_least_squares(
+# regress_discrete_logistic_logit()
+
+
+##########
+# Manage regression analysis.
+
+
+def manage_regression_continuous_linear_ordinary_least_squares(
     table=None,
     index_columns=None,
     index_rows=None,
@@ -742,7 +731,7 @@ def manage_regression_linear_ordinary_least_squares(
     observation_5   0.001     0.001     0.001     0.001     0.001     ...
     ----------
 
-    Review: TCW; 2 April 2025
+    Review: TCW; 3 April 2025
 
     arguments:
         table (object): Pandas data-frame table of data with features
@@ -771,18 +760,19 @@ def manage_regression_linear_ordinary_least_squares(
     features_predictor_fixed = copy.deepcopy(features_predictor_fixed)
 
     # Regress.
-    pail_regression = regress_linear_ordinary_least_squares(
+    pail_regression = regress_continuous_linear_ordinary_least_squares(
         table=table,
         feature_response=feature_response,
         features_predictor_fixed=features_predictor_fixed,
         report=report,
     )
+    residuals = pail_regression["model"].resid
 
     # Organize information from regression for predictor features.
     parameters = pandas.Series(data=pail_regression["model"].params)
     standard_errors = pandas.Series(data=pail_regression["model"].bse)
     pvalues = pandas.Series(data=pail_regression["model"].pvalues)
-    pail_predictors = parse_organize_linear_logistic_predictors(
+    pail_predictors = parse_organize_regression_intercept_predictors(
         table_predictor_intercept=pail_regression["table_predictor_intercept"],
         features_predictor=features_predictor_fixed,
         parameters=parameters,
@@ -791,58 +781,70 @@ def manage_regression_linear_ordinary_least_squares(
         report=report,
     )
 
+    # Collect information.
+    pail = dict()
+    # Regression model as a whole.
+    pail["entries_model"] = [
+        "implementation",
+        "count_observations_table",
+        "count_observations_model",
+        "degrees_freedom_model",
+        "degrees_freedom_residual",
+        "r_square",
+        "r_square_adjust",
+        "log_likelihood",
+        "akaike",
+        "bayes",
+        "condition",
+    ]
+    pail["implementation"] = str(
+        "statsmodels.regression.linear_model.OLS()"
+    )
+    pail["count_observations_table"] = int(table.shape[0])
+    pail["count_observations_model"] = int(pail_regression["model"].nobs)
+    pail["degrees_freedom_model"] = int(
+        pail_regression["model"].df_model
+    )
+    pail["degrees_freedom_residual"] = int(
+        pail_regression["model"].df_resid
+    )
+    pail["r_square"] = pail_regression["model"].rsquared
+    pail["r_square_adjust"] = pail_regression["model"].rsquared_adj
+    pail["log_likelihood"] = pail_regression["model"].llf
+    pail["akaike"] = pail_regression["model"].aic
+    pail["bayes"] = pail_regression["model"].bic
+    pail["condition"] = pail_regression["model"].condition_number
+    # Intercept and predictors as parts of regression model.
+    pail["entries_intercept_predictors"] = pail_predictors["entries"]
+    pail.update(
+        pail_predictors["intercept_predictors"]
+    )
 
-    if False:
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=4)
+        print("package: partner")
+        print("module: regression.py")
+        name_function = str(
+            "manage_regression_continuous_linear_ordinary_least_squares()"
+        )
+        print("function: " + name_function)
+        putly.print_terminal_partition(level=5)
+        print("text formula for regression model:")
+        print(formula_text)
+        putly.print_terminal_partition(level=5)
+        print("summary from regression model:")
+        print(pail_regression["model"].summary())
+        #print(dir(handle_regression))
+        #print(handle_regression.params)
+        #print(handle_regression.pvalues)
+        pass
 
-        # Collect information.
-        pail = dict()
-        pail["implementation"] = "statsmodels.regression.linear_model.OLS()"
-        pail["count_observations_table"] = int(table.shape[0])
-        pail["count_observations_model"] = pail_regression["model"].nobs
-        pail["degrees_freedom_model"] = pail_regression["model"].df_model
-        pail["degrees_freedom_residual"] = pail_regression["model"].df_resid
-        pail["residuals"] = pail_regression["model"].resid
-        pail["r_square"] = pail_regression["model"].rsquared
-        pail["r_square_adjust"] = pail_regression["model"].rsquared_adj
-        pail["log_likelihood"] = pail_regression["model"].llf
-        pail["akaike"] = pail_regression["model"].aic
-        pail["bayes"] = pail_regression["model"].bic
-        pail["condition"] = pail_regression["model"].condition_number
+    # Return information.
+    return pail
 
-        #pail.update(pail_predictors) <--- needs to be flat
 
-        # Collect information.
-        #pail["pail_tree"] = pail_tree
-        pail["model"] = pail_regression["model"]
-
-        # Report.
-        if report:
-            putly.print_terminal_partition(level=4)
-            print("package: partner")
-            print("module: regression.py")
-            name_function = str(
-                "perform_regression_analysis()"
-            )
-            print("function: " + name_function)
-            putly.print_terminal_partition(level=5)
-            print("text formula for regression model:")
-            print(formula_text)
-            putly.print_terminal_partition(level=5)
-            print("summary from regression model:")
-            print(pail_regression["model"].summary())
-            #print(dir(handle_regression))
-            #print(handle_regression.params)
-            #print(handle_regression.pvalues)
-            pass
-
-        print("*********************")
-        print(model_parameters)
-
-        print("!!!!!!!!!!!!!!!!!!!!!!")
-        print(pail_tree)
-        # Return information.
-        return pail
-    pass
+# manage_regression_discrete_logistic_logit
 
 
 def determine_type_regression_analysis(
@@ -878,6 +880,83 @@ def determine_type_regression_analysis(
     observation_5   0.001     0.001     0.001     0.001     0.001     ...
     ----------
 
+    ----------
+    Notes
+
+    Scale transformation of predictor independent variables
+    - In multiple linear regression, it is common to standardize the scale of
+       of predictor independent variables that are on a quantitative,
+       continuous scale of measurement, such as ratio or interval.
+    - Standardizing the scale of these predictor independent variables makes it
+       more reasonable and convenient to compare the magnitudes of estimates
+       for parameter coefficients between these different predictor independent
+       variables.
+    - When the regression model also includes additional predictor independent
+       variables that are on a binary scale of measurement, such as dummy
+       variables for categories, it is most reasonable to leave these on the
+       binary scale.
+    - The rough interpretation of the slope parameter coefficient for a binary
+       predictor independent variable is the difference in means of the
+       response dependent variable between the two groups of observations
+       corresponding to the two values of the binary predictor.
+    - In regression with multiple predictor independent variables, the rough
+       interpretation of the slope for a binary predictor is the same, while
+       holding the other predictor covariates constant, perhaps at their
+       respective means.
+
+    References:
+
+    1. Forum discussion about standardizing the scales of dummy variables
+       title: 'Standardizing dummy variable in multiple linear regression?'
+       site: https://stats.stackexchange.com/questions/414053/standardizing-
+              dummy-variable-in-multiple-linear-regression
+
+    2. Forum discussion about interpretation of regression for binary variable
+       title: 'Binary variable in multiple linear regression?'
+       site: https://www.reddit.com/r/AskStatistics/comments/kaiwk2/
+              binary_variable_in_multiple_linear_regression/
+
+    ----------
+    Notes
+
+    Types of Regression Models
+    - Continuous response feature
+     - Linear Ordinary Least Squares (OLS)
+      - requires homoscedasticity of variance in response across ranges of all
+         predictors
+     - Linear Generalized Least Squares (GLS)
+      - allows heteroscedasticity of variance in response across ranges of all
+         predictors
+    - Discrete response feature
+     - Generalized Linear Model with Logit link function
+      - response is on discrete binary scale of measurement
+      - link function is the logarithm of the odds ratio
+     - Generalized Linear Model with Probit (probability unit) link function
+      - response is on discrete binary scale of measurement
+      - link function bases on the cumulative density function of the standard
+         normal distribution
+      - less accurate and less interpretable for odds ratios
+     - Generalized Linear Model with Poisson link function
+      - response is on discrete ordinal scale of measurement
+     - Generalized Linear Model with Negative Binomial link function
+      - response is on discrete ordinal scale of measurement
+
+    References:
+
+    1. Types of linear regression models in StatsModels
+       title: 'Linear Regression'
+       site: https://www.statsmodels.org/stable/regression.html
+
+    2. Types of discrete response regression models in StatsModels
+       title: 'Regression with Discrete Dependent Variable'
+       site: https://www.statsmodels.org/stable/discretemod.html
+
+    3. Forum discussion of differences between logit, probit, and other link
+       functions for regression on discrete responses
+       title: 'Difference between logit and probit models'
+       site: https://stats.stackexchange.com/questions/20523/difference-
+              between-logit-and-probit-models/30909#30909
+
     Review: TCW; 2 April 2025
 
     arguments:
@@ -885,7 +964,9 @@ def determine_type_regression_analysis(
             and observations for regression
         index_columns (str): name of single-level index across columns in table
         index_rows (str): name of single-level index across rows in table
-        type_regression (str): name of type of regression model to use
+        type_regression (str): name of type of regression model to use, either
+            'continuous_ols', 'continuous_gls', 'discrete_logit',
+            'discrete_probit', 'discrete_poisson', 'discrete_negbinom'
         formula_text (str): human readable formula for regression model,
             treated as a note for clarification
         feature_response (str): name of column in data table for feature
@@ -907,9 +988,9 @@ def determine_type_regression_analysis(
     """
 
     # Determine type of regression.
-    if (type_regression == "linear"):
-        # Perform linear ordinary least squares regression.
-        pail = manage_regression_linear_ordinary_least_squares(
+    if (type_regression == "continuous_ols"):
+        # Perform continuous linear ordinary least squares regression.
+        pail = manage_regression_continuous_linear_ordinary_least_squares(
             table=table,
             index_columns="features",
             index_rows="observations",
@@ -919,9 +1000,17 @@ def determine_type_regression_analysis(
             report=report,
         )
         pass
-    elif (type_regression == "logistic"):
+    elif (type_regression == "discrete_logit"):
         # Perform logistic regression.
-        pail = None
+        pail = manage_regression_discrete_logistic_logit(
+            table=table,
+            index_columns="features",
+            index_rows="observations",
+            formula_text=formula_text,
+            feature_response=feature_response,
+            features_predictor_fixed=features_predictor_fixed,
+            report=report,
+        )
         pass
 
     # Report.
@@ -943,10 +1032,14 @@ def determine_type_regression_analysis(
 # Collect record of information for regression analysis.
 
 
-def collect_record_regression_analysis(
+def collect_organize_record_regression_analysis(
     table=None,
     index_columns=None,
     index_rows=None,
+    sequence=None,
+    group=None,
+    instance=None,
+    name_instance=None,
     check_overall=None,
     type_regression=None,
     formula_text=None,
@@ -954,6 +1047,7 @@ def collect_record_regression_analysis(
     features_predictor_fixed=None,
     features_predictor_random=None,
     record_extra=None,
+    delimiter_list_items=None,
     report=None,
 ):
     """
@@ -993,6 +1087,10 @@ def collect_record_regression_analysis(
             and observations for regression
         index_columns (str): name of single-level index across columns in table
         index_rows (str): name of single-level index across rows in table
+        sequence (int): sequential index for instance's name and sort order
+        group (str): categorical group of instances
+        instance (str): name or designator of instance
+        name_instance (str): compound name for instance of parameters
         check_overall (bool): whether to execute the regression or create
             missing values
         type_regression (str): name of type of regression model to use
@@ -1009,6 +1107,8 @@ def collect_record_regression_analysis(
             independent variables with random effects
         record_extra (dict): collection of secondary information to join to the
             record of primary information from the regression
+        delimiter_list_items (str): delimiter to place between items when
+            collapsing or flattening lists
         report (bool): whether to print reports
 
     raises:
@@ -1018,19 +1118,59 @@ def collect_record_regression_analysis(
 
     """
 
+    # pail (dict): collection of information about a regression analysis
+    #     entries_parameter_instance (list<str>): names and sequence of entries
+    #         with information about the instance of parameters for the
+    #         regression
+    #     entries_model (list<str): names and sequence of entries with
+    #         information about the regression model as a whole
+    #     entries_intercept_predictors (list<str): names and sequence of
+    #         entries with with information about model's intercept and
+    #         predictors
+    #     record (dict<str>): record for collection and assembly as rows within
+    #         a Pandas data-frame table, using the lists of entries to sort the
+    #         columns in the table
+
+    # When creating a Pandas data-frame table from a list of dictionary
+    # records, if one or more records have key entries that do not match those
+    # from other records, then the operation automatically introduces missing
+    # values.
+
     # Collect information.
-    record = dict()
-    record["check_overall"] = check_overall
-    record["type_regression"] = type_regression
-    record["formula_text"] = formula_text
-    record["feature_response"] = feature_response
-    record["features_predictor_fixed"] = features_predictor_fixed
-    record["features_predictor_random"] = features_predictor_random
-    record.update(record_extra)
+    pail = dict()
+    pail["entries_parameter_instance"] = [
+        "sequence",
+        "group",
+        "instance",
+        "name_instance",
+        "check_overall",
+        "type_regression",
+        "formula_text",
+        "feature_response",
+        "features_predictor_fixed",
+        "features_predictor_random",
+    ]
+    pail["entries_parameter_instance"].extend(list(record_extra.keys()))
+    pail["record"] = dict()
+    pail["record"]["sequence"] = sequence
+    pail["record"]["group"] = group
+    pail["record"]["instance"] = instance
+    pail["record"]["name_instance"] = name_instance
+    pail["record"]["check_overall"] = check_overall
+    pail["record"]["type_regression"] = type_regression
+    pail["record"]["formula_text"] = formula_text
+    pail["record"]["feature_response"] = feature_response
+    pail["record"]["features_predictor_fixed"] = delimiter_list_items.join(
+        features_predictor_fixed
+    )
+    pail["record"]["features_predictor_random"] = delimiter_list_items.join(
+        features_predictor_random
+    )
+    pail["record"].update(record_extra)
     # Determine whether to perform regression.
     if (check_overall):
         # Perform regression.
-        record["regression"] = determine_type_regression_analysis(
+        pail_regression = determine_type_regression_analysis(
             table=table,
             index_columns="features",
             index_rows="observations",
@@ -1041,11 +1181,44 @@ def collect_record_regression_analysis(
             features_predictor_random=features_predictor_random,
             report=report,
         )
-        pass
+        # Collect information.
+        pail["entries_model"] = copy.deepcopy(pail_regression["entries_model"])
+        pail["entries_intercept_predictors"] = copy.deepcopy(
+            pail_regression["entries_intercept_predictors"]
+        )
+        pail["record"].update(pail_regression)
+        del pail["record"]["entries_model"]
+        del pail["record"]["entries_intercept_predictors"]
     else:
-        # Create a null record.
-        record["regression"] = None
+        # Collect information.
+        pail["entries_model"] = None
+        pail["entries_intercept_predictors"] = None
         pass
+
+
+    records_test = list()
+    record_1 = {
+        "key_1": "a",
+        "key_2": "b",
+        "key_3": "c",
+    }
+    record_2 = {
+        "key_1": "a",
+        "key_2": "b",
+        "key_4": "p",
+    }
+    record_3 = {
+        "key_1": "x",
+        "key_2": "y",
+        "key_3": "z",
+    }
+    records_test.append(record_1)
+    records_test.append(record_2)
+    records_test.append(record_3)
+    table_test = pandas.DataFrame(data=records_test)
+    print(table_test)
+
+
 
     # Report.
     if report:
@@ -1053,13 +1226,13 @@ def collect_record_regression_analysis(
         print("package: partner")
         print("module: regression.py")
         name_function = str(
-            "collect_record_regression_analysis()"
+            "collect_organize_record_regression_analysis()"
         )
         print("function: " + name_function)
         putly.print_terminal_partition(level=4)
         pass
     # Return information.
-    return record
+    return pail
 
 
 

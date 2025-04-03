@@ -520,13 +520,13 @@ def transform_standard_z_score_by_table_columns(
     1. Comparison of methods to adjust scale in 'Scikit Learn'
        title: 'Compare the effect of different scalers on data with outliers'
        site: https://scikit-learn.org/stable/auto_examples/preprocessing/
-          plot_all_scaling.html#plot-all-scaling-minmax-scaler-section
+              plot_all_scaling.html#plot-all-scaling-minmax-scaler-section
 
     2. Documentation on 'StandardScaler' in 'Scikit Learn'
        title: 'StandardScaler'
        site: https://scikit-learn.org/stable/modules/generated/sklearn.
-          preprocessing.StandardScaler.html#sklearn.preprocessing.
-          StandardScaler
+              preprocessing.StandardScaler.html#sklearn.preprocessing.
+              StandardScaler
 
     Review: TCW; 2 April 2025
 
@@ -759,7 +759,7 @@ def transform_unit_range_by_table_columns(
     2. Documentation on 'MinMaxScaler' in 'Scikit Learn'
        title: 'MinMaxScaler'
        site: https://scikit-learn.org/stable/modules/generated/sklearn.
-          preprocessing.MinMaxScaler.html
+              preprocessing.MinMaxScaler.html
 
     Review: TCW; 2 April 2025
 

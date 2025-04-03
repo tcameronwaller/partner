@@ -365,6 +365,90 @@ def read_source_table_data(
     return table
 
 
+
+def read_source_parallel_branch_products(
+    path_directory_parent=None,
+    name_file_child_prefix=None,
+    name_file_child_suffix=None,
+    name_file_child_not=None,
+    name_column_identifier=None,
+    name_column_allele_total=None,
+    name_column_allele_dosage=None,
+    name_column_score_sum=None,
+    name_column_score_mean=None,
+    report=None,
+):
+    """
+    Reads and organizes source information from file.
+
+    arguments:
+        path_directory_parent (str): path to parent directory in which to find
+            child files
+        name_file_child_prefix (str): prefix in name by which to recognize
+            relevant child files within parent directory
+        name_file_child_suffix (str): suffix in name by which to recognize
+            relevant child files within parent directory
+        name_file_child_not (str): character string in names of files to exclude
+        name_column_identifier (str): name of column in source table for
+            identifier of genotypes
+        name_column_allele_total (str): name of column in source table for
+            count of total non-missing alleles in genotypes
+        name_column_allele_dosage (str): name of column in source table for
+            count of alleles considered in calculation of polygenic score
+        name_column_score_sum (str): name of column in source table for
+            polygenic score as sum of allelic effects across genotypes
+        name_column_score_mean (str): name of column in source table for
+            polygenic score as mean of allelic effects (sum divided by count of
+            total nonmissing alleles) across genotypes
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict<object>): collection of Pandas data-frame tables with entry names
+            (keys) derived from original names of files
+
+    """
+
+    # Extract and filter complete paths to child files within parent directory.
+    paths = putly.extract_filter_child_file_names_paths(
+        path_directory=path_directory_parent,
+        name_file_prefix=name_file_child_prefix,
+        name_file_suffix=name_file_child_suffix,
+        name_file_not=name_file_child_not,
+        report=report,
+    )
+    # Read files as Pandas dataframe tables.
+    # Iterate on names of files to read and organize tables.
+    # Collect tables.
+    pail = dict()
+    for path in paths:
+        # Extract name of file and table that distinguishes it from all others.
+        name_file = os.path.basename(path)
+        name_table_1 = name_file.replace(str(name_file_child_prefix), "")
+        name_table = name_table_1.replace(str(name_file_child_suffix), "")
+        # Read file and organize information in table.
+        table = read_organize_table_polygenic_scores(
+            path_table=path,
+            name_table=name_table,
+            name_column_identifier=name_column_identifier,
+            name_column_allele_total=name_column_allele_total,
+            name_column_allele_dosage=name_column_allele_dosage,
+            name_column_score_sum=name_column_score_sum,
+            name_column_score_mean=name_column_score_mean,
+            report=report,
+        )
+        # Collect table.
+        pail[name_table] = table.copy(deep=True)
+        pass
+    # Return information.
+    return pail
+
+
+
+
+
+
 ##########
 # Organize information in table for features and observations.
 
@@ -1042,6 +1126,7 @@ def control_procedure_part_branch(
     review=None,
     note=None,
     path_file_table_parameters=None,
+    path_directory_product=None,
     path_directory_dock=None,
     report=None,
 ):
@@ -1093,6 +1178,8 @@ def control_procedure_part_branch(
         path_file_table_parameters (str): path to source file in text format as
             a table with tab delimiters between columns and newline delimiters
             between rows, with parameters for multiple regressions
+        path_directory_product (str): path to directory for procedure's product
+            directories and files
         path_directory_dock (str): path to dock directory for procedure's
             source and product directories and files
         report (bool): whether to print reports
@@ -1182,14 +1269,14 @@ def control_procedure_part_branch(
     ##########
     # Perform regression analysis.
     record_extra = dict()
-    record_extra["sequence"] = sequence
-    record_extra["group"] = group
-    record_extra["instance"] = instance
-    record_extra["name_instance"] = name_instance
-    pail_regression = preg.collect_record_regression_analysis(
+    pail_regression = preg.collect_organize_record_regression_analysis(
         table=table,
         index_columns="features",
         index_rows="observations",
+        sequence=sequence,
+        group=group,
+        instance=instance,
+        name_instance=name_instance,
         check_overall=pail_check["check_overall"],
         type_regression=type_regression,
         formula_text=formula_text,
@@ -1197,6 +1284,7 @@ def control_procedure_part_branch(
         features_predictor_fixed=features_predictor_fixed,
         features_predictor_random=features_predictor_random,
         record_extra=record_extra,
+        delimiter_list_items=",", # delimiter to flatten list items in strings
         report=report,
     )
 
@@ -1206,25 +1294,15 @@ def control_procedure_part_branch(
     # A subsequent procedure will read the information from file and collect it
     # within a summary for all instances of regression.
 
-    ##########
-    # Collect information from all regressions in set.
-    # Prepare summary.
-
-    # different instances of regression will have different predictors...
-    # that's a challenge for preparing the summary table.
-    # 1. for all regression instances, determine max count of predictors
-    # 2. summary table needs to accommodate that count of predictors
-    # 3. within each group of columns for each predictor, the first should be
-    # the name of the predictor variable, as below...
-    # predictor_1_name predictor_1_coefficient predictor_1_error predictor_1_p ...
-    # sex_y            0.0153                  0.0002            0.01
-    # use a for loop to assemble the standardized records (for item in range(max count predictors))
-    # access real information from predictors where available, then fill with missing
-
-
-    # "predictors": ";".join(predictors),
-
-
+    # Collect information.
+    # Collections of files.
+    pail_write_objects = dict()
+    pail_write_objects[str(name_instance)] = pail_regression
+    # Write product information to file.
+    putly.write_objects_to_file_pickle(
+        pail_write=pail_write_objects,
+        path_directory=path_directory_product,
+    )
 
     ##########
     # Report.
@@ -1305,6 +1383,8 @@ def control_parallel_instance(
             path_file_table_parameters (str): path to source file in text format as
                 a table with tab delimiters between columns and newline delimiters
                 between rows, with parameters for multiple regressions
+            path_directory_product (str): path to directory for procedure's
+                product directories and files
             path_directory_dock (str): path to dock directory for procedure's
                 source and product directories and files
             report (bool): whether to print reports
@@ -1347,6 +1427,7 @@ def control_parallel_instance(
 
     # Extract parameters common across all instances.
     path_file_table_parameters = parameters["path_file_table_parameters"]
+    path_directory_product = parameters["path_directory_product"]
     path_directory_dock = parameters["path_directory_dock"]
     report = parameters["report"]
 
@@ -1374,6 +1455,7 @@ def control_parallel_instance(
         review=review,
         note=note,
         path_file_table_parameters=path_file_table_parameters,
+        path_directory_product=path_directory_product,
         path_directory_dock=path_directory_dock,
         report=report,
     )
@@ -1383,6 +1465,7 @@ def control_parallel_instance(
 def control_parallel_instances(
     instances=None,
     path_file_table_parameters=None,
+    path_directory_product=None,
     path_directory_dock=None,
     report=None,
 ):
@@ -1397,6 +1480,8 @@ def control_parallel_instances(
         path_file_table_parameters (str): path to source file in text format as
             a table with tab delimiters between columns and newline delimiters
             between rows, with parameters for multiple regressions
+        path_directory_product (str): path to directory for procedure's product
+            directories and files
         path_directory_dock (str): path to dock directory for procedure's
             source and product directories and files
         report (bool): whether to print reports
@@ -1411,6 +1496,7 @@ def control_parallel_instances(
     # Collect parameters common across all instances.
     parameters = dict()
     parameters["path_file_table_parameters"] = path_file_table_parameters
+    parameters["path_directory_product"] = path_directory_product
     parameters["path_directory_dock"] = path_directory_dock
     parameters["report"] = report
 
@@ -1440,6 +1526,7 @@ def control_parallel_instances(
 
 def execute_procedure(
     path_file_table_parameters=None,
+    path_directory_product=None,
     path_directory_dock=None,
     report=None,
 ):
@@ -1466,6 +1553,8 @@ def execute_procedure(
         path_file_table_parameters (str): path to source file in text format as
             a table with tab delimiters between columns and newline delimiters
             between rows, with parameters for multiple regressions
+        path_directory_product (str): path to directory for procedure's product
+            directories and files
         path_directory_dock (str): path to dock directory for procedure's
             source and product directories and files
         report (bool): whether to print reports
@@ -1510,6 +1599,7 @@ def execute_procedure(
         putly.print_terminal_partition(level=5)
         print("system: local")
         print("path_file_table_parameters: " + str(path_file_table_parameters))
+        print("path_directory_product: " + str(path_directory_product))
         print("path_directory_dock: " + str(path_directory_dock))
         putly.print_terminal_partition(level=5)
         pass
@@ -1517,12 +1607,38 @@ def execute_procedure(
 
     ##########
     # Control procedure for parallel instances.
+    # Define paths to directories.
+    path_directory_parallel = os.path.join(
+        path_directory_product, "temporary_parallel_branch_products",
+    )
+    # Create directories.
+    putly.create_directories(
+        path=path_directory_parallel,
+    )
     control_parallel_instances(
         instances=pail_source["records"],
         path_file_table_parameters=path_file_table_parameters,
+        path_directory_product=path_directory_parallel,
         path_directory_dock=path_directory_dock,
         report=report,
     )
+
+    ##########
+    # Collect information from all regressions in set.
+    # Prepare table of information as a summary of all regressions in set.
+    # Read source information from file.
+    pail_source_parallel = read_source_parallel_branch_products(
+        path_directory_parallel=path_directory_parallel,
+
+        report=report,
+    )
+
+
+
+    ##########
+    # Write information to file.
+
+
 
     pass
 
@@ -1531,12 +1647,14 @@ if (__name__ == "__main__"):
     # Parse arguments from terminal.
     path_file_script = sys.argv[0] # always the first argument
     path_file_table_parameters = sys.argv[1]
-    path_directory_dock = sys.argv[2]
-    report = sys.argv[3]
+    path_directory_product = sys.argv[2]
+    path_directory_dock = sys.argv[3]
+    report = sys.argv[4]
 
     # Call function for procedure.
     execute_procedure(
         path_file_table_parameters=path_file_table_parameters,
+        path_directory_product=path_directory_product,
         path_directory_dock=path_directory_dock,
         report=report,
     )
