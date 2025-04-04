@@ -52,6 +52,14 @@ License:
 # ANCOVA
 
 
+# TODO: TCW; 4 April 2025
+# Write a helper function that accepts a full set of parameters for the parameter table
+# that feeds "script_drive_regressions_from_table_parameters.py". This function
+# should also accept a list of response features.
+# The function will create rows in a parameter table for all of the response
+# features, with other parameters the same.
+
+
 ###############################################################################
 # Installation and importation
 
@@ -87,10 +95,13 @@ import partner.description as pdesc
 ###############################################################################
 # Functionality
 
-# Note: TCW; 4 October 2022
-# There are many different methods to "standardize", "scale", "transform", or
-# "standardize" the distributions of multiple variables to simplify their
-# comparisons to each other.
+
+##########
+# Prepare table of parameters for many response features with same predictor
+# features.
+
+
+
 
 
 ##########
