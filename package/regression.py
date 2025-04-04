@@ -622,9 +622,9 @@ def regress_discrete_logistic_logit(
     References:
 
     1. Documentation for implementation in StatsModels
-       - title: 'statsmodels.regression.linear_model.OLS'
+       - title: 'statsmodels.discrete.discrete_model.Logit'
        - site: https://www.statsmodels.org/stable/generated/statsmodels.
-                regression.linear_model.OLS.html
+                discrete.discrete_model.Logit.html
 
     Review: TCW; 3 April 2025
 
