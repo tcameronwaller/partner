@@ -33,8 +33,8 @@ License:
 ################################################################################
 # Author: T. Cameron Waller, Ph.D.
 # Date, first execution: 28 March 2025
-# Date, last execution: 28 March 2025
-# Review: TCW; 28 March 2025
+# Date, last execution: 3 April 2025
+# Review: TCW; 3 April 2025
 ################################################################################
 # Note
 
@@ -44,6 +44,21 @@ License:
 
 # Useful functionality for preparing the table of data for regression.
 # pandas.get_dummies(groups).values
+
+# TODO: TCW; 3 April 2025
+# When trying to test one regression at a time, it is a bit annoying to keep
+# track of the list index since "execution=0" causes instances from the table
+# of parameters to be ignored.
+# Rather than completely excluding "execution=0" instances, consider keeping
+# them for at least long enough to get past control_parallel_instances().
+
+##########
+# Review: TCW; 3 April 2025
+# - On 3 April 2025, TCW confirmed that extracted values from linear OLS
+#   and discrete generalized Logit regression models, intercept, and
+#   predictors in the summary table match those reported directly in the
+#   summary from the implementations of the respective regression models on
+#   demonstration data.
 
 ################################################################################
 # Installation and importation
@@ -597,6 +612,14 @@ def organize_table_data(
             explicate_indices=explicate_indices,
             report=False,
         )
+        # Standardize names of indices.
+        table = porg.translate_names_table_indices_columns_rows(
+            table=table,
+            index_columns_product=index_columns_product,
+            index_rows_source=index_rows_source,
+            index_rows_product=index_rows_product,
+            report=None,
+        )
     else:
         # Name generic index in table.
         table.reset_index(
@@ -604,16 +627,16 @@ def organize_table_data(
             inplace=True,
             drop=True, # remove index; do not move to regular columns
         )
-        table.index.set_names(index_rows_source, inplace=True)
+        table.index.set_names(index_rows_product, inplace=True)
+        # Standardize names of indices.
+        table = porg.translate_names_table_indices_columns_rows(
+            table=table,
+            index_columns_product=index_columns_product,
+            index_rows_source=index_rows_product,
+            index_rows_product=index_rows_product,
+            report=None,
+        )
         pass
-    # Standardize names of indices.
-    table = porg.translate_names_table_indices_columns_rows(
-        table=table,
-        index_columns_product=index_columns_product,
-        index_rows_source=index_rows_source,
-        index_rows_product=index_rows_product,
-        report=None,
-    )
 
     # Report.
     if report:
@@ -1102,6 +1125,9 @@ def organize_summary_table_regressions(
     # from other records, then the operation automatically introduces missing
     # values.
 
+    # Copy information.
+    pails_regression = copy.deepcopy(pails_regression)
+
     # Collect information about all entries that the records represent
     # collectively.
     entries = dict()
@@ -1135,7 +1161,7 @@ def organize_summary_table_regressions(
             entries[entry_type].extend(entries_novel)
             pass
         # Collect records.
-        records.append(pail["record"])
+        records.append(copy.deepcopy(pail["record"]))
         pass
 
     # Create table.
@@ -1170,6 +1196,9 @@ def organize_summary_table_regressions(
 
 ################################################################################
 # Procedure
+
+# TODO: TCW; 3 April 2025
+# Now integrate the functionality for logistic regression.
 
 
 
@@ -1574,7 +1603,7 @@ def control_parallel_instances(
     parameters["report"] = report
 
     # Execute procedure iteratively with parallelization across instances.
-    if False:
+    if True:
         prall.drive_procedure_parallel(
             function_control=(
                 control_parallel_instance

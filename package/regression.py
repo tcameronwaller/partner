@@ -93,22 +93,6 @@ import partner.description as pdesc
 # comparisons to each other.
 
 
-
-
-# TODO: TCW; 2 April 2025
-# I don't actually need to keep the "table_independence_intercept"
-# keep this function and the regression tree records as simple as possible
-# later on it'll be more convenient or cleaner to derive extra info for summary table
-
-# flatten
-# predictor_1_name: "intercept"
-# predictor_1_parameter:
-
-# or... keep the dictionary tree, but then extract using a translation
-# 1: intercept
-# 2: sex_y
-
-
 ##########
 # Organize information from regresion.
 
@@ -250,6 +234,8 @@ def parse_regression_model_predictor(
         str(code + "_name"),
         str(code + "_parameter"),
         str(code + "_error"),
+        str(code + "_ci99_low"),
+        str(code + "_ci99_high"),
         str(code + "_pvalue"),
         str(code + "_variance_inflation"),
     ]
@@ -259,6 +245,16 @@ def parse_regression_model_predictor(
     )
     pail["predictor"][str(code + "_error")] = float(
         standard_errors[name_source]
+    )
+    pail_confidence = pdesc.determine_95_99_confidence_intervals_ranges(
+        estimate=parameters[name_source],
+        standard_error=standard_errors[name_source],
+    )
+    pail["predictor"][str(code + "_ci99_low")] = float(
+        pail_confidence["range_99_low"]
+    )
+    pail["predictor"][str(code + "_ci99_high")] = float(
+        pail_confidence["range_99_high"]
     )
     pail["predictor"][str(code + "_pvalue")] = float(pvalues[name_source])
     if (variance_inflation):
@@ -319,6 +315,9 @@ def parse_regression_intercept_predictors(
     table_predictor_intercept = table_predictor_intercept.copy(deep=True)
     features_predictor = copy.deepcopy(features_predictor)
     features_sequence = copy.deepcopy(features_sequence)
+    parameters = copy.deepcopy(parameters)
+    standard_errors = copy.deepcopy(standard_errors)
+    pvalues = copy.deepcopy(pvalues)
 
     # Collect information.
     pail = dict()
@@ -369,138 +368,6 @@ def parse_regression_intercept_predictors(
 
     # Return information.
     return pail
-
-
-# TODO: TCW; 2 April
-# obsolete, I think, but check again and test the new method
-def organize_linear_logistic_regression_independence_tree(
-    independence=None,
-    model_parameters=None,
-    model_parameter_errors=None,
-    model_probabilities=None,
-    table_independence_intercept=None,
-):
-    """
-    Organizes a dictionary tree of information about each independent variable
-    from a logistic or linear regression.
-
-    arguments:
-        independence (list<str>): names of table's columns for independent
-            variables
-        model_parameters (dict): estimate values of the model's parameter
-            coefficients
-        model_parameter_errors (dict): standard errors for estimates of the
-            model's parameter coefficients
-        model_probabilities (dict): probabilities for estimates of the model's
-            parameter coefficients
-        table_independence_intercept (object): Pandas data-frame table of
-            independent variables with a constant intercept, the same source
-            from the regression
-
-    raises:
-
-    returns:
-        (dict<dict>): dictionary tree of information about each independent
-            variable from a logistic or linear regression
-    """
-
-    # Copy information.
-    table_independence_intercept = table_independence_intercept.copy(deep=True)
-
-    # Collect information about independent variables.
-    pail_tree = dict()
-
-    # Intercept.
-    if (
-        ("const" in model_parameters.index) and
-        ("const" in model_parameter_errors.index) and
-        ("const" in model_probabilities.index)
-    ):
-        # Collect information for intercept.
-        pail_tree["intercept"] = dict()
-        pail_tree["intercept"]["variable"] = "intercept"
-        # Coefficient or parameter.
-        #pail_tree["intercept"]["parameter"] = report.params[0]
-        pail_tree["intercept"]["parameter"] = float(model_parameters["const"])
-        # Standard error of parameter.
-        pail_tree["intercept"]["error"] = float(model_parameter_errors["const"])
-        # Confidence intervals and ranges.
-        pail_confidence = pdesc.determine_95_99_confidence_intervals_ranges(
-            estimate=pail_tree["intercept"]["parameter"],
-            standard_error=pail_tree["intercept"]["error"],
-        )
-        pail_tree["intercept"].update(pail_confidence)
-        # Probability.
-        pail_tree["intercept"]["probability"] = float(
-            model_probabilities["const"]
-        )
-        # Variance Inflation Factor (VIF).
-        # Missing or undefined for intercept?
-        pail_tree["intercept"]["inflation"] = float("nan")
-        # Report summaries.
-        pail_tree["intercept"]["report_b95ci"] = str(
-            "b: " + str(round(pail_tree["intercept"]["parameter"], 5)) +
-            "; 95% CI: " + str(pail_tree["intercept"]["range_95"])
-        )
-        pail_tree["intercept"]["report_bep"] = str(
-            "b: " + str(round(pail_tree["intercept"]["parameter"], 5)) +
-            " (" + str(round(pail_tree["intercept"]["error"], 5)) +
-            "); p: " + str(round(pail_tree["intercept"]["probability"], 5))
-        )
-    else:
-        # Report.
-        if report:
-            print("Warning: regression data does not have constant intercept.")
-        # Create missing values for intercept.
-        pail_tree["intercept"] = create_missing_regression_independent_variable(
-            variable="intercept",
-        )
-    # Independent variables.
-    # Initiate counter at 1 to assume that intercept is at index 0.
-    counter = 1
-    # Accommodate index for intercept.
-    for variable in independence:
-        # Collect information for intercept.
-        pail_tree[variable] = dict()
-        pail_tree[variable]["variable"] = str(variable)
-        # Coefficient or parameter.
-        #pail_tree[variable]["parameter"] = report.params[counter]
-        pail_tree[variable]["parameter"] = float(model_parameters[variable])
-        # Standard error parameter.
-        pail_tree[variable]["error"] = float(model_parameter_errors[variable])
-        # Confidence intervals and ranges.
-        pail_confidence = pdesc.determine_95_99_confidence_intervals_ranges(
-            estimate=pail_tree[variable]["parameter"],
-            standard_error=pail_tree[variable]["error"],
-        )
-        pail_tree[variable].update(pail_confidence)
-        # Probability.
-        pail_tree[variable]["probability"] = float(
-            model_probabilities[variable]
-        )
-        # Variance Inflation Factor (VIF).
-        inflation_value = float(
-            statsmodels.stats.outliers_influence.variance_inflation_factor(
-                table_independence_intercept.to_numpy(),
-                counter
-            )
-        )
-        pail_tree[variable]["inflation"] = round(inflation_value, 5)
-        # Report summaries.
-        pail_tree[variable]["report_b95ci"] = str(
-            "b: " + str(round(pail_tree[variable]["parameter"], 5)) +
-            "; 95% CI: " + str(pail_tree[variable]["range_95"])
-        )
-        pail_tree[variable]["report_bep"] = str(
-            "b: " + str(round(pail_tree[variable]["parameter"], 5)) +
-            " (" + str(round(pail_tree[variable]["error"], 5)) +
-            "); p: " + str(round(pail_tree[variable]["probability"], 5))
-        )
-        # Increment index.
-        counter += 1
-        pass
-    # Return information.
-    return pail_tree
 
 
 def parse_organize_regression_intercept_predictors(
@@ -580,9 +447,10 @@ def regress_continuous_linear_ordinary_least_squares(
     report=None,
 ):
     """
-    Regress predictor features versus a continuous response feature by linear
-    ordinary least squares (OLS), applying implementation from the StatsModels
-    package in Python.
+    Regress a response feature on a quantitative, continuous, ratio or interval
+    scale of measurement against either a single or multiple predictor features
+    by a linear ordinary least squares (OLS) model, applying an implementation
+    from the StatsModels package in Python.
 
     ----------
     Format of source data table (name: "table")
@@ -604,9 +472,9 @@ def regress_continuous_linear_ordinary_least_squares(
     ----------
 
     Format of information for response dependent variable is a one-dimensional
-    vector of scalar values on a quantitative, continuous scale of measurement,
-    interval or ratio.
-    [1.3, 1.5, 1.2, 1.0, 1.7, 1.5, 1.9, 1.1, 1.3, 1.4]
+    vector of scalar values on a quantitative, continuous, ratio or interval
+    scale of measurement.
+    [1.3, 1.5, 1.2, 1.0, 1.7, 1.5, 1.9, 1.1, 1.3, 1.4,]
 
     Format of information for predictor independent variable(s) is a
     two-dimensional matrix: a first-dimension vector corresponding to
@@ -615,13 +483,13 @@ def regress_continuous_linear_ordinary_least_squares(
     StatsModels also requires the intentional addition of a constant for the
     intercept.
     [
-        [1.3, 5.2, 1.0],
-        [1.5, 5.1, 1.0],
-        [1.2, 5.5, 1.0],
+        [1.3, 5.2, 1.0,],
+        [1.5, 5.1, 1.0,],
+        [1.2, 5.5, 1.0,],
         ...
     ]
 
-    implementation: 'statsmodels.regression.linear_model.OLS()'
+    Implementation: 'statsmodels.regression.linear_model.OLS()'
 
     References:
 
@@ -653,7 +521,8 @@ def regress_continuous_linear_ordinary_least_squares(
     # Extract values of response and predictor variables.
     # It is possible to pass values of response and predictor features either
     # as NumPy arrays or as Pandas Series and data-frame table respectively.
-    # Passing variables as Pandas Series and Dataframe preserves variable names.
+    # Passing variables as Pandas Series and Dataframe preserves variable
+    # names.
     #values_response = table[feature_response].to_numpy()
 
     # Keep information for predictor features in Pandas data-frame table to
@@ -693,7 +562,142 @@ def regress_continuous_linear_ordinary_least_squares(
     return pail
 
 
-# regress_discrete_logistic_logit()
+def regress_discrete_logistic_logit(
+    table=None,
+    feature_response=None,
+    features_predictor_fixed=None,
+    report=None,
+):
+    """
+    Regress a response feature on a discrete, binary scale of measurement
+    against either a single or multiple predictor features by a generalized
+    linear model (GLM) with the logit link function, applying an implementation
+    from the StatsModels package in Python.
+
+    ----------
+    Format of source data table (name: "table")
+    ----------
+    Format of source data table is in wide format with features across columns
+    and values corresponding to their observations across rows. A special
+    header row gives identifiers or names corresponding to each feature across
+    columns, and a special column gives identifiers or names corresponding to
+    each observation across rows. The table has explicitly named indices across
+    columns and rows.
+    ----------
+    features        feature_1 feature_2 feature_3 feature_4 feature_5 ...
+    observations
+    observation_1   0.001     0.001     0.001     0.001     0.001     ...
+    observation_2   0.001     0.001     0.001     0.001     0.001     ...
+    observation_3   0.001     0.001     0.001     0.001     0.001     ...
+    observation_4   0.001     0.001     0.001     0.001     0.001     ...
+    observation_5   0.001     0.001     0.001     0.001     0.001     ...
+    ----------
+
+    Format of information for response dependent variable is a one-dimensional
+    vector of scalar values on a discrete, binary scale of measurement.
+    [0, 1, 1, 0, 1, 1, 0, 0, 0, 1,]
+
+    Format of information for predictor independent variable(s) is a
+    two-dimensional matrix: a first-dimension vector corresponding to
+    observations or samples and for each observation a second-dimension vector
+    of scalar values corresponding to each feature or variable.
+    StatsModels also requires the intentional addition of a constant for the
+    intercept.
+    [
+        [1.3, 5.2, 1.0,],
+        [1.5, 5.1, 1.0,],
+        [1.2, 5.5, 1.0,],
+        ...
+    ]
+
+    Complete or Quasi-Complete Separation of discrete (or binary) values of any
+    independent variable between discrete values of the dependent variable can
+    prevent convergence of the logistic regression either by maximum likelihood
+    or regularized maximum likelihood methods. Evaluate the relationships
+    between dependent and independent variables to avoid any Complete or
+    Quasi-Complete Separation.
+
+    Implementation: 'statsmodels.discrete.discrete_model.Logit()'
+
+    References:
+
+    1. Documentation for implementation in StatsModels
+       - title: 'statsmodels.regression.linear_model.OLS'
+       - site: https://www.statsmodels.org/stable/generated/statsmodels.
+                regression.linear_model.OLS.html
+
+    Review: TCW; 3 April 2025
+
+    arguments:
+        table (object): Pandas data-frame table of data with features
+            and observations for regression
+        feature_response (str): name of column in data table for feature
+            variable to include in regression model as response dependent
+            variable
+        features_predictor_fixed (list<str>): names of columns in data table
+            for feature variables to include in regression model as predictor
+            independent variables with fixed effects
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict<object>): collection of information from regression
+
+    """
+
+    # Extract values of response and predictor variables.
+    # It is possible to pass values of response and predictor features either
+    # as NumPy arrays or as Pandas Series and data-frame table respectively.
+    # Passing variables as Pandas Series and Dataframe preserves variable
+    # names.
+    #values_response = table[feature_response].to_numpy()
+
+    # Keep information for predictor features in Pandas data-frame table to
+    # preserve names of variables.
+    #values_predictor = table.loc[ :, features_predictor_fixed].to_numpy()
+    table_predictor = table.loc[ :, features_predictor_fixed].copy(deep=True)
+
+    # Introduce constant intercept to predictor features.
+    # If any column in the table of information for predictor features already
+    # has constant values across observations, then the function skips it by
+    # default. It is necessary to change parameter "has_constant" to avoid this
+    # conditional behavior.
+    table_predictor_intercept = statsmodels.api.add_constant(
+        table_predictor,
+        prepend=True, # insert intercept constant before other features
+        has_constant="add", # force introduction of new intercept constant
+    )
+    columns_predictor = copy.deepcopy(
+        table_predictor_intercept.columns.to_list()
+    )
+    #matrix_predictor = table.to_numpy()
+    # Define model.
+    model = statsmodels.api.Logit(
+        table[feature_response],
+        table_predictor_intercept,
+        missing="drop",
+    )
+    # Fit the model.
+    handle_model = model.fit(
+        maxiter=100, # maximal count of iterations to convergence
+    )
+
+    # Regularization of the fit method can help to avoid overfitting and promote
+    # convergence.
+    # Fit the model using regularized maximum likelihood.
+    #handle_model = model.fit_regularized(
+    #    method="l1", # solver method
+    #    maxiter=100,
+    #)
+
+    # Collect information.
+    pail = dict()
+    pail["model"] = handle_model
+    pail["table_predictor_intercept"] = table_predictor_intercept
+
+    # Return information.
+    return pail
 
 
 ##########
@@ -766,6 +770,7 @@ def manage_regression_continuous_linear_ordinary_least_squares(
         features_predictor_fixed=features_predictor_fixed,
         report=report,
     )
+    # Extract residuals.
     residuals = pail_regression["model"].resid
 
     # Organize information from regression for predictor features.
@@ -837,18 +842,163 @@ def manage_regression_continuous_linear_ordinary_least_squares(
         putly.print_terminal_partition(level=5)
         print("summary from regression model:")
         print(pail_regression["model"].summary())
-        #print(dir(handle_regression))
-        #print(handle_regression.params)
-        #print(handle_regression.pvalues)
+        #print(dir(pail_regression))
+        #print(pail_regression.params)
+        #print(pail_regression.pvalues)
         pass
 
     # Return information.
     return pail
 
 
-# manage_regression_discrete_logistic_logit
+def manage_regression_discrete_logistic_logit(
+    table=None,
+    index_columns=None,
+    index_rows=None,
+    formula_text=None,
+    feature_response=None,
+    features_predictor_fixed=None,
+    report=None,
+):
+    """
+    Manage regression analysis according to parameters.
+
+    ----------
+    Format of source data table (name: "table")
+    ----------
+    Format of source data table is in wide format with features across columns
+    and values corresponding to their observations across rows. A special
+    header row gives identifiers or names corresponding to each feature across
+    columns, and a special column gives identifiers or names corresponding to
+    each observation across rows. The table has explicitly named indices across
+    columns and rows.
+    ----------
+    features        feature_1 feature_2 feature_3 feature_4 feature_5 ...
+    observations
+    observation_1   0.001     0.001     0.001     0.001     0.001     ...
+    observation_2   0.001     0.001     0.001     0.001     0.001     ...
+    observation_3   0.001     0.001     0.001     0.001     0.001     ...
+    observation_4   0.001     0.001     0.001     0.001     0.001     ...
+    observation_5   0.001     0.001     0.001     0.001     0.001     ...
+    ----------
+
+    Review: TCW; 3 April 2025
+
+    arguments:
+        table (object): Pandas data-frame table of data with features
+            and observations for regression
+        index_columns (str): name of single-level index across columns in table
+        index_rows (str): name of single-level index across rows in table
+        formula_text (str): human readable formula for regression model,
+            treated as a note for clarification
+        feature_response (str): name of column in data table for feature
+            variable to include in regression model as response dependent
+            variable
+        features_predictor_fixed (list<str>): names of columns in data table
+            for feature variables to include in regression model as predictor
+            independent variables with fixed effects
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict<object>): collection of information from regression
+
+    """
+
+    # Copy information.
+    table = table.copy(deep=True)
+    features_predictor_fixed = copy.deepcopy(features_predictor_fixed)
+
+    # Regress.
+    pail_regression = regress_discrete_logistic_logit(
+        table=table,
+        feature_response=feature_response,
+        features_predictor_fixed=features_predictor_fixed,
+        report=report,
+    )
+    # Extract residuals.
+    residuals = pail_regression["model"].resid_generalized
+
+    # Organize information from regression for predictor features.
+    parameters = pandas.Series(data=pail_regression["model"].params)
+    standard_errors = pandas.Series(data=pail_regression["model"].bse)
+    pvalues = pandas.Series(data=pail_regression["model"].pvalues)
+    pail_predictors = parse_organize_regression_intercept_predictors(
+        table_predictor_intercept=pail_regression["table_predictor_intercept"],
+        features_predictor=features_predictor_fixed,
+        parameters=parameters,
+        standard_errors=standard_errors,
+        pvalues=pvalues,
+        report=report,
+    )
+
+    # Collect information.
+    pail = dict()
+    # Regression model as a whole.
+    pail["entries_model"] = [
+        "implementation",
+        "count_observations_table",
+        "count_observations_model",
+        "degrees_freedom_model",
+        "degrees_freedom_residual",
+        "r_square",
+        "r_square_adjust",
+        "r_square_pseudo",
+        "log_likelihood",
+        "akaike",
+        "bayes",
+        "condition",
+    ]
+    pail["implementation"] = str(
+        "statsmodels.discrete.discrete_model.Logit()"
+    )
+    pail["count_observations_table"] = int(table.shape[0])
+    pail["count_observations_model"] = int(pail_regression["model"].nobs)
+    pail["degrees_freedom_model"] = int(
+        pail_regression["model"].df_model
+    )
+    pail["degrees_freedom_residual"] = int(
+        pail_regression["model"].df_resid
+    )
+    pail["r_square"] = float("nan") # hold place for linear regression
+    pail["r_square_adjust"] = float("nan") # hold place for linear regression
+    pail["r_square_pseudo"] = pail_regression["model"].prsquared
+    pail["log_likelihood"] = pail_regression["model"].llf
+    pail["akaike"] = pail_regression["model"].aic
+    pail["bayes"] = pail_regression["model"].bic
+    pail["condition"] = float("nan") # hold place for linear regression
+    # Intercept and predictors as parts of regression model.
+    pail["entries_intercept_predictors"] = pail_predictors["entries"]
+    pail.update(
+        pail_predictors["intercept_predictors"]
+    )
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=4)
+        print("package: partner")
+        print("module: regression.py")
+        name_function = str(
+            "manage_regression_discrete_logistic_logit()"
+        )
+        print("function: " + name_function)
+        putly.print_terminal_partition(level=5)
+        print("text formula for regression model:")
+        print(formula_text)
+        putly.print_terminal_partition(level=5)
+        print("summary from regression model:")
+        print(pail_regression["model"].summary())
+        #print(dir(pail_regression))
+        #print(pail_regression.params)
+        #print(pail_regression.pvalues)
+        pass
+
+    # Return information.
+    return pail
 
 
+# See document string for informative notes about regressions.
 def determine_type_regression_analysis(
     table=None,
     index_columns=None,
@@ -943,6 +1093,7 @@ def determine_type_regression_analysis(
      - Generalized Linear Model with Negative Binomial link function
       - response is on discrete ordinal scale of measurement
 
+    ----------
     References:
 
     1. Types of linear regression models in StatsModels
@@ -959,7 +1110,13 @@ def determine_type_regression_analysis(
        site: https://stats.stackexchange.com/questions/20523/difference-
               between-logit-and-probit-models/30909#30909
 
-    Review: TCW; 2 April 2025
+    ----------
+    Review: TCW; 3 April 2025
+    - On 3 April 2025, TCW confirmed that extracted values from linear OLS
+       and discrete generalized Logit regression models, intercept, and
+       predictors in the summary table match those reported directly in the
+       summary from the implementations of the respective regression models on
+       demonstration data.
 
     arguments:
         table (object): Pandas data-frame table of data with features
@@ -1013,6 +1170,9 @@ def determine_type_regression_analysis(
             features_predictor_fixed=features_predictor_fixed,
             report=report,
         )
+        pass
+    else:
+        pail = dict()
         pass
 
     # Report.
@@ -1191,31 +1351,6 @@ def collect_organize_record_regression_analysis(
         pail["entries_model"] = None
         pail["entries_intercept_predictors"] = None
         pass
-
-
-    records_test = list()
-    record_1 = {
-        "key_1": "a",
-        "key_2": "b",
-        "key_3": "c",
-    }
-    record_2 = {
-        "key_1": "a",
-        "key_2": "b",
-        "key_4": "p",
-    }
-    record_3 = {
-        "key_1": "x",
-        "key_2": "y",
-        "key_3": "z",
-    }
-    records_test.append(record_1)
-    records_test.append(record_2)
-    records_test.append(record_3)
-    table_test = pandas.DataFrame(data=records_test)
-    print(table_test)
-
-
 
     # Report.
     if report:
