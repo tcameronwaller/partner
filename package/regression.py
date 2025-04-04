@@ -52,14 +52,6 @@ License:
 # ANCOVA
 
 
-# TODO: TCW; 4 April 2025
-# Write a helper function that accepts a full set of parameters for the parameter table
-# that feeds "script_drive_regressions_from_table_parameters.py". This function
-# should also accept a list of response features.
-# The function will create rows in a parameter table for all of the response
-# features, with other parameters the same.
-
-
 ###############################################################################
 # Installation and importation
 
@@ -97,10 +89,10 @@ import partner.description as pdesc
 
 
 ##########
-# Prepare table of parameters for many response features with same predictor
-# features.
+# Prepare table of parameters for many different response features, all with
+# identical predictor features and other parameters.
 
-
+# Refer to Bash script "template_create_parameter_table.sh".
 
 
 
@@ -1082,6 +1074,22 @@ def determine_type_regression_analysis(
     ----------
     Notes
 
+    Interpretation
+    - The parameter coefficient for the intercept is the model's prediction of
+       the response when all predictors have values of zero (0). If the model
+       includes dummy predictors to represent features with categorical values,
+       then the value of the intercept corresponds to the reference category
+       that corresponds to values of zero (0) for dummy predictors that
+       represent all the other categories. To represent "n" categories", "n-1"
+       dummy predictors are necessary.
+    - The parameter coefficient for a continuous predictor indicates that, when
+       holding all other covariate predictors constant at any of their
+       respective values, a one unit increase in the predictor of interest
+       corresponds on average to the coefficient's unit change in the response.
+
+    ----------
+    Notes
+
     Types of Regression Models
     - Continuous response feature
      - Linear Ordinary Least Squares (OLS)
@@ -1104,7 +1112,6 @@ def determine_type_regression_analysis(
      - Generalized Linear Model with Negative Binomial link function
       - response is on discrete ordinal scale of measurement
 
-    ----------
     References:
 
     1. Types of linear regression models in StatsModels
@@ -1115,11 +1122,31 @@ def determine_type_regression_analysis(
        title: 'Regression with Discrete Dependent Variable'
        site: https://www.statsmodels.org/stable/discretemod.html
 
-    3. Forum discussion of differences between logit, probit, and other link
+    3. Types of regression with mixed effects in StatsModels
+       title: 'Linear Mixed Effects Models'
+       site: https://www.statsmodels.org/stable/mixed_linear.html
+
+    4. Forum discussion of differences between logit, probit, and other link
        functions for regression on discrete responses
        title: 'Difference between logit and probit models'
        site: https://stats.stackexchange.com/questions/20523/difference-
               between-logit-and-probit-models/30909#30909
+
+    ----------
+    Notes
+
+    Linear regression against predictors with mixed fixed and random effects
+    - ...
+
+    References:
+
+    1. Article about linear regression analysis with mixed fixed and random effects
+       title: 'Linear Mixed Effect Models in python using mtcars'
+       site: https://medium.com/@josef.waples/linear-mixed-effect-models-in-
+              python-using-mtcars-064c6c3e5b32
+       note:
+       - This article also provides a clear and insightful interpretation of
+          the results of regression analysis.
 
     ----------
     Review: TCW; 3 April 2025
