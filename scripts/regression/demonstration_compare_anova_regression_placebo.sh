@@ -5,9 +5,9 @@
 
 ###############################################################################
 # Author: T. Cameron Waller
-# Date, first execution: 28 March 2025
-# Date, last execution or modification: 3 April 2025
-# Review: 3 April 2025
+# Date, first execution: 7 April 2025
+# Date, last execution or modification: 7 April 2025
+# Review: 7 April 2025
 ###############################################################################
 # Note
 
@@ -35,18 +35,17 @@ path_directory_demonstration="$path_directory_dock/in_demonstration"
 path_directory_parameters="$path_directory_dock/in_parameters"
 path_directory_parameters_private="$path_directory_dock/in_parameters_private"
 
-#path_directory_source="${path_directory_demonstration}/partner"
-path_directory_product="${path_directory_dock}/out_regression/demonstration"
+path_directory_source="${path_directory_demonstration}/partner/15081686_vandongen_2004"
+path_directory_product="${path_directory_dock}/out_regression/demonstration/15081686_vandongen_2004"
 #stamp_date=$(date +%Y-%m-%d)
 #path_directory_temporary="${path_directory_product}/temporary_${stamp_date}" # hopefully unique
 
 # Files.
-path_file_table_parameters="${path_directory_demonstration}/partner/table_regression_parameters.tsv"
-#path_file_table_parameters="${path_directory_parameters_private}/age_exercise/regression/table_regression_parameters.tsv"
+name_file_table_data="table_data.tsv"
 
 # Scripts.
-path_file_script_source="${path_directory_scripts}/partner/python/script_drive_regressions_from_table_parameters.py"
-path_file_script_product="${path_directory_package}/script_drive_regressions_from_table_parameters.py"
+path_file_script_source="${path_directory_scripts}/partner/python/script_demonstration_compare_anova_regression_placebo.py"
+path_file_script_product="${path_directory_package}/script_demonstration_compare_anova_regression_placebo.py"
 
 # Copy Python script to package directory.
 cp $path_file_script_source $path_file_script_product
@@ -110,7 +109,8 @@ fi
 
 # Execute program process in Python.
 python3 $path_file_script_product \
-$path_file_table_parameters \
+$name_file_table_data \
+$path_directory_source \
 $path_directory_product \
 $path_directory_dock \
 $report
@@ -137,12 +137,9 @@ if [ "$report" == "true" ]; then
   echo "----------"
   echo "----------"
   echo "----------"
-  echo "script: template_drive_regressions.sh"
+  echo "script: demonstration_compare_anova_regression_placebo.sh"
   echo $0 # Print full file path to script.
   echo "done"
-  echo "----------"
-  echo "path to file for table of parameters: " $path_file_table_parameters
-  echo "path to dock directory: " $path_directory_dock
   echo "----------"
   echo "----------"
   echo "----------"

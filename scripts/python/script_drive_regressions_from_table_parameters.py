@@ -67,6 +67,7 @@ License:
 import sys
 import os
 import copy
+import textwrap
 
 # Relevant
 import pandas
@@ -119,6 +120,7 @@ def define_column_types_table_parameters():
     types_columns["feature_response"] = "string"
     types_columns["features_predictor_fixed"] = "string"
     types_columns["features_predictor_random"] = "string"
+    types_columns["groups_random"] = "string"
     types_columns["features_continuity_scale"] = "string"
     types_columns["identifier_observations"] = "string"
     types_columns["method_scale"] = "string"
@@ -129,6 +131,10 @@ def define_column_types_table_parameters():
     # Return information.
     return types_columns
 
+
+# TODO: TCW; 7 April 2025
+# I don't think that "identifier_observations" should be in the "features_regression" list...
+# but it does need to be in the "features_relevant" list
 
 def read_source_table_parameters(
     path_file_table_parameters=None,
@@ -154,8 +160,7 @@ def read_source_table_parameters(
     raises:
 
     returns:
-        (dict): collection of source information about parameters for selection
-            of sets from MSigDB
+        (dict): collection of source information about parameters
 
     """
 
@@ -216,10 +221,27 @@ def read_source_table_parameters(
                 text=row["features_predictor_random"],
                 delimiter=",",
             )
-            record["features_continuity_scale"] = putly.parse_text_list_values(
-                text=row["features_continuity_scale"],
-                delimiter=",",
-            )
+            if (
+                (row["groups_random"] is not None) and
+                (len(str(row["groups_random"])) > 0) and
+                (str(row["groups_random"]).strip().lower() != "none")
+            ):
+                record["groups_random"] = str(row["groups_random"]).strip()
+            else:
+                record["groups_random"] = None
+                pass
+            if (
+                (row["features_continuity_scale"] is not None) and
+                (len(str(row["features_continuity_scale"])) > 0) and
+                (str(row["features_continuity_scale"]).strip().lower() != "none")
+            ):
+                record["features_continuity_scale"] = putly.parse_text_list_values(
+                    text=row["features_continuity_scale"],
+                    delimiter=",",
+                )
+            else:
+                record["features_continuity_scale"] = list()
+                pass
             if (
                 (row["identifier_observations"] is not None) and
                 (len(str(row["identifier_observations"])) > 0) and
@@ -246,12 +268,12 @@ def read_source_table_parameters(
             features_regression.append(record["feature_response"])
             features_regression.extend(record["features_predictor_fixed"])
             features_regression.extend(record["features_predictor_random"])
-            if (record["identifier_observations"] is not None):
-                features_regression.insert(
-                    0,
-                    record["identifier_observations"],
-                )
-                pass
+            #if (record["identifier_observations"] is not None):
+            #    features_regression.insert(
+            #        0,
+            #        record["identifier_observations"],
+            #    )
+            #    pass
             features_regression = putly.collect_unique_elements(
                 elements=features_regression,
             )
@@ -267,6 +289,18 @@ def read_source_table_parameters(
                 pass
             features_relevant.extend(record["features_continuity_scale"])
             features_relevant.extend(features_regression)
+            if (record["groups_random"] is not None):
+                features_relevant.insert(
+                    0,
+                    record["groups_random"],
+                )
+                pass
+            if (record["identifier_observations"] is not None):
+                features_relevant.insert(
+                    0,
+                    record["identifier_observations"],
+                )
+                pass
             features_relevant = putly.collect_unique_elements(
                 elements=features_relevant,
             )
@@ -432,658 +466,6 @@ def read_source_parallel_branch_products(
 
 
 ##########
-# Organize information in table for features and observations.
-
-
-def organize_table_data(
-    table=None,
-    selection_observations=None,
-    features_relevant=None,
-    features_regression=None,
-    features_continuity_scale=None,
-    index_columns_source=None,
-    index_columns_product=None,
-    index_rows_source=None,
-    index_rows_product=None,
-    adjust_scale=None,
-    method_scale=None,
-    explicate_indices=None,
-    report=None,
-):
-    """
-    Organize table of data with features and observations for regression.
-
-    1. filter columns in table for relevant features
-    2. filter rows in table for relevant observations
-    3. standardize scale of features with measurement values on quantitative,
-       continuous scale of measurement, ratio or interval
-
-    ----------
-    Format of source data table (name: "table")
-    ----------
-    Format of source data table is in wide format with features across columns
-    and values corresponding to their observations across rows. A special
-    header row gives identifiers or names corresponding to each feature across
-    columns, and a special column gives identifiers or names corresponding to
-    each observation across rows. For versatility, this table does not have
-    explicitly defined indices across rows or columns.
-    ----------
-    identifiers     feature_1 feature_2 feature_3 feature_4 feature_5 ...
-
-    observation_1   0.001     0.001     0.001     0.001     0.001     ...
-    observation_2   0.001     0.001     0.001     0.001     0.001     ...
-    observation_3   0.001     0.001     0.001     0.001     0.001     ...
-    observation_4   0.001     0.001     0.001     0.001     0.001     ...
-    observation_5   0.001     0.001     0.001     0.001     0.001     ...
-    ----------
-
-    ----------
-    Format of product data table (name: "table")
-    ----------
-    Format of source data table is in wide format with features across columns
-    and values corresponding to their observations across rows. A special
-    header row gives identifiers or names corresponding to each feature across
-    columns, and a special column gives identifiers or names corresponding to
-    each observation across rows. The table has explicitly named indices across
-    columns and rows.
-    ----------
-    features        feature_1 feature_2 feature_3 feature_4 feature_5 ...
-    observations
-    observation_1   0.001     0.001     0.001     0.001     0.001     ...
-    observation_2   0.001     0.001     0.001     0.001     0.001     ...
-    observation_3   0.001     0.001     0.001     0.001     0.001     ...
-    observation_4   0.001     0.001     0.001     0.001     0.001     ...
-    observation_5   0.001     0.001     0.001     0.001     0.001     ...
-    ----------
-
-    Review: TCW; 2 April 2025
-
-    arguments:
-        table (object): Pandas data-frame table of data with features
-            and observations for regression
-        selection_observations (dict<list<str>>): names of columns in data
-            table for feature variables and their categorical values by
-            which to filter rows for observations in data table
-        features_relevant (list<str>): names of columns in data table for
-            feature variables that are relevant to the current instance of
-            parameters
-        features_regression (list<str>): names of columns in data table for
-            feature variables that are relevant to the actual regression model
-        features_continuity_scale (list<str>): names of columns in data table
-            for feature variables with values on quantitative, continuous scale
-            of measurement, interval or ratio, for which to standardize the
-            scale by z score
-        index_columns_source (str): name of single-level index across columns
-            in table
-        index_columns_product (str): name of single-level index across columns
-            in table
-        index_rows_source (str): name of single-level index across rows in
-            table
-        index_rows_product (str): name of single-level index across rows in
-            table
-        adjust_scale (bool): whether to adjust or standardize the scale of
-            values for features across observations
-        method_scale (str): name of method to use to adjust the scale of values
-            for features across observations, either 'z_score' or 'unit_range'
-        explicate_indices (bool): whether to explicate, define, or specify
-            explicit indices across columns and rows in table
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (dict<object>): collection of information
-
-    """
-
-    # Copy information.
-    table = table.copy(deep=True)
-    selection_observations = copy.deepcopy(selection_observations)
-    features_relevant = copy.deepcopy(features_relevant)
-    features_regression = copy.deepcopy(features_regression)
-    features_continuity_scale = copy.deepcopy(features_continuity_scale)
-
-    # Restore or reset indices to generic default.
-    table.reset_index(
-        level=None,
-        inplace=True,
-        drop=True, # remove index; do not move to regular columns
-    )
-    table.columns.rename(
-        None,
-        inplace=True,
-    ) # single-dimensional index
-
-    # Filter columns in table for features.
-    table = porg.filter_sort_table_columns(
-        table=table,
-        columns_sequence=features_relevant,
-        report=report,
-    )
-    # Filter rows in table for observations.
-    table = porg.filter_select_table_rows_by_columns_categories(
-        table=table,
-        columns_categories=selection_observations,
-        report=report,
-    )
-
-    # Remove rows from table for observations with any missing values for
-    # relevant features that are part of the model for regression.
-    table.dropna(
-        axis="index",
-        how="any",
-        subset=features_regression,
-        inplace=True,
-    )
-
-    # Standardize scale of values for observations of features.
-    if (
-        (adjust_scale) and
-        (str(method_scale).strip().lower() == "z_score")
-    ):
-        table = pscl.transform_standard_z_score_by_table_columns(
-                table=table,
-                columns=features_continuity_scale,
-                report=report,
-        )
-    elif (
-        (adjust_scale) and
-        (str(method_scale).strip().lower() == "unit_range")
-    ):
-        table = pscl.transform_unit_range_by_table_columns(
-                table=table,
-                columns=features_continuity_scale,
-                report=report,
-        )
-        pass
-
-    # Organize indices in table.
-    # Determine whether parameters specified a column in the table for
-    # identifiers of observations that will become index across rows.
-    if (
-        (index_rows_source is not None) and
-        (index_rows_source in (table.columns.tolist()))
-    ):
-        # Create index across rows from column that already exists in table.
-        table = porg.explicate_table_indices_columns_rows_single_level(
-            table=table,
-            index_columns=index_columns_source,
-            index_rows=index_rows_source,
-            explicate_indices=explicate_indices,
-            report=False,
-        )
-        # Standardize names of indices.
-        table = porg.translate_names_table_indices_columns_rows(
-            table=table,
-            index_columns_product=index_columns_product,
-            index_rows_source=index_rows_source,
-            index_rows_product=index_rows_product,
-            report=None,
-        )
-    else:
-        # Name generic index in table.
-        table.reset_index(
-            level=None,
-            inplace=True,
-            drop=True, # remove index; do not move to regular columns
-        )
-        table.index.set_names(index_rows_product, inplace=True)
-        # Standardize names of indices.
-        table = porg.translate_names_table_indices_columns_rows(
-            table=table,
-            index_columns_product=index_columns_product,
-            index_rows_source=index_rows_product,
-            index_rows_product=index_rows_product,
-            report=None,
-        )
-        pass
-
-    # Report.
-    if report:
-        putly.print_terminal_partition(level=4)
-        print("package: partner")
-        print("module: script_drive_regressions_from_table_parameters.py")
-        name_function = str(
-            "organize_table_data()"
-        )
-        print("function: " + name_function)
-        putly.print_terminal_partition(level=5)
-        print(table)
-        putly.print_terminal_partition(level=5)
-        pass
-    # Return information.
-    return table
-
-
-# Evaluate information in table for features and observations.
-
-
-def evaluate_table_data(
-    table=None,
-    selection_observations=None,
-    features_relevant=None,
-    features_regression=None,
-    features_continuity_scale=None,
-    index_columns_source=None,
-    index_columns_product=None,
-    index_rows_source=None,
-    index_rows_product=None,
-    adjust_scale=None,
-    method_scale=None,
-    explicate_indices=None,
-    report=None,
-):
-    """
-    Evaluate table of data with features and observations for regression.
-
-    This function is useful to evaluate the variance of values for features
-    across observations after adjusting their scale to the common unit range.
-    This evaluation enables a manual, supervised approach to a method of
-    feature selection that is called 'variance thresholding'. The rationale is
-    that features with very little variance are unlikely to contribute to the
-    regression model, at least not with a favorable ratio of signal to noise.
-
-    From basic testing, it seems that a random number with a uniform
-    distribution between zero (0) and one (1) has a variance of about 10% or
-    0.1. After adjusting the scales of features to have unit range, a
-    reasonable threshold on the variance might be approximately 1% or 0.01.
-
-    Review: TCW; 2 April 2025
-
-    arguments:
-        table (object): Pandas data-frame table of data with features
-            and observations for regression
-        selection_observations (dict<list<str>>): names of columns in data
-            table for feature variables and their categorical values by
-            which to filter rows for observations in data table
-        features_relevant (list<str>): names of columns in data table for
-            feature variables that are relevant to the current instance of
-            parameters
-        features_regression (list<str>): names of columns in data table for
-            feature variables that are relevant to the actual regression model
-        features_continuity_scale (list<str>): names of columns in data table
-            for feature variables with values on quantitative, continuous scale
-            of measurement, interval or ratio, for which to standardize the
-            scale by z score
-        index_columns_source (str): name of single-level index across columns
-            in table
-        index_columns_product (str): name of single-level index across columns
-            in table
-        index_rows_source (str): name of single-level index across rows in
-            table
-        index_rows_product (str): name of single-level index across rows in
-            table
-        adjust_scale (bool): whether to adjust or standardize the scale of
-            values for features across observations
-        method_scale (str): name of method to use to adjust the scale of values
-            for features across observations, either 'z_score' or 'unit_range'
-        explicate_indices (bool): whether to explicate, define, or specify
-            explicit indices across columns and rows in table
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (dict<object>): collection of information
-
-    """
-
-    # Organize information in table.
-    # For all features in the regression model (including the response), adjust
-    # the scale of values to have common unit range.
-    features_scale = copy.deepcopy(features_regression)
-    features_category = copy.deepcopy(list(selection_observations.keys()))
-    features_category.insert(0, index_rows_source)
-    features_scale = list(filter(
-        lambda feature: (feature not in features_category),
-        features_scale
-    ))
-    table = organize_table_data(
-        table=table,
-        selection_observations=selection_observations,
-        features_relevant=features_relevant,
-        features_regression=features_regression,
-        features_continuity_scale=features_scale,
-        index_columns_source=index_columns_source,
-        index_columns_product=index_columns_product,
-        index_rows_source=index_rows_source,
-        index_rows_product=index_rows_product,
-        adjust_scale=True,
-        method_scale="unit_range", # "z_score" or "unit_range"
-        explicate_indices=True,
-        report=False,
-    )
-    # Filter columns in table for features.
-    table = porg.filter_sort_table_columns(
-        table=table,
-        columns_sequence=features_scale,
-        report=report,
-    )
-
-    # Calculate descriptive statistical measures for features.
-    table_mean = table.aggregate(
-        lambda series: series.mean(),
-        axis="index", # apply function to each column
-    )
-    table_variance = table.aggregate(
-        lambda series: series.var(),
-        axis="index", # apply function to each column
-    )
-    table_deviation = table.aggregate(
-        lambda series: series.std(),
-        axis="index", # apply function to each column
-    )
-    table_minimum = table.aggregate(
-        lambda series: series.min(),
-        axis="index", # apply function to each column
-    )
-    table_maximum = table.aggregate(
-        lambda series: series.max(),
-        axis="index", # apply function to each column
-    )
-
-    # Report.
-    if report:
-        putly.print_terminal_partition(level=4)
-        print("package: partner")
-        print("module: script_drive_regressions_from_table_parameters.py")
-        name_function = str(
-            "evaluate_table_data()"
-        )
-        print("function: " + name_function)
-        putly.print_terminal_partition(level=4)
-        print("table before aggregation:")
-        putly.print_terminal_partition(level=5)
-        print(table)
-        putly.print_terminal_partition(level=4)
-        print("series after aggregation:")
-        putly.print_terminal_partition(level=5)
-        print("mean")
-        putly.print_terminal_partition(level=6)
-        print(table_mean.iloc[0:10])
-        putly.print_terminal_partition(level=5)
-        print("variance")
-        putly.print_terminal_partition(level=6)
-        print(table_variance.iloc[0:10])
-        putly.print_terminal_partition(level=5)
-        print("standard deviation")
-        putly.print_terminal_partition(level=6)
-        print(table_deviation.iloc[0:10])
-        putly.print_terminal_partition(level=5)
-        print("minimum")
-        putly.print_terminal_partition(level=6)
-        print(table_minimum.iloc[0:10])
-        putly.print_terminal_partition(level=5)
-        print("maximum")
-        putly.print_terminal_partition(level=6)
-        print(table_maximum.iloc[0:10])
-        putly.print_terminal_partition(level=5)
-        pass
-    # Return information.
-    return table
-
-
-# Check parameters and table of data for performing regression analysis.
-
-
-def check_parameters_table_data_regression(
-    table=None,
-    name_instance=None,
-    type_regression=None,
-    formula_text=None,
-    feature_response=None,
-    features_predictor_fixed=None,
-    features_predictor_random=None,
-    threshold_features_variance=None,
-    threshold_observations_count=None,
-    measure_variance=None,
-    report=None,
-):
-    """
-    Check parameters for regression, including the table of data with features
-    and observations.
-
-    For the check on the variance of features across observations, it is most
-    accurate and informative to compare the variances after transforming the
-    values of features to have unit range between zero (0) and one (1). Do not
-    compare variances after transforming the values of features to standard
-    z scores, as this transformation forces values of all features to have the
-    same variance, unit standard deviation.
-
-    Review: TCW; 2 April 2025
-
-    arguments:
-        table (object): Pandas data-frame table of data with features
-            and observations for regression
-        name_instance (str): compound name for instance of parameters
-        type_regression (str): name of type of regression model to use
-        formula_text (str): human readable formula for regression model,
-            treated as a note for clarification
-        feature_response (str): name of column in data table for feature
-            variable to include in regression model as response dependent
-            variable
-        features_predictor_fixed (list<str>): names of columns in data table
-            for feature variables to include in regression model as predictor
-            independent variables with fixed effects
-        features_predictor_random (list<str>): names of columns in data table
-            for feature variables to include in regression model as predictor
-            independent variables with random effects
-        threshold_features_variance (float): threshold minimal variance for
-            values of features across observations
-        threshold_observations_count (int): threshold minimal count of
-            observations that must have nonmissing values of all features
-        measure_variance (str): name of measure to use for variance, either
-            'variance', 'standard_deviation', or 'coefficient_variation'
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (dict<object>): collection of information
-
-    """
-
-    # Copy information.
-    table = table.copy(deep=True)
-    features_predictor_fixed = copy.deepcopy(features_predictor_fixed)
-    features_predictor_random = copy.deepcopy(features_predictor_random)
-
-    # Check that functionality currently supports the type of regression.
-    types = [
-        "linear",
-        "logistic",
-        #"linear_r",
-        #"logistic_r",
-    ]
-    if (
-        (type_regression is not None) and
-        (len(str(type_regression)) > 0) and
-        (str(type_regression).strip().lower() != "none") and
-        (str(type_regression) in types)
-    ):
-        check_type = True
-    else:
-        check_type = False
-        pass
-
-    # Check for features in the regression model that features exist in the
-    # table of data.
-    columns_available = copy.deepcopy(table.columns.to_list())
-    check_fixed = putly.compare_lists_by_inclusion(
-        items_dominant=columns_available,
-        items_subordinate=features_predictor_fixed,
-    )
-    check_random = putly.compare_lists_by_inclusion(
-        items_dominant=columns_available,
-        items_subordinate=features_predictor_random,
-    )
-    if (
-        (len(columns_available) > 1) and
-        (feature_response in columns_available) and
-        (check_fixed) and
-        (check_random)
-    ):
-        check_features_exist = True
-    else:
-        check_features_exist = False
-        pass
-
-    # Check for features in the regression model that adequate observations
-    # with nonmissing values exist in the table of data.
-    def check_features_nonmissing_observations(
-        table=None,
-        features=None,
-        threshold_observations_count=None,
-    ):
-        """
-        Define subordinate function for internal use within dominant function.
-        """
-        for feature in features:
-            count = table[feature].dropna().count()
-            if (count >= threshold_observations_count):
-                return True
-            else:
-                return False
-            pass
-        pass
-    # Copy information.
-    table_count = table.copy(deep=True)
-    # Evaluate features separately.
-    #check_fixed = check_features_nonmissing_observations(
-    #    table=table_count,
-    #    features=features_predictor_fixed,
-    #    threshold_observations_count=threshold_observations_count,
-    #)
-    # Evaluate features together.
-    features_regression = list()
-    features_regression.append(feature_response)
-    features_regression.extend(features_predictor_fixed)
-    features_regression.extend(features_predictor_random)
-    table_count.dropna(
-        axis="index",
-        how="any",
-        subset=features_regression,
-        inplace=True,
-    )
-    count_rows = int(table_count.shape[0])
-    if (count_rows >= threshold_observations_count):
-        check_observations_count = True
-    else:
-        check_observations_count = False
-        pass
-
-    # Check for features in the regression model that values across
-    # observations of each feature have adequate variance.
-    def check_features_variance(
-        table=None,
-        features=None,
-        measure_variance=None,
-        threshold_features_variance=None,
-    ):
-        """
-        Define subordinate function for internal use within dominant function.
-        """
-        checks = list()
-        for feature in features:
-            values_raw = table[feature].to_numpy(
-                dtype="float64",
-                na_value=numpy.nan,
-                copy=True,
-            )
-            pail = pdesc.calculate_variance_measures(
-                array=values_raw,
-            )
-            if (pail[measure_variance] >= threshold_features_variance):
-                checks.append(True)
-            else:
-                checks.append(False)
-                pass
-            pass
-        return all(checks)
-    # Evaluate individual features separately.
-    check_fixed = check_features_variance(
-        table=table,
-        features=features_predictor_fixed,
-        measure_variance=measure_variance,
-        threshold_features_variance=threshold_features_variance,
-    )
-    check_random = check_features_variance(
-        table=table,
-        features=features_predictor_random,
-        measure_variance=measure_variance,
-        threshold_features_variance=threshold_features_variance,
-    )
-    if (check_fixed and check_random):
-        check_variance = True
-    else:
-        check_variance = False
-        pass
-
-    # Check whether there was failure of any checks overall.
-    if (
-        (check_type) and
-        (check_features_exist) and
-        (check_observations_count) and
-        (check_variance)
-    ):
-        check_overall = True
-    else:
-        check_overall = False
-        pass
-
-    # Collect information.
-    pail = dict()
-    pail["check_type"] = check_type
-    pail["check_features_exist"] = check_features_exist
-    pail["check_observations_count"] = check_observations_count
-    pail["check_variance"] = check_variance
-    pail["check_overall"] = check_overall
-
-    # Warn.
-    if (not check_overall):
-        # Print.
-        putly.print_terminal_partition(level=3)
-        putly.print_terminal_warning()
-        putly.print_terminal_partition(level=5)
-        print("package: partner")
-        print("module: script_drive_regressions_from_table_parameters.py")
-        name_function = str(
-            "check_parameters_table_data_regression()"
-        )
-        print("function: " + name_function)
-        putly.print_terminal_partition(level=5)
-        print(
-            "Parameters and or data for a regression analysis failed checks!"
-        )
-        print("name_instance: " + name_instance)
-        putly.print_terminal_partition(level=5)
-
-        pass
-
-    # Report.
-    if report:
-        # Organize.
-        #count_records = len(records)
-        # Print.
-        putly.print_terminal_partition(level=4)
-        print("package: partner")
-        print("module: script_drive_regressions_from_table_parameters.py")
-        name_function = str(
-            "check_parameters_table_data_regression()"
-        )
-        print("function: " + name_function)
-        putly.print_terminal_partition(level=5)
-        print("check_type: " + str(check_type))
-        print("check_features_exist: " + str(check_features_exist))
-        print("check_observations_count: " + str(check_observations_count))
-        print("check_variance: " + str(check_variance))
-        print("check_overall: " + str(check_overall))
-        pass
-    # Return information.
-    return pail
-
-
-##########
 # Organize information from regressions in a table.
 
 
@@ -1153,12 +535,13 @@ def organize_summary_table_regressions(
     records = list()
     for pail in pails_regression:
         for entry_type in entries.keys():
-            # Filter to keep novel entries only.
-            entries_novel = list(filter(
-                lambda entry: (entry not in entries[entry_type]),
-                pail[entry_type]
-            ))
-            entries[entry_type].extend(entries_novel)
+            if (pail[entry_type] is not None):
+                # Filter to keep novel entries only.
+                entries_novel = list(filter(
+                    lambda entry: (entry not in entries[entry_type]),
+                    pail[entry_type]
+                ))
+                entries[entry_type].extend(entries_novel)
             pass
         # Collect records.
         records.append(copy.deepcopy(pail["record"]))
@@ -1218,6 +601,7 @@ def control_procedure_part_branch(
     feature_response=None,
     features_predictor_fixed=None,
     features_predictor_random=None,
+    groups_random=None,
     features_regression=None,
     features_continuity_scale=None,
     features_relevant=None,
@@ -1261,6 +645,9 @@ def control_procedure_part_branch(
         features_predictor_random (list<str>): names of columns in data table
             for feature variables to include in regression model as predictor
             independent variables with random effects
+        groups_random (str): name of column in data table for identifiers or
+            designations of groups of observations for which to allow random
+            effects in the regression model
         features_regression (list<str>): names of columns in data table for
             feature variables that are relevant to the actual regression model
         features_relevant (list<str>): names of columns in data table for
@@ -1308,7 +695,7 @@ def control_procedure_part_branch(
     # This evaluation enables a manual, supervised approach to a method of
     # feature selection that is called 'variance thresholding'.
     if False:
-        table = evaluate_table_data(
+        table = preg.evaluate_table_data(
             table=table,
             selection_observations=selection_observations,
             features_relevant=features_relevant,
@@ -1325,10 +712,11 @@ def control_procedure_part_branch(
         )
         pass
 
+
     ##########
     # Organize information in table.
     if True:
-        table = organize_table_data(
+        table = preg.organize_table_data(
             table=table,
             selection_observations=selection_observations,
             features_relevant=features_relevant,
@@ -1349,8 +737,8 @@ def control_procedure_part_branch(
     # Check parameters and table of data for performing regression analysis.
     # It only makes sense to compare the variance of features if there has not
     # been scale standardization by z-score.
-    if False:
-        pail_check = check_parameters_table_data_regression(
+    if True:
+        pail_check = preg.check_parameters_table_data_regression(
             table=table,
             name_instance=name_instance,
             type_regression=type_regression,
@@ -1358,6 +746,7 @@ def control_procedure_part_branch(
             feature_response=feature_response,
             features_predictor_fixed=features_predictor_fixed,
             features_predictor_random=features_predictor_random,
+            groups_random=groups_random,
             threshold_features_variance=0.01,
             threshold_observations_count=5,
             measure_variance="variance",
@@ -1385,10 +774,40 @@ def control_procedure_part_branch(
         feature_response=feature_response,
         features_predictor_fixed=features_predictor_fixed,
         features_predictor_random=features_predictor_random,
+        groups_random=groups_random,
         record_extra=record_extra,
         delimiter_list_items=",", # delimiter to flatten list items in strings
         report=report,
     )
+
+    #print(str(pail_regression["table_summary"]))
+    summary_text = str(
+        str(pail_regression["record"]["name_instance"]) +
+        textwrap.dedent("""\
+
+            ----------
+        """) +
+        str(pail_regression["record"]["formula_text"]) +
+        textwrap.dedent("""\
+
+            ----------
+        """) +
+        str(pail_regression["record"]["type_regression"]) +
+        textwrap.dedent("""\
+
+            ----------
+            ----------
+            ----------
+        """) +
+        str(pail_regression["table_summary"]) +
+        textwrap.dedent("""\
+
+            --------------------------------------------------
+            --------------------------------------------------
+            --------------------------------------------------
+        """)
+    )
+    print(summary_text)
 
     ##########
     # Write information to file.
@@ -1398,9 +817,15 @@ def control_procedure_part_branch(
 
     # Collect information.
     # Collections of files.
+    pail_write_text = dict()
+    pail_write_text[str("branch_" + name_instance)] = summary_text
     pail_write_objects = dict()
     pail_write_objects[str("branch_" + name_instance)] = pail_regression
     # Write product information to file.
+    putly.write_character_strings_to_file_text(
+        pail_write=pail_write_text,
+        path_directory=path_directory_product,
+    )
     putly.write_objects_to_file_pickle(
         pail_write=pail_write_objects,
         path_directory=path_directory_product,
@@ -1458,6 +883,9 @@ def control_parallel_instance(
             features_predictor_random (list<str>): names of columns in data
                 table for feature variables to include in regression model as
                 predictor independent variables with random effects
+            groups_random (str): name of column in data table for identifiers
+                or designations of groups of observations for which to allow
+                random effects in the regression model
             features_regression (list<str>): names of columns in data table for
                 feature variables that are relevant to the actual regression
                 model
@@ -1517,6 +945,7 @@ def control_parallel_instance(
     feature_response = instance_record["feature_response"]
     features_predictor_fixed = instance_record["features_predictor_fixed"]
     features_predictor_random = instance_record["features_predictor_random"]
+    groups_random = instance_record["groups_random"]
     features_regression = instance_record["features_regression"]
     features_continuity_scale = instance_record["features_continuity_scale"]
     features_relevant = instance_record["features_relevant"]
@@ -1547,6 +976,7 @@ def control_parallel_instance(
         feature_response=feature_response,
         features_predictor_fixed=features_predictor_fixed,
         features_predictor_random=features_predictor_random,
+        groups_random=groups_random,
         features_regression=features_regression,
         features_continuity_scale=features_continuity_scale,
         features_relevant=features_relevant,
@@ -1616,7 +1046,7 @@ def control_parallel_instances(
     else:
         # Execute procedure directly for testing.
         control_parallel_instance(
-            instance=instances[0],
+            instance=instances[1],
             parameters=parameters,
         )
     pass
@@ -1686,9 +1116,9 @@ def execute_procedure(
         path_directory_dock=path_directory_dock,
         report=report,
     )
-    for record in pail_source["records"]:
-        print(record)
-        pass
+    #for record in pail_source["records"]:
+    #    print(record)
+    #    pass
 
 
     ##########

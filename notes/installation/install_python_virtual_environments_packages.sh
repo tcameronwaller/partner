@@ -256,21 +256,22 @@ which python3 # "${path_tools}/python/environments/main/bin/python3"; TCW; 10 De
 python3 -m pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org pip setuptools
 python3 -m pip --version # pip 24.3.1
 python3 -m pip install --upgrade pip
-python3 -m pip --version # pip 24.3.1
+python3 -m pip --version # pip-25.0.1; TCW; 7 April 2025
 
 python3 -m pip install --upgrade pytest
 python3 -m pip install --upgrade testresources
 
 python3 -m pip install --upgrade python-math
 
-python3 -m pip install --upgrade numpy
-python3 -m pip install --upgrade scipy
-python3 -m pip install --upgrade pandas
-python3 -m pip install --upgrade scikit-learn
-python3 -m pip install --upgrade statsmodels
-python3 -m pip install --upgrade networkx
-python3 -m pip install --upgrade matplotlib # v3.10.0; 30 December 2024
-python3 -m pip install --upgrade mygene
+python3 -m pip install --upgrade numpy # numpy-2.2.4; TCW; 7 Apirl 2025
+python3 -m pip install --upgrade scipy # scipy-1.15.2; TCW; 7 Apirl 2025
+python3 -m pip install --upgrade pandas # pandas-2.2.3; TCW; 7 Apirl 2025
+python3 -m pip install --upgrade scikit-learn # scikit-learn-1.6.1; TCW; 7 Apirl 2025
+python3 -m pip install --upgrade statsmodels # statsmodels-0.14.4; TCW; 7 Apirl 2025
+python3 -m pip install --upgrade networkx # networkx-3.4.2; TCW; 7 Apirl 2025
+python3 -m pip install --upgrade matplotlib # matplotlib-3.10.1; TCW; 7 April 2025
+python3 -m pip install --upgrade mygene # mygene-3.2.2; TCW; 7 Apirl 2025
+python3 -m pip install --upgrade pingouin # pingouin-0.5.5; TCW; 7 Apirl 2025
 deactivate
 which python3
 

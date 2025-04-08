@@ -74,6 +74,7 @@ import scipy
 import numpy
 import statsmodels.api
 import statsmodels.stats.outliers_influence
+import pingouin
 
 # Custom
 import partner.utility as putly
@@ -94,6 +95,673 @@ import partner.description as pdesc
 
 # Refer to Bash script "template_create_parameter_table.sh".
 
+
+
+##########
+# Organize information in table for features and observations.
+
+
+def organize_table_data(
+    table=None,
+    selection_observations=None,
+    features_relevant=None,
+    features_regression=None,
+    features_continuity_scale=None,
+    index_columns_source=None,
+    index_columns_product=None,
+    index_rows_source=None,
+    index_rows_product=None,
+    adjust_scale=None,
+    method_scale=None,
+    explicate_indices=None,
+    report=None,
+):
+    """
+    Organize table of data with features and observations for regression.
+
+    1. filter columns in table for relevant features
+    2. filter rows in table for relevant observations
+    3. standardize scale of features with measurement values on quantitative,
+       continuous scale of measurement, ratio or interval
+
+    ----------
+    Format of source data table (name: "table")
+    ----------
+    Format of source data table is in wide format with features across columns
+    and values corresponding to their observations across rows. A special
+    header row gives identifiers or names corresponding to each feature across
+    columns, and a special column gives identifiers or names corresponding to
+    each observation across rows. For versatility, this table does not have
+    explicitly defined indices across rows or columns.
+    ----------
+    identifiers     feature_1 feature_2 feature_3 feature_4 feature_5 ...
+
+    observation_1   0.001     0.001     0.001     0.001     0.001     ...
+    observation_2   0.001     0.001     0.001     0.001     0.001     ...
+    observation_3   0.001     0.001     0.001     0.001     0.001     ...
+    observation_4   0.001     0.001     0.001     0.001     0.001     ...
+    observation_5   0.001     0.001     0.001     0.001     0.001     ...
+    ----------
+
+    ----------
+    Format of product data table (name: "table")
+    ----------
+    Format of source data table is in wide format with features across columns
+    and values corresponding to their observations across rows. A special
+    header row gives identifiers or names corresponding to each feature across
+    columns, and a special column gives identifiers or names corresponding to
+    each observation across rows. The table has explicitly named indices across
+    columns and rows.
+    ----------
+    features        feature_1 feature_2 feature_3 feature_4 feature_5 ...
+    observations
+    observation_1   0.001     0.001     0.001     0.001     0.001     ...
+    observation_2   0.001     0.001     0.001     0.001     0.001     ...
+    observation_3   0.001     0.001     0.001     0.001     0.001     ...
+    observation_4   0.001     0.001     0.001     0.001     0.001     ...
+    observation_5   0.001     0.001     0.001     0.001     0.001     ...
+    ----------
+
+    Review: TCW; 2 April 2025
+
+    arguments:
+        table (object): Pandas data-frame table of data with features
+            and observations for regression
+        selection_observations (dict<list<str>>): names of columns in data
+            table for feature variables and their categorical values by
+            which to filter rows for observations in data table
+        features_relevant (list<str>): names of columns in data table for
+            feature variables that are relevant to the current instance of
+            parameters
+        features_regression (list<str>): names of columns in data table for
+            feature variables that are relevant to the actual regression model
+        features_continuity_scale (list<str>): names of columns in data table
+            for feature variables with values on quantitative, continuous scale
+            of measurement, interval or ratio, for which to standardize the
+            scale by z score
+        index_columns_source (str): name of single-level index across columns
+            in table
+        index_columns_product (str): name of single-level index across columns
+            in table
+        index_rows_source (str): name of single-level index across rows in
+            table
+        index_rows_product (str): name of single-level index across rows in
+            table
+        adjust_scale (bool): whether to adjust or standardize the scale of
+            values for features across observations
+        method_scale (str): name of method to use to adjust the scale of values
+            for features across observations, either 'z_score' or 'unit_range'
+        explicate_indices (bool): whether to explicate, define, or specify
+            explicit indices across columns and rows in table
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict<object>): collection of information
+
+    """
+
+    # Copy information.
+    table = table.copy(deep=True)
+    selection_observations = copy.deepcopy(selection_observations)
+    features_relevant = copy.deepcopy(features_relevant)
+    features_regression = copy.deepcopy(features_regression)
+    features_continuity_scale = copy.deepcopy(features_continuity_scale)
+
+    # Restore or reset indices to generic default.
+    table.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    table.columns.rename(
+        None,
+        inplace=True,
+    ) # single-dimensional index
+
+    # Filter rows in table for observations.
+    table = porg.filter_select_table_rows_by_columns_categories(
+        table=table,
+        columns_categories=selection_observations,
+        report=report,
+    )
+    # Filter columns in table for features.
+    table = porg.filter_sort_table_columns(
+        table=table,
+        columns_sequence=features_relevant,
+        report=report,
+    )
+
+    # Remove rows from table for observations with any missing values for
+    # relevant features that are part of the model for regression.
+    table.dropna(
+        axis="index",
+        how="any",
+        subset=features_regression,
+        inplace=True,
+    )
+
+    # Standardize scale of values for observations of features.
+    if (
+        (adjust_scale) and
+        (len(features_continuity_scale) > 0) and
+        (method_scale is not None) and
+        (str(method_scale).strip().lower() != "none")
+    ):
+        if (
+            (str(method_scale).strip().lower() == "z_score")
+        ):
+            table = pscl.transform_standard_z_score_by_table_columns(
+                    table=table,
+                    columns=features_continuity_scale,
+                    report=report,
+            )
+        elif (
+            (str(method_scale).strip().lower() == "unit_range")
+        ):
+            table = pscl.transform_unit_range_by_table_columns(
+                    table=table,
+                    columns=features_continuity_scale,
+                    report=report,
+            )
+            pass
+        pass
+
+    # Organize indices in table.
+    # Determine whether parameters specified a column in the table for
+    # identifiers of observations that will become index across rows.
+    if (
+        (index_rows_source is not None) and
+        (index_rows_source in (table.columns.tolist()))
+    ):
+        # Create index across rows from column that already exists in table.
+        table = porg.explicate_table_indices_columns_rows_single_level(
+            table=table,
+            index_columns=index_columns_source,
+            index_rows=index_rows_source,
+            explicate_indices=explicate_indices,
+            report=False,
+        )
+        # Standardize names of indices.
+        table = porg.translate_names_table_indices_columns_rows(
+            table=table,
+            index_columns_product=index_columns_product,
+            index_rows_source=index_rows_source,
+            index_rows_product=index_rows_product,
+            report=None,
+        )
+    else:
+        # Name generic index in table.
+        table.reset_index(
+            level=None,
+            inplace=True,
+            drop=True, # remove index; do not move to regular columns
+        )
+        table.index.set_names(index_rows_product, inplace=True)
+        # Standardize names of indices.
+        table = porg.translate_names_table_indices_columns_rows(
+            table=table,
+            index_columns_product=index_columns_product,
+            index_rows_source=index_rows_product,
+            index_rows_product=index_rows_product,
+            report=None,
+        )
+        pass
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=4)
+        print("package: partner")
+        print("module: regression.py")
+        name_function = str(
+            "organize_table_data()"
+        )
+        print("function: " + name_function)
+        putly.print_terminal_partition(level=5)
+        print(table)
+        putly.print_terminal_partition(level=5)
+        pass
+    # Return information.
+    return table
+
+
+# Evaluate information in table for features and observations.
+
+
+def evaluate_table_data(
+    table=None,
+    selection_observations=None,
+    features_relevant=None,
+    features_regression=None,
+    features_continuity_scale=None,
+    index_columns_source=None,
+    index_columns_product=None,
+    index_rows_source=None,
+    index_rows_product=None,
+    adjust_scale=None,
+    method_scale=None,
+    explicate_indices=None,
+    report=None,
+):
+    """
+    Evaluate table of data with features and observations for regression.
+
+    This function is useful to evaluate the variance of values for features
+    across observations after adjusting their scale to the common unit range.
+    This evaluation enables a manual, supervised approach to a method of
+    feature selection that is called 'variance thresholding'. The rationale is
+    that features with very little variance are unlikely to contribute to the
+    regression model, at least not with a favorable ratio of signal to noise.
+
+    From basic testing, it seems that a random number with a uniform
+    distribution between zero (0) and one (1) has a variance of about 10% or
+    0.1. After adjusting the scales of features to have unit range, a
+    reasonable threshold on the variance might be approximately 1% or 0.01.
+
+    Review: TCW; 2 April 2025
+
+    arguments:
+        table (object): Pandas data-frame table of data with features
+            and observations for regression
+        selection_observations (dict<list<str>>): names of columns in data
+            table for feature variables and their categorical values by
+            which to filter rows for observations in data table
+        features_relevant (list<str>): names of columns in data table for
+            feature variables that are relevant to the current instance of
+            parameters
+        features_regression (list<str>): names of columns in data table for
+            feature variables that are relevant to the actual regression model
+        features_continuity_scale (list<str>): names of columns in data table
+            for feature variables with values on quantitative, continuous scale
+            of measurement, interval or ratio, for which to standardize the
+            scale by z score
+        index_columns_source (str): name of single-level index across columns
+            in table
+        index_columns_product (str): name of single-level index across columns
+            in table
+        index_rows_source (str): name of single-level index across rows in
+            table
+        index_rows_product (str): name of single-level index across rows in
+            table
+        adjust_scale (bool): whether to adjust or standardize the scale of
+            values for features across observations
+        method_scale (str): name of method to use to adjust the scale of values
+            for features across observations, either 'z_score' or 'unit_range'
+        explicate_indices (bool): whether to explicate, define, or specify
+            explicit indices across columns and rows in table
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict<object>): collection of information
+
+    """
+
+    # Organize information in table.
+    # For all features in the regression model (including the response), adjust
+    # the scale of values to have common unit range.
+    features_scale = copy.deepcopy(features_regression)
+    features_category = copy.deepcopy(list(selection_observations.keys()))
+    features_category.insert(0, index_rows_source)
+    features_scale = list(filter(
+        lambda feature: (feature not in features_category),
+        features_scale
+    ))
+    table = preg.organize_table_data(
+        table=table,
+        selection_observations=selection_observations,
+        features_relevant=features_relevant,
+        features_regression=features_regression,
+        features_continuity_scale=features_scale,
+        index_columns_source=index_columns_source,
+        index_columns_product=index_columns_product,
+        index_rows_source=index_rows_source,
+        index_rows_product=index_rows_product,
+        adjust_scale=True,
+        method_scale="unit_range", # "z_score" or "unit_range"
+        explicate_indices=True,
+        report=False,
+    )
+    # Filter columns in table for features.
+    table = porg.filter_sort_table_columns(
+        table=table,
+        columns_sequence=features_scale,
+        report=report,
+    )
+
+    # Calculate descriptive statistical measures for features.
+    table_mean = table.aggregate(
+        lambda series: series.mean(),
+        axis="index", # apply function to each column
+    )
+    table_variance = table.aggregate(
+        lambda series: series.var(),
+        axis="index", # apply function to each column
+    )
+    table_deviation = table.aggregate(
+        lambda series: series.std(),
+        axis="index", # apply function to each column
+    )
+    table_minimum = table.aggregate(
+        lambda series: series.min(),
+        axis="index", # apply function to each column
+    )
+    table_maximum = table.aggregate(
+        lambda series: series.max(),
+        axis="index", # apply function to each column
+    )
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=4)
+        print("package: partner")
+        print("module: regression.py")
+        name_function = str(
+            "evaluate_table_data()"
+        )
+        print("function: " + name_function)
+        putly.print_terminal_partition(level=4)
+        print("table before aggregation:")
+        putly.print_terminal_partition(level=5)
+        print(table)
+        putly.print_terminal_partition(level=4)
+        print("series after aggregation:")
+        putly.print_terminal_partition(level=5)
+        print("mean")
+        putly.print_terminal_partition(level=6)
+        print(table_mean.iloc[0:10])
+        putly.print_terminal_partition(level=5)
+        print("variance")
+        putly.print_terminal_partition(level=6)
+        print(table_variance.iloc[0:10])
+        putly.print_terminal_partition(level=5)
+        print("standard deviation")
+        putly.print_terminal_partition(level=6)
+        print(table_deviation.iloc[0:10])
+        putly.print_terminal_partition(level=5)
+        print("minimum")
+        putly.print_terminal_partition(level=6)
+        print(table_minimum.iloc[0:10])
+        putly.print_terminal_partition(level=5)
+        print("maximum")
+        putly.print_terminal_partition(level=6)
+        print(table_maximum.iloc[0:10])
+        putly.print_terminal_partition(level=5)
+        pass
+    # Return information.
+    return table
+
+
+# Check parameters and table of data for performing regression analysis.
+
+
+def check_parameters_table_data_regression(
+    table=None,
+    name_instance=None,
+    type_regression=None,
+    formula_text=None,
+    feature_response=None,
+    features_predictor_fixed=None,
+    features_predictor_random=None,
+    groups_random=None,
+    threshold_features_variance=None,
+    threshold_observations_count=None,
+    measure_variance=None,
+    report=None,
+):
+    """
+    Check parameters for regression, including the table of data with features
+    and observations.
+
+    For the check on the variance of features across observations, it is most
+    accurate and informative to compare the variances after transforming the
+    values of features to have unit range between zero (0) and one (1). Do not
+    compare variances after transforming the values of features to standard
+    z scores, as this transformation forces values of all features to have the
+    same variance, unit standard deviation.
+
+    Review: TCW; 2 April 2025
+
+    arguments:
+        table (object): Pandas data-frame table of data with features
+            and observations for regression
+        name_instance (str): compound name for instance of parameters
+        type_regression (str): name of type of regression model to use
+        formula_text (str): human readable formula for regression model,
+            treated as a note for clarification
+        feature_response (str): name of column in data table for feature
+            variable to include in regression model as response dependent
+            variable
+        features_predictor_fixed (list<str>): names of columns in data table
+            for feature variables to include in regression model as predictor
+            independent variables with fixed effects
+        features_predictor_random (list<str>): names of columns in data table
+            for feature variables to include in regression model as predictor
+            independent variables with random effects
+        groups_random (str): name of column in data table for identifiers or
+            designations of groups of observations for which to allow random
+            effects in the regression model
+        threshold_features_variance (float): threshold minimal variance for
+            values of features across observations
+        threshold_observations_count (int): threshold minimal count of
+            observations that must have nonmissing values of all features
+        measure_variance (str): name of measure to use for variance, either
+            'variance', 'standard_deviation', or 'coefficient_variation'
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict<object>): collection of information
+
+    """
+
+    # Copy information.
+    table = table.copy(deep=True)
+    features_predictor_fixed = copy.deepcopy(features_predictor_fixed)
+    features_predictor_random = copy.deepcopy(features_predictor_random)
+
+    # Check that functionality currently supports the type of regression.
+    types = [
+        "continuous_ols",
+        "continuous_mixed",
+        "discrete_logit",
+        #"linear_r",
+        #"logistic_r",
+    ]
+    if (
+        (type_regression is not None) and
+        (len(str(type_regression)) > 0) and
+        (str(type_regression).strip().lower() != "none") and
+        (str(type_regression) in types)
+    ):
+        check_type = True
+    else:
+        check_type = False
+        pass
+
+    # Check for features in the regression model that features exist in the
+    # table of data.
+    columns_available = copy.deepcopy(table.columns.to_list())
+    check_fixed = putly.compare_lists_by_inclusion(
+        items_dominant=columns_available,
+        items_subordinate=features_predictor_fixed,
+    )
+    check_random = putly.compare_lists_by_inclusion(
+        items_dominant=columns_available,
+        items_subordinate=features_predictor_random,
+    )
+    if (
+        (len(columns_available) > 1) and
+        (feature_response in columns_available) and
+        (check_fixed) and
+        (check_random)
+    ):
+        check_features_exist = True
+    else:
+        check_features_exist = False
+        pass
+
+    # Check for features in the regression model that adequate observations
+    # with nonmissing values exist in the table of data.
+    def check_features_nonmissing_observations(
+        table=None,
+        features=None,
+        threshold_observations_count=None,
+    ):
+        """
+        Define subordinate function for internal use within dominant function.
+        """
+        for feature in features:
+            count = table[feature].dropna().count()
+            if (count >= threshold_observations_count):
+                return True
+            else:
+                return False
+            pass
+        pass
+    # Copy information.
+    table_count = table.copy(deep=True)
+    # Evaluate features separately.
+    #check_fixed = check_features_nonmissing_observations(
+    #    table=table_count,
+    #    features=features_predictor_fixed,
+    #    threshold_observations_count=threshold_observations_count,
+    #)
+    # Evaluate features together.
+    features_regression = list()
+    features_regression.append(feature_response)
+    features_regression.extend(features_predictor_fixed)
+    features_regression.extend(features_predictor_random)
+    table_count.dropna(
+        axis="index",
+        how="any",
+        subset=features_regression,
+        inplace=True,
+    )
+    count_rows = int(table_count.shape[0])
+    if (count_rows >= threshold_observations_count):
+        check_observations_count = True
+    else:
+        check_observations_count = False
+        pass
+
+    # Check for features in the regression model that values across
+    # observations of each feature have adequate variance.
+    def check_features_variance(
+        table=None,
+        features=None,
+        measure_variance=None,
+        threshold_features_variance=None,
+    ):
+        """
+        Define subordinate function for internal use within dominant function.
+        """
+        checks = list()
+        for feature in features:
+            values_raw = table[feature].to_numpy(
+                dtype="float64",
+                na_value=numpy.nan,
+                copy=True,
+            )
+            pail = pdesc.calculate_variance_measures(
+                array=values_raw,
+            )
+            if (pail[measure_variance] >= threshold_features_variance):
+                checks.append(True)
+            else:
+                checks.append(False)
+                pass
+            pass
+        return all(checks)
+    # Evaluate individual features separately.
+    check_fixed = check_features_variance(
+        table=table,
+        features=features_predictor_fixed,
+        measure_variance=measure_variance,
+        threshold_features_variance=threshold_features_variance,
+    )
+    # Features with random effects will generall be categorical.
+    if False:
+        check_random = check_features_variance(
+            table=table,
+            features=features_predictor_random,
+            measure_variance=measure_variance,
+            threshold_features_variance=threshold_features_variance,
+        )
+    else:
+        check_random = True
+        pass
+    if (check_fixed and check_random):
+        check_variance = True
+    else:
+        check_variance = False
+        pass
+
+    # Check whether there was failure of any checks overall.
+    if (
+        (check_type) and
+        (check_features_exist) and
+        (check_observations_count) and
+        (check_variance)
+    ):
+        check_overall = True
+    else:
+        check_overall = False
+        pass
+
+    # Collect information.
+    pail = dict()
+    pail["check_type"] = check_type
+    pail["check_features_exist"] = check_features_exist
+    pail["check_observations_count"] = check_observations_count
+    pail["check_variance"] = check_variance
+    pail["check_overall"] = check_overall
+
+    # Warn.
+    if (not check_overall):
+        # Print.
+        putly.print_terminal_partition(level=3)
+        putly.print_terminal_warning()
+        putly.print_terminal_partition(level=5)
+        print("package: partner")
+        print("module: regression.py")
+        name_function = str(
+            "check_parameters_table_data_regression()"
+        )
+        print("function: " + name_function)
+        putly.print_terminal_partition(level=5)
+        print(
+            "Parameters and or data for a regression analysis failed checks!"
+        )
+        print("name_instance: " + name_instance)
+        putly.print_terminal_partition(level=5)
+
+        pass
+
+    # Report.
+    if report:
+        # Organize.
+        #count_records = len(records)
+        # Print.
+        putly.print_terminal_partition(level=4)
+        print("package: partner")
+        print("module: regression.py")
+        name_function = str(
+            "check_parameters_table_data_regression()"
+        )
+        print("function: " + name_function)
+        putly.print_terminal_partition(level=5)
+        print("check_type: " + str(check_type))
+        print("check_features_exist: " + str(check_features_exist))
+        print("check_observations_count: " + str(check_observations_count))
+        print("check_variance: " + str(check_variance))
+        print("check_overall: " + str(check_overall))
+        pass
+    # Return information.
+    return pail
 
 
 ##########
@@ -328,14 +996,14 @@ def parse_regression_intercept_predictors(
     pail["entries"] = list()
 
     # Intercept.
-    # Invert dictionary for convenience.
-    #sequence_features = {v : k for k, v in features_sequence.items()}
-    indicator = features_sequence[name_intercept_product]
     if (
         (name_intercept_source in parameters.index) and
         (name_intercept_source in standard_errors.index) and
         (name_intercept_source in pvalues.index)
     ):
+        # Invert dictionary for convenience.
+        #sequence_features = {v : k for k, v in features_sequence.items()}
+        indicator = features_sequence[name_intercept_product]
         # Collect information.
         pail_predictor = parse_regression_model_predictor(
             table_predictor_intercept=table_predictor_intercept,
@@ -411,7 +1079,9 @@ def parse_organize_regression_intercept_predictors(
     features_predictor_intercept = copy.deepcopy(features_predictor)
 
     # Determine count and sequence of predictors.
-    features_predictor_intercept.insert(0, "intercept")
+    if ("const" in table_predictor_intercept.columns.to_list()):
+        features_predictor_intercept.insert(0, "intercept")
+        pass
     count_intercept_predictors = len(features_predictor_intercept)
     features_sequence = define_features_sequence(
         features=features_predictor_intercept,
@@ -565,6 +1235,180 @@ def regress_continuous_linear_ordinary_least_squares(
     return pail
 
 
+# TCW; 7 April 2025
+# For the mixed-effects linear regression, I don't really need separate functions
+# for random intercepts and intercepts + slopes.
+# I need a separate parameter from the original parameter table that designates
+# a group for which to have random effects (intercept and or predictors)
+# The group variable itself isn't really a predictor, it's just to explain
+# the random effects of the predictors.
+
+
+def regress_continuous_linear_mixed_effects_random_intercepts_slopes(
+    table=None,
+    feature_response=None,
+    features_predictor_fixed=None,
+    features_predictor_random=None,
+    groups_random=None,
+    report=None,
+):
+    """
+    Regress a response feature on a quantitative, continuous, ratio or interval
+    scale of measurement against either a single or multiple predictor features
+    by a model with mixed fixed and random effects, applying an implementation
+    from the StatsModels package in Python.
+
+    The model accommodates a random effect of different intercepts between
+    groups of observations. It also accommodates random effects of slope
+    coefficients that differ between groups of observations, requiring these
+    random slopes to be correlated, I think with the predictor features for
+    random effects. It is possible to force these random slopes to be
+    correlated or to force these random slopes to be independent and
+    uncorrelated. Refer to the documentation of the 'MixedLM' method in the
+    StatsModels package in Python.
+
+    The implementation in StatsModels allows additional parameters through the
+    'fit' method (https://www.statsmodels.org/dev/generated/statsmodels.
+    regression.mixed_linear_model.MixedLM.fit.html).
+
+    ----------
+    Format of source data table (name: "table")
+    ----------
+    Format of source data table is in wide format with features across columns
+    and values corresponding to their observations across rows. A special
+    header row gives identifiers or names corresponding to each feature across
+    columns, and a special column gives identifiers or names corresponding to
+    each observation across rows. The table has explicitly named indices across
+    columns and rows.
+    ----------
+    features        feature_1 feature_2 feature_3 feature_4 feature_5 ...
+    observations
+    observation_1   0.001     0.001     0.001     0.001     0.001     ...
+    observation_2   0.001     0.001     0.001     0.001     0.001     ...
+    observation_3   0.001     0.001     0.001     0.001     0.001     ...
+    observation_4   0.001     0.001     0.001     0.001     0.001     ...
+    observation_5   0.001     0.001     0.001     0.001     0.001     ...
+    ----------
+
+    Format of information for response dependent variable is a one-dimensional
+    vector of scalar values on a quantitative, continuous, ratio or interval
+    scale of measurement.
+    [1.3, 1.5, 1.2, 1.0, 1.7, 1.5, 1.9, 1.1, 1.3, 1.4,]
+
+    Format of information for predictor independent variable(s) is a
+    two-dimensional matrix: a first-dimension vector corresponding to
+    observations or samples and for each observation a second-dimension vector
+    of scalar values corresponding to each feature or variable.
+    StatsModels also requires the intentional addition of a constant for the
+    intercept.
+    [
+        [1.3, 5.2, 1.0,],
+        [1.5, 5.1, 1.0,],
+        [1.2, 5.5, 1.0,],
+        ...
+    ]
+
+    Implementation: 'statsmodels.regression.mixed_linear_model.MixedLM()'
+
+    References:
+
+    1. Documentation for implementation in StatsModels
+       - title: 'statsmodels.regression.mixed_linear_model.MixedLM'
+       - site: https://www.statsmodels.org/stable/generated/statsmodels.
+                regression.mixed_linear_model.MixedLM.html
+
+    Review: TCW; 7 April 2025
+
+    arguments:
+        table (object): Pandas data-frame table of data with features
+            and observations for regression
+        feature_response (str): name of column in data table for feature
+            variable to include in regression model as response dependent
+            variable
+        features_predictor_fixed (list<str>): names of columns in data table
+            for feature variables to include in regression model as predictor
+            independent variables with fixed effects
+        features_predictor_random (list<str>): names of columns in data table
+            for feature variables to include in regression model as predictor
+            independent variables with random effects
+        groups_random (str): name of column in data table for identifiers or
+            designations of groups of observations for which to allow random
+            effects in the regression model
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict<object>): collection of information from regression
+
+    """
+
+    # Extract values of response and predictor variables.
+    # It is possible to pass values of response and predictor features either
+    # as NumPy arrays or as Pandas Series and data-frame table respectively.
+    # Passing variables as Pandas Series and Dataframe preserves variable
+    # names.
+    #values_response = table[feature_response].to_numpy()
+
+    # Keep information for predictor features in Pandas data-frame table to
+    # preserve names of variables.
+    #values_predictor = table.loc[ :, features_predictor_fixed].to_numpy()
+    #matrix_predictor = table.to_numpy()
+    table_predictor_fixed = (
+        table.loc[ :, features_predictor_fixed].copy(deep=True)
+    )
+    if (
+        (features_predictor_random is not None) and
+        (len(features_predictor_random) > 0) and
+        (str(features_predictor_random[0]).strip().lower() != "none")
+    ):
+        table_predictor_random = (
+            table.loc[ :, features_predictor_random].copy(deep=True)
+        )
+    else:
+        table_predictor_random = None
+
+    # Do not introduce constant intercept to predictor features.
+    # For part of the random effects, the model will create separate intercepts
+    # for each group of observations.
+
+    # Define model.
+    # Because it is the default to include random intercepts for the groups of
+    # observations, it is unnecessary to specify this explicitly using the
+    # argument "exog_re=table_predictor_intercept["const"],".
+    if (table_predictor_random is None):
+        # Define model with random intercepts but not random slopes.
+        model = statsmodels.api.MixedLM(
+            table[feature_response],
+            table_predictor_fixed,
+            groups=table[groups_random],
+            exog_re=None, # default to random intercept for each group
+            missing="drop",
+        )
+        # Fit the model.
+        handle_model = model.fit()
+    else:
+        # Define model with random intercepts but not random slopes.
+        model = statsmodels.api.MixedLM(
+            table[feature_response],
+            table_predictor_fixed,
+            groups=table[groups_random],
+            exog_re=table_predictor_random,
+            missing="drop",
+        )
+        # Fit the model.
+        handle_model = model.fit()
+        pass
+
+    # Collect information.
+    pail = dict()
+    pail["model"] = handle_model
+    pail["table_predictor_fixed"] = table_predictor_fixed
+
+    # Return information.
+    return pail
+
+
 def regress_discrete_logistic_logit(
     table=None,
     feature_response=None,
@@ -711,6 +1555,7 @@ def manage_regression_continuous_linear_ordinary_least_squares(
     table=None,
     index_columns=None,
     index_rows=None,
+    type_regression=None,
     formula_text=None,
     feature_response=None,
     features_predictor_fixed=None,
@@ -745,6 +1590,11 @@ def manage_regression_continuous_linear_ordinary_least_squares(
             and observations for regression
         index_columns (str): name of single-level index across columns in table
         index_rows (str): name of single-level index across rows in table
+        type_regression (str): name of type of regression model to use, either
+            'continuous_ols', 'continuous_mixed_random_intercepts',
+            'continuous_mixed_random_intercepts_slopes',
+            'continuous_gls', 'discrete_logit', 'discrete_probit',
+            'discrete_poisson', 'discrete_negbinom'
         formula_text (str): human readable formula for regression model,
             treated as a note for clarification
         feature_response (str): name of column in data table for feature
@@ -773,6 +1623,8 @@ def manage_regression_continuous_linear_ordinary_least_squares(
         features_predictor_fixed=features_predictor_fixed,
         report=report,
     )
+    # Report attributes.
+    #print(dir(pail_regression))
     # Extract residuals.
     residuals = pail_regression["model"].resid
 
@@ -829,6 +1681,7 @@ def manage_regression_continuous_linear_ordinary_least_squares(
     pail.update(
         pail_predictors["intercept_predictors"]
     )
+    pail["table_summary"] = pail_regression["model"].summary()
 
     # Report.
     if report:
@@ -854,10 +1707,187 @@ def manage_regression_continuous_linear_ordinary_least_squares(
     return pail
 
 
+# TODO: TCW; 6 April 2025
+# enhance the information extracted from the model?
+def manage_regression_continuous_linear_mixed_effects(
+    table=None,
+    index_columns=None,
+    index_rows=None,
+    type_regression=None,
+    formula_text=None,
+    feature_response=None,
+    features_predictor_fixed=None,
+    features_predictor_random=None,
+    groups_random=None,
+    report=None,
+):
+    """
+    Manage regression analysis according to parameters.
+
+    ----------
+    Format of source data table (name: "table")
+    ----------
+    Format of source data table is in wide format with features across columns
+    and values corresponding to their observations across rows. A special
+    header row gives identifiers or names corresponding to each feature across
+    columns, and a special column gives identifiers or names corresponding to
+    each observation across rows. The table has explicitly named indices across
+    columns and rows.
+    ----------
+    features        feature_1 feature_2 feature_3 feature_4 feature_5 ...
+    observations
+    observation_1   0.001     0.001     0.001     0.001     0.001     ...
+    observation_2   0.001     0.001     0.001     0.001     0.001     ...
+    observation_3   0.001     0.001     0.001     0.001     0.001     ...
+    observation_4   0.001     0.001     0.001     0.001     0.001     ...
+    observation_5   0.001     0.001     0.001     0.001     0.001     ...
+    ----------
+
+    Review: TCW; 6 April 2025
+
+    arguments:
+        table (object): Pandas data-frame table of data with features
+            and observations for regression
+        index_columns (str): name of single-level index across columns in table
+        index_rows (str): name of single-level index across rows in table
+        type_regression (str): name of type of regression model to use, either
+            'continuous_ols', 'continuous_mixed_random_intercepts',
+            'continuous_mixed_random_intercepts_slopes',
+            'continuous_gls', 'discrete_logit', 'discrete_probit',
+            'discrete_poisson', 'discrete_negbinom'
+        formula_text (str): human readable formula for regression model,
+            treated as a note for clarification
+        feature_response (str): name of column in data table for feature
+            variable to include in regression model as response dependent
+            variable
+        features_predictor_fixed (list<str>): names of columns in data table
+            for feature variables to include in regression model as predictor
+            independent variables with fixed effects
+        features_predictor_random (list<str>): names of columns in data table
+            for feature variables to include in regression model as predictor
+            independent variables with random effects
+        groups_random (str): name of column in data table for identifiers or
+            designations of groups of observations for which to allow random
+            effects in the regression model
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict<object>): collection of information from regression
+
+    """
+
+    # Copy information.
+    table = table.copy(deep=True)
+    features_predictor_fixed = copy.deepcopy(features_predictor_fixed)
+    features_predictor_random = copy.deepcopy(features_predictor_random)
+
+    # Regress.
+    pail_regression = (
+        regress_continuous_linear_mixed_effects_random_intercepts_slopes(
+            table=table,
+            feature_response=feature_response,
+            features_predictor_fixed=features_predictor_fixed,
+            features_predictor_random=features_predictor_random,
+            groups_random=groups_random,
+            report=report,
+    ))
+    # Report attributes.
+    #print(dir(pail_regression["model"]))
+    # Extract residuals.
+    residuals = pail_regression["model"].resid
+
+    print(pail_regression["model"].summary())
+
+    # Organize information from regression for predictor features.
+    parameters = pandas.Series(data=pail_regression["model"].params)
+    standard_errors = pandas.Series(data=pail_regression["model"].bse)
+    pvalues = pandas.Series(data=pail_regression["model"].pvalues)
+    pail_predictors = parse_organize_regression_intercept_predictors(
+        table_predictor_intercept=pail_regression["table_predictor_fixed"],
+        features_predictor=features_predictor_fixed,
+        parameters=parameters,
+        standard_errors=standard_errors,
+        pvalues=pvalues,
+        report=report,
+    )
+
+    # Collect information.
+    pail = dict()
+    # Regression model as a whole.
+    pail["entries_model"] = [
+        "implementation",
+        "count_observations_table",
+        "count_observations_model",
+        "degrees_freedom_model",
+        "degrees_freedom_residual",
+        "r_square",
+        "r_square_adjust",
+        "r_square_pseudo",
+        "log_likelihood",
+        "akaike",
+        "bayes",
+        "condition",
+    ]
+    pail["implementation"] = str(
+        "statsmodels.regression.linear_model.OLS()"
+    )
+    pail["count_observations_table"] = int(table.shape[0])
+    pail["count_observations_model"] = int(pail_regression["model"].nobs)
+    pail["degrees_freedom_model"] = int(
+        pail_regression["model"].df_modelwc # what does this mean?
+    )
+    pail["degrees_freedom_residual"] = int(
+        pail_regression["model"].df_resid
+    )
+    pail["degrees_freedom_residual"] = float("nan")
+    #pail["r_square"] = pail_regression["model"].rsquared
+    pail["r_square"] = float("nan")
+    #pail["r_square_adjust"] = pail_regression["model"].rsquared_adj
+    pail["r_square_adjust"] = float("nan")
+    pail["r_square_pseudo"] = float("nan") # hold place for logistic regression
+    pail["log_likelihood"] = pail_regression["model"].llf
+    pail["akaike"] = pail_regression["model"].aic
+    pail["bayes"] = pail_regression["model"].bic
+    #pail["condition"] = pail_regression["model"].condition_number
+    pail["condition"] = float("nan")
+    # Intercept and predictors as parts of regression model.
+    pail["entries_intercept_predictors"] = pail_predictors["entries"]
+    pail.update(
+        pail_predictors["intercept_predictors"]
+    )
+    pail["table_summary"] = pail_regression["model"].summary()
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=4)
+        print("package: partner")
+        print("module: regression.py")
+        name_function = str(
+            "manage_regression_continuous_linear_mixed_effects()"
+        )
+        print("function: " + name_function)
+        putly.print_terminal_partition(level=5)
+        print("text formula for regression model:")
+        print(formula_text)
+        putly.print_terminal_partition(level=5)
+        print("summary from regression model:")
+        print(pail_regression["model"].summary())
+        #print(dir(pail_regression))
+        #print(pail_regression.params)
+        #print(pail_regression.pvalues)
+        pass
+
+    # Return information.
+    return pail
+
+
 def manage_regression_discrete_logistic_logit(
     table=None,
     index_columns=None,
     index_rows=None,
+    type_regression=None,
     formula_text=None,
     feature_response=None,
     features_predictor_fixed=None,
@@ -892,6 +1922,11 @@ def manage_regression_discrete_logistic_logit(
             and observations for regression
         index_columns (str): name of single-level index across columns in table
         index_rows (str): name of single-level index across rows in table
+        type_regression (str): name of type of regression model to use, either
+            'continuous_ols', 'continuous_mixed_random_intercepts',
+            'continuous_mixed_random_intercepts_slopes',
+            'continuous_gls', 'discrete_logit', 'discrete_probit',
+            'discrete_poisson', 'discrete_negbinom'
         formula_text (str): human readable formula for regression model,
             treated as a note for clarification
         feature_response (str): name of column in data table for feature
@@ -976,6 +2011,7 @@ def manage_regression_discrete_logistic_logit(
     pail.update(
         pail_predictors["intercept_predictors"]
     )
+    pail["table_summary"] = pail_regression["model"].summary()
 
     # Report.
     if report:
@@ -1011,6 +2047,7 @@ def determine_type_regression_analysis(
     feature_response=None,
     features_predictor_fixed=None,
     features_predictor_random=None,
+    groups_random=None,
     report=None,
 ):
     """
@@ -1095,9 +2132,21 @@ def determine_type_regression_analysis(
      - Linear Ordinary Least Squares (OLS)
       - requires homoscedasticity of variance in response across ranges of all
          predictors
+     - Linear with Mixed Effects
+      - types of random effects in the regression model:
+       - 1. random intercept different between each group of observations
+        - this is the simplest degree of random effects
+       - 2. random slope coefficient between each group of observations, with
+             respect to one of the predictor features with fixed effects, such
+             as time
+        - 2.1. random slope coefficients can be correlated
+         - this is the intermediate degree of random effects
+        - 2.2. random slope coefficients can be uncorrelated and independent
+         - this is the extreme, complex degree of random effects
      - Linear Generalized Least Squares (GLS)
       - allows heteroscedasticity of variance in response across ranges of all
          predictors
+    - Linear
     - Discrete response feature
      - Generalized Linear Model with Logit link function
       - response is on discrete binary scale of measurement
@@ -1111,12 +2160,20 @@ def determine_type_regression_analysis(
       - response is on discrete ordinal scale of measurement
      - Generalized Linear Model with Negative Binomial link function
       - response is on discrete ordinal scale of measurement
+     - General Linear Model with Mixed Effects
+      -
 
     References:
 
     1. Types of linear regression models in StatsModels
        title: 'Linear Regression'
        site: https://www.statsmodels.org/stable/regression.html
+
+    2. Linear Models with Mixed Effects in StatsModels
+       title: 'Linear Mixed Effects Models'
+       site: https://www.statsmodels.org/stable/mixed_linear.html
+       site: https://www.statsmodels.org/stable/examples/notebooks/generated/
+              mixed_lm_example.html
 
     2. Types of discrete response regression models in StatsModels
        title: 'Regression with Discrete Dependent Variable'
@@ -1132,6 +2189,11 @@ def determine_type_regression_analysis(
        site: https://stats.stackexchange.com/questions/20523/difference-
               between-logit-and-probit-models/30909#30909
 
+    5. StatsModels Generalized Linear Models with Mixed Effects
+       title: 'Generalized Linear Mixed Effects Models'
+       site: https://www.statsmodels.org/stable/mixed_glm.html
+
+
     ----------
     Notes
 
@@ -1140,7 +2202,8 @@ def determine_type_regression_analysis(
 
     References:
 
-    1. Article about linear regression analysis with mixed fixed and random effects
+    1. Article about linear regression analysis with mixed fixed and random
+       effects
        title: 'Linear Mixed Effect Models in python using mtcars'
        site: https://medium.com/@josef.waples/linear-mixed-effect-models-in-
               python-using-mtcars-064c6c3e5b32
@@ -1162,8 +2225,10 @@ def determine_type_regression_analysis(
         index_columns (str): name of single-level index across columns in table
         index_rows (str): name of single-level index across rows in table
         type_regression (str): name of type of regression model to use, either
-            'continuous_ols', 'continuous_gls', 'discrete_logit',
-            'discrete_probit', 'discrete_poisson', 'discrete_negbinom'
+            'continuous_ols', 'continuous_mixed_random_intercepts',
+            'continuous_mixed_random_intercepts_slopes',
+            'continuous_gls', 'discrete_logit', 'discrete_probit',
+            'discrete_poisson', 'discrete_negbinom'
         formula_text (str): human readable formula for regression model,
             treated as a note for clarification
         feature_response (str): name of column in data table for feature
@@ -1175,6 +2240,9 @@ def determine_type_regression_analysis(
         features_predictor_random (list<str>): names of columns in data table
             for feature variables to include in regression model as predictor
             independent variables with random effects
+        groups_random (str): name of column in data table for identifiers or
+            designations of groups of observations for which to allow random
+            effects in the regression model
         report (bool): whether to print reports
 
     raises:
@@ -1189,11 +2257,31 @@ def determine_type_regression_analysis(
         # Perform continuous linear ordinary least squares regression.
         pail = manage_regression_continuous_linear_ordinary_least_squares(
             table=table,
-            index_columns="features",
-            index_rows="observations",
+            index_columns=index_columns,
+            index_rows=index_rows,
+            type_regression=type_regression,
             formula_text=formula_text,
             feature_response=feature_response,
             features_predictor_fixed=features_predictor_fixed,
+            report=report,
+        )
+        pass
+    elif (
+        type_regression in [
+            "continuous_mixed",
+        ]
+    ):
+        # Perform continuous linear regression with mixed effects.
+        pail = manage_regression_continuous_linear_mixed_effects(
+            table=table,
+            index_columns=index_columns,
+            index_rows=index_rows,
+            type_regression=type_regression,
+            formula_text=formula_text,
+            feature_response=feature_response,
+            features_predictor_fixed=features_predictor_fixed,
+            features_predictor_random=features_predictor_random,
+            groups_random=groups_random,
             report=report,
         )
         pass
@@ -1201,8 +2289,9 @@ def determine_type_regression_analysis(
         # Perform logistic regression.
         pail = manage_regression_discrete_logistic_logit(
             table=table,
-            index_columns="features",
-            index_rows="observations",
+            index_columns=index_columns,
+            index_rows=index_rows,
+            type_regression=type_regression,
             formula_text=formula_text,
             feature_response=feature_response,
             features_predictor_fixed=features_predictor_fixed,
@@ -1219,13 +2308,757 @@ def determine_type_regression_analysis(
         print("package: partner")
         print("module: regression.py")
         name_function = str(
-            "perform_regression_analysis()"
+            "determine_type_regression_analysis()"
         )
         print("function: " + name_function)
         putly.print_terminal_partition(level=4)
         pass
     # Return information.
     return pail
+
+
+##########
+# Analysis of Variance (ANOVA)
+
+
+def analyze_variance_anova_two_way_repeat_measures(
+    table=None,
+    feature_response=None,
+    features_predictor_within=None,
+    subject=None,
+    report=None,
+):
+    """
+    Perform Analysis of Variance (ANOVA) for a response feature on a
+    quantitative, continuous, ratio or interval scale of measurement against
+    either one or two predictor features with repeated measures on groups of
+    samples or observations, applying an implementation from the 'pingouin'
+    package in Python.
+
+    Notice that this analysis only allows predictor features that correspond to
+    the repeated measurements of the same subject.
+
+    ----------
+    Format of source data table (name: "table")
+    ----------
+    Format of source data table is in wide format with features across columns
+    and values corresponding to their observations across rows. A special
+    header row gives identifiers or names corresponding to each feature across
+    columns, and a special column gives identifiers or names corresponding to
+    each observation across rows. The table has explicitly named indices across
+    columns and rows.
+    ----------
+    features        feature_1 feature_2 feature_3 feature_4 feature_5 ...
+    observations
+    observation_1   0.001     0.001     0.001     0.001     0.001     ...
+    observation_2   0.001     0.001     0.001     0.001     0.001     ...
+    observation_3   0.001     0.001     0.001     0.001     0.001     ...
+    observation_4   0.001     0.001     0.001     0.001     0.001     ...
+    observation_5   0.001     0.001     0.001     0.001     0.001     ...
+    ----------
+
+    Format of information for response dependent variable is a one-dimensional
+    vector of scalar values on a quantitative, continuous, ratio or interval
+    scale of measurement.
+    [1.3, 1.5, 1.2, 1.0, 1.7, 1.5, 1.9, 1.1, 1.3, 1.4,]
+
+    Format of information for predictor independent variable(s) is a
+    two-dimensional matrix: a first-dimension vector corresponding to
+    observations or samples and for each observation a second-dimension vector
+    of scalar values corresponding to each feature or variable.
+    StatsModels also requires the intentional addition of a constant for the
+    intercept.
+    [
+        [1.3, 5.2, 1.0,],
+        [1.5, 5.1, 1.0,],
+        [1.2, 5.5, 1.0,],
+        ...
+    ]
+
+    Implementation: 'pingouin.rm_anova()'
+
+    References:
+
+    1. Documentation for implementation in 'pingouin'
+       - title: 'pingouin.rm_anova()'
+       - site: https://pingouin-stats.org/build/html/generated/pingouin.
+               rm_anova.html
+
+    Review: TCW; 7 April 2025
+
+    arguments:
+        table (object): Pandas data-frame table of data with features
+            and observations
+        feature_response (str): name of column in data table for feature
+            variable to include in ANOVA model as response dependent
+            variable
+        features_predictor_within (list<str>): names of columns in data table
+            for feature variables to include in ANOVA model as predictor
+            independent variables that distinguish measurements within separate
+            subjects
+        subject (str): name of column in data table for identifier of subject
+            or individual source of pairs of samples or observations
+            corresponding to repeat measures
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict<object>): collection of information from ANOVA
+
+    """
+
+    # Analysis of Variance (ANOVA).
+    handle_anova = pingouin.rm_anova(
+        data=table,
+        dv=feature_response,
+        within=features_predictor_within,
+        subject=subject,
+        effsize="ng2",
+        detailed=True, # whether to return full summary table
+    )
+    # T-tests.
+    handle_t = pingouin.pairwise_tests(
+        data=table,
+        dv=feature_response,
+        between=None,
+        within=features_predictor_within,
+        subject=subject,
+        within_first=False,
+    )
+    # Collect information.
+    pail = dict()
+    pail["anova"] = handle_anova
+    pail["t_test"] = handle_t
+
+    # Return information.
+    return pail
+
+
+def analyze_variance_anova_two_way_repeat_measures_mixed(
+    table=None,
+    feature_response=None,
+    features_predictor_between=None,
+    features_predictor_within=None,
+    subject=None,
+    report=None,
+):
+    """
+    Perform Analysis of Variance (ANOVA) for a response feature on a
+    quantitative, continuous, ratio or interval scale of measurement against
+    either one or two predictor features with repeated measures on groups of
+    samples or observations, applying an implementation from the 'pingouin'
+    package in Python.
+
+    ----------
+    Format of source data table (name: "table")
+    ----------
+    Format of source data table is in wide format with features across columns
+    and values corresponding to their observations across rows. A special
+    header row gives identifiers or names corresponding to each feature across
+    columns, and a special column gives identifiers or names corresponding to
+    each observation across rows. The table has explicitly named indices across
+    columns and rows.
+    ----------
+    features        feature_1 feature_2 feature_3 feature_4 feature_5 ...
+    observations
+    observation_1   0.001     0.001     0.001     0.001     0.001     ...
+    observation_2   0.001     0.001     0.001     0.001     0.001     ...
+    observation_3   0.001     0.001     0.001     0.001     0.001     ...
+    observation_4   0.001     0.001     0.001     0.001     0.001     ...
+    observation_5   0.001     0.001     0.001     0.001     0.001     ...
+    ----------
+
+    Format of information for response dependent variable is a one-dimensional
+    vector of scalar values on a quantitative, continuous, ratio or interval
+    scale of measurement.
+    [1.3, 1.5, 1.2, 1.0, 1.7, 1.5, 1.9, 1.1, 1.3, 1.4,]
+
+    Format of information for predictor independent variable(s) is a
+    two-dimensional matrix: a first-dimension vector corresponding to
+    observations or samples and for each observation a second-dimension vector
+    of scalar values corresponding to each feature or variable.
+    StatsModels also requires the intentional addition of a constant for the
+    intercept.
+    [
+        [1.3, 5.2, 1.0,],
+        [1.5, 5.1, 1.0,],
+        [1.2, 5.5, 1.0,],
+        ...
+    ]
+
+    Implementation: 'pingouin.mixed_anova()'
+
+    References:
+
+    1. Documentation for implementation in 'pingouin'
+       - title: 'pingouin.mixed_anova()'
+       - site: https://pingouin-stats.org/build/html/generated/pingouin.
+               mixed_anova.html
+
+    Review: TCW; 7 April 2025
+
+    arguments:
+        table (object): Pandas data-frame table of data with features
+            and observations
+        feature_response (str): name of column in data table for feature
+            variable to include in ANOVA model as response dependent
+            variable
+        features_predictor_between (list<str>): names of columns in data table
+            for feature variables to include in ANOVA model as predictor
+            independent variables that distinguish measurements between
+            separate groups of observations
+        features_predictor_within (list<str>): names of columns in data table
+            for feature variables to include in ANOVA model as predictor
+            independent variables that distinguish measurements within separate
+            groups of observations
+        subject (str): name of column in data table for identifier of subject
+            or individual source of pairs of samples or observations
+            corresponding to repeat measures
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict<object>): collection of information from ANOVA
+
+    """
+
+    # Analysis of Variance (ANOVA).
+    handle_anova = pingouin.mixed_anova(
+        data=table,
+        dv=feature_response,
+        between=features_predictor_between[0],
+        within=features_predictor_within[0],
+        subject=subject,
+        effsize="ng2",
+    )
+    # T-tests.
+    handle_t_within_first = pingouin.pairwise_tests(
+        data=table,
+        dv=feature_response,
+        between=features_predictor_between[0],
+        within=features_predictor_within[0],
+        subject=subject,
+        within_first=True,
+    )
+    handle_t_between_first = pingouin.pairwise_tests(
+        data=table,
+        dv=feature_response,
+        between=features_predictor_between[0],
+        within=features_predictor_within[0],
+        subject=subject,
+        within_first=False,
+    )
+    # Collect information.
+    pail = dict()
+    pail["anova"] = handle_anova
+    pail["t_test_within"] = handle_t_within_first
+    pail["t_test_between"] = handle_t_between_first
+
+    # Return information.
+    return pail
+
+
+##########
+# Manage analysis of variance (ANOVA).
+
+
+def manage_anova_two_way_repeat_measures(
+    table=None,
+    index_columns=None,
+    index_rows=None,
+    type_anova=None,
+    formula_text=None,
+    feature_response=None,
+    features_predictor_between=None,
+    features_predictor_within=None,
+    subject=None,
+    report=None,
+):
+    """
+    Manage Analysis of Variance (ANOVA) according to parameters.
+
+    ----------
+    Format of source data table (name: "table")
+    ----------
+    Format of source data table is in wide format with features across columns
+    and values corresponding to their observations across rows. A special
+    header row gives identifiers or names corresponding to each feature across
+    columns, and a special column gives identifiers or names corresponding to
+    each observation across rows. The table has explicitly named indices across
+    columns and rows.
+    ----------
+    features        feature_1 feature_2 feature_3 feature_4 feature_5 ...
+    observations
+    observation_1   0.001     0.001     0.001     0.001     0.001     ...
+    observation_2   0.001     0.001     0.001     0.001     0.001     ...
+    observation_3   0.001     0.001     0.001     0.001     0.001     ...
+    observation_4   0.001     0.001     0.001     0.001     0.001     ...
+    observation_5   0.001     0.001     0.001     0.001     0.001     ...
+    ----------
+
+    Review: TCW; 7 April 2025
+
+    arguments:
+        table (object): Pandas data-frame table of data with features
+            and observations
+        index_columns (str): name of single-level index across columns in table
+        index_rows (str): name of single-level index across rows in table
+        type_anova (str): name of type of analysis of variance (ANOVA) to use,
+            either '2way_repeat', or '2way_repeat_mixed'
+        formula_text (str): human readable formula for ANOVA model, treated as
+            a note for clarification
+        feature_response (str): name of column in data table for feature
+            variable to include in ANOVA model as response dependent
+            variable
+        features_predictor_between (list<str>): names of columns in data table
+            for feature variables to include in ANOVA model as predictor
+            independent variables that distinguish measurements between
+            separate groups of observations
+        features_predictor_within (list<str>): names of columns in data table
+            for feature variables to include in ANOVA model as predictor
+            independent variables that distinguish measurements within separate
+            groups of observations
+        subject (str): name of column in data table for identifier of subject
+            or individual source of pairs of samples or observations
+            corresponding to repeat measures
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict<object>): collection of information from ANOVA
+
+    """
+
+    # Copy information.
+    table = table.copy(deep=True)
+    #features_predictor_between = copy.deepcopy(features_predictor_between)
+    features_predictor_within = copy.deepcopy(features_predictor_within)
+    # Combine predictor features.
+    #features_predictor_within.extend(features_predictor_between)
+
+    # Analysis of Variance (ANOVA).
+    pail = (
+        analyze_variance_anova_two_way_repeat_measures(
+            table=table,
+            feature_response=feature_response,
+            features_predictor_within=features_predictor_within,
+            subject=subject,
+            report=report,
+    ))
+    # Report attributes.
+    #print(dir(pail["anova"]))
+    #print(dir(pail["t_test"]))
+    # Extract attributes.
+    #degrees_freedom_numerator = pail["anova"].ddof1
+    #degrees_freedom_denominator = pail["anova"].ddof2
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=4)
+        print("package: partner")
+        print("module: regression.py")
+        name_function = str(
+            "manage_anova_two_way_repeat_measures()"
+        )
+        print("function: " + name_function)
+        putly.print_terminal_partition(level=5)
+        print("text formula for ANOVA model:")
+        print(formula_text)
+        putly.print_terminal_partition(level=5)
+        print("type ANOVA: " + type_anova)
+        putly.print_terminal_partition(level=5)
+        print("summary from ANOVA:")
+        print(pail["anova"].round(3))
+        putly.print_terminal_partition(level=5)
+        print("summary from T-tests:")
+        print(pail["t_test"])
+        pass
+
+    # Return information.
+    return pail
+
+
+def manage_anova_two_way_repeat_measures_mixed_effects(
+    table=None,
+    index_columns=None,
+    index_rows=None,
+    type_anova=None,
+    formula_text=None,
+    feature_response=None,
+    features_predictor_between=None,
+    features_predictor_within=None,
+    subject=None,
+    report=None,
+):
+    """
+    Manage Analysis of Variance (ANOVA) according to parameters.
+
+    ----------
+    Format of source data table (name: "table")
+    ----------
+    Format of source data table is in wide format with features across columns
+    and values corresponding to their observations across rows. A special
+    header row gives identifiers or names corresponding to each feature across
+    columns, and a special column gives identifiers or names corresponding to
+    each observation across rows. The table has explicitly named indices across
+    columns and rows.
+    ----------
+    features        feature_1 feature_2 feature_3 feature_4 feature_5 ...
+    observations
+    observation_1   0.001     0.001     0.001     0.001     0.001     ...
+    observation_2   0.001     0.001     0.001     0.001     0.001     ...
+    observation_3   0.001     0.001     0.001     0.001     0.001     ...
+    observation_4   0.001     0.001     0.001     0.001     0.001     ...
+    observation_5   0.001     0.001     0.001     0.001     0.001     ...
+    ----------
+
+    Review: TCW; 7 April 2025
+
+    arguments:
+        table (object): Pandas data-frame table of data with features
+            and observations
+        index_columns (str): name of single-level index across columns in table
+        index_rows (str): name of single-level index across rows in table
+        type_anova (str): name of type of analysis of variance (ANOVA) to use,
+            either '2way_repeat', or '2way_repeat_mixed'
+        formula_text (str): human readable formula for ANOVA model, treated as
+            a note for clarification
+        feature_response (str): name of column in data table for feature
+            variable to include in ANOVA model as response dependent
+            variable
+        features_predictor_between (list<str>): names of columns in data table
+            for feature variables to include in ANOVA model as predictor
+            independent variables that distinguish measurements between
+            separate groups of observations
+        features_predictor_within (list<str>): names of columns in data table
+            for feature variables to include in ANOVA model as predictor
+            independent variables that distinguish measurements within separate
+            groups of observations
+        subject (str): name of column in data table for identifier of subject
+            or individual source of pairs of samples or observations
+            corresponding to repeat measures
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict<object>): collection of information from ANOVA
+
+    """
+
+    # Copy information.
+    table = table.copy(deep=True)
+    features_predictor_between = copy.deepcopy(features_predictor_between)
+    features_predictor_within = copy.deepcopy(features_predictor_within)
+
+    # Analysis of Variance (ANOVA).
+    pail = (
+        analyze_variance_anova_two_way_repeat_measures_mixed(
+            table=table,
+            feature_response=feature_response,
+            features_predictor_between=features_predictor_between,
+            features_predictor_within=features_predictor_within,
+            subject=subject,
+            report=report,
+    ))
+    # Report attributes.
+    #print(dir(pail["anova"]))
+    #print(dir(pail["t_test"]))
+    # Extract attributes.
+    #degrees_freedom_numerator = pail["anova"].ddof1
+    #degrees_freedom_denominator = pail["anova"].ddof2
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=4)
+        print("package: partner")
+        print("module: regression.py")
+        name_function = str(
+            "manage_anova_two_way_repeat_measures_mixed_effects()"
+        )
+        print("function: " + name_function)
+        putly.print_terminal_partition(level=5)
+        print("text formula for ANOVA model:")
+        print(formula_text)
+        putly.print_terminal_partition(level=5)
+        print("type ANOVA: " + type_anova)
+        putly.print_terminal_partition(level=5)
+        print("summary from ANOVA:")
+        print(pail["anova"].round(3))
+        putly.print_terminal_partition(level=5)
+        print("summary from T-tests, within first:")
+        print(pail["t_test_within"])
+        putly.print_terminal_partition(level=5)
+        print("summary from T-tests, between first:")
+        print(pail["t_test_between"])
+        pass
+
+    # Return information.
+    return pail
+
+
+# See document string for informative notes about ANOVA.
+def determine_type_analysis_variance_anova(
+    table=None,
+    index_columns=None,
+    index_rows=None,
+    type_anova=None,
+    formula_text=None,
+    feature_response=None,
+    features_predictor_between=None,
+    features_predictor_within=None,
+    subject=None,
+    report=None,
+):
+    """
+    Determine the type of Analysis of Variance (ANOVA) according to parameters.
+
+    ----------
+    Format of source data table (name: "table")
+    ----------
+    Format of source data table is in wide format with features across columns
+    and values corresponding to their observations across rows. A special
+    header row gives identifiers or names corresponding to each feature across
+    columns, and a special column gives identifiers or names corresponding to
+    each observation across rows. The table has explicitly named indices across
+    columns and rows.
+    ----------
+    features        feature_1 feature_2 feature_3 feature_4 feature_5 ...
+    observations
+    observation_1   0.001     0.001     0.001     0.001     0.001     ...
+    observation_2   0.001     0.001     0.001     0.001     0.001     ...
+    observation_3   0.001     0.001     0.001     0.001     0.001     ...
+    observation_4   0.001     0.001     0.001     0.001     0.001     ...
+    observation_5   0.001     0.001     0.001     0.001     0.001     ...
+    ----------
+
+    ----------
+    Review: TCW; 7 April 2025
+
+    arguments:
+
+        table (object): Pandas data-frame table of data with features
+            and observations
+        index_columns (str): name of single-level index across columns in table
+        index_rows (str): name of single-level index across rows in table
+        type_anova (str): name of type of analysis of variance (ANOVA) to use,
+            either '2way_repeat', or '2way_repeat_mixed'
+        formula_text (str): human readable formula for ANOVA model, treated as
+            a note for clarification
+        feature_response (str): name of column in data table for feature
+            variable to include in ANOVA model as response dependent
+            variable
+        features_predictor_between (list<str>): names of columns in data table
+            for feature variables to include in ANOVA model as predictor
+            independent variables that distinguish measurements between
+            separate groups of observations
+        features_predictor_within (list<str>): names of columns in data table
+            for feature variables to include in ANOVA model as predictor
+            independent variables that distinguish measurements within separate
+            groups of observations
+        subject (str): name of column in data table for identifier of subject
+            or individual source of pairs of samples or observations
+            corresponding to repeat measures
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict<object>): collection of information from regression
+
+    """
+
+    # Determine type of regression.
+    if (type_anova == "2way_repeat"):
+        # Perform continuous linear ordinary least squares regression.
+        pail = manage_anova_two_way_repeat_measures(
+            table=table,
+            index_columns=index_columns,
+            index_rows=index_rows,
+            type_anova=type_anova,
+            formula_text=formula_text,
+            feature_response=feature_response,
+            features_predictor_between=features_predictor_between,
+            features_predictor_within=features_predictor_within,
+            subject=subject,
+            report=report,
+        )
+    elif (type_anova == "2way_repeat_mixed"):
+        # Perform continuous linear regression with mixed effects.
+        pail = manage_anova_two_way_repeat_measures_mixed_effects(
+            table=table,
+            index_columns=index_columns,
+            index_rows=index_rows,
+            type_anova=type_anova,
+            formula_text=formula_text,
+            feature_response=feature_response,
+            features_predictor_between=features_predictor_between,
+            features_predictor_within=features_predictor_within,
+            subject=subject,
+            report=report,
+        )
+    else:
+        pail = dict()
+        pass
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=4)
+        print("package: partner")
+        print("module: regression.py")
+        name_function = str(
+            "determine_type_analysis_variance_anova()"
+        )
+        print("function: " + name_function)
+        putly.print_terminal_partition(level=4)
+        pass
+    # Return information.
+    return pail
+
+
+# Prepare information for write to file.
+
+
+def prepare_summary_text_anova(
+    title=None,
+    formula_text=None,
+    type_anova=None,
+    text_anova=None,
+    text_t_1=None,
+    text_t_2=None,
+    report=None,
+):
+    """
+    Prepare text information to print to terminal or write to file.
+
+    Review: TCW; 7 April 2025
+
+    arguments:
+        title (str): title for summary text
+        formula_text (str): human readable formula for ANOVA model, treated as
+            a note for clarification
+        type_anova (str): name of type of analysis of variance (ANOVA) to use,
+            either '2way_repeat', or '2way_repeat_mixed'
+        text_anova (str): character string representation of information
+        text_t_1 (str): character string representation of information
+        text_t_2 (str): character string representation of information
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (str): character string representation of information
+
+    """
+
+    summary_text = str(
+        textwrap.dedent("""\
+
+            --------------------------------------------------
+            --------------------------------------------------
+            --------------------------------------------------
+
+
+
+        """) +
+        str(title) +
+        textwrap.dedent("""\
+
+            --------------------------------------------------
+
+
+
+        """) +
+        str("Formula: " + formula_text) +
+        textwrap.dedent("""\
+
+            ----------
+
+        """) +
+        str("Type ANOVA: " + type_anova) +
+        textwrap.dedent("""\
+
+            ----------
+
+        """) +
+        str("Summary from ANOVA") +
+        textwrap.dedent("""\
+
+            ----------
+
+        """) +
+        str(text_anova) +
+        textwrap.dedent("""\
+
+
+
+            ----------
+
+
+
+        """) +
+        str("Pairwise T-tests with first priority to predictors within") +
+        textwrap.dedent("""\
+
+            ----------
+
+        """) +
+        str(text_t_1) +
+        textwrap.dedent("""\
+
+
+
+            ----------
+
+
+
+        """) +
+        str("Pairwise T-tests with first priority to predictors between") +
+        textwrap.dedent("""\
+
+            ----------
+
+        """) +
+        str(text_t_2) +
+        textwrap.dedent("""\
+
+
+
+            ----------
+
+
+
+            --------------------------------------------------
+            --------------------------------------------------
+            --------------------------------------------------
+
+        """)
+    )
+
+    # Report.
+    if report:
+        # Organize.
+        # Print.
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        name_module = str(
+            "script_demonstration_compare_anova_regression_placebo.py"
+        )
+        print("module: " + name_module)
+        name_function = str(
+            "prepare_summary_text_anova()"
+        )
+        print("function: " + name_function)
+        putly.print_terminal_partition(level=5)
+        print("summary_text:")
+        print(summary_text)
+        putly.print_terminal_partition(level=5)
+        pass
+    # Return information.
+    return summary_text
 
 
 ##########
@@ -1246,6 +3079,7 @@ def collect_organize_record_regression_analysis(
     feature_response=None,
     features_predictor_fixed=None,
     features_predictor_random=None,
+    groups_random=None,
     record_extra=None,
     delimiter_list_items=None,
     report=None,
@@ -1305,6 +3139,9 @@ def collect_organize_record_regression_analysis(
         features_predictor_random (list<str>): names of columns in data table
             for feature variables to include in regression model as predictor
             independent variables with random effects
+        groups_random (str): name of column in data table for identifiers or
+            designations of groups of observations for which to allow random
+            effects in the regression model
         record_extra (dict): collection of secondary information to join to the
             record of primary information from the regression
         delimiter_list_items (str): delimiter to place between items when
@@ -1344,6 +3181,7 @@ def collect_organize_record_regression_analysis(
         "feature_response",
         "features_predictor_fixed",
         "features_predictor_random",
+        "groups_random",
     ]
     pail["entries_parameter_instance"].extend(list(record_extra.keys()))
     pail["record"] = dict()
@@ -1361,19 +3199,21 @@ def collect_organize_record_regression_analysis(
     pail["record"]["features_predictor_random"] = delimiter_list_items.join(
         features_predictor_random
     )
+    pail["record"]["groups_random"] = groups_random
     pail["record"].update(record_extra)
     # Determine whether to perform regression.
     if (check_overall):
         # Perform regression.
         pail_regression = determine_type_regression_analysis(
             table=table,
-            index_columns="features",
-            index_rows="observations",
+            index_columns=index_columns,
+            index_rows=index_rows,
             type_regression=type_regression,
             formula_text=formula_text,
             feature_response=feature_response,
             features_predictor_fixed=features_predictor_fixed,
             features_predictor_random=features_predictor_random,
+            groups_random=groups_random,
             report=report,
         )
         # Collect information.
@@ -1384,6 +3224,8 @@ def collect_organize_record_regression_analysis(
         pail["record"].update(pail_regression)
         del pail["record"]["entries_model"]
         del pail["record"]["entries_intercept_predictors"]
+        del pail["record"]["table_summary"]
+        pail["table_summary"] = pail_regression["table_summary"]
     else:
         # Collect information.
         pail["entries_model"] = None

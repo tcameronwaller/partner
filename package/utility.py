@@ -543,7 +543,7 @@ def print_terminal_partition(level=None):
         """)
     elif level == 5:
         partition = textwrap.dedent("""\
-        
+
             ----------
         """)
     elif level == 6:
@@ -1656,6 +1656,81 @@ def read_all_pandas_tables_files_within_parent_directory(
 
 ##########
 # Write information to file
+
+
+def write_character_string_to_file_text(
+    string=None,
+    path_file=None,
+):
+    """
+    Writes to file in text format information from an array of strings.
+
+    Delimiters include "\n", "\t", ";", ":", ",", " ".
+
+    arguments:
+        elements (list<str>): character elements
+        delimiter (str): delimiter between elements in list
+        path_file (str): path to file
+        path_directory (str): path to directory within which to write file
+
+
+    returns:
+
+    raises:
+
+    """
+
+    # Extract name of file from path.
+    #name_file = os.path.basename(path_file_product).split(".")[0]
+    # Write information to file
+    with open(path_file, "w") as file_product:
+        file_product.write(string)
+    pass
+
+
+def write_character_strings_to_file_text(
+    pail_write=None,
+    path_directory=None,
+):
+    """
+    Writes product information to file.
+
+    First and only dictionary tier names the file.
+
+    Delimiters include "\n", "\t", ";", ":", ",", " ".
+
+    arguments:
+        pail_write (dict<object>): collection of information to write to file
+        path_directory (str): path to directory within which to write
+            information to files
+
+    raises:
+
+    returns:
+
+    """
+
+    # Structure of "pail_write" collection is "dict<object>".
+    # First and only tier of dictionary tree gives names of files.
+
+    # Initialize directories.
+    #path_directory = os.path.dirname(path_file)
+    create_directories(
+        path=path_directory,
+    )
+    # Iterate across charts.
+    for name_file in pail_write.keys():
+        # Specify directories and files.
+        path_file = os.path.join(
+            path_directory, str(name_file + ".txt")
+        )
+        # Write information to file in child directory.
+        write_character_string_to_file_text(
+            string=pail_write[name_file],
+            path_file=path_file,
+        )
+        pass
+    pass
 
 
 def write_file_text_table(
