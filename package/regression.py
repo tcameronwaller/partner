@@ -2922,29 +2922,34 @@ def determine_type_analysis_variance_anova(
 # Prepare information for write to file.
 
 
-def prepare_summary_text_anova(
+def prepare_text_summary_regression_anova(
     title=None,
+    description_analysis=None,
     formula_text=None,
-    type_anova=None,
-    text_anova=None,
-    text_t_1=None,
-    text_t_2=None,
+    description_response=None,
+    description_groups_random=None,
+    description_predictor=None,
+    summary_1=None,
+    summary_2=None,
+    summary_3=None,
     report=None,
 ):
     """
     Prepare text information to print to terminal or write to file.
 
-    Review: TCW; 7 April 2025
+    Review: TCW; 8 April 2025
 
     arguments:
         title (str): title for summary text
-        formula_text (str): human readable formula for ANOVA model, treated as
-            a note for clarification
-        type_anova (str): name of type of analysis of variance (ANOVA) to use,
-            either '2way_repeat', or '2way_repeat_mixed'
-        text_anova (str): character string representation of information
-        text_t_1 (str): character string representation of information
-        text_t_2 (str): character string representation of information
+        description_analysis (str): description
+        formula_text (str): human readable formula, treated as a note for
+            clarification
+        description_response (str): description_response
+        description_groups_random (str): description_groups_random
+        description_predictor (str): description_predictor
+        summary_1 (str): summary from analysis
+        summary_2 (str): summary from analysis
+        summary_3 (str): summary from analysis
         report (bool): whether to print reports
 
     raises:
@@ -2972,25 +2977,52 @@ def prepare_summary_text_anova(
 
 
         """) +
-        str("Formula: " + formula_text) +
+        str("Description analysis: \n" + description_analysis) +
         textwrap.dedent("""\
 
             ----------
 
         """) +
-        str("Type ANOVA: " + type_anova) +
+        str("Formula: \n" + formula_text) +
         textwrap.dedent("""\
 
             ----------
 
         """) +
-        str("Summary from ANOVA") +
+        str(
+            "Description of response feature: \n" +
+            description_response
+        ) +
         textwrap.dedent("""\
 
             ----------
 
         """) +
-        str(text_anova) +
+        str(
+            "Description of groups of observations for random effects: \n" +
+            description_groups_random
+        ) +
+        str(
+            "Description of predictor features: \n" +
+            description_predictor
+        ) +
+        textwrap.dedent("""\
+
+            ----------
+
+        """) +
+        textwrap.dedent("""\
+
+            ----------
+
+        """) +
+        str("Summary from analysis: \n") +
+        textwrap.dedent("""\
+
+
+
+        """) +
+        str(summary_1) +
         textwrap.dedent("""\
 
 
@@ -3000,29 +3032,29 @@ def prepare_summary_text_anova(
 
 
         """) +
-        str("Pairwise T-tests with first priority to predictors within") +
+        str("Summary from analysis: \n") +
         textwrap.dedent("""\
-
-            ----------
-
-        """) +
-        str(text_t_1) +
-        textwrap.dedent("""\
-
-
-
-            ----------
 
 
 
         """) +
-        str("Pairwise T-tests with first priority to predictors between") +
+        str(summary_2) +
         textwrap.dedent("""\
 
+
+
             ----------
+
+
 
         """) +
-        str(text_t_2) +
+        str("Summary from analysis: \n") +
+        textwrap.dedent("""\
+
+
+
+        """) +
+        str(summary_3) +
         textwrap.dedent("""\
 
 
@@ -3031,6 +3063,8 @@ def prepare_summary_text_anova(
 
 
 
+        """) +
+        textwrap.dedent("""\
             --------------------------------------------------
             --------------------------------------------------
             --------------------------------------------------
@@ -3045,11 +3079,11 @@ def prepare_summary_text_anova(
         putly.print_terminal_partition(level=3)
         print("package: partner")
         name_module = str(
-            "script_demonstration_compare_anova_regression_placebo.py"
+            "regression.py"
         )
         print("module: " + name_module)
         name_function = str(
-            "prepare_summary_text_anova()"
+            "prepare_text_summary_regression_anova()"
         )
         print("function: " + name_function)
         putly.print_terminal_partition(level=5)

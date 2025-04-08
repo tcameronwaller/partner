@@ -55,7 +55,7 @@ License:
 #     variance (ANOVA) with repeat measures to linear regression with mixed
 #     effects to analyze the effect of treatment between groups that receive
 #     intervention or placebo control
-#  PubMed:
+#  PubMed: 15081686
 #  title: 'Mixed-model regression analysis and dealing with interindividual
 #          differences'
 #  journal: 'Methods in Enzymology'
@@ -320,6 +320,8 @@ def execute_procedure(
         "time_point_0",
         "time_point_1",
         "condition_by_time_point_1",
+        "caffeine_at_time_point_1",
+        "placebo_at_time_point_1",
         "measurement",
     ]
     table = preg.organize_table_data(
@@ -356,35 +358,81 @@ def execute_procedure(
     #)
 
     # Two-Way ANOVA with Repeated Measures and Mixed Effects.
+    description_analysis = str(
+        "Two-Way Analysis of Variance (ANOVA) with Mixed Effects and " +
+        "Repeated Measures"
+    )
+    formula_text = str(
+        "(measurement) ~ (condition) + (time_point_1) + " +
+        "(condition_by_time_point_1) + (subject)"
+    )
+    description_response = str(
+        "Score on psychomotor vigilance task (PVT)"
+    )
+    description_groups_random = str(
+        "Identifiers of individual subjects, people in study"
+    )
+    description_predictor = textwrap.dedent("""\
+        effects between subjects:
+           condition (0: placebo; 1: caffeine)
+        effects within subjects:
+           time_point_1 (0: before intervention; 1: after 1 day of sleep
+           deprivation)
+    """)
     pail_anova_mix = preg.determine_type_analysis_variance_anova(
         table=table,
         index_columns="features",
         index_rows="observations",
         type_anova="2way_repeat_mixed",
-        formula_text="(measurement) ~ (condition) + (time_point_1)",
+        formula_text=formula_text,
         feature_response="measurement",
         features_predictor_between=["condition",],
         features_predictor_within=["time_point_1"],
         subject="identifier_subject",
         report=report,
     )
-    summary_text_anova = preg.prepare_summary_text_anova(
-        title="Two-Way ANOVA with Repeated Measures and Mixed Effects",
-        formula_text="(measurement) ~ (condition) + (time_point_1)",
-        type_anova="2way_repeat_mixed",
-        text_anova=str(pail_anova_mix["anova"].round(3)),
-        text_t_1=str(pail_anova_mix["t_test_within"]),
-        text_t_2=str(pail_anova_mix["t_test_between"]),
+    summary_text_anova = preg.prepare_text_summary_regression_anova(
+        title="Van Dongen et al, Methods Enzymology, 2024, PubMed:15081686",
+        description_analysis=description_analysis,
+        formula_text=formula_text,
+        description_response=description_response,
+        description_groups_random=description_groups_random,
+        description_predictor=description_predictor,
+        summary_1=str(pail_anova_mix["anova"].round(3)),
+        summary_2=str(pail_anova_mix["t_test_within"]),
+        summary_3=str(pail_anova_mix["t_test_between"]),
         report=report,
     )
 
-    print(table)
-
     # Linear Regression with Mixed Effects.
+    # This is the standard design of analysis for placebo-controlled clinical
+    # trial with paired, repeated measures in subjects before and after
+    # treatment.
+    description_analysis = str(
+        "Linear Regression with Mixed Effects: Fixed Slopes and Random " +
+        " Slopes and Intercepts; Standard Model"
+    )
     formula_text = str(
         "(measurement) ~ (condition) + (time_point_1) + " +
-        "(condition_by_time_point_1)"
+        "(condition_by_time_point_1) + (subject)"
     )
+    description_response = str(
+        "Score on psychomotor vigilance task (PVT)"
+    )
+    description_groups_random = str(
+        "Identifiers of individual subjects, people in study"
+    )
+    description_predictor = textwrap.dedent("""\
+        fixed effects:
+           condition (0: placebo; 1: caffeine);
+           time_point_1 (0: before intervention; 1: after 1 day of sleep
+           deprivation);
+           condition * time_point_1
+        random effects, intercepts:
+           for each subject
+        random effects, slope coefficients:
+           time_point
+    """)
     pail_regression = preg.determine_type_regression_analysis(
         table=table,
         index_columns="features",
@@ -395,12 +443,108 @@ def execute_procedure(
         features_predictor_fixed=[
             "condition", "time_point_1", "condition_by_time_point_1",
         ],
-        features_predictor_random=["time_point_1",],
+        features_predictor_random=["time_point_1",], # list()
         groups_random="identifier_subject",
         report=report,
     )
-    print(pail_regression["table_summary"])
+    summary_text_regression_1 = preg.prepare_text_summary_regression_anova(
+        title="Van Dongen et al, Methods Enzymology, 2024, PubMed:15081686",
+        description_analysis=description_analysis,
+        formula_text=formula_text,
+        description_response=description_response,
+        description_groups_random=description_groups_random,
+        description_predictor=description_predictor,
+        summary_1=str(pail_regression["table_summary"]),
+        summary_2="",
+        summary_3="",
+        report=report,
+    )
 
+    # Linear Regression with Mixed Effects.
+    # This is an alternative design of analysis for placebo-controlled clinical
+    # trial with paired, repeated measures in subjects before and after
+    # treatment.
+    # group 1: after real treatment intervention
+    # group 2: after placebo mock treatment intervention
+    # group 3: before real or mock treatment intervention
+    # Represent these three experimental groups as categories using two (n - 1)
+    # dummy indicator variables.
+    # The dummy indicator variable for "group 1" (real treatment) is
+    # effectively the same as the interaction variable in the standard design
+    # above, "condition_by_time_point_1".
+    # While the basic features "condition" and "time_point_1" can be included
+    # in the model, these features are themselves less relevant to the
+    # hypothesis.
+    # Including the dummy indicator variable for "group 2" (placebo mock
+    # treatment) completes the representation of all three experimental groups
+    # and also asks directly about the effect of placebo mock treatment.
+    description_analysis = str(
+        "Linear Regression with Mixed Effects: Fixed Slopes and Random " +
+        " Slopes and Intercepts; Alternative Model"
+    )
+    formula_text = str(
+        "(measurement) ~ (caffeine_at_time_point_1) + " +
+        "(placebo_at_time_point_1) + (subject)"
+    )
+    description_response = str(
+        "Score on psychomotor vigilance task (PVT)"
+    )
+    description_groups_random = str(
+        "Identifiers of individual subjects, people in study"
+    )
+    description_predictor = textwrap.dedent("""\
+        fixed effects:
+           caffeine_at_time_point_1 (0: other; 1: caffeine at time_point 1);
+           placebo_at_time_point_1 (0: other; 1: placebo at time_point 1);
+        random effects, intercepts:
+           for each subject
+        random effects, slope coefficients:
+           caffeine_at_time_point_1
+    """)
+    pail_regression = preg.determine_type_regression_analysis(
+        table=table,
+        index_columns="features",
+        index_rows="observations",
+        type_regression="continuous_mixed",
+        formula_text=formula_text,
+        feature_response="measurement",
+        features_predictor_fixed=[
+            "caffeine_at_time_point_1", "placebo_at_time_point_1",
+        ],
+        features_predictor_random=["caffeine_at_time_point_1",], # list()
+        groups_random="identifier_subject",
+        report=report,
+    )
+    summary_text_regression_2 = preg.prepare_text_summary_regression_anova(
+        title="Van Dongen et al, Methods Enzymology, 2024, PubMed:15081686",
+        description_analysis=description_analysis,
+        formula_text=formula_text,
+        description_response=description_response,
+        description_groups_random=description_groups_random,
+        description_predictor=description_predictor,
+        summary_1=str(pail_regression["table_summary"]),
+        summary_2="",
+        summary_3="",
+        report=report,
+    )
+
+    ##########
+    # Write information to file.
+    # Write for each parallel instance of regression.
+    # A subsequent procedure will read the information from file and collect it
+    # within a summary for all instances of regression.
+
+    # Collect information.
+    # Collections of files.
+    pail_write_text = dict()
+    pail_write_text[str("vandongen_anova")] = summary_text_anova
+    pail_write_text[str("vandongen_regression_1")] = summary_text_regression_1
+    pail_write_text[str("vandongen_regression_2")] = summary_text_regression_2
+    # Write product information to file.
+    putly.write_character_strings_to_file_text(
+        pail_write=pail_write_text,
+        path_directory=path_directory_product,
+    )
 
     pass
 
