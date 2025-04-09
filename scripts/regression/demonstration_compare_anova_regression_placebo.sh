@@ -44,8 +44,8 @@ path_directory_product="${path_directory_dock}/out_regression/demonstration/1508
 name_file_table_data="table_data.tsv"
 
 # Scripts.
-path_file_script_source="${path_directory_scripts}/partner/python/script_demonstration_compare_anova_regression_placebo.py"
-path_file_script_product="${path_directory_package}/script_demonstration_compare_anova_regression_placebo.py"
+path_file_script_source="${path_directory_scripts}/partner/python/demonstration_compare_anova_regression_placebo.py"
+path_file_script_product="${path_directory_package}/demonstration_compare_anova_regression_placebo.py"
 
 # Copy Python script to package directory.
 cp $path_file_script_source $path_file_script_product

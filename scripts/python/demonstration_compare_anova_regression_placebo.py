@@ -33,8 +33,8 @@ License:
 ################################################################################
 # Author: T. Cameron Waller, Ph.D.
 # Date, first execution: 7 April 2025
-# Date, last execution: 7 April 2025
-# Review: TCW; 7 April 2025
+# Date, last execution: 9 April 2025
+# Review: TCW; 9 April 2025
 ################################################################################
 # Note
 
@@ -108,7 +108,7 @@ import partner.regression as preg
 # Read source information from file.
 
 
-def define_type_table_columns():
+def define_type_table_columns_vandongen():
     """
     Defines the types of variables for columns in table.
 
@@ -133,7 +133,7 @@ def define_type_table_columns():
     return types_columns
 
 
-def read_source_table_data(
+def read_source_table_data_vandongen(
     name_file_table_data=None,
     path_directory_source=None,
     report=None,
@@ -144,7 +144,7 @@ def read_source_table_data(
     Notice that Pandas does not accommodate missing values within series of
     integer variable types.
 
-    Review: TCW; 7 april 2025
+    Review: TCW; 7 April 2025
 
     arguments:
         name_file_table_data (str): name of source file for table of data in
@@ -170,7 +170,7 @@ def read_source_table_data(
     # Read information from file.
 
     # Table of parameters for parallel instances.
-    types_columns = define_type_table_columns()
+    types_columns = define_type_table_columns_vandongen()
     table = pandas.read_csv(
         path_file_table_data,
         sep="\t",
@@ -205,11 +205,11 @@ def read_source_table_data(
         putly.print_terminal_partition(level=3)
         print("package: partner")
         name_module = str(
-            "script_demonstration_compare_anova_regression_placebo.py"
+            "demonstration_compare_anova_regression_placebo.py"
         )
         print("module: " + name_module)
         name_function = str(
-            "read_source_table_data()"
+            "read_source_table_data_vandongen()"
         )
         print("function: " + name_function)
         putly.print_terminal_partition(level=5)
@@ -226,10 +226,10 @@ def read_source_table_data(
 
 
 ##########
-# Call main procedure.
+# Manage procedure for demonstration data from Van Dongen et al.
 
 
-def execute_procedure(
+def manage_procedure_van_dongen(
     name_file_table_data=None,
     path_directory_source=None,
     path_directory_product=None,
@@ -237,7 +237,7 @@ def execute_procedure(
     report=None,
 ):
     """
-    Function to execute module's main behavior.
+    Manage a major branch in the module's main behavior.
 
     arguments:
         name_file_table_data (str): name of source file for table of data in
@@ -258,28 +258,16 @@ def execute_procedure(
     """
 
     ##########
-    # Parameters.
-    if (
-        (report is not None) and
-        (str(report) != "") and
-        (str(report) == "true")
-    ):
-        report = True
-    else:
-        report = False
-        pass
-
-    ##########
     # Report.
     if report:
         putly.print_terminal_partition(level=3)
         print("package: partner")
         name_module = str(
-            "script_demonstration_compare_anova_regression_placebo.py"
+            "demonstration_compare_anova_regression_placebo.py"
         )
         print("module: " + name_module)
         name_function = str(
-            "execute_procedure()"
+            "execute_procedure_van_dongen()"
         )
         print("function: " + name_function)
         putly.print_terminal_partition(level=5)
@@ -293,7 +281,7 @@ def execute_procedure(
 
     ##########
     # Read source information from file.
-    table_source = read_source_table_data(
+    table_source = read_source_table_data_vandongen(
         name_file_table_data=name_file_table_data,
         path_directory_source=path_directory_source,
         report=report,
@@ -431,7 +419,11 @@ def execute_procedure(
         random effects, intercepts:
            for each subject
         random effects, slope coefficients:
-           time_point
+           time_point_1
+           - Allow each subject to respond differently to sleep deprivation,
+             regardless of placebo or caffeine.
+           - In this study, the sleep deprivation was an additional
+             intervention.
     """)
     pail_regression = preg.determine_type_regression_analysis(
         table=table,
@@ -445,6 +437,7 @@ def execute_procedure(
         ],
         features_predictor_random=["time_point_1",], # list()
         groups_random="identifier_subject",
+        method_fit=None, # use default method to fit model
         report=report,
     )
     summary_text_regression_1 = preg.prepare_text_summary_regression_anova(
@@ -500,6 +493,8 @@ def execute_procedure(
            for each subject
         random effects, slope coefficients:
            caffeine_at_time_point_1
+           - Allow each subject to respond differently to sleep deprivation
+             with caffeine.
     """)
     pail_regression = preg.determine_type_regression_analysis(
         table=table,
@@ -513,6 +508,7 @@ def execute_procedure(
         ],
         features_predictor_random=["caffeine_at_time_point_1",], # list()
         groups_random="identifier_subject",
+        method_fit=None, # use default method to fit model
         report=report,
     )
     summary_text_regression_2 = preg.prepare_text_summary_regression_anova(
@@ -545,6 +541,87 @@ def execute_procedure(
         pail_write=pail_write_text,
         path_directory=path_directory_product,
     )
+
+    pass
+
+
+##########
+# Execute main procedure.
+
+
+def execute_procedure(
+    name_file_table_data=None,
+    path_directory_source=None,
+    path_directory_product=None,
+    path_directory_dock=None,
+    report=None,
+):
+    """
+    Execute module's main behavior.
+
+    arguments:
+        name_file_table_data (str): name of source file for table of data in
+            text format as a table with tab delimiters between columns and
+            newline delimiters between rows
+        path_directory_source (str): path to directory from which to read
+            source files
+        path_directory_product (str): path to directory for procedure's product
+            directories and files
+        path_directory_dock (str): path to dock directory for procedure's
+            source and product directories and files
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+
+    """
+
+    ##########
+    # Parameters.
+    if (
+        (report is not None) and
+        (str(report) != "") and
+        (str(report) == "true")
+    ):
+        report = True
+    else:
+        report = False
+        pass
+
+    ##########
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        name_module = str(
+            "demonstration_compare_anova_regression_placebo.py"
+        )
+        print("module: " + name_module)
+        name_function = str(
+            "execute_procedure()"
+        )
+        print("function: " + name_function)
+        putly.print_terminal_partition(level=5)
+        print("system: local")
+        print("name_file_table_data: " + str(name_file_table_data))
+        print("path_directory_source: " + str(path_directory_source))
+        print("path_directory_product: " + str(path_directory_product))
+        print("path_directory_dock: " + str(path_directory_dock))
+        putly.print_terminal_partition(level=5)
+        pass
+
+
+    ##########
+    # Manage procedure for data from Van Dongen et al.
+    manage_procedure_van_dongen(
+        name_file_table_data=name_file_table_data,
+        path_directory_source=path_directory_source,
+        path_directory_product=path_directory_product,
+        path_directory_dock=path_directory_dock,
+        report=report,
+    )
+
 
     pass
 

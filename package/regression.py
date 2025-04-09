@@ -1241,6 +1241,7 @@ def regress_continuous_linear_mixed_effects_random_intercepts_slopes(
     features_predictor_fixed=None,
     features_predictor_random=None,
     groups_random=None,
+    method_fit=None,
     report=None,
 ):
     """
@@ -1301,6 +1302,17 @@ def regress_continuous_linear_mixed_effects_random_intercepts_slopes(
 
     Implementation: 'statsmodels.regression.mixed_linear_model.MixedLM()'
 
+    Fit methods
+    ’newton’: Newton-Raphson # unavailable
+    ‘nm’: Nelder-Mead
+    ’bfgs’: Broyden-Fletcher-Goldfarb-Shanno (BFGS) # faulty error
+    ’lbfgs’: limited-memory BFGS with optional box constraints # faulty error
+    ’powell’: modified Powell’s method # seems robust to colinearity error
+    ’cg’: conjugate gradient
+    ’ncg’: Newton-conjugate gradient # unavailable
+    ’basinhopping’: global basin-hopping solver
+    ’minimize’: generic wrapper of scipy minimize (BFGS by default)
+
     References:
 
     1. Documentation for implementation in StatsModels
@@ -1308,7 +1320,20 @@ def regress_continuous_linear_mixed_effects_random_intercepts_slopes(
        - site: https://www.statsmodels.org/stable/generated/statsmodels.
                 regression.mixed_linear_model.MixedLM.html
 
-    Review: TCW; 7 April 2025
+    2. Documentation for model fit method in StatsModels
+       - title: 'statsmodels.regression.mixed_linear_model.MixedLM.fit'
+       - site: https://www.statsmodels.org/dev/generated/statsmodels.
+                regression.mixed_linear_model.MixedLM.fit.html
+
+    3. Report of issue in implementation with failure to converge in model fit
+       - title: 'Singular matrix error on mixedlm fit #7051'
+       - site: https://github.com/statsmodels/statsmodels/issues/7051
+       - site: https://github.com/statsmodels/statsmodels/pull/7052
+       - note:
+          - 'I get LinAlgError: Singular matrix when I try to fit a mixedlm
+             model to my data, even though there are no colinear components.'
+
+    Review: TCW; 9 April 2025
 
     arguments:
         table (object): Pandas data-frame table of data with features
@@ -1325,6 +1350,9 @@ def regress_continuous_linear_mixed_effects_random_intercepts_slopes(
         groups_random (str): name of column in data table for identifiers or
             designations of groups of observations for which to allow random
             effects in the regression model
+        method_fit (list<str>): names of methods to apply for fitting the
+            model, especially with random slopes some models can fail to fit
+            the model to convergence
         report (bool): whether to print reports
 
     raises:
@@ -1377,9 +1405,12 @@ def regress_continuous_linear_mixed_effects_random_intercepts_slopes(
             missing="drop",
         )
         # Fit the model.
-        handle_model = model.fit()
+        handle_model = model.fit(
+            reml=True, # Restricted Maximum Likelihood (REML) or ML
+            method=method_fit,
+        )
     else:
-        # Define model with random intercepts but not random slopes.
+        # Define model with random intercepts and random slopes.
         model = statsmodels.api.MixedLM(
             table[feature_response],
             table_predictor_fixed,
@@ -1388,7 +1419,12 @@ def regress_continuous_linear_mixed_effects_random_intercepts_slopes(
             missing="drop",
         )
         # Fit the model.
-        handle_model = model.fit()
+        handle_model = model.fit(
+            reml=True, # Restricted Maximum Likelihood (REML) or ML
+            method=method_fit,
+            #maxiter=10000,
+        )
+
         pass
 
     # Collect information.
@@ -1710,6 +1746,7 @@ def manage_regression_continuous_linear_mixed_effects(
     features_predictor_fixed=None,
     features_predictor_random=None,
     groups_random=None,
+    method_fit=None,
     report=None,
 ):
     """
@@ -1760,6 +1797,9 @@ def manage_regression_continuous_linear_mixed_effects(
         groups_random (str): name of column in data table for identifiers or
             designations of groups of observations for which to allow random
             effects in the regression model
+        method_fit (list<str>): names of methods to apply for fitting the
+            model, especially with random slopes some models can fail to fit
+            the model to convergence
         report (bool): whether to print reports
 
     raises:
@@ -1782,6 +1822,7 @@ def manage_regression_continuous_linear_mixed_effects(
             features_predictor_fixed=features_predictor_fixed,
             features_predictor_random=features_predictor_random,
             groups_random=groups_random,
+            method_fit=method_fit,
             report=report,
     ))
     # Report attributes.
@@ -2039,6 +2080,7 @@ def determine_type_regression_analysis(
     features_predictor_fixed=None,
     features_predictor_random=None,
     groups_random=None,
+    method_fit=None,
     report=None,
 ):
     """
@@ -2067,6 +2109,9 @@ def determine_type_regression_analysis(
     Notes
 
     Scale transformation of predictor independent variables
+    - Normally do not transform the scale of the dependent variable response
+       feature. In some cases, this can make it difficult for the fit of the
+       model to converge (Linear Regression with Mixed Effects).
     - In multiple linear regression, it is common to standardize the scale of
        of predictor independent variables that are on a quantitative,
        continuous scale of measurement, such as ratio or interval.
@@ -2234,6 +2279,9 @@ def determine_type_regression_analysis(
         groups_random (str): name of column in data table for identifiers or
             designations of groups of observations for which to allow random
             effects in the regression model
+        method_fit (list<str>): names of methods to apply for fitting the
+            model, especially with random slopes some models can fail to fit
+            the model to convergence
         report (bool): whether to print reports
 
     raises:
@@ -2273,6 +2321,7 @@ def determine_type_regression_analysis(
             features_predictor_fixed=features_predictor_fixed,
             features_predictor_random=features_predictor_random,
             groups_random=groups_random,
+            method_fit=method_fit,
             report=report,
         )
         pass
