@@ -1651,6 +1651,55 @@ def read_all_pandas_tables_files_within_parent_directory(
     return pail
 
 
+def determine_logical_binary_designator(
+    category_text=None,
+    values_1=None,
+    values_0=None,
+):
+    """
+    Determine a logical binary designator or indicator for a corresponding
+    category as a text value. Introduce a float missing value if the category
+    does not match any values for either one (1) or zero (0).
+
+    Review: TCW; 9 April 2025
+
+    arguments:
+        category_text (str): category text for which to determine logical
+            binary designator or indicator
+        values_1 (list<str>): values for which to assign a designator or
+            indicator of one (1)
+        values_0 (list<str>): values for which to assign a designator or
+            indicator of zero (0)
+
+    raises:
+
+    returns:
+        (float): designator or indicator
+
+    """
+
+    # Determine whether there is adequate information.
+    if (
+        (pandas.notna(category_text)) and
+        (len(str(category_text).strip()) > 0)
+    ):
+        # There is adequate information.
+        category_text = str(category_text).strip().lower()
+        # Determine designator.
+        if (category_text in values_1):
+            designator = 1
+        elif (category_text in values_0):
+            designator = 0
+        else:
+            designator = float("nan")
+            pass
+    else:
+        # There is inadequate information.
+        designator = float("nan")
+        pass
+    # Return information.
+    return designator
+
 
 
 

@@ -1235,15 +1235,6 @@ def regress_continuous_linear_ordinary_least_squares(
     return pail
 
 
-# TCW; 7 April 2025
-# For the mixed-effects linear regression, I don't really need separate functions
-# for random intercepts and intercepts + slopes.
-# I need a separate parameter from the original parameter table that designates
-# a group for which to have random effects (intercept and or predictors)
-# The group variable itself isn't really a predictor, it's just to explain
-# the random effects of the predictors.
-
-
 def regress_continuous_linear_mixed_effects_random_intercepts_slopes(
     table=None,
     feature_response=None,
