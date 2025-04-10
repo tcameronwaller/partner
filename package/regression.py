@@ -3042,6 +3042,11 @@ def prepare_text_summary_regression_anova(
             "Description of groups of observations for random effects: \n" +
             description_groups_random
         ) +
+        textwrap.dedent("""\
+
+            ----------
+
+        """) +
         str(
             "Description of predictor features: \n" +
             description_predictor
