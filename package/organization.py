@@ -166,6 +166,64 @@ def translate_names_table_indices_columns_rows(
     return table_product
 
 
+def remove_redundancy_identifiers_table_columns_rows(
+    table=None,
+    identifiers_rows=None,
+    remove_redundancy=None,
+    report=None,
+):
+    """
+    Remove any rows and columns from table with redundancy in their respective
+    identifiers.
+
+    For versatility and convenience, this table does not have explicitly named
+    indices across columns or rows.
+
+    Review: TCW; 10 April 2025
+
+    arguments:
+        table (object): Pandas data-frame table
+        identifiers_rows (str): name of column in table corresponding to
+            identifiers across rows that ought to be unique
+        remove_redundancy (bool): whether to remove columns or rows from table
+            with redundancy in their respective identifiers
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    # Copy information in table.
+    table = table.copy(deep=True)
+
+    # Determine whether to remove any redundancy in identifiers across columns
+    # and rows.
+    if remove_redundancy:
+        table.drop_duplicates(
+            subset=[index_rows,],
+            keep="first",
+            inplace=True,
+        )
+        table = table.loc[
+            :, ~table.columns.duplicated(
+                keep="first",
+            )
+        ].copy(deep=True)
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        print("module: organization.py")
+        print("function: remove_redundancy_identifiers_table_columns_rows()")
+        putly.print_terminal_partition(level=5)
+    # Return information.
+    return table
+
+
 def translate_identifiers_table_indices_columns_rows(
     table=None,
     index_rows=None,
@@ -187,7 +245,7 @@ def translate_identifiers_table_indices_columns_rows(
     indices across columns or rows. This function offers the option to remove
     this redundancy.
 
-    Review: TCW; 25 October 2024
+    Review: TCW; 10 April 2025
 
     arguments:
         table (object): Pandas data-frame table
@@ -253,17 +311,12 @@ def translate_identifiers_table_indices_columns_rows(
 
     # Determine whether to remove any redundancy in identifiers across columns
     # and rows.
-    if remove_redundancy:
-        table.drop_duplicates(
-            subset=[index_rows,],
-            keep="first",
-            inplace=True,
-        )
-        table = table.loc[
-            :, ~table.columns.duplicated(
-                keep="first",
-            )
-        ].copy(deep=True)
+    table = remove_redundancy_identifiers_table_columns_rows(
+        table=table,
+        identifiers_rows=index_rows,
+        remove_redundancy=remove_redundancy,
+        report=False,
+    )
 
     # Report.
     if report:
@@ -3468,6 +3521,280 @@ def merge_columns_two_tables(
         print("columns")
         print(table.columns.to_list())
         print(table)
+        pass
+    # Return information.
+    return table
+
+
+##########
+# Prepare columns of features and rows of observations in table for analysis.
+
+
+def prepare_table_features_observations_for_analysis(
+    table=None,
+    selection_observations=None,
+    features_relevant=None,
+    features_essential=None,
+    features_continuity_scale=None,
+    index_columns_source=None,
+    index_columns_product=None,
+    index_rows_source=None,
+    index_rows_product=None,
+    remove_missing=None,
+    remove_redundancy=None,
+    adjust_scale=None,
+    method_scale=None,
+    explicate_indices=None,
+    report=None,
+):
+    """
+    Prepare columns of features and rows of observations in table for analysis
+    by descriptive statistics, T-test, Analysis of Variance (ANOVA),
+    regression, principal components, or other method.
+
+    1. filter rows in table for relevant observations
+    2. filter columns in table for relevant features
+    3. remove rows from table with missing values in specific columns
+    4. remove rows from table with redundant values in specific columns
+    5. transform scale of features with measurement values on quantitative,
+       continuous scales of measurement, ratio or interval
+    6. organize indices across columns and rows
+
+    Notice that this function does not currently support filtering features or
+    observations on the basis of their proportion of values that are
+    nonmissing and within thresholds.
+    Notice that this function does not currently support filling values for
+    features and observations by imputation.
+    These operations are highly sensitive and deserve attention that is more
+    custom and careful.
+
+    ----------
+    Format of source data table (name: "table")
+    ----------
+    Format of source data table is in wide format with features across columns
+    and values corresponding to their observations across rows. A special
+    header row gives identifiers or names corresponding to each feature across
+    columns, and a special column gives identifiers or names corresponding to
+    each observation across rows. For versatility, this table does not have
+    explicitly defined indices across rows or columns.
+    ----------
+    identifiers     feature_1 feature_2 feature_3 feature_4 feature_5 ...
+
+    observation_1   0.001     0.001     0.001     0.001     0.001     ...
+    observation_2   0.001     0.001     0.001     0.001     0.001     ...
+    observation_3   0.001     0.001     0.001     0.001     0.001     ...
+    observation_4   0.001     0.001     0.001     0.001     0.001     ...
+    observation_5   0.001     0.001     0.001     0.001     0.001     ...
+    ----------
+
+    ----------
+    Format of product data table (name: "table")
+    ----------
+    Format of source data table is in wide format with features across columns
+    and values corresponding to their observations across rows. A special
+    header row gives identifiers or names corresponding to each feature across
+    columns, and a special column gives identifiers or names corresponding to
+    each observation across rows. The table has explicitly named indices across
+    columns and rows.
+    ----------
+    features        feature_1 feature_2 feature_3 feature_4 feature_5 ...
+    observations
+    observation_1   0.001     0.001     0.001     0.001     0.001     ...
+    observation_2   0.001     0.001     0.001     0.001     0.001     ...
+    observation_3   0.001     0.001     0.001     0.001     0.001     ...
+    observation_4   0.001     0.001     0.001     0.001     0.001     ...
+    observation_5   0.001     0.001     0.001     0.001     0.001     ...
+    ----------
+
+    Review: TCW; 10 April 2025
+
+    arguments:
+        table (object): Pandas data-frame table of data with features
+            and observations for analysis
+        selection_observations (dict<list<str>>): names of columns in data
+            table for feature variables and their categorical values by
+            which to filter rows for observations in data table
+        features_relevant (list<str>): names of columns in data table for
+            feature variables that are relevant, for which to keep columns and
+            to remove rows of observations with redundancy across all
+        features_essential (list<str>): names of columns in data table for
+            feature variables that are essential, for which to remove rows of
+            observations with any missing values
+        features_continuity_scale (list<str>): names of columns in data table
+            for feature variables with values on quantitative, continuous scale
+            of measurement, interval or ratio, for which to standardize the
+            scale by z score
+        index_columns_source (str): name of single-level index across columns
+            in table
+        index_columns_product (str): name of single-level index across columns
+            in table
+        index_rows_source (str): name of single-level index across rows in
+            table
+        index_rows_product (str): name of single-level index across rows in
+            table
+        remove_missing (bool): whether to remove rows in table for observations
+            with missing values in any columns corresponding to the essential
+            features, 'features_essential'
+        remove_redundancy (bool): whether to remove rows in table for
+            observations with redundant information across all columns
+            corresponding to the relevant features, 'features_relevant'
+        adjust_scale (bool): whether to adjust or standardize the scale of
+            values for features across observations
+        method_scale (str): name of method to use to adjust the scale of values
+            for features across observations, either 'z_score' or 'unit_range'
+        explicate_indices (bool): whether to explicate, define, or specify
+            explicit indices across columns and rows in table
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table of data with features and
+            observations for analysis
+
+    """
+
+    # Copy information.
+    table = table.copy(deep=True)
+    selection_observations = copy.deepcopy(selection_observations)
+    features_relevant = copy.deepcopy(features_relevant)
+    features_essential = copy.deepcopy(features_essential)
+    features_continuity_scale = copy.deepcopy(features_continuity_scale)
+
+    # Restore or reset indices to generic default.
+    table.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    table.columns.rename(
+        None,
+        inplace=True,
+    ) # single-dimensional index
+
+    # Filter rows in table for observations.
+    table = filter_select_table_rows_by_columns_categories(
+        table=table,
+        columns_categories=selection_observations,
+        report=report,
+    )
+    # Filter columns in table for features.
+    table = filter_sort_table_columns(
+        table=table,
+        columns_sequence=features_relevant,
+        report=report,
+    )
+
+    # Remove rows from table for observations with missing values for any of
+    # the essential features.
+    if (
+        (remove_missing) and
+        (len(features_essential) > 0)
+    ):
+        table.dropna(
+            axis="index",
+            how="any",
+            subset=features_essential,
+            inplace=True,
+        )
+        pass
+
+    # Remove rows from table for observations that are redundant replicates.
+    if remove_redundancy:
+        table.drop_duplicates(
+            subset=features_relevant,
+            keep="first",
+            inplace=True,
+        )
+        pass
+
+    # Standardize scale of values for observations of features.
+    if (
+        (adjust_scale) and
+        (len(features_continuity_scale) > 0) and
+        (method_scale is not None) and
+        (str(method_scale).strip().lower() != "none")
+    ):
+        if (
+            (str(method_scale).strip().lower() == "z_score")
+        ):
+            table = pscl.transform_standard_z_score_by_table_columns(
+                    table=table,
+                    columns=features_continuity_scale,
+                    report=report,
+            )
+        elif (
+            (str(method_scale).strip().lower() == "unit_range")
+        ):
+            table = pscl.transform_unit_range_by_table_columns(
+                    table=table,
+                    columns=features_continuity_scale,
+                    report=report,
+            )
+            pass
+        pass
+
+    # Organize indices in table.
+    # Determine whether parameters specified a column in the table for
+    # identifiers of observations that will become index across rows.
+    if (
+        (index_rows_source is not None) and
+        (index_rows_source in (table.columns.tolist()))
+    ):
+        # Remove rows from table for observations with redundancy in identifiers
+        # for indices across columns and rows of the table.
+        table = remove_redundancy_identifiers_table_columns_rows(
+            table=table,
+            identifiers_rows=index_rows_source,
+            remove_redundancy=remove_redundancy,
+            report=False,
+        )
+        # Create index across rows from column that already exists in table.
+        table = explicate_table_indices_columns_rows_single_level(
+            table=table,
+            index_columns=index_columns_source,
+            index_rows=index_rows_source,
+            explicate_indices=explicate_indices,
+            report=False,
+        )
+        # Standardize names of indices.
+        table = translate_names_table_indices_columns_rows(
+            table=table,
+            index_columns_product=index_columns_product,
+            index_rows_source=index_rows_source,
+            index_rows_product=index_rows_product,
+            report=None,
+        )
+    else:
+        # Name generic index in table.
+        table.reset_index(
+            level=None,
+            inplace=True,
+            drop=True, # remove index; do not move to regular columns
+        )
+        table.index.set_names(index_rows_product, inplace=True)
+        # Standardize names of indices.
+        table = translate_names_table_indices_columns_rows(
+            table=table,
+            index_columns_product=index_columns_product,
+            index_rows_source=index_rows_product,
+            index_rows_product=index_rows_product,
+            report=None,
+        )
+        pass
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=4)
+        print("package: partner")
+        print("module: regression.py")
+        name_function = str(
+            "prepare_table_features_observations_for_analysis()"
+        )
+        print("function: " + name_function)
+        putly.print_terminal_partition(level=5)
+        print(table)
+        putly.print_terminal_partition(level=5)
         pass
     # Return information.
     return table

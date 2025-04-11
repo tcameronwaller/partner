@@ -33,8 +33,8 @@ License:
 ################################################################################
 # Author: T. Cameron Waller, Ph.D.
 # Date, first execution: 28 March 2025
-# Date, last execution: 3 April 2025
-# Review: TCW; 3 April 2025
+# Date, last execution or modification: 10 April 2025
+# Review: TCW; 10 April 2025
 ################################################################################
 # Note
 
@@ -44,13 +44,6 @@ License:
 
 # Useful functionality for preparing the table of data for regression.
 # pandas.get_dummies(groups).values
-
-# TODO: TCW; 3 April 2025
-# When trying to test one regression at a time, it is a bit annoying to keep
-# track of the list index since "execution=0" causes instances from the table
-# of parameters to be ignored.
-# Rather than completely excluding "execution=0" instances, consider keeping
-# them for at least long enough to get past control_parallel_instances().
 
 ##########
 # Review: TCW; 3 April 2025
@@ -113,7 +106,8 @@ def define_column_types_table_parameters():
     types_columns["execution"] = "string" # "int32"
     types_columns["sequence"] = "string" # "int32"
     types_columns["group"] = "string"
-    types_columns["instance"] = "string"
+    types_columns["name"] = "string"
+    #types_columns["name_combination"] = "string"
     types_columns["selection_observations"] = "string"
     types_columns["type_regression"] = "string"
     types_columns["formula_text"] = "string"
@@ -193,132 +187,131 @@ def read_source_table_parameters(
     # Collect information.
     records = list()
     for index, row in table.iterrows():
-        if (int(row["execution"]) == 1):
-            # Collect information and parameters from current row in table.
-            record = dict()
-            record["execution"] = row["execution"]
-            record["sequence"] = row["sequence"]
-            record["group"] = str(row["group"]).strip()
-            record["instance"] = str(row["instance"]).strip()
-            record["name_instance"] = "_".join([
-                str(row["group"]).strip(),
-                str(row["sequence"]).strip(),
-                str(row["instance"]).strip(),
-            ])
-            record["selection_observations"] = (
-                putly.parse_extract_text_keys_values_semicolon_colon_comma(
-                    text=row["selection_observations"],
-                )
-            )["features_values"]
-            record["type_regression"] = str(row["type_regression"]).strip()
-            record["formula_text"] = str(row["formula_text"]).strip()
-            record["feature_response"] = str(row["feature_response"]).strip()
-            record["features_predictor_fixed"] = putly.parse_text_list_values(
-                text=row["features_predictor_fixed"],
-                delimiter=",",
+        # Collect information and parameters from current row in table.
+        record = dict()
+        record["execution"] = int(row["execution"])
+        record["sequence"] = row["sequence"]
+        record["group"] = str(row["group"]).strip()
+        record["name"] = str(row["name"]).strip() # name for instance of parameters
+        record["name_combination"] = "_".join([
+            str(row["group"]).strip(),
+            str(row["sequence"]).strip(),
+            str(row["name"]).strip(),
+        ])
+        record["selection_observations"] = (
+            putly.parse_extract_text_keys_values_semicolon_colon_comma(
+                text=row["selection_observations"],
             )
-            record["features_predictor_random"] = putly.parse_text_list_values(
-                text=row["features_predictor_random"],
-                delimiter=",",
-            )
-            if (
-                (row["groups_random"] is not None) and
-                (len(str(row["groups_random"])) > 0) and
-                (str(row["groups_random"]).strip().lower() != "none")
-            ):
-                record["groups_random"] = str(row["groups_random"]).strip()
-            else:
-                record["groups_random"] = None
-                pass
-            if (
-                (row["features_continuity_scale"] is not None) and
-                (len(str(row["features_continuity_scale"])) > 0) and
-                (str(row["features_continuity_scale"]).strip().lower() != "none")
-            ):
-                record["features_continuity_scale"] = putly.parse_text_list_values(
-                    text=row["features_continuity_scale"],
-                    delimiter=",",
-                )
-            else:
-                record["features_continuity_scale"] = list()
-                pass
-            if (
-                (row["identifier_observations"] is not None) and
-                (len(str(row["identifier_observations"])) > 0) and
-                (str(row["identifier_observations"]).strip().lower() != "none")
-            ):
-                record["identifier_observations"] = str(
-                    row["identifier_observations"]
-                ).strip()
-            else:
-                record["identifier_observations"] = None
-                pass
-            record["method_scale"] = str(row["method_scale"]).strip()
-            record["data_path_directory"] = putly.parse_text_list_values(
-                text=row["data_path_directory"],
-                delimiter=",",
-            )
-            record["data_file"] = str(row["data_file"]).strip()
-            record["review"] = str(row["review"]).strip()
-            record["note"] = str(row["note"]).strip()
-
-            # Collect unique names of columns relevant to instance of
-            # parameters from current row in table.
-            features_regression = list()
-            features_regression.append(record["feature_response"])
-            features_regression.extend(record["features_predictor_fixed"])
-            features_regression.extend(record["features_predictor_random"])
-            #if (record["identifier_observations"] is not None):
-            #    features_regression.insert(
-            #        0,
-            #        record["identifier_observations"],
-            #    )
-            #    pass
-            features_regression = putly.collect_unique_elements(
-                elements=features_regression,
-            )
-            record["features_regression"] = copy.deepcopy(features_regression)
-            features_relevant = list()
-            dictionaries = [
-                "selection_observations",
-            ]
-            for dictionary in dictionaries:
-                if record[dictionary] is not None:
-                    features_relevant.extend(list(record[dictionary].keys()))
-                    pass
-                pass
-            features_relevant.extend(record["features_continuity_scale"])
-            features_relevant.extend(features_regression)
-            if (record["groups_random"] is not None):
-                features_relevant.insert(
-                    0,
-                    record["groups_random"],
-                )
-                pass
-            if (record["identifier_observations"] is not None):
-                features_relevant.insert(
-                    0,
-                    record["identifier_observations"],
-                )
-                pass
-            features_relevant = putly.collect_unique_elements(
-                elements=features_relevant,
-            )
-            record["features_relevant"] = copy.deepcopy(features_relevant)
-            # Collect information and parameters for current row in table.
-            records.append(record)
+        )["features_values"]
+        record["type_regression"] = str(row["type_regression"]).strip()
+        record["formula_text"] = str(row["formula_text"]).strip()
+        record["feature_response"] = str(row["feature_response"]).strip()
+        record["features_predictor_fixed"] = putly.parse_text_list_values(
+            text=row["features_predictor_fixed"],
+            delimiter=",",
+        )
+        record["features_predictor_random"] = putly.parse_text_list_values(
+            text=row["features_predictor_random"],
+            delimiter=",",
+        )
+        if (
+            (row["groups_random"] is not None) and
+            (len(str(row["groups_random"])) > 0) and
+            (str(row["groups_random"]).strip().lower() != "none")
+        ):
+            record["groups_random"] = str(row["groups_random"]).strip()
+        else:
+            record["groups_random"] = None
             pass
+        if (
+            (row["features_continuity_scale"] is not None) and
+            (len(str(row["features_continuity_scale"])) > 0) and
+            (str(row["features_continuity_scale"]).strip().lower() != "none")
+        ):
+            record["features_continuity_scale"] = putly.parse_text_list_values(
+                text=row["features_continuity_scale"],
+                delimiter=",",
+            )
+        else:
+            record["features_continuity_scale"] = list()
+            pass
+        if (
+            (row["identifier_observations"] is not None) and
+            (len(str(row["identifier_observations"])) > 0) and
+            (str(row["identifier_observations"]).strip().lower() != "none")
+        ):
+            record["identifier_observations"] = str(
+                row["identifier_observations"]
+            ).strip()
+        else:
+            record["identifier_observations"] = None
+            pass
+        record["method_scale"] = str(row["method_scale"]).strip()
+        record["data_path_directory"] = putly.parse_text_list_values(
+            text=row["data_path_directory"],
+            delimiter=",",
+        )
+        record["data_file"] = str(row["data_file"]).strip()
+        record["review"] = str(row["review"]).strip()
+        record["note"] = str(row["note"]).strip()
+
+        # Collect unique names of columns relevant to instance of
+        # parameters from current row in table.
+        features_regression = list()
+        features_regression.append(record["feature_response"])
+        features_regression.extend(record["features_predictor_fixed"])
+        features_regression.extend(record["features_predictor_random"])
+        #if (record["identifier_observations"] is not None):
+        #    features_regression.insert(
+        #        0,
+        #        record["identifier_observations"],
+        #    )
+        #    pass
+        features_regression = putly.collect_unique_elements(
+            elements=features_regression,
+        )
+        record["features_regression"] = copy.deepcopy(features_regression)
+        features_relevant = list()
+        dictionaries = [
+            "selection_observations",
+        ]
+        for dictionary in dictionaries:
+            if record[dictionary] is not None:
+                features_relevant.extend(list(record[dictionary].keys()))
+                pass
+            pass
+        features_relevant.extend(record["features_continuity_scale"])
+        features_relevant.extend(features_regression)
+        if (record["groups_random"] is not None):
+            features_relevant.insert(
+                0,
+                record["groups_random"],
+            )
+            pass
+        if (record["identifier_observations"] is not None):
+            features_relevant.insert(
+                0,
+                record["identifier_observations"],
+            )
+            pass
+        features_relevant = putly.collect_unique_elements(
+            elements=features_relevant,
+        )
+        record["features_relevant"] = copy.deepcopy(features_relevant)
+        # Collect information and parameters for current row in table.
+        records.append(record)
         pass
 
     # Collect information.
     pail = dict()
     pail["table"] = table
     pail["records"] = records
+
     # Report.
     if report:
-        # Organize.
+        # Organize information.
         count_records = len(records)
-        # Print.
+        # Print information.
         putly.print_terminal_partition(level=3)
         print("package: partner")
         print("module: script_drive_regressions_from_table_parameters.py")
@@ -593,8 +586,8 @@ def control_procedure_part_branch(
     execution=None,
     sequence=None,
     group=None,
-    instance=None,
-    name_instance=None,
+    name=None,
+    name_combination=None,
     selection_observations=None,
     type_regression=None,
     formula_text=None,
@@ -624,8 +617,8 @@ def control_procedure_part_branch(
             handle the parameters for the current instance
         sequence (int): sequential index for instance's name and sort order
         group (str): categorical group of instances
-        instance (str): name or designator of instance
-        name_instance (str): compound name for instance of parameters
+        name (str): name or designator for instance of parameters
+        name_combination (str): compound name for instance of parameters
         selection_observations (dict<list<str>>): names of columns in data
             table for feature variables and their categorical values by
             which to filter rows for observations in data table
@@ -716,16 +709,18 @@ def control_procedure_part_branch(
     ##########
     # Organize information in table.
     if True:
-        table = preg.organize_table_data(
+        table = porg.prepare_table_features_observations_for_analysis(
             table=table,
             selection_observations=selection_observations,
             features_relevant=features_relevant,
-            features_regression=features_regression,
+            features_essential=features_regression,
             features_continuity_scale=features_continuity_scale,
             index_columns_source="features",
             index_columns_product="features",
             index_rows_source=identifier_observations,
             index_rows_product="observations",
+            remove_missing=True,
+            remove_redundancy=True,
             adjust_scale=True,
             method_scale=method_scale, # 'z_score' or 'unit_range'
             explicate_indices=True,
@@ -740,7 +735,7 @@ def control_procedure_part_branch(
     if True:
         pail_check = preg.check_parameters_table_data_regression(
             table=table,
-            name_instance=name_instance,
+            name_combination=name_combination,
             type_regression=type_regression,
             formula_text=formula_text,
             feature_response=feature_response,
@@ -766,8 +761,8 @@ def control_procedure_part_branch(
         index_rows="observations",
         sequence=sequence,
         group=group,
-        instance=instance,
-        name_instance=name_instance,
+        name=name,
+        name_combination=name_combination,
         check_overall=pail_check["check_overall"],
         type_regression=type_regression,
         formula_text=formula_text,
@@ -782,7 +777,7 @@ def control_procedure_part_branch(
 
     #print(str(pail_regression["table_summary"]))
     summary_text = str(
-        str(pail_regression["record"]["name_instance"]) +
+        str(pail_regression["record"]["name_combination"]) +
         textwrap.dedent("""\
 
             ----------
@@ -818,9 +813,9 @@ def control_procedure_part_branch(
     # Collect information.
     # Collections of files.
     pail_write_text = dict()
-    pail_write_text[str("branch_" + name_instance)] = summary_text
+    pail_write_text[str("branch_" + name_combination)] = summary_text
     pail_write_objects = dict()
-    pail_write_objects[str("branch_" + name_instance)] = pail_regression
+    pail_write_objects[str("branch_" + name_combination)] = pail_regression
     # Write product information to file.
     putly.write_character_strings_to_file_text(
         pail_write=pail_write_text,
@@ -839,7 +834,7 @@ def control_procedure_part_branch(
         print("module: script_drive_regressions_from_table_parameters.py")
         print("function: control_procedure_part_branch()")
         putly.print_terminal_partition(level=5)
-        print("instance: " + instance)
+        print("name for instance of parameters: " + name)
         putly.print_terminal_partition(level=5)
         pass
 
@@ -866,8 +861,8 @@ def control_parallel_instance(
             sequence (int): sequential index for instance's name and sort
                 order
             group (str): categorical group of instances
-            instance (str): name or designator of instance
-            name_instance (str): compound name for instance of parameters
+            name (str): name or designator for instance of parameters
+            name_combination (str): compound name for instance of parameters
             selection_observations (dict<list<str>>): names of columns in data
                 table for feature variables and their categorical values by
                 which to filter rows for observations in data table
@@ -937,8 +932,8 @@ def control_parallel_instance(
     execution = instance_record["execution"]
     sequence = instance_record["sequence"]
     group = instance_record["group"]
-    instance = instance_record["instance"]
-    name_instance = instance_record["name_instance"]
+    name = instance_record["name"]
+    name_combination = instance_record["name_combination"]
     selection_observations = instance_record["selection_observations"]
     type_regression = instance_record["type_regression"]
     formula_text = instance_record["formula_text"]
@@ -964,33 +959,34 @@ def control_parallel_instance(
 
     ##########
     # Control procedure with split branch for parallelization.
-    control_procedure_part_branch(
-        execution=execution,
-        sequence=sequence,
-        group=group,
-        instance=instance,
-        name_instance=name_instance,
-        selection_observations=selection_observations,
-        type_regression=type_regression,
-        formula_text=formula_text,
-        feature_response=feature_response,
-        features_predictor_fixed=features_predictor_fixed,
-        features_predictor_random=features_predictor_random,
-        groups_random=groups_random,
-        features_regression=features_regression,
-        features_continuity_scale=features_continuity_scale,
-        features_relevant=features_relevant,
-        identifier_observations=identifier_observations,
-        method_scale=method_scale,
-        data_path_directory=data_path_directory,
-        data_file=data_file,
-        review=review,
-        note=note,
-        path_file_table_parameters=path_file_table_parameters,
-        path_directory_product=path_directory_product,
-        path_directory_dock=path_directory_dock,
-        report=report,
-    )
+    if (int(execution) == 1):
+        control_procedure_part_branch(
+            execution=execution,
+            sequence=sequence,
+            group=group,
+            name=name,
+            name_combination=name_combination,
+            selection_observations=selection_observations,
+            type_regression=type_regression,
+            formula_text=formula_text,
+            feature_response=feature_response,
+            features_predictor_fixed=features_predictor_fixed,
+            features_predictor_random=features_predictor_random,
+            groups_random=groups_random,
+            features_regression=features_regression,
+            features_continuity_scale=features_continuity_scale,
+            features_relevant=features_relevant,
+            identifier_observations=identifier_observations,
+            method_scale=method_scale,
+            data_path_directory=data_path_directory,
+            data_file=data_file,
+            review=review,
+            note=note,
+            path_file_table_parameters=path_file_table_parameters,
+            path_directory_product=path_directory_product,
+            path_directory_dock=path_directory_dock,
+            report=report,
+        )
     pass
 
 

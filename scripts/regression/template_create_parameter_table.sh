@@ -73,7 +73,7 @@ set +v # disable print input to standard error
 execution="1"
 sequence=1
 group="group_automatic"
-instance="instance_automatic"
+name="name_automatic" # name for instance of parameters
 selection_observations="group:group_1,group_2,group_3,group_4;sex:female,male"
 type_regression="continuous_ols"
 formula_text="response ~ predictor_fixed_1 + predictor_fixed_2 + predictor_fixed_3 + sex_y"
@@ -133,7 +133,7 @@ if [[ "$report" == "true" ]]; then
 fi
 
 # Write column header names in table to file.
-printf "execution\tsequence\tgroup\tinstance\t" > $path_file_product
+printf "execution\tsequence\tgroup\tname\t" > $path_file_product
 printf "selection_observations\ttype_regression\t" >> $path_file_product
 printf "formula_text\tfeature_response\t" >> $path_file_product
 printf "features_predictor_fixed\tfeatures_predictor_random\t" >> $path_file_product
@@ -144,7 +144,7 @@ printf "review\tnote\n" >> $path_file_product
 # Iterate on response features in array.
 # For each response feature, create a new row of parameters in the table.
 for item_source in "${items_source[@]}"; do
-  printf "${execution}\t${sequence}\t${group}\t${instance}\t" >> $path_file_product
+  printf "${execution}\t${sequence}\t${group}\t${name}\t" >> $path_file_product
   printf "${selection_observations}\t${type_regression}\t" >> $path_file_product
   printf "${formula_text}\t${item_source}\t" >> $path_file_product
   printf "${features_predictor_fixed}\t${features_predictor_random}\t" >> $path_file_product

@@ -101,229 +101,7 @@ import partner.description as pdesc
 # Organize information in table for features and observations.
 
 
-def organize_table_data(
-    table=None,
-    selection_observations=None,
-    features_relevant=None,
-    features_regression=None,
-    features_continuity_scale=None,
-    index_columns_source=None,
-    index_columns_product=None,
-    index_rows_source=None,
-    index_rows_product=None,
-    adjust_scale=None,
-    method_scale=None,
-    explicate_indices=None,
-    report=None,
-):
-    """
-    Organize table of data with features and observations for regression.
-
-    1. filter columns in table for relevant features
-    2. filter rows in table for relevant observations
-    3. standardize scale of features with measurement values on quantitative,
-       continuous scale of measurement, ratio or interval
-
-    ----------
-    Format of source data table (name: "table")
-    ----------
-    Format of source data table is in wide format with features across columns
-    and values corresponding to their observations across rows. A special
-    header row gives identifiers or names corresponding to each feature across
-    columns, and a special column gives identifiers or names corresponding to
-    each observation across rows. For versatility, this table does not have
-    explicitly defined indices across rows or columns.
-    ----------
-    identifiers     feature_1 feature_2 feature_3 feature_4 feature_5 ...
-
-    observation_1   0.001     0.001     0.001     0.001     0.001     ...
-    observation_2   0.001     0.001     0.001     0.001     0.001     ...
-    observation_3   0.001     0.001     0.001     0.001     0.001     ...
-    observation_4   0.001     0.001     0.001     0.001     0.001     ...
-    observation_5   0.001     0.001     0.001     0.001     0.001     ...
-    ----------
-
-    ----------
-    Format of product data table (name: "table")
-    ----------
-    Format of source data table is in wide format with features across columns
-    and values corresponding to their observations across rows. A special
-    header row gives identifiers or names corresponding to each feature across
-    columns, and a special column gives identifiers or names corresponding to
-    each observation across rows. The table has explicitly named indices across
-    columns and rows.
-    ----------
-    features        feature_1 feature_2 feature_3 feature_4 feature_5 ...
-    observations
-    observation_1   0.001     0.001     0.001     0.001     0.001     ...
-    observation_2   0.001     0.001     0.001     0.001     0.001     ...
-    observation_3   0.001     0.001     0.001     0.001     0.001     ...
-    observation_4   0.001     0.001     0.001     0.001     0.001     ...
-    observation_5   0.001     0.001     0.001     0.001     0.001     ...
-    ----------
-
-    Review: TCW; 2 April 2025
-
-    arguments:
-        table (object): Pandas data-frame table of data with features
-            and observations for regression
-        selection_observations (dict<list<str>>): names of columns in data
-            table for feature variables and their categorical values by
-            which to filter rows for observations in data table
-        features_relevant (list<str>): names of columns in data table for
-            feature variables that are relevant to the current instance of
-            parameters
-        features_regression (list<str>): names of columns in data table for
-            feature variables that are relevant to the actual regression model
-        features_continuity_scale (list<str>): names of columns in data table
-            for feature variables with values on quantitative, continuous scale
-            of measurement, interval or ratio, for which to standardize the
-            scale by z score
-        index_columns_source (str): name of single-level index across columns
-            in table
-        index_columns_product (str): name of single-level index across columns
-            in table
-        index_rows_source (str): name of single-level index across rows in
-            table
-        index_rows_product (str): name of single-level index across rows in
-            table
-        adjust_scale (bool): whether to adjust or standardize the scale of
-            values for features across observations
-        method_scale (str): name of method to use to adjust the scale of values
-            for features across observations, either 'z_score' or 'unit_range'
-        explicate_indices (bool): whether to explicate, define, or specify
-            explicit indices across columns and rows in table
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (dict<object>): collection of information
-
-    """
-
-    # Copy information.
-    table = table.copy(deep=True)
-    selection_observations = copy.deepcopy(selection_observations)
-    features_relevant = copy.deepcopy(features_relevant)
-    features_regression = copy.deepcopy(features_regression)
-    features_continuity_scale = copy.deepcopy(features_continuity_scale)
-
-    # Restore or reset indices to generic default.
-    table.reset_index(
-        level=None,
-        inplace=True,
-        drop=True, # remove index; do not move to regular columns
-    )
-    table.columns.rename(
-        None,
-        inplace=True,
-    ) # single-dimensional index
-
-    # Filter rows in table for observations.
-    table = porg.filter_select_table_rows_by_columns_categories(
-        table=table,
-        columns_categories=selection_observations,
-        report=report,
-    )
-    # Filter columns in table for features.
-    table = porg.filter_sort_table_columns(
-        table=table,
-        columns_sequence=features_relevant,
-        report=report,
-    )
-
-    # Remove rows from table for observations with any missing values for
-    # relevant features that are part of the model for regression.
-    table.dropna(
-        axis="index",
-        how="any",
-        subset=features_regression,
-        inplace=True,
-    )
-
-    # Standardize scale of values for observations of features.
-    if (
-        (adjust_scale) and
-        (len(features_continuity_scale) > 0) and
-        (method_scale is not None) and
-        (str(method_scale).strip().lower() != "none")
-    ):
-        if (
-            (str(method_scale).strip().lower() == "z_score")
-        ):
-            table = pscl.transform_standard_z_score_by_table_columns(
-                    table=table,
-                    columns=features_continuity_scale,
-                    report=report,
-            )
-        elif (
-            (str(method_scale).strip().lower() == "unit_range")
-        ):
-            table = pscl.transform_unit_range_by_table_columns(
-                    table=table,
-                    columns=features_continuity_scale,
-                    report=report,
-            )
-            pass
-        pass
-
-    # Organize indices in table.
-    # Determine whether parameters specified a column in the table for
-    # identifiers of observations that will become index across rows.
-    if (
-        (index_rows_source is not None) and
-        (index_rows_source in (table.columns.tolist()))
-    ):
-        # Create index across rows from column that already exists in table.
-        table = porg.explicate_table_indices_columns_rows_single_level(
-            table=table,
-            index_columns=index_columns_source,
-            index_rows=index_rows_source,
-            explicate_indices=explicate_indices,
-            report=False,
-        )
-        # Standardize names of indices.
-        table = porg.translate_names_table_indices_columns_rows(
-            table=table,
-            index_columns_product=index_columns_product,
-            index_rows_source=index_rows_source,
-            index_rows_product=index_rows_product,
-            report=None,
-        )
-    else:
-        # Name generic index in table.
-        table.reset_index(
-            level=None,
-            inplace=True,
-            drop=True, # remove index; do not move to regular columns
-        )
-        table.index.set_names(index_rows_product, inplace=True)
-        # Standardize names of indices.
-        table = porg.translate_names_table_indices_columns_rows(
-            table=table,
-            index_columns_product=index_columns_product,
-            index_rows_source=index_rows_product,
-            index_rows_product=index_rows_product,
-            report=None,
-        )
-        pass
-
-    # Report.
-    if report:
-        putly.print_terminal_partition(level=4)
-        print("package: partner")
-        print("module: regression.py")
-        name_function = str(
-            "organize_table_data()"
-        )
-        print("function: " + name_function)
-        putly.print_terminal_partition(level=5)
-        print(table)
-        putly.print_terminal_partition(level=5)
-        pass
-    # Return information.
-    return table
+# Prepare columns of features and rows of observations in table for analysis.
 
 
 # Evaluate information in table for features and observations.
@@ -409,16 +187,18 @@ def evaluate_table_data(
         lambda feature: (feature not in features_category),
         features_scale
     ))
-    table = preg.organize_table_data(
+    table = porg.prepare_table_features_observations_for_analysis(
         table=table,
         selection_observations=selection_observations,
         features_relevant=features_relevant,
-        features_regression=features_regression,
+        features_essential=features_regression,
         features_continuity_scale=features_scale,
         index_columns_source=index_columns_source,
         index_columns_product=index_columns_product,
         index_rows_source=index_rows_source,
         index_rows_product=index_rows_product,
+        remove_missing=True,
+        remove_redundancy=True,
         adjust_scale=True,
         method_scale="unit_range", # "z_score" or "unit_range"
         explicate_indices=True,
