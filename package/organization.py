@@ -179,7 +179,7 @@ def remove_redundancy_identifiers_table_columns_rows(
     For versatility and convenience, this table does not have explicitly named
     indices across columns or rows.
 
-    Review: TCW; 10 April 2025
+    Review: TCW; 11 April 2025
 
     arguments:
         table (object): Pandas data-frame table
@@ -203,7 +203,7 @@ def remove_redundancy_identifiers_table_columns_rows(
     # and rows.
     if remove_redundancy:
         table.drop_duplicates(
-            subset=[index_rows,],
+            subset=[identifiers_rows,],
             keep="first",
             inplace=True,
         )
@@ -245,7 +245,7 @@ def translate_identifiers_table_indices_columns_rows(
     indices across columns or rows. This function offers the option to remove
     this redundancy.
 
-    Review: TCW; 10 April 2025
+    Review: TCW; 11 April 2025
 
     arguments:
         table (object): Pandas data-frame table
@@ -375,6 +375,7 @@ def explicate_table_indices_columns_rows_single_level(
     if (
         (index_columns is not None) and
         (index_rows is not None) and
+        (index_rows in table.columns.to_list()) and
         (explicate_indices)
     ):
         table.set_index(
@@ -844,7 +845,7 @@ def sort_table_rows_by_single_column_reference(
         )
     }
 
-    Review: TCW; 16 November 2024
+    Review: TCW; 14 April 2025
 
     arguments:
         table (object): Pandas data-frame table
@@ -1410,12 +1411,15 @@ def filter_select_table_rows_by_columns_categories(
 ):
     """
     Filters rows in a table to select those with specific discrete categorical
-    values in specific columns
+    values in specific columns.
+
+    For versatility, this table does not have explicitly defined indices across
+    rows or columns.
 
     This function preserves the original sequence of rows from the source
     table.
 
-    Review: TCW; 2 April 2025
+    Review: TCW; 11 April 2025
 
     arguments:
         table (object): Pandas data-frame table
@@ -1438,7 +1442,10 @@ def filter_select_table_rows_by_columns_categories(
     # Filter rows in table by specific criteria.
     # Iterate on columns for features and their categorical values for
     # selection of rows from table.
-    if (columns_categories is not None):
+    if (
+        (columns_categories is not None) and
+        (len(columns_categories.keys()) > 0)
+    ):
         for column in columns_categories.keys():
             # (table_product[column] == columns_categories[column][0])
             table_product = table_product.loc[(
@@ -1574,6 +1581,9 @@ def filter_extract_table_row_identifiers_by_columns_categories(
     Filters rows in a table to extract identifiers for a set of rows
     corresponding to selection by specific categorical values of columns for
     features.
+
+    For versatility, this table does not have explicitly defined indices across
+    rows or columns.
 
     This function preserves the original sequence of rows from the source
     table.
@@ -3739,7 +3749,8 @@ def prepare_table_features_observations_for_analysis(
     # identifiers of observations that will become index across rows.
     if (
         (index_rows_source is not None) and
-        (index_rows_source in (table.columns.tolist()))
+        (index_rows_source in (table.columns.tolist())) and
+        (explicate_indices)
     ):
         # Remove rows from table for observations with redundancy in identifiers
         # for indices across columns and rows of the table.
@@ -3765,6 +3776,43 @@ def prepare_table_features_observations_for_analysis(
             index_rows_product=index_rows_product,
             report=None,
         )
+    elif (
+        (index_rows_source is not None) and
+        (index_rows_source in (table.columns.tolist()))
+    ):
+        # Organize indices.
+        table.reset_index(
+            level=None,
+            inplace=True,
+            drop=True, # remove index; do not move to regular columns
+        )
+        table.set_index(
+            index_rows_source,
+            append=False,
+            drop=True,
+            inplace=True,
+        )
+        # Standardize names of indices.
+        table = translate_names_table_indices_columns_rows(
+            table=table,
+            index_columns_product=index_columns_product,
+            index_rows_source=index_rows_source,
+            index_rows_product=index_rows_product,
+            report=None,
+        )
+        table.reset_index(
+            level=None,
+            inplace=True,
+            drop=False, # remove index; do not move to regular columns
+        )
+        # Create index across rows from column that already exists in table.
+        table = explicate_table_indices_columns_rows_single_level(
+            table=table,
+            index_columns=index_columns_product,
+            index_rows=index_rows_product,
+            explicate_indices=explicate_indices,
+            report=False,
+        )
     else:
         # Name generic index in table.
         table.reset_index(
@@ -3773,13 +3821,18 @@ def prepare_table_features_observations_for_analysis(
             drop=True, # remove index; do not move to regular columns
         )
         table.index.set_names(index_rows_product, inplace=True)
-        # Standardize names of indices.
-        table = translate_names_table_indices_columns_rows(
+        table.reset_index(
+            level=None,
+            inplace=True,
+            drop=False, # remove index; do not move to regular columns
+        )
+        # Create index across rows from column that already exists in table.
+        table = explicate_table_indices_columns_rows_single_level(
             table=table,
-            index_columns_product=index_columns_product,
-            index_rows_source=index_rows_product,
-            index_rows_product=index_rows_product,
-            report=None,
+            index_columns=index_columns_product,
+            index_rows=index_rows_product,
+            explicate_indices=explicate_indices,
+            report=False,
         )
         pass
 
@@ -3798,7 +3851,6 @@ def prepare_table_features_observations_for_analysis(
         pass
     # Return information.
     return table
-
 
 
 ##########

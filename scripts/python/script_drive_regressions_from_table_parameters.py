@@ -582,6 +582,10 @@ def organize_summary_table_regressions(
 # Control procedure within branch for parallelization.
 
 
+# TODO: TCW; 10 April 2025
+# Switch to use the new function in "regression.py" that organizes information
+# about regression analysis in a text summary
+
 def control_procedure_part_branch(
     execution=None,
     sequence=None,

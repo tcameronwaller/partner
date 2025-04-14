@@ -313,20 +313,22 @@ def manage_procedure_van_dongen(
         "placebo_at_time_point_1",
         "measurement",
     ]
-    table = preg.organize_table_data(
+    table = porg.prepare_table_features_observations_for_analysis(
         table=table_source,
         selection_observations=selection_observations,
         features_relevant=features_relevant,
-        features_regression=features_relevant,
+        features_essential=features_relevant,
         features_continuity_scale=list(),
         index_columns_source="features",
         index_columns_product="features",
         index_rows_source="observations",
         index_rows_product="observations",
+        remove_missing=True,
+        remove_redundancy=True,
         adjust_scale=False,
-        method_scale=None, # 'z_score' or 'unit_range'
+        method_scale=None, # "z_score" or "unit_range"
         explicate_indices=True,
-        report=report,
+        report=False,
     )
 
     # Two-Way ANOVA with Repeated Measures.
