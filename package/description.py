@@ -1860,7 +1860,7 @@ def describe_compare_quantitative_feature_by_observations_groups(
             (ttest_one is not None) and
             (group in ttest_one["groups"])
         ):
-            record[ttest_one_name] = pvalue_ttest_one
+            record[ttest_one_name] = round(pvalue_ttest_one, digits_round)
         else:
             record[ttest_one_name] = float("nan")
             pass
@@ -1868,7 +1868,7 @@ def describe_compare_quantitative_feature_by_observations_groups(
             (ttest_two is not None) and
             (group in ttest_two["groups"])
         ):
-            record[ttest_two_name] = pvalue_ttest_two
+            record[ttest_two_name] = round(pvalue_ttest_two, digits_round)
         else:
             record[ttest_two_name] = float("nan")
             pass
