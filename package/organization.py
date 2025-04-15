@@ -1436,8 +1436,8 @@ def extract_array_values_from_column_by_separate_tables_rows(
         column_feature (str): name of column in original source table for a
             feature on a quantitative, continuous, interval, or ratio scale of
             measurement
-        groups_sequence (list<str>): unique names of groups corresponding to
-            the separate tables in their proper sequence
+        groups_sequence (list<str>): unique names of groups of observations,
+            corresponding to the separate tables in their proper sequence
         report (bool): whether to print reports
 
     raises:

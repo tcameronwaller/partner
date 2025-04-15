@@ -1986,8 +1986,191 @@ def describe_compare_quantitative_feature_by_observations_groups(
     return pail
 
 
-# describe_features_from_columns_by_separate_tables_rows()
-# extract_array_values_from_column_by_separate_tables_rows()
+def describe_features_from_columns_by_separate_tables_rows(
+    entries_tables=None,
+    groups_sequence=None,
+    index_columns=None,
+    index_rows=None,
+    index_features=None,
+    columns_features=None,
+    translations_feature=None,
+    key_group=None,
+    threshold_observations=None,
+    digits_round=None,
+    ttest_one=None,
+    ttest_two=None,
+    report=None,
+):
+    """
+    Describe values corresponding to columns for features within groups of rows
+    for observations.
+
+    ----------
+    Format of source table (name: "table_source")
+    ----------
+    Format of source table is in wide format with features across columns and
+    observations across rows. A special column gives identifiers corresponding
+    to each observation across rows. Another special column provides names
+    of categorical groups of observations, with multiple observations in each
+    group. For versatility, this table does not have explicitly defined indices
+    across columns or rows. Values for observations of features are on a
+    quantitative, continuous, interval or ratio scale of measurement.
+    ----------
+    observation     group     feature_1 feature_2 feature_3 feature_4 feature_5
+    observation_1   group_1   0.001     0.001     0.001     0.001     0.001
+    observation_2   group_1   0.001     0.001     0.001     0.001     0.001
+    observation_3   group_1   0.001     0.001     0.001     0.001     0.001
+    observation_4   group_2   0.001     0.001     0.001     0.001     0.001
+    observation_5   group_2   0.001     0.001     0.001     0.001     0.001
+    observation_6   group_2   0.001     0.001     0.001     0.001     0.001
+    ----------
+
+    ----------
+    Format of product table (name: "table_product")
+    ----------
+    Format of product table is in partial long format with summary statistics
+    and measures across columns and features across rows. A special column
+    gives identifiers corresponding to each feature across rows. Another
+    special column provides names of categorical groups of observations. For
+    versatility, this table does not have explicity defined indices across
+    columns or rows.
+    ----------
+    detail    group   mean standard_error standard_deviation median interqua...
+    feature
+    feature_1 group_1 0.01 0.001          0.001              0.015  0.5
+    feature_1 group_2 0.01 0.001          0.001              0.015  0.5
+    feature_1 group_3 0.01 0.001          0.001              0.015  0.5
+    feature_1 group_4 0.01 0.001          0.001              0.015  0.5
+    feature_2 group_1 0.01 0.001          0.001              0.015  0.5
+    feature_2 group_2 0.01 0.001          0.001              0.015  0.5
+    feature_2 group_3 0.01 0.001          0.001              0.015  0.5
+    feature_2 group_4 0.01 0.001          0.001              0.015  0.5
+    ----------
+
+    Review; TCW; 15 April 2025
+
+    arguments:
+        entries_tables (dict<object>): entries with names as keys and as
+            values, Pandas data-frame tables with features across columns and
+            observations across rows
+        groups_sequence (list<str>): unique names of groups of observations
+            corresponding to the original sequence of instances of parameters
+        index_columns (str): name for index corresponding to features across
+            columns in the original source table
+        index_rows (str): name for index corresponding to observations across
+            rows in the original source table
+        index_features (str): name for index corresponding to features across
+            rows in the novel, product table
+        columns_features (list<str>): names of columns in original source
+            table for a selection of features with values on a quantitative,
+            continuous, interval or ratio scale of measurement
+        translations_feature (dict<str>): translations for names of features
+        key_group (str): key of entry corresponding to name of group
+        threshold_observations (int): minimal count of observations for which
+            to calculate summary statistics
+        digits_round (int): count of digits to right of decimal to which to
+            round measures
+        ttest_one (dict): collection of parameters for T-test
+            name (str): name for a column in the summary table that reports the
+                p-value of the T-test
+            groups (list<str>): names of groups of observations between which
+                to perform a T-test, only use names of two groups
+            equal_variances (bool): whether to assume that values in both groups
+                have equal variances
+            independent_groups (bool): whether the groups are independent
+                ('True'), or whether the groups are paired, related, or
+                otherwise dependent ('False')
+            hypothesis_alternative (str): description of the alternative
+                hypothesis, either a 'one-sided' or 'one-tailed' analysis in
+                which only 'less' or 'greater' is relevant or a 'two-sided' or
+                'two-tailed' analysis in which both lesser and greater are
+                relevant
+        ttest_two (dict): collection of parameters for T-test
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    # Copy information.
+    entries_tables = copy.deepcopy(entries_tables)
+    groups_sequence = copy.deepcopy(groups_sequence)
+    columns_features = copy.deepcopy(columns_features)
+    translations_feature = copy.deepcopy(translations_feature)
+    ttest_one = copy.deepcopy(ttest_one)
+    ttest_two = copy.deepcopy(ttest_two)
+
+    # Collect records of information, which will become rows in table.
+    records = list()
+    # Iterate on features, apply operations, and collect information.
+    for column_feature in columns_features:
+        # Extract values from table for current feature across groups of
+        # observations.
+        pail_extract = (
+            porg.extract_array_values_from_column_by_separate_tables_rows(
+                entries_tables=entries_tables,
+                column_feature=column_feature,
+                groups_sequence=groups_sequence,
+                report=False,
+        ))
+        # Calculate and organize descriptive statistics for the feature across
+        # and getween groups of observations.
+        groups_values_nonmissing = pail_extract["groups_values_nonmissing"]
+        pail_feature = (
+            describe_compare_quantitative_feature_by_observations_groups(
+                name_feature=column_feature,
+                translations_feature=translations_feature,
+                key_feature=index_features,
+                groups_sequence=groups_sequence,
+                groups_values=pail_extract["groups_values"],
+                groups_values_nonmissing=groups_values_nonmissing,
+                key_group=key_group,
+                ttest_one=ttest_one,
+                ttest_two=ttest_two,
+                threshold_observations=threshold_observations,
+                digits_round=digits_round,
+                report=report,
+        ))
+        # Collect information.
+        records.extend(pail_feature["records"])
+        pass
+
+    # Organize information in a table.
+    table_product = pandas.DataFrame(data=records)
+    # Specify sequence of columns within table.
+    columns_sequence = [
+        index_features,
+        "feature_translation",
+        key_group,
+        "count_observations",
+        "count_observations_nonmissing",
+        "percentage_observations_nonmissing",
+    ]
+    columns_sequence_extra = (
+        define_sequence_columns_describe_feature_by_groups()
+    )
+    columns_sequence.extend(columns_sequence_extra)
+    columns_sequence.extend(pail_feature["keys_special"])
+    # Filter and sort columns within table.
+    table_product = porg.filter_sort_table_columns(
+        table=table_product,
+        columns_sequence=columns_sequence,
+        report=False,
+    )
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("module: partner.description.py")
+        function = str(
+            "describe_features_from_columns_by_separate_tables_rows()"
+        )
+        print("function: " + function)
+        putly.print_terminal_partition(level=4)
+    # Return information.
+    return table_product
 
 
 def describe_features_from_table_columns_by_groups_rows(
@@ -1999,6 +2182,7 @@ def describe_features_from_table_columns_by_groups_rows(
     groups_sequence=None,
     columns_features=None,
     translations_feature=None,
+    key_group=None,
     threshold_observations=None,
     digits_round=None,
     ttest_one=None,
@@ -2066,12 +2250,12 @@ def describe_features_from_table_columns_by_groups_rows(
         column_group (str): name of column in original source table that
             designates separate groups of observations across rows
         groups_sequence (list<str>): unique names of groups of observations
-            corresponding to the separate tables in the original sequence
-            of instances of parameters
+            corresponding to the original sequence of instances of parameters
         columns_features (list<str>): names of columns in original source
             table for a selection of features with values on a quantitative,
             continuous, interval or ratio scale of measurement
         translations_feature (dict<str>): translations for names of features
+        key_group (str): key of entry corresponding to name of group
         threshold_observations (int): minimal count of observations for which
             to calculate summary statistics
         digits_round (int): count of digits to right of decimal to which to
@@ -2133,7 +2317,7 @@ def describe_features_from_table_columns_by_groups_rows(
                 groups_sequence=groups_sequence,
                 groups_values=pail_extract["groups_values"],
                 groups_values_nonmissing=groups_values_nonmissing,
-                key_group=column_group,
+                key_group=key_group,
                 ttest_one=ttest_one,
                 ttest_two=ttest_two,
                 threshold_observations=threshold_observations,
@@ -2150,7 +2334,7 @@ def describe_features_from_table_columns_by_groups_rows(
     columns_sequence = [
         index_features,
         "feature_translation",
-        column_group,
+        key_group,
         "count_observations",
         "count_observations_nonmissing",
         "percentage_observations_nonmissing",
@@ -2171,355 +2355,7 @@ def describe_features_from_table_columns_by_groups_rows(
         putly.print_terminal_partition(level=3)
         print("module: partner.description.py")
         function = str(
-            "describe_table_features_by_groups" +
-            "()"
-        )
-        print("function: " + function)
-        putly.print_terminal_partition(level=4)
-    # Return information.
-    return table_product
-
-
-
-
-
-
-
-# TODO: TCW; 15 April 2025; Material for copy and adaptation
-def describe_table_features_by_groups(
-    table=None,
-    index_columns=None,
-    index_rows=None,
-    index_features=None,
-    column_group=None,
-    columns_features=None,
-    translations_feature=None,
-    threshold_observations=None,
-    digits_round=None,
-    ttest_one=None,
-    ttest_two=None,
-    report=None,
-):
-    """
-    Describe values corresponding to columns for features within groups of rows
-    for observations.
-
-    ----------
-    Format of source table (name: "table_source")
-    ----------
-    Format of source table is in wide format with features across columns and
-    observations across rows. A special column gives identifiers corresponding
-    to each observation across rows. Another special column provides names
-    of categorical groups of observations, with multiple observations in each
-    group. For versatility, this table does not have explicitly defined indices
-    across columns or rows. Values for observations of features are on a
-    quantitative, continuous, interval or ratio scale of measurement.
-    ----------
-    observation     group     feature_1 feature_2 feature_3 feature_4 feature_5
-    observation_1   group_1   0.001     0.001     0.001     0.001     0.001
-    observation_2   group_1   0.001     0.001     0.001     0.001     0.001
-    observation_3   group_1   0.001     0.001     0.001     0.001     0.001
-    observation_4   group_2   0.001     0.001     0.001     0.001     0.001
-    observation_5   group_2   0.001     0.001     0.001     0.001     0.001
-    observation_6   group_2   0.001     0.001     0.001     0.001     0.001
-    ----------
-
-    ----------
-    Format of product table (name: "table_product")
-    ----------
-    Format of product table is in partial long format with summary statistics
-    and measures across columns and features across rows. A special column
-    gives identifiers corresponding to each feature across rows. Another
-    special column provides names of categorical groups of observations. For
-    versatility, this table does not have explicity defined indices across
-    columns or rows.
-    ----------
-    detail    group   mean standard_error standard_deviation median interqua...
-    feature
-    feature_1 group_1 0.01 0.001          0.001              0.015  0.5
-    feature_1 group_2 0.01 0.001          0.001              0.015  0.5
-    feature_1 group_3 0.01 0.001          0.001              0.015  0.5
-    feature_1 group_4 0.01 0.001          0.001              0.015  0.5
-    feature_2 group_1 0.01 0.001          0.001              0.015  0.5
-    feature_2 group_2 0.01 0.001          0.001              0.015  0.5
-    feature_2 group_3 0.01 0.001          0.001              0.015  0.5
-    feature_2 group_4 0.01 0.001          0.001              0.015  0.5
-    ----------
-
-    Review; TCW; 14 April 2025
-
-    arguments:
-        table (object): Pandas data-frame table of features across columns and
-            observations across rows with values on a quantitative, continuous,
-            interval or ratio scale of measurement
-        index_columns (str): name for index corresponding to features across
-            columns in the original source table
-        index_rows (str): name for index corresponding to observations across
-            rows in the original source table
-        index_features (str): name for index corresponding to features across
-            rows in the novel, product table
-        column_group (str): name of column in original source table that
-            designates groups of observations across rows
-        columns_features (list<str>): names of columns in original source
-            table for a selection of features on a quantitative, continuous,
-            interval or ratio scale of measurement
-        translations_feature (dict<str>): translations for names of features
-        threshold_observations (int): minimal count of observations for which
-            to calculate summary statistics
-        digits_round (int): count of digits to right of decimal to which to
-            round measures
-        ttest_one (dict): collection of parameters for T-test
-            name (str): name for a column in the summary table that reports the
-                p-value of the T-test
-            groups (list<str>): names of groups of observations between which
-                to perform a T-test, only use names of two groups
-            equal_variances (bool): whether to assume that values in both groups
-                have equal variances
-            independent_groups (bool): whether the groups are independent
-                ('True'), or whether the groups are paired, related, or
-                otherwise dependent ('False')
-            hypothesis_alternative (str): description of the alternative
-                hypothesis, either a 'one-sided' or 'one-tailed' analysis in
-                which only 'less' or 'greater' is relevant or a 'two-sided' or
-                'two-tailed' analysis in which both lesser and greater are
-                relevant
-        ttest_two (dict): collection of parameters for T-test
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (object): Pandas data-frame table
-
-    """
-
-    # Copy information.
-    table_source = table.copy(deep=True)
-    columns_features = copy.deepcopy(columns_features)
-    translations_feature = copy.deepcopy(translations_feature)
-    ttest_one = copy.deepcopy(ttest_one)
-    ttest_two = copy.deepcopy(ttest_two)
-
-    # Collect records of information, which will become rows in table.
-    records = list()
-    # Iterate on features, apply operations, and collect information.
-    for column_feature in columns_features:
-        # Extract values from table for current feature across groups of
-        # observations.
-        pail_extract = (
-            porg.extract_array_values_from_table_column_by_groups_rows(
-                table=table_source,
-                column_group=column_group,
-                column_feature=column_feature,
-                report=False,
-        ))
-        # T-test one.
-        groups_values = copy.deepcopy(pail_extract["groups_values"])
-        if (
-            (ttest_one is not None) and
-            (len(str(ttest_one["name"]).strip()) > 0) and
-            (len(ttest_one["groups"]) > 1) and
-            (ttest_one["groups"][0] in groups_values.keys()) and
-            (ttest_one["groups"][1] in groups_values.keys())
-        ):
-            ttest_one_name = str(ttest_one["name"]).strip()
-            values_group_one = (
-                groups_values[ttest_one["groups"][0]]
-            )
-            values_group_two = (
-                groups_values[ttest_one["groups"][1]]
-            )
-            pvalue_ttest_one = perform_t_test(
-                values_group_one=values_group_one,
-                values_group_two=values_group_two,
-                equal_variances=ttest_one["equal_variances"],
-                independent_groups=ttest_one["independent_groups"],
-                hypothesis_alternative=ttest_one["hypothesis_alternative"],
-            )
-        else:
-            ttest_one_name = str("pvalue_ttest_one")
-            pvalue_ttest_one = float("nan")
-            pass
-        # T-test two.
-        if (
-            (ttest_two is not None) and
-            (len(str(ttest_two["name"]).strip()) > 0) and
-            (len(ttest_two["groups"]) > 1) and
-            (ttest_two["groups"][0] in groups_values) and
-            (ttest_two["groups"][1] in groups_values)
-        ):
-            ttest_two_name = str(ttest_two["name"]).strip()
-            values_group_one = (
-                groups_values[ttest_two["groups"][0]]
-            )
-            values_group_two = (
-                groups_values[ttest_two["groups"][1]]
-            )
-            pvalue_ttest_two = perform_t_test(
-                values_group_one=values_group_one,
-                values_group_two=values_group_two,
-                equal_variances=ttest_two["equal_variances"],
-                independent_groups=ttest_two["independent_groups"],
-                hypothesis_alternative=ttest_two["hypothesis_alternative"],
-            )
-        else:
-            ttest_two_name = str("pvalue_ttest_two")
-            pvalue_ttest_two = float("nan")
-            pass
-        # Iterate on groups.
-        for group in pail_extract["groups_sequence"]:
-            # Collect information.
-            record = dict()
-            record[index_features] = column_feature
-            if (
-                (translations_feature is not None) and
-                (column_feature in translations_feature.keys())
-            ):
-                record["feature_translation"] = (
-                    translations_feature[column_feature]
-                )
-            else:
-                record["feature_translation"] = column_feature
-                pass
-            record[column_group] = group
-            # T-test.
-            if (
-                (ttest_one is not None) and
-                (group in ttest_one["groups"])
-            ):
-                record[ttest_one_name] = pvalue_ttest_one
-            else:
-                record[ttest_one_name] = float("nan")
-                pass
-            if (
-                (ttest_two is not None) and
-                (group in ttest_two["groups"])
-            ):
-                record[ttest_two_name] = pvalue_ttest_two
-            else:
-                record[ttest_two_name] = float("nan")
-                pass
-            # Count.
-            record["count_observations"] = int(len(
-                pail_extract["groups_values"][group]
-            ))
-            record["count_observations_nonmissing"] = int(len(
-                pail_extract["groups_values_nonmissing"][group]
-            ))
-            # Percentage.
-            portion = record["count_observations_nonmissing"]
-            total = record["count_observations"]
-            if (total > 0):
-                record["percentage_observations_nonmissing"] = round(float(
-                    ((portion / total) * 100)), 2
-                )
-            else:
-                record["percentage_observations_nonmissing"] = float("nan")
-                pass
-            # Determine whether there are adequate observations.
-            count = record["count_observations_nonmissing"]
-            if (count >= threshold_observations):
-                # Range.
-                record["minimum"] = round(numpy.nanmin(
-                    pail_extract["groups_values"][group]
-                ), digits_round)
-                record["maximum"] = round(numpy.nanmax(
-                    pail_extract["groups_values"][group]
-                ), digits_round)
-                # Center.
-                record["mean"] = round(numpy.nanmean(
-                    pail_extract["groups_values"][group]
-                ), digits_round)
-                record["median"] = round(numpy.nanmedian(
-                    pail_extract["groups_values"][group]
-                ), digits_round)
-                # Spread, variance.
-                record["standard_error"] = round(scipy.stats.sem(
-                    pail_extract["groups_values"][group],
-                    ddof=1, # divisor is (n - 1) for sample standard deviation
-                    nan_policy="omit", # ignore missing values in calculation
-                ), digits_round)
-                record["standard_deviation"] = round(numpy.nanstd(
-                    pail_extract["groups_values"][group],
-                    ddof=1, # divisor is (n - 1) for sample standard deviation
-                ), digits_round)
-                if ((record["mean"] > 0.0) or (record["mean"] < 0.0)):
-                    record["coefficient_variation"] = round(float(
-                        record["standard_deviation"] / record["mean"]
-                    ), digits_round)
-                else:
-                    record["coefficient_variation"] = float("nan")
-                    pass
-                record["interquartile"] = round(scipy.stats.iqr(
-                    pail_extract["groups_values"][group],
-                    rng=(25, 75),
-                    nan_policy="omit", # ignore missing values in calculation.
-                ), digits_round)
-                pail_95 = calculate_confidence_interval_range(
-                    confidence=0.95,
-                    standard_error=record["standard_error"],
-                    estimate=record["mean"],
-                )
-                record["range_95_low"] = round(
-                    pail_95["minimum"], digits_round
-                )
-                record["range_95_high"] = round(
-                    pail_95["maximum"], digits_round
-                )
-                pail_99 = calculate_confidence_interval_range(
-                    confidence=0.99,
-                    standard_error=record["standard_error"],
-                    estimate=record["mean"],
-                )
-                record["range_99_low"] = round(
-                    pail_99["minimum"], digits_round
-                )
-                record["range_99_high"] = round(
-                    pail_99["maximum"], digits_round
-                )
-            else:
-                # Fill missing values.
-                columns_sequence = (
-                    define_sequence_columns_describe_feature_by_groups()
-                )
-                for column in columns_sequence:
-                    record[column] = float("nan")
-                    pass
-                pass
-            # Collect information.
-            records.append(record)
-            pass
-        pass
-    # Organize information in a table.
-    table_product = pandas.DataFrame(data=records)
-    # Specify sequence of columns within table.
-    columns_sequence = [
-        index_features,
-        "feature_translation",
-        column_group,
-        "count_observations",
-        "count_observations_nonmissing",
-        "percentage_observations_nonmissing",
-    ]
-    columns_sequence_extra = (
-        define_sequence_columns_describe_feature_by_groups()
-    )
-    columns_sequence.extend(columns_sequence_extra)
-    columns_sequence.append(ttest_one_name)
-    columns_sequence.append(ttest_two_name)
-    # Filter and sort columns within table.
-    table_product = porg.filter_sort_table_columns(
-        table=table_product,
-        columns_sequence=columns_sequence,
-        report=False,
-    )
-    # Report.
-    if report:
-        putly.print_terminal_partition(level=3)
-        print("module: partner.description.py")
-        function = str(
-            "describe_table_features_by_groups" +
-            "()"
+            "describe_features_from_table_columns_by_groups_rows()"
         )
         print("function: " + function)
         putly.print_terminal_partition(level=4)
