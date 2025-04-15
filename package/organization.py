@@ -525,10 +525,124 @@ def transfer_table_rows_attributes_reference(
     return table_main_attribute
 
 
+def determine_fill_table_groups_rows_with_replicates(
+    table=None,
+    index_rows=None,
+    column_group=None,
+    groups_rows=None,
+    report=None,
+):
+    """
+    Determine and fill names of groups to which each row in a table belongs.
+    If any row of the table belongs to multiple groups, then this procedure
+    replicates that row for each group to which it belongs.
+
+    For versatility and convenience, this table does not have explicitly named
+    indices across columns or rows.
+
+    Review; TCW; 14 April 2025
+
+    arguments:
+        table (object): Pandas data-frame table
+        index_rows (str): name for index across rows, which corresponds to a
+            column in the original source table
+        column_group (str): name of new column in product table for names of
+            groups
+        groups_rows (dict<list<str>>): names of groups and identifiers of rows
+            that belong to each of these groups
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    # Define subordinate functions for internal use.
+    def determine_row_groups(identifier=None, groups_rows=None):
+        groups = list()
+        for key in groups_rows.keys():
+            if identifier in groups_rows[key]:
+                groups.append(key)
+                pass
+            pass
+        groups_text = ";".join(groups)
+        return groups_text
+
+    # Copy information.
+    table = table.copy(deep=True)
+    groups_rows = copy.deepcopy(groups_rows)
+    columns_source = copy.deepcopy(table.columns.to_list())
+
+    # Determine to which categorical group each sample belongs.
+    table[column_group] = table.apply(
+        lambda row: determine_row_groups(
+            identifier=row[index_rows],
+            groups_rows=groups_rows,
+        ),
+        axis="columns", # apply function to each row
+    )
+
+    # Iterate across records for individual rows in table.
+    # Replicate records for individual rows as necessary.
+    records_source = table.to_dict("records")
+    records_product = list()
+    for record_source in records_source:
+        # Determine whether the record belongs to multiple groups.
+        if (";" in str(record_source[column_group])):
+            groups = record_source[column_group].strip().split(sep=";")
+            groups_unique = putly.collect_unique_elements(
+                elements=groups,
+            )
+            if (len(groups_unique) > 1):
+                for group in groups_unique:
+                    # Copy information.
+                    record_product = copy.deepcopy(record_source)
+                    record_product[column_group] = group
+                    # Collect information.
+                    records_product.append(record_product)
+                    pass
+            else:
+                # Copy information.
+                record_product = copy.deepcopy(record_source)
+                # Collect information.
+                records_product.append(record_product)
+                pass
+            pass
+        else:
+            # Copy information.
+            record_product = copy.deepcopy(record_source)
+            # Collect information.
+            records_product.append(record_product)
+        pass
+
+    # Organize table.
+    table_groups = pandas.DataFrame(data=records_product)
+    # Filter and sort columns in table.
+    columns_sequence = copy.deepcopy(columns_source)
+    columns_sequence.remove(index_rows)
+    columns_sequence.insert(0, column_group)
+    columns_sequence.insert(0, index_rows)
+    table_groups = filter_sort_table_columns(
+        table=table_groups,
+        columns_sequence=columns_sequence,
+        report=report,
+    )
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("module: partner.organization.py")
+        print("function: determine_fill_table_groups_rows_with_replicates()")
+        putly.print_terminal_partition(level=5)
+    # Return information.
+    return table_groups
+
+
 def determine_fill_table_groups_rows(
     table=None,
-    column_group=None,
     index_rows=None,
+    column_group=None,
     groups_rows=None,
     report=None,
 ):
@@ -538,14 +652,14 @@ def determine_fill_table_groups_rows(
     For versatility and convenience, this table does not have explicitly named
     indices across columns or rows.
 
-    Review; TCW; 15 October 2024
+    Review; TCW; 14 April 2025
 
     arguments:
         table (object): Pandas data-frame table
-        column_group (str): name of new column in product table for names of
-            groups
         index_rows (str): name for index across rows, which corresponds to a
             column in the original source table
+        column_group (str): name of new column in product table for names of
+            groups
         groups_rows (dict<list<str>>): names of groups and identifiers of rows
             that belong to each of these groups
         report (bool): whether to print reports
@@ -1103,7 +1217,11 @@ def extract_array_values_from_table_column_by_groups_rows(
     """
     Dependency:
     This function is a dependency of the functions below.
-    partner.description.describe_table_features_by_groups()
+    partner.description.describe_features_from_table_columns_by_groups_rows()
+
+    This function is an alternative complement to the function below.
+    partner.organization.
+    extract_array_values_from_column_by_separate_tables_rows()
 
     Extract to a Numpy array the values from a single column of a Pandas
     data-frame table and store these within entries of a Python dictionary
@@ -1145,13 +1263,17 @@ def extract_array_values_from_table_column_by_groups_rows(
 
     returns:
         (dict): collection of information
-            groups_sequence (list<str>): names of groups in original sequence
-                as extracted initially from source table
+            groups_sequence (list<str>): unique names of groups in their
+                original sequence across rows of source table and as extracted
+                initially
             names_groups (list<str>): names of groups in sort order to match
                 original sequence from source table
-            values_groups (list<array>): values for feature from observations
-                in groups in sort order to match original sequence from source
-                table
+            values_groups (list<array>): values for feature from groups of
+                observations in sort order to match original sequence from
+                source table
+            values_nonmissing_groups (list<array>): nonmissing values for
+                feature from groups of observations in sort order to match
+                original sequence from source table
             groups_values (dict<array>): values for feature from observations
                 in groups
             groups_values_nonmissing (dict<array>): nonmissing values for
@@ -1214,8 +1336,10 @@ def extract_array_values_from_table_column_by_groups_rows(
         )
         # Collect information.
         names_groups_collection.append(name_group)
-        values_groups_collection.append(values_group)
-        values_nonmissing_groups_collection.append(values_nonmissing_group)
+        values_groups_collection.append(numpy.copy(values_group))
+        values_nonmissing_groups_collection.append(numpy.copy(
+            values_nonmissing_group
+        ))
         pass
 
     # Sort information for groups and values.
@@ -1261,6 +1385,134 @@ def extract_array_values_from_table_column_by_groups_rows(
         putly.print_terminal_partition(level=5)
     # Return information.
     return pail
+
+
+def extract_array_values_from_column_by_separate_tables_rows(
+    entries_tables=None,
+    column_feature=None,
+    groups_sequence=None,
+    report=None,
+):
+    """
+    Dependency:
+    This function is a dependency of the functions below.
+    partner.description.
+    describe_features_from_columns_by_separate_tables_rows()
+
+    This function is an alternative complement to the function below.
+    partner.organization.
+    extract_array_values_from_table_column_by_groups_rows()
+
+    Extract to a Numpy array the values from a single column of a Pandas
+    data-frame table and store these within entries of a Python dictionary
+    corresponding to groups of rows.
+
+    ----------
+    Format of source tables (name: 'table')
+    ----------
+    Format of product, partial data tables organized within entries of a
+    dictionary is in wide format with features across columns and values
+    corresponding to their observations across rows. A special
+    header row gives identifiers or names corresponding to each feature across
+    columns, and a special column gives identifiers or names corresponding to
+    each observation across rows. The table might optionally have explicitly
+    named indices across columns and rows.
+    ----------
+    features        feature_1 feature_2 feature_3 feature_4 feature_5 ...
+    observations
+    observation_1   0.001     0.001     0.001     0.001     0.001     ...
+    observation_2   0.001     0.001     0.001     0.001     0.001     ...
+    observation_3   0.001     0.001     0.001     0.001     0.001     ...
+    observation_4   0.001     0.001     0.001     0.001     0.001     ...
+    observation_5   0.001     0.001     0.001     0.001     0.001     ...
+    ----------
+
+    Review: TCW; 15 April 2025
+
+    arguments:
+        entries_tables (dict<object>): entries with names as keys and as
+            values, Pandas data-frame tables with features across columns and
+            observations across rows
+        column_feature (str): name of column in original source table for a
+            feature on a quantitative, continuous, interval, or ratio scale of
+            measurement
+        groups_sequence (list<str>): unique names of groups corresponding to
+            the separate tables in their proper sequence
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict): collection of information
+            groups_sequence (list<str>): unique names of groups corresponding
+                to the separate tables in their proper sequence
+            names_groups (list<str>): names of groups in sort order to match
+                original sequence from source table
+            values_groups (list<array>): values for feature from groups of
+                observations in sort order to match original sequence from
+                source table
+            values_nonmissing_groups (list<array>): nonmissing values for
+                feature from groups of observations in sort order to match
+                original sequence from source table
+            groups_values (dict<array>): values for feature from observations
+                in groups
+            groups_values_nonmissing (dict<array>): nonmissing values for
+                feature from observations in groups
+
+    """
+
+    # Copy information.
+    entries_tables = copy.deepcopy(entries_tables)
+    groups_sequence = copy.deepcopy(groups_sequence)
+
+    # Collect information.
+    pail = dict()
+    pail["groups_sequence"] = copy.deepcopy(groups_sequence)
+    pail["names_groups"] = list()
+    pail["values_groups"] = list()
+    pail["values_nonmissing_groups"] = list()
+    pail["groups_values"] = dict()
+    pail["groups_values_nonmissing"] = dict()
+
+    # Iterate on separate tables, apply operations, and collect information
+    # from each.
+    for name in groups_sequence:
+        # Copy information.
+        table_group = entries_tables[name].copy(deep=True)
+        # Extract information.
+        values_group = table_group[column_feature].to_numpy(
+            dtype="float64",
+            na_value=numpy.nan,
+            copy=True,
+        )
+        values_nonmissing_group = numpy.copy(
+            values_group[~numpy.isnan(values_group)]
+        )
+        # Collect information.
+        pail["names_groups"].append(name)
+        pail["values_groups"].append(numpy.copy(values_group))
+        pail["values_nonmissing_groups"].append(numpy.copy(
+            values_nonmissing_group
+        ))
+        pail["groups_values"][name] = numpy.copy(values_group)
+        pail["groups_values_nonmissing"][name] = numpy.copy(
+            values_nonmissing_group
+        )
+        pass
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("module: partner.organization.py")
+        function = str(
+            "extract_array_values_from_column_by_separate_tables_rows()"
+        )
+        print("function: " + function)
+        putly.print_terminal_partition(level=5)
+    # Return information.
+    return pail
+
+
 
 
 ##########

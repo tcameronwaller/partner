@@ -216,7 +216,7 @@ def read_source_table_parameters(
         )
         if (
             (row["groups_random"] is not None) and
-            (len(str(row["groups_random"])) > 0) and
+            (len(str(row["groups_random"]).strip()) > 0) and
             (str(row["groups_random"]).strip().lower() != "none")
         ):
             record["groups_random"] = str(row["groups_random"]).strip()
