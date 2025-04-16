@@ -1678,6 +1678,7 @@ def describe_compare_quantitative_feature_by_observations_groups(
     key_group=None,
     ttest_one=None,
     ttest_two=None,
+    ttest_three=None,
     threshold_observations=None,
     digits_round=None,
     report=None,
@@ -1759,6 +1760,7 @@ def describe_compare_quantitative_feature_by_observations_groups(
                 'two-tailed' analysis in which both lesser and greater are
                 relevant
         ttest_two (dict): collection of parameters for T-test
+        ttest_three (dict): collection of parameters for T-test
         threshold_observations (int): minimal count of observations for which
             to calculate summary statistics
         digits_round (int): count of digits to right of decimal to which to
@@ -1781,58 +1783,42 @@ def describe_compare_quantitative_feature_by_observations_groups(
     groups_values_nonmissing = copy.deepcopy(groups_values_nonmissing)
     ttest_one = copy.deepcopy(ttest_one)
     ttest_two = copy.deepcopy(ttest_two)
+    ttest_three = copy.deepcopy(ttest_three)
 
-    # T-test one.
-    if (
-        (ttest_one is not None) and
-        (len(str(ttest_one["name"]).strip()) > 0) and
-        (len(ttest_one["groups"]) > 1) and
-        (ttest_one["groups"][0] in groups_values.keys()) and
-        (ttest_one["groups"][1] in groups_values.keys())
-    ):
-        ttest_one_name = str(ttest_one["name"]).strip()
-        values_group_one = (
-            groups_values[ttest_one["groups"][0]]
-        )
-        values_group_two = (
-            groups_values[ttest_one["groups"][1]]
-        )
-        pvalue_ttest_one = perform_t_test(
-            values_group_one=values_group_one,
-            values_group_two=values_group_two,
-            equal_variances=ttest_one["equal_variances"],
-            independent_groups=ttest_one["independent_groups"],
-            hypothesis_alternative=ttest_one["hypothesis_alternative"],
-        )
-    else:
-        ttest_one_name = str("pvalue_ttest_one")
-        pvalue_ttest_one = float("nan")
-        pass
-    # T-test two.
-    if (
-        (ttest_two is not None) and
-        (len(str(ttest_two["name"]).strip()) > 0) and
-        (len(ttest_two["groups"]) > 1) and
-        (ttest_two["groups"][0] in groups_values) and
-        (ttest_two["groups"][1] in groups_values)
-    ):
-        ttest_two_name = str(ttest_two["name"]).strip()
-        values_group_one = (
-            groups_values[ttest_two["groups"][0]]
-        )
-        values_group_two = (
-            groups_values[ttest_two["groups"][1]]
-        )
-        pvalue_ttest_two = perform_t_test(
-            values_group_one=values_group_one,
-            values_group_two=values_group_two,
-            equal_variances=ttest_two["equal_variances"],
-            independent_groups=ttest_two["independent_groups"],
-            hypothesis_alternative=ttest_two["hypothesis_alternative"],
-        )
-    else:
-        ttest_two_name = str("pvalue_ttest_two")
-        pvalue_ttest_two = float("nan")
+    # T-test.
+    # Collect information.
+    names_pvalue = list()
+    values_pvalue = list()
+    # Iterate on sets of parameters.
+    for ttest in [ttest_one, ttest_two, ttest_three,]:
+        if (
+            (ttest is not None) and
+            (len(str(ttest["name"]).strip()) > 0) and
+            (len(ttest["groups"]) > 1) and
+            (ttest["groups"][0] in groups_values.keys()) and
+            (ttest["groups"][1] in groups_values.keys())
+        ):
+            name_ttest = str(ttest["name"]).strip()
+            values_group_one = (
+                groups_values[ttest["groups"][0]]
+            )
+            values_group_two = (
+                groups_values[ttest["groups"][1]]
+            )
+            pvalue_ttest = perform_t_test(
+                values_group_one=values_group_one,
+                values_group_two=values_group_two,
+                equal_variances=ttest["equal_variances"],
+                independent_groups=ttest["independent_groups"],
+                hypothesis_alternative=ttest["hypothesis_alternative"],
+            )
+        else:
+            name_ttest = str("pvalue_ttest_one")
+            pvalue_ttest = float("nan")
+            pass
+        # Collect information.
+        names_pvalue.append(name_ttest)
+        values_pvalue.append(pvalue_ttest)
         pass
 
     # Collect records of information, which will become rows in table.
@@ -1855,22 +1841,32 @@ def describe_compare_quantitative_feature_by_observations_groups(
             record["feature_translation"] = name_feature
             pass
         record[key_group] = group
-        # T-test.
+        # T-test 1.
         if (
             (ttest_one is not None) and
             (group in ttest_one["groups"])
         ):
-            record[ttest_one_name] = round(pvalue_ttest_one, digits_round)
+            record[names_pvalue[0]] = round(values_pvalue[0], digits_round)
         else:
-            record[ttest_one_name] = float("nan")
+            record[names_pvalue[0]] = float("nan")
             pass
+        # T-test 2.
         if (
             (ttest_two is not None) and
             (group in ttest_two["groups"])
         ):
-            record[ttest_two_name] = round(pvalue_ttest_two, digits_round)
+            record[names_pvalue[1]] = round(values_pvalue[1], digits_round)
         else:
-            record[ttest_two_name] = float("nan")
+            record[names_pvalue[1]] = float("nan")
+            pass
+        # T-test 3.
+        if (
+            (ttest_three is not None) and
+            (group in ttest_three["groups"])
+        ):
+            record[names_pvalue[2]] = round(values_pvalue[2], digits_round)
+        else:
+            record[names_pvalue[2]] = float("nan")
             pass
         # Count.
         record["count_observations"] = int(len(
@@ -1999,6 +1995,7 @@ def describe_features_from_columns_by_separate_tables_rows(
     digits_round=None,
     ttest_one=None,
     ttest_two=None,
+    ttest_three=None,
     report=None,
 ):
     """
@@ -2086,6 +2083,7 @@ def describe_features_from_columns_by_separate_tables_rows(
                 'two-tailed' analysis in which both lesser and greater are
                 relevant
         ttest_two (dict): collection of parameters for T-test
+        ttest_three (dict): collection of parameters for T-test
         report (bool): whether to print reports
 
     raises:
@@ -2102,6 +2100,7 @@ def describe_features_from_columns_by_separate_tables_rows(
     translations_feature = copy.deepcopy(translations_feature)
     ttest_one = copy.deepcopy(ttest_one)
     ttest_two = copy.deepcopy(ttest_two)
+    ttest_three = copy.deepcopy(ttest_three)
 
     # Collect records of information, which will become rows in table.
     records = list()
@@ -2130,6 +2129,7 @@ def describe_features_from_columns_by_separate_tables_rows(
                 key_group=key_group,
                 ttest_one=ttest_one,
                 ttest_two=ttest_two,
+                ttest_three=ttest_three,
                 threshold_observations=threshold_observations,
                 digits_round=digits_round,
                 report=report,
@@ -2187,6 +2187,7 @@ def describe_features_from_table_columns_by_groups_rows(
     digits_round=None,
     ttest_one=None,
     ttest_two=None,
+    ttest_three=None,
     report=None,
 ):
     """
@@ -2276,6 +2277,7 @@ def describe_features_from_table_columns_by_groups_rows(
                 'two-tailed' analysis in which both lesser and greater are
                 relevant
         ttest_two (dict): collection of parameters for T-test
+        ttest_three (dict): collection of parameters for T-test
         report (bool): whether to print reports
 
     raises:
@@ -2292,6 +2294,7 @@ def describe_features_from_table_columns_by_groups_rows(
     translations_feature = copy.deepcopy(translations_feature)
     ttest_one = copy.deepcopy(ttest_one)
     ttest_two = copy.deepcopy(ttest_two)
+    ttest_three = copy.deepcopy(ttest_three)
 
     # Collect records of information, which will become rows in table.
     records = list()
@@ -2320,6 +2323,7 @@ def describe_features_from_table_columns_by_groups_rows(
                 key_group=key_group,
                 ttest_one=ttest_one,
                 ttest_two=ttest_two,
+                ttest_three=ttest_three,
                 threshold_observations=threshold_observations,
                 digits_round=digits_round,
                 report=report,
