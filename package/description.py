@@ -1961,7 +1961,7 @@ def describe_compare_quantitative_feature_by_observations_groups(
 
     # Collect information.
     pail = dict()
-    pail["keys_special"] = [ttest_one_name, ttest_two_name,]
+    pail["keys_special"] = names_pvalue
     pail["records"] = records
 
     # Report.
