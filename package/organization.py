@@ -3975,6 +3975,7 @@ def prepare_table_features_observations_for_analysis(
     if (
         (adjust_scale) and
         (len(features_continuity_scale) > 0) and
+        (str(features_continuity_scale).strip().lower() != "none") and
         (method_scale is not None) and
         (str(method_scale).strip().lower() != "none")
     ):
