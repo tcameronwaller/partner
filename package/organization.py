@@ -870,8 +870,9 @@ def sort_table_rows_by_list_indices(
     report=None,
 ):
     """
-    Merges a list of indices as a new column to a Pandas data-frame table, sorts
-    rows in the table by the new indices, and then removes the sort column.
+    Merges a list of indices as a new column to a Pandas data-frame table,
+    sorts rows in the table by the new indices, and then removes the sort
+    column.
 
     It would be useful to implement a conceptually similar function that
     concatenates multiple columns from a secondary table to the primary table
