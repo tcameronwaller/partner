@@ -346,7 +346,7 @@ def check_parameters_table_data_regression(
     # Check that functionality currently supports the type of regression.
     types = [
         "continuous_ols",
-        "continuous_mixed",
+        "continuous_mix",
         "discrete_logit",
         #"linear_r",
         #"logistic_r",
@@ -1398,8 +1398,8 @@ def manage_regression_continuous_linear_ordinary_least_squares(
         index_columns (str): name of single-level index across columns in table
         index_rows (str): name of single-level index across rows in table
         type_regression (str): name of type of regression model to use, either
-            'continuous_ols', 'continuous_mixed_random_intercepts',
-            'continuous_mixed_random_intercepts_slopes',
+            'continuous_ols', 'continuous_mix_random_intercepts',
+            'continuous_mix_random_intercepts_slopes',
             'continuous_gls', 'discrete_logit', 'discrete_probit',
             'discrete_poisson', 'discrete_negbinom'
         formula_text (str): human readable formula for regression model,
@@ -1560,8 +1560,8 @@ def manage_regression_continuous_linear_mixed_effects(
         index_columns (str): name of single-level index across columns in table
         index_rows (str): name of single-level index across rows in table
         type_regression (str): name of type of regression model to use, either
-            'continuous_ols', 'continuous_mixed_random_intercepts',
-            'continuous_mixed_random_intercepts_slopes',
+            'continuous_ols', 'continuous_mix_random_intercepts',
+            'continuous_mix_random_intercepts_slopes',
             'continuous_gls', 'discrete_logit', 'discrete_probit',
             'discrete_poisson', 'discrete_negbinom'
         formula_text (str): human readable formula for regression model,
@@ -1736,8 +1736,8 @@ def manage_regression_discrete_logistic_logit(
         index_columns (str): name of single-level index across columns in table
         index_rows (str): name of single-level index across rows in table
         type_regression (str): name of type of regression model to use, either
-            'continuous_ols', 'continuous_mixed_random_intercepts',
-            'continuous_mixed_random_intercepts_slopes',
+            'continuous_ols', 'continuous_mix_random_intercepts',
+            'continuous_mix_random_intercepts_slopes',
             'continuous_gls', 'discrete_logit', 'discrete_probit',
             'discrete_poisson', 'discrete_negbinom'
         formula_text (str): human readable formula for regression model,
@@ -2042,8 +2042,8 @@ def determine_type_regression_analysis(
         index_columns (str): name of single-level index across columns in table
         index_rows (str): name of single-level index across rows in table
         type_regression (str): name of type of regression model to use, either
-            'continuous_ols', 'continuous_mixed_random_intercepts',
-            'continuous_mixed_random_intercepts_slopes',
+            'continuous_ols', 'continuous_mix_random_intercepts',
+            'continuous_mix_random_intercepts_slopes',
             'continuous_gls', 'discrete_logit', 'discrete_probit',
             'discrete_poisson', 'discrete_negbinom'
         formula_text (str): human readable formula for regression model,
@@ -2088,7 +2088,7 @@ def determine_type_regression_analysis(
         pass
     elif (
         type_regression in [
-            "continuous_mixed",
+            "continuous_mix",
         ]
     ):
         # Perform continuous linear regression with mixed effects.
@@ -2256,7 +2256,7 @@ def analyze_variance_anova_two_way_repeat_measures(
     return pail
 
 
-def analyze_variance_anova_two_way_repeat_measures_mixed(
+def analyze_variance_anova_two_way_repeat_measures_mix(
     table=None,
     feature_response=None,
     features_predictor_between=None,
@@ -2431,7 +2431,7 @@ def manage_anova_two_way_repeat_measures(
         index_columns (str): name of single-level index across columns in table
         index_rows (str): name of single-level index across rows in table
         type_anova (str): name of type of analysis of variance (ANOVA) to use,
-            either '2way_repeat', or '2way_repeat_mixed'
+            either '2way_repeat', or '2way_repeat_mix'
         formula_text (str): human readable formula for ANOVA model, treated as
             a note for clarification
         feature_response (str): name of column in data table for feature
@@ -2548,7 +2548,7 @@ def manage_anova_two_way_repeat_measures_mixed_effects(
         index_columns (str): name of single-level index across columns in table
         index_rows (str): name of single-level index across rows in table
         type_anova (str): name of type of analysis of variance (ANOVA) to use,
-            either '2way_repeat', or '2way_repeat_mixed'
+            either '2way_repeat', or '2way_repeat_mix'
         formula_text (str): human readable formula for ANOVA model, treated as
             a note for clarification
         feature_response (str): name of column in data table for feature
@@ -2581,7 +2581,7 @@ def manage_anova_two_way_repeat_measures_mixed_effects(
 
     # Analysis of Variance (ANOVA).
     pail_anova = (
-        analyze_variance_anova_two_way_repeat_measures_mixed(
+        analyze_variance_anova_two_way_repeat_measures_mix(
             table=table,
             feature_response=feature_response,
             features_predictor_between=features_predictor_between,
@@ -2653,8 +2653,8 @@ def manage_anova_two_way_repeat_measures_mixed_effects(
     )
     # Extra.
     pail["table_summary"] = pail_anova["anova"]
-    pail["t_test_within"] = pail_anova["t_test_within"]
     pail["t_test_between"] = pail_anova["t_test_between"]
+    pail["t_test_within"] = pail_anova["t_test_within"]
 
     # Report.
     if report:
@@ -2672,13 +2672,13 @@ def manage_anova_two_way_repeat_measures_mixed_effects(
         print("type ANOVA: " + type_anova)
         putly.print_terminal_partition(level=5)
         print("summary from ANOVA:")
-        print(pail["anova"].round(3))
-        putly.print_terminal_partition(level=5)
-        print("summary from T-tests, within first:")
-        print(pail["t_test_within"])
+        print(pail_anova["anova"].round(3))
         putly.print_terminal_partition(level=5)
         print("summary from T-tests, between first:")
-        print(pail["t_test_between"])
+        print(pail_anova["t_test_between"])
+        putly.print_terminal_partition(level=5)
+        print("summary from T-tests, within first:")
+        print(pail_anova["t_test_within"])
         pass
 
     # Return information.
@@ -2730,7 +2730,7 @@ def determine_type_analysis_variance_anova(
         index_columns (str): name of single-level index across columns in table
         index_rows (str): name of single-level index across rows in table
         type_anova (str): name of type of analysis of variance (ANOVA) to use,
-            either '2way_repeat', or '2way_repeat_mixed'
+            either '2way_repeat', or '2way_repeat_mix'
         formula_text (str): human readable formula for ANOVA model, treated as
             a note for clarification
         feature_response (str): name of column in data table for feature
@@ -2771,7 +2771,7 @@ def determine_type_analysis_variance_anova(
             subject=subject,
             report=report,
         )
-    elif (type_anova == "2way_repeat_mixed"):
+    elif (type_anova == "2way_repeat_mix"):
         # Perform two-way ANOVA with repeate measures on groups of samples and
         # mixed effects.
         pail = manage_anova_two_way_repeat_measures_mixed_effects(
@@ -2805,7 +2805,400 @@ def determine_type_analysis_variance_anova(
     return pail
 
 
-# Prepare information for write to file.
+##########
+# Collect record of information for ANOVA analysis.
+
+
+def collect_organize_record_analysis_variance_anova(
+    table=None,
+    index_columns=None,
+    index_rows=None,
+    sequence=None,
+    group=None,
+    name=None,
+    name_combination=None,
+    check_overall=None,
+    type_anova=None,
+    formula_text=None,
+    feature_response=None,
+    features_predictor_between=None,
+    features_predictor_within=None,
+    subject=None,
+    record_extra=None,
+    delimiter_list_items=None,
+    report=None,
+):
+    """
+    Collect information within a record to describe an analysis of variance
+    (ANOVA).
+
+    For an example on the application of this function in the context of
+    extensive ancillary functionality to organize parameters and data and to
+    drive multiple instances of ANOVA concurrently in parallel, refer to the
+    Python script 'drive_analyses_variance_from_table_parameters.py'
+    within the 'partner' repository. Within its subdirectory 'demonstration',
+    the 'partner' repository also includes an example of the table of
+    parameters that controls this Python script.
+
+    ----------
+    Format of source data table (name: "table")
+    ----------
+    Format of source data table is in wide format with features across columns
+    and values corresponding to their observations across rows. A special
+    header row gives identifiers or names corresponding to each feature across
+    columns, and a special column gives identifiers or names corresponding to
+    each observation across rows. The table has explicitly named indices across
+    columns and rows.
+    ----------
+    features        feature_1 feature_2 feature_3 feature_4 feature_5 ...
+    observations
+    observation_1   0.001     0.001     0.001     0.001     0.001     ...
+    observation_2   0.001     0.001     0.001     0.001     0.001     ...
+    observation_3   0.001     0.001     0.001     0.001     0.001     ...
+    observation_4   0.001     0.001     0.001     0.001     0.001     ...
+    observation_5   0.001     0.001     0.001     0.001     0.001     ...
+    ----------
+
+    Review: TCW; 22 April 2025
+
+    arguments:
+        table (object): Pandas data-frame table of data with features
+            and observations
+        index_columns (str): name of single-level index across columns in table
+        index_rows (str): name of single-level index across rows in table
+        sequence (int): sequential index for instance's name and sort order
+        group (str): categorical group of instances
+        name (str): name or designator for instance of parameters
+        name_combination (str): compound name for instance of parameters
+        check_overall (bool): whether to execute the regression or create
+            missing values
+        type_anova (str): name of type of analysis of variance (ANOVA) to use,
+            either '2way_repeat', or '2way_repeat_mix'
+        formula_text (str): human readable formula for ANOVA model, treated as
+            a note for clarification
+        feature_response (str): name of column in data table for feature
+            variable to include in ANOVA model as response dependent
+            variable
+        features_predictor_between (list<str>): names of columns in data table
+            for feature variables to include in ANOVA model as predictor
+            independent variables that distinguish measurements between
+            separate groups of observations
+        features_predictor_within (list<str>): names of columns in data table
+            for feature variables to include in ANOVA model as predictor
+            independent variables that distinguish measurements within separate
+            groups of observations
+        subject (str): name of column in data table for identifier of subject
+            or individual source of pairs of samples or observations
+            corresponding to repeat measures
+        record_extra (dict): collection of secondary information to join to the
+            record of primary information from the ANOVA
+        delimiter_list_items (str): delimiter to place between items when
+            collapsing or flattening lists
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict<object>): collection of information from regression
+
+    """
+
+    # pail (dict): collection of information about an analysis of variance
+    #     entries_parameter_instance (list<str>): names and sequence of entries
+    #         with information about the instance of parameters for the
+    #         analysis of variance (ANOVA)
+    #     entries_model (list<str>): names and sequence of entries with
+    #         information about the ANOVA model as a whole
+    #     entries_predictors (list<str>): names and sequence of entries with
+    #         information about model's predictors
+    #     record (dict<str>): record for collection and assembly as rows within
+    #         a Pandas data-frame table, using the lists of entries to sort the
+    #         columns in the table
+
+    # Collect information.
+    pail = dict()
+    pail["entries_parameter_instance"] = [
+        "sequence",
+        "group",
+        "name",
+        "name_combination",
+        "check_overall",
+        "type_anova",
+        "formula_text",
+        "feature_response",
+        "features_predictor_between",
+        "features_predictor_within",
+        "subject",
+    ]
+    pail["entries_parameter_instance"].extend(list(record_extra.keys()))
+    pail["record"] = dict()
+    pail["record"]["sequence"] = sequence
+    pail["record"]["group"] = group
+    pail["record"]["name"] = name
+    pail["record"]["name_combination"] = name_combination
+    pail["record"]["check_overall"] = check_overall
+    pail["record"]["type_anova"] = type_anova
+    pail["record"]["formula_text"] = formula_text
+    pail["record"]["feature_response"] = feature_response
+    pail["record"]["features_predictor_between"] = delimiter_list_items.join(
+        features_predictor_between
+    )
+    pail["record"]["features_predictor_within"] = delimiter_list_items.join(
+        features_predictor_within
+    )
+    pail["record"]["subject"] = subject
+    pail["record"].update(record_extra)
+    # Determine whether to perform analysis of variance (ANOVA).
+    if (check_overall):
+        # Perform analysis of variance (ANOVA).
+        pail_anova = determine_type_analysis_variance_anova(
+            table=table,
+            index_columns=index_columns,
+            index_rows=index_rows,
+            type_anova=type_anova,
+            formula_text=formula_text,
+            feature_response=feature_response,
+            features_predictor_between=features_predictor_between,
+            features_predictor_within=features_predictor_within,
+            subject=subject,
+            report=report,
+        )
+        # Collect information.
+        pail["entries_model"] = copy.deepcopy(pail_anova["entries_model"])
+        pail["entries_predictors"] = copy.deepcopy(
+            pail_anova["entries_predictors"]
+        )
+        pail["record"].update(pail_anova)
+        del pail["record"]["entries_model"]
+        del pail["record"]["entries_predictors"]
+        del pail["record"]["table_summary"]
+        del pail["record"]["t_test_between"]
+        del pail["record"]["t_test_within"]
+        pail["table_summary"] = copy.deepcopy(pail_anova["table_summary"])
+        pail["t_test_between"] = copy.deepcopy(pail_anova["t_test_between"])
+        pail["t_test_within"] = copy.deepcopy(pail_anova["t_test_within"])
+    else:
+        # Collect information.
+        pail["entries_model"] = None
+        pail["entries_predictors"] = None
+        pail["table_summary"] = None
+        pail["t_test_between"] = None
+        pail["t_test_within"] = None
+        pass
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=4)
+        print("package: partner")
+        print("module: regression.py")
+        name_function = str(
+            "collect_organize_record_regression_analysis()"
+        )
+        print("function: " + name_function)
+        putly.print_terminal_partition(level=4)
+        pass
+    # Return information.
+    return pail
+
+
+##########
+# Collect record of information for regression analysis.
+
+
+def collect_organize_record_regression_analysis(
+    table=None,
+    index_columns=None,
+    index_rows=None,
+    sequence=None,
+    group=None,
+    name=None,
+    name_combination=None,
+    check_overall=None,
+    type_regression=None,
+    formula_text=None,
+    feature_response=None,
+    features_predictor_fixed=None,
+    features_predictor_random=None,
+    groups_random=None,
+    method_fit=None,
+    record_extra=None,
+    delimiter_list_items=None,
+    report=None,
+):
+    """
+    Collect information within a record to describe a regression analysis.
+
+    For an example on the application of this function in the context of
+    extensive ancillary functionality to organize parameters and data and to
+    drive multiple instances of regression concurrently in parallel, refer to
+    the Python script 'drive_regressions_from_table_parameters.py' within the
+    'partner' repository. Within its subdirectory 'demonstration', the
+    'partner' repository also includes an example of the table of parameters
+    that controls this Python script.
+
+    ----------
+    Format of source data table (name: "table")
+    ----------
+    Format of source data table is in wide format with features across columns
+    and values corresponding to their observations across rows. A special
+    header row gives identifiers or names corresponding to each feature across
+    columns, and a special column gives identifiers or names corresponding to
+    each observation across rows. The table has explicitly named indices across
+    columns and rows.
+    ----------
+    features        feature_1 feature_2 feature_3 feature_4 feature_5 ...
+    observations
+    observation_1   0.001     0.001     0.001     0.001     0.001     ...
+    observation_2   0.001     0.001     0.001     0.001     0.001     ...
+    observation_3   0.001     0.001     0.001     0.001     0.001     ...
+    observation_4   0.001     0.001     0.001     0.001     0.001     ...
+    observation_5   0.001     0.001     0.001     0.001     0.001     ...
+    ----------
+
+    Review: TCW; 2 April 2025
+
+    arguments:
+        table (object): Pandas data-frame table of data with features
+            and observations for regression
+        index_columns (str): name of single-level index across columns in table
+        index_rows (str): name of single-level index across rows in table
+        sequence (int): sequential index for instance's name and sort order
+        group (str): categorical group of instances
+        name (str): name or designator for instance of parameters
+        name_combination (str): compound name for instance of parameters
+        check_overall (bool): whether to execute the regression or create
+            missing values
+        type_regression (str): name of type of regression model to use
+        formula_text (str): human readable formula for regression model,
+            treated as a note for clarification
+        feature_response (str): name of column in data table for feature
+            variable to include in regression model as response dependent
+            variable
+        features_predictor_fixed (list<str>): names of columns in data table
+            for feature variables to include in regression model as predictor
+            independent variables with fixed effects
+        features_predictor_random (list<str>): names of columns in data table
+            for feature variables to include in regression model as predictor
+            independent variables with random effects
+        groups_random (str): name of column in data table for identifiers or
+            designations of groups of observations for which to allow random
+            effects in the regression model
+        method_fit (list<str>): names of methods to apply for fitting the
+            model, especially with random slopes some models can fail to fit
+            the model to convergence
+        record_extra (dict): collection of secondary information to join to the
+            record of primary information from the regression
+        delimiter_list_items (str): delimiter to place between items when
+            collapsing or flattening lists
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict<object>): collection of information from regression
+
+    """
+
+    # pail (dict): collection of information about a regression analysis
+    #     entries_parameter_instance (list<str>): names and sequence of entries
+    #         with information about the instance of parameters for the
+    #         regression
+    #     entries_model (list<str>): names and sequence of entries with
+    #         information about the regression model as a whole
+    #     entries_intercept_predictors (list<str>): names and sequence of
+    #         entries with information about model's intercept and predictors
+    #     record (dict<str>): record for collection and assembly as rows within
+    #         a Pandas data-frame table, using the lists of entries to sort the
+    #         columns in the table
+
+    # Collect information.
+    pail = dict()
+    pail["entries_parameter_instance"] = [
+        "sequence",
+        "group",
+        "name",
+        "name_combination",
+        "check_overall",
+        "type_regression",
+        "formula_text",
+        "feature_response",
+        "features_predictor_fixed",
+        "features_predictor_random",
+        "groups_random",
+        "method_fit",
+    ]
+    pail["entries_parameter_instance"].extend(list(record_extra.keys()))
+    pail["record"] = dict()
+    pail["record"]["sequence"] = sequence
+    pail["record"]["group"] = group
+    pail["record"]["name"] = name
+    pail["record"]["name_combination"] = name_combination
+    pail["record"]["check_overall"] = check_overall
+    pail["record"]["type_regression"] = type_regression
+    pail["record"]["formula_text"] = formula_text
+    pail["record"]["feature_response"] = feature_response
+    pail["record"]["features_predictor_fixed"] = delimiter_list_items.join(
+        features_predictor_fixed
+    )
+    pail["record"]["features_predictor_random"] = delimiter_list_items.join(
+        features_predictor_random
+    )
+    pail["record"]["groups_random"] = groups_random
+    pail["record"]["method_fit"] = method_fit
+    pail["record"].update(record_extra)
+    # Determine whether to perform regression.
+    if (check_overall):
+        # Perform regression.
+        pail_regression = determine_type_regression_analysis(
+            table=table,
+            index_columns=index_columns,
+            index_rows=index_rows,
+            type_regression=type_regression,
+            formula_text=formula_text,
+            feature_response=feature_response,
+            features_predictor_fixed=features_predictor_fixed,
+            features_predictor_random=features_predictor_random,
+            groups_random=groups_random,
+            method_fit=method_fit,
+            report=report,
+        )
+        # Collect information.
+        pail["entries_model"] = copy.deepcopy(pail_regression["entries_model"])
+        pail["entries_intercept_predictors"] = copy.deepcopy(
+            pail_regression["entries_intercept_predictors"]
+        )
+        pail["record"].update(pail_regression)
+        del pail["record"]["entries_model"]
+        del pail["record"]["entries_intercept_predictors"]
+        del pail["record"]["table_summary"]
+        pail["table_summary"] = copy.deepcopy(pail_regression["table_summary"])
+    else:
+        # Collect information.
+        pail["entries_model"] = None
+        pail["entries_intercept_predictors"] = None
+        pail["table_summary"] = None
+        pass
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=4)
+        print("package: partner")
+        print("module: regression.py")
+        name_function = str(
+            "collect_organize_record_regression_analysis()"
+        )
+        print("function: " + name_function)
+        putly.print_terminal_partition(level=4)
+        pass
+    # Return information.
+    return pail
+
+
+##########
+# Organize information for summary and report.
+
+
+# Prepare information for write to file as text.
 
 
 def prepare_text_summary_regression_anova(
@@ -2986,101 +3379,27 @@ def prepare_text_summary_regression_anova(
     return summary_text
 
 
-##########
-# Collect record of information for ANOVA analysis.
+# Organize information from regressions in a table.
 
 
 
-def collect_organize_record_analysis_variance_anova(
-    table=None,
-    index_columns=None,
-    index_rows=None,
-    sequence=None,
-    group=None,
-    name=None,
-    name_combination=None,
-    check_overall=None,
-    type_anova=None,
-    formula_text=None,
-    feature_response=None,
-    features_predictor_between=None,
-    features_predictor_within=None,
-    subject=None,
-    record_extra=None,
-    delimiter_list_items=None,
+def organize_summary_table_anovas(
+    pails_anova=None,
     report=None,
 ):
     """
-    Collect information within a record to describe a regression analysis.
-
-    For an example on the application of this function in the context of
-    extensive ancillary functionality to organize parameters and data and to
-    drive multiple instances of regression concurrently in parallel, refer to
-    the Python script 'script_drive_regressions_from_table_parameters.py'
-    within the 'partner' repository. Within its subdirectory 'demonstration',
-    the 'partner' repository also includes an example of the table of
-    parameters that controls this Python script.
-
-    ----------
-    Format of source data table (name: "table")
-    ----------
-    Format of source data table is in wide format with features across columns
-    and values corresponding to their observations across rows. A special
-    header row gives identifiers or names corresponding to each feature across
-    columns, and a special column gives identifiers or names corresponding to
-    each observation across rows. The table has explicitly named indices across
-    columns and rows.
-    ----------
-    features        feature_1 feature_2 feature_3 feature_4 feature_5 ...
-    observations
-    observation_1   0.001     0.001     0.001     0.001     0.001     ...
-    observation_2   0.001     0.001     0.001     0.001     0.001     ...
-    observation_3   0.001     0.001     0.001     0.001     0.001     ...
-    observation_4   0.001     0.001     0.001     0.001     0.001     ...
-    observation_5   0.001     0.001     0.001     0.001     0.001     ...
-    ----------
-
-    Review: TCW; 22 April 2025
+    Organize information from multiple regressions within a table for summary.
 
     arguments:
-        table (object): Pandas data-frame table of data with features
-            and observations
-        index_columns (str): name of single-level index across columns in table
-        index_rows (str): name of single-level index across rows in table
-        sequence (int): sequential index for instance's name and sort order
-        group (str): categorical group of instances
-        name (str): name or designator for instance of parameters
-        name_combination (str): compound name for instance of parameters
-        check_overall (bool): whether to execute the regression or create
-            missing values
-        type_anova (str): name of type of analysis of variance (ANOVA) to use,
-            either '2way_repeat', or '2way_repeat_mixed'
-        formula_text (str): human readable formula for ANOVA model, treated as
-            a note for clarification
-        feature_response (str): name of column in data table for feature
-            variable to include in ANOVA model as response dependent
-            variable
-        features_predictor_between (list<str>): names of columns in data table
-            for feature variables to include in ANOVA model as predictor
-            independent variables that distinguish measurements between
-            separate groups of observations
-        features_predictor_within (list<str>): names of columns in data table
-            for feature variables to include in ANOVA model as predictor
-            independent variables that distinguish measurements within separate
-            groups of observations
-        subject (str): name of column in data table for identifier of subject
-            or individual source of pairs of samples or observations
-            corresponding to repeat measures
-        record_extra (dict): collection of secondary information to join to the
-            record of primary information from the ANOVA
-        delimiter_list_items (str): delimiter to place between items when
-            collapsing or flattening lists
+        pails_regression (list<dict<str>>): collections of information from
+            files of parallel branch procedures
         report (bool): whether to print reports
 
     raises:
 
     returns:
-        (dict<object>): collection of information from regression
+        (object): Pandas data-frame table of information that summarizes
+            multiple regression analyses
 
     """
 
@@ -3097,186 +3416,98 @@ def collect_organize_record_analysis_variance_anova(
     #         a Pandas data-frame table, using the lists of entries to sort the
     #         columns in the table
 
-    # Collect information.
-    pail = dict()
-    pail["entries_parameter_instance"] = [
-        "sequence",
-        "group",
-        "name",
-        "name_combination",
-        "check_overall",
-        "type_regression",
-        "formula_text",
-        "feature_response",
-        "features_predictor_fixed",
-        "features_predictor_random",
-        "groups_random",
-        "method_fit",
-    ]
-    pail["entries_parameter_instance"].extend(list(record_extra.keys()))
-    pail["record"] = dict()
-    pail["record"]["sequence"] = sequence
-    pail["record"]["group"] = group
-    pail["record"]["name"] = name
-    pail["record"]["name_combination"] = name_combination
-    pail["record"]["check_overall"] = check_overall
-    pail["record"]["type_regression"] = type_regression
-    pail["record"]["formula_text"] = formula_text
-    pail["record"]["feature_response"] = feature_response
-    pail["record"]["features_predictor_fixed"] = delimiter_list_items.join(
-        features_predictor_fixed
-    )
-    pail["record"]["features_predictor_random"] = delimiter_list_items.join(
-        features_predictor_random
-    )
-    pail["record"]["groups_random"] = groups_random
-    pail["record"]["method_fit"] = method_fit
-    pail["record"].update(record_extra)
-    # Determine whether to perform regression.
-    if (check_overall):
-        # Perform regression.
-        pail_regression = determine_type_regression_analysis(
-            table=table,
-            index_columns=index_columns,
-            index_rows=index_rows,
-            type_regression=type_regression,
-            formula_text=formula_text,
-            feature_response=feature_response,
-            features_predictor_fixed=features_predictor_fixed,
-            features_predictor_random=features_predictor_random,
-            groups_random=groups_random,
-            method_fit=method_fit,
-            report=report,
-        )
-        # Collect information.
-        pail["entries_model"] = copy.deepcopy(pail_regression["entries_model"])
-        pail["entries_intercept_predictors"] = copy.deepcopy(
-            pail_regression["entries_intercept_predictors"]
-        )
-        pail["record"].update(pail_regression)
-        del pail["record"]["entries_model"]
-        del pail["record"]["entries_intercept_predictors"]
-        del pail["record"]["table_summary"]
-        pail["table_summary"] = copy.deepcopy(pail_regression["table_summary"])
-    else:
-        # Collect information.
-        pail["entries_model"] = None
-        pail["entries_intercept_predictors"] = None
-        pail["table_summary"] = None
+    # When creating a Pandas data-frame table from a list of dictionary
+    # records, if one or more records have key entries that do not match those
+    # from other records, then the operation automatically introduces missing
+    # values.
+
+    # Copy information.
+    pails_anova = copy.deepcopy(pails_anova)
+
+    # Collect information about all entries that the records represent
+    # collectively.
+    entries = dict()
+    entries["entries_parameter_instance"] = list() # expect to be same for all
+    #                                                 records
+    entries["entries_model"] = list() # composition depends on types of
+    #                                    regression
+    entries["entries_predictors"] = list() # composition depends on
+    #                                                   count of predictors in
+    #                                                   regression model
+    # Example.
+    # For linear ordinary least squares regression, "entries_model" includes
+    # "r_square", "r_square_adjust", and "condition", all of which are not in
+    # "entries_model" for logistic regression. In contrast, for logistic
+    # regression, "entries_model" includes "r_square_pseudo", which is not in
+    # "entries_model" for linear ordinary least squares regression.
+    # Here is the preferrable sequence of columns.
+    # "r_square", "r_square_adjust", "log_likelihood", "akaike", "bayes",
+    # "condition",
+    # A simple solution is to insert missing values for the respective types of
+    # regression.
+    # Collect records.
+    records = list()
+    for pail in pails_anova:
+        for entry_type in entries.keys():
+            if (pail[entry_type] is not None):
+                # Filter to keep novel entries only.
+                entries_novel = list(filter(
+                    lambda entry: (entry not in entries[entry_type]),
+                    pail[entry_type]
+                ))
+                entries[entry_type].extend(entries_novel)
+            pass
+        # Collect records.
+        records.append(copy.deepcopy(pail["record"]))
         pass
 
-    # Report.
-    if report:
-        putly.print_terminal_partition(level=4)
-        print("package: partner")
-        print("module: regression.py")
-        name_function = str(
-            "collect_organize_record_regression_analysis()"
-        )
-        print("function: " + name_function)
-        putly.print_terminal_partition(level=4)
-        pass
+    # Create table.
+    table = pandas.DataFrame(data=records)
+    # Organize information in table.
+    entries_total = list()
+    entries_total.extend(entries["entries_parameter_instance"])
+    entries_total.extend(entries["entries_model"])
+    entries_total.extend(entries["entries_predictors"])
+    # Filter and sort columns in table.
+    table = porg.filter_sort_table_columns(
+        table=table,
+        columns_sequence=entries_total,
+        report=report,
+    )
+    # Sort rows in table.
+    table.sort_values(
+        by=["sequence"],
+        axis="index",
+        ascending=True,
+        inplace=True,
+    )
+    table.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+
     # Return information.
-    return pail
+    return table
 
 
-
-
-##########
-# Collect record of information for regression analysis.
-
-
-def collect_organize_record_regression_analysis(
-    table=None,
-    index_columns=None,
-    index_rows=None,
-    sequence=None,
-    group=None,
-    name=None,
-    name_combination=None,
-    check_overall=None,
-    type_regression=None,
-    formula_text=None,
-    feature_response=None,
-    features_predictor_fixed=None,
-    features_predictor_random=None,
-    groups_random=None,
-    method_fit=None,
-    record_extra=None,
-    delimiter_list_items=None,
+def organize_summary_table_regressions(
+    pails_regression=None,
     report=None,
 ):
     """
-    Collect information within a record to describe a regression analysis.
-
-    For an example on the application of this function in the context of
-    extensive ancillary functionality to organize parameters and data and to
-    drive multiple instances of regression concurrently in parallel, refer to
-    the Python script 'script_drive_regressions_from_table_parameters.py'
-    within the 'partner' repository. Within its subdirectory 'demonstration',
-    the 'partner' repository also includes an example of the table of
-    parameters that controls this Python script.
-
-    ----------
-    Format of source data table (name: "table")
-    ----------
-    Format of source data table is in wide format with features across columns
-    and values corresponding to their observations across rows. A special
-    header row gives identifiers or names corresponding to each feature across
-    columns, and a special column gives identifiers or names corresponding to
-    each observation across rows. The table has explicitly named indices across
-    columns and rows.
-    ----------
-    features        feature_1 feature_2 feature_3 feature_4 feature_5 ...
-    observations
-    observation_1   0.001     0.001     0.001     0.001     0.001     ...
-    observation_2   0.001     0.001     0.001     0.001     0.001     ...
-    observation_3   0.001     0.001     0.001     0.001     0.001     ...
-    observation_4   0.001     0.001     0.001     0.001     0.001     ...
-    observation_5   0.001     0.001     0.001     0.001     0.001     ...
-    ----------
-
-    Review: TCW; 2 April 2025
+    Organize information from multiple regressions within a table for summary.
 
     arguments:
-        table (object): Pandas data-frame table of data with features
-            and observations for regression
-        index_columns (str): name of single-level index across columns in table
-        index_rows (str): name of single-level index across rows in table
-        sequence (int): sequential index for instance's name and sort order
-        group (str): categorical group of instances
-        name (str): name or designator for instance of parameters
-        name_combination (str): compound name for instance of parameters
-        check_overall (bool): whether to execute the regression or create
-            missing values
-        type_regression (str): name of type of regression model to use
-        formula_text (str): human readable formula for regression model,
-            treated as a note for clarification
-        feature_response (str): name of column in data table for feature
-            variable to include in regression model as response dependent
-            variable
-        features_predictor_fixed (list<str>): names of columns in data table
-            for feature variables to include in regression model as predictor
-            independent variables with fixed effects
-        features_predictor_random (list<str>): names of columns in data table
-            for feature variables to include in regression model as predictor
-            independent variables with random effects
-        groups_random (str): name of column in data table for identifiers or
-            designations of groups of observations for which to allow random
-            effects in the regression model
-        method_fit (list<str>): names of methods to apply for fitting the
-            model, especially with random slopes some models can fail to fit
-            the model to convergence
-        record_extra (dict): collection of secondary information to join to the
-            record of primary information from the regression
-        delimiter_list_items (str): delimiter to place between items when
-            collapsing or flattening lists
+        pails_regression (list<dict<str>>): collections of information from
+            files of parallel branch procedures
         report (bool): whether to print reports
 
     raises:
 
     returns:
-        (dict<object>): collection of information from regression
+        (object): Pandas data-frame table of information that summarizes
+            multiple regression analyses
 
     """
 
@@ -3293,87 +3524,80 @@ def collect_organize_record_regression_analysis(
     #         a Pandas data-frame table, using the lists of entries to sort the
     #         columns in the table
 
-    # Collect information.
-    pail = dict()
-    pail["entries_parameter_instance"] = [
-        "sequence",
-        "group",
-        "name",
-        "name_combination",
-        "check_overall",
-        "type_regression",
-        "formula_text",
-        "feature_response",
-        "features_predictor_fixed",
-        "features_predictor_random",
-        "groups_random",
-        "method_fit",
-    ]
-    pail["entries_parameter_instance"].extend(list(record_extra.keys()))
-    pail["record"] = dict()
-    pail["record"]["sequence"] = sequence
-    pail["record"]["group"] = group
-    pail["record"]["name"] = name
-    pail["record"]["name_combination"] = name_combination
-    pail["record"]["check_overall"] = check_overall
-    pail["record"]["type_regression"] = type_regression
-    pail["record"]["formula_text"] = formula_text
-    pail["record"]["feature_response"] = feature_response
-    pail["record"]["features_predictor_fixed"] = delimiter_list_items.join(
-        features_predictor_fixed
-    )
-    pail["record"]["features_predictor_random"] = delimiter_list_items.join(
-        features_predictor_random
-    )
-    pail["record"]["groups_random"] = groups_random
-    pail["record"]["method_fit"] = method_fit
-    pail["record"].update(record_extra)
-    # Determine whether to perform regression.
-    if (check_overall):
-        # Perform regression.
-        pail_regression = determine_type_regression_analysis(
-            table=table,
-            index_columns=index_columns,
-            index_rows=index_rows,
-            type_regression=type_regression,
-            formula_text=formula_text,
-            feature_response=feature_response,
-            features_predictor_fixed=features_predictor_fixed,
-            features_predictor_random=features_predictor_random,
-            groups_random=groups_random,
-            method_fit=method_fit,
-            report=report,
-        )
-        # Collect information.
-        pail["entries_model"] = copy.deepcopy(pail_regression["entries_model"])
-        pail["entries_intercept_predictors"] = copy.deepcopy(
-            pail_regression["entries_intercept_predictors"]
-        )
-        pail["record"].update(pail_regression)
-        del pail["record"]["entries_model"]
-        del pail["record"]["entries_intercept_predictors"]
-        del pail["record"]["table_summary"]
-        pail["table_summary"] = copy.deepcopy(pail_regression["table_summary"])
-    else:
-        # Collect information.
-        pail["entries_model"] = None
-        pail["entries_intercept_predictors"] = None
-        pail["table_summary"] = None
+    # When creating a Pandas data-frame table from a list of dictionary
+    # records, if one or more records have key entries that do not match those
+    # from other records, then the operation automatically introduces missing
+    # values.
+
+    # Copy information.
+    pails_regression = copy.deepcopy(pails_regression)
+
+    # Collect information about all entries that the records represent
+    # collectively.
+    entries = dict()
+    entries["entries_parameter_instance"] = list() # expect to be same for all
+    #                                                 records
+    entries["entries_model"] = list() # composition depends on types of
+    #                                    regression
+    entries["entries_intercept_predictors"] = list() # composition depends on
+    #                                                   count of predictors in
+    #                                                   regression model
+    # Example.
+    # For linear ordinary least squares regression, "entries_model" includes
+    # "r_square", "r_square_adjust", and "condition", all of which are not in
+    # "entries_model" for logistic regression. In contrast, for logistic
+    # regression, "entries_model" includes "r_square_pseudo", which is not in
+    # "entries_model" for linear ordinary least squares regression.
+    # Here is the preferrable sequence of columns.
+    # "r_square", "r_square_adjust", "log_likelihood", "akaike", "bayes",
+    # "condition",
+    # A simple solution is to insert missing values for the respective types of
+    # regression.
+    # Collect records.
+    records = list()
+    for pail in pails_regression:
+        for entry_type in entries.keys():
+            if (pail[entry_type] is not None):
+                # Filter to keep novel entries only.
+                entries_novel = list(filter(
+                    lambda entry: (entry not in entries[entry_type]),
+                    pail[entry_type]
+                ))
+                entries[entry_type].extend(entries_novel)
+            pass
+        # Collect records.
+        records.append(copy.deepcopy(pail["record"]))
         pass
 
-    # Report.
-    if report:
-        putly.print_terminal_partition(level=4)
-        print("package: partner")
-        print("module: regression.py")
-        name_function = str(
-            "collect_organize_record_regression_analysis()"
-        )
-        print("function: " + name_function)
-        putly.print_terminal_partition(level=4)
-        pass
+    # Create table.
+    table = pandas.DataFrame(data=records)
+    # Organize information in table.
+    entries_total = list()
+    entries_total.extend(entries["entries_parameter_instance"])
+    entries_total.extend(entries["entries_model"])
+    entries_total.extend(entries["entries_intercept_predictors"])
+    # Filter and sort columns in table.
+    table = porg.filter_sort_table_columns(
+        table=table,
+        columns_sequence=entries_total,
+        report=report,
+    )
+    # Sort rows in table.
+    table.sort_values(
+        by=["sequence"],
+        axis="index",
+        ascending=True,
+        inplace=True,
+    )
+    table.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+
     # Return information.
-    return pail
+    return table
+
 
 
 

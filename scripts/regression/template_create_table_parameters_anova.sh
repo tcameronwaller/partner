@@ -5,9 +5,9 @@
 
 ###############################################################################
 # Author: T. Cameron Waller
-# Date, first execution: 4 April 2025
-# Date, last execution or modification: 4 April 2025
-# Review: 4 April 2025
+# Date, first execution: 22 April 2025
+# Date, last execution or modification: 22 April 2025
+# Review: 22 April 2025
 ###############################################################################
 # Note
 
@@ -75,17 +75,18 @@ sequence=1
 group="group_automatic"
 name="name_automatic" # name for instance of parameters
 selection_observations="group:group_1,group_2,group_3,group_4;sex:female,male"
-type_regression="continuous_ols"
-formula_text="response ~ predictor_fixed_1 + predictor_fixed_2 + predictor_fixed_3 + sex_y"
+type_anova="2way_repeat_mix"
+formula_text="response ~ condition + time_point + subject"
 #feature_response="${response}" # this parameter varies
-features_predictor_fixed="predictor_fixed_1,predictor_fixed_2,predictor_fixed_3,sex_y"
-features_predictor_random="none"
-features_continuity_scale="predictor_fixed_1,predictor_fixed_2"
+features_predictor_between="condition"
+features_predictor_within="time_point"
+subject="identifier_subject"
+features_continuity_scale="none"
 identifier_observations="observation"
-method_scale="z_score"
+method_scale="none"
 data_path_directory="dock,in_data,regression,demonstration"
 data_file="table_regression_data.tsv"
-review="2025-04-04"
+review="2025-04-22"
 note="a script prepared this table of parameters automatically"
 
 
@@ -134,23 +135,23 @@ fi
 
 # Write column header names in table to file.
 printf "execution\tsequence\tgroup\tname\t" > $path_file_product
-printf "selection_observations\ttype_regression\t" >> $path_file_product
+printf "selection_observations\ttype_anova\t" >> $path_file_product
 printf "formula_text\tfeature_response\t" >> $path_file_product
-printf "features_predictor_fixed\tfeatures_predictor_random\t" >> $path_file_product
-printf "features_continuity_scale\tidentifier_observations\t" >> $path_file_product
-printf "method_scale\tdata_path_directory\tdata_file\t" >> $path_file_product
-printf "review\tnote\n" >> $path_file_product
+printf "features_predictor_between\tfeatures_predictor_within\t" >> $path_file_product
+printf "subject\tfeatures_continuity_scale\t" >> $path_file_product
+printf "identifier_observations\tmethod_scale\t" >> $path_file_product
+printf "data_path_directory\tdata_file\treview\tnote\n" >> $path_file_product
 # Write rows in table to file.
 # Iterate on response features in array.
 # For each response feature, create a new row of parameters in the table.
 for item_source in "${items_source[@]}"; do
   printf "${execution}\t${sequence}\t${group}\t${name}\t" >> $path_file_product
-  printf "${selection_observations}\t${type_regression}\t" >> $path_file_product
+  printf "${selection_observations}\t${type_anova}\t" >> $path_file_product
   printf "${formula_text}\t${item_source}\t" >> $path_file_product
-  printf "${features_predictor_fixed}\t${features_predictor_random}\t" >> $path_file_product
-  printf "${features_continuity_scale}\t${identifier_observations}\t" >> $path_file_product
-  printf "${method_scale}\t${data_path_directory}\t${data_file}\t" >> $path_file_product
-  printf "${review}\t${note}\n" >> $path_file_product
+  printf "${features_predictor_between}\t${features_predictor_within}\t" >> $path_file_product
+  printf "${subject}\t${features_continuity_scale}\t" >> $path_file_product
+  printf "${identifier_observations}\t${method_scale}\t" >> $path_file_product
+  printf "${data_path_directory}\t${data_file}\t${review}\t${note}\n" >> $path_file_product
   # Increment sequence.
   ((sequence++))
 done
@@ -164,7 +165,7 @@ if [ "$report" == "true" ]; then
   echo "----------"
   echo "----------"
   echo "----------"
-  echo "script: template_create_parameter_table.sh"
+  echo "script: template_create_table_parameters_anova.sh"
   echo $0 # Print full file path to script.
   echo "done"
   echo "----------"

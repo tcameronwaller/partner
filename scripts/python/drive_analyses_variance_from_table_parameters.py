@@ -109,12 +109,12 @@ def define_column_types_table_parameters():
     types_columns["name"] = "string"
     #types_columns["name_combination"] = "string"
     types_columns["selection_observations"] = "string"
-    types_columns["type_regression"] = "string"
+    types_columns["type_anova"] = "string"
     types_columns["formula_text"] = "string"
     types_columns["feature_response"] = "string"
-    types_columns["features_predictor_fixed"] = "string"
-    types_columns["features_predictor_random"] = "string"
-    types_columns["groups_random"] = "string"
+    types_columns["features_predictor_between"] = "string"
+    types_columns["features_predictor_within"] = "string"
+    types_columns["subject"] = "string"
     types_columns["features_continuity_scale"] = "string"
     types_columns["identifier_observations"] = "string"
     types_columns["method_scale"] = "string"
@@ -125,10 +125,6 @@ def define_column_types_table_parameters():
     # Return information.
     return types_columns
 
-
-# TODO: TCW; 7 April 2025
-# I don't think that "identifier_observations" should be in the "features_regression" list...
-# but it does need to be in the "features_relevant" list
 
 def read_source_table_parameters(
     path_file_table_parameters=None,
@@ -203,25 +199,25 @@ def read_source_table_parameters(
                 text=row["selection_observations"],
             )
         )["features_values"]
-        record["type_regression"] = str(row["type_regression"]).strip()
+        record["type_anova"] = str(row["type_anova"]).strip()
         record["formula_text"] = str(row["formula_text"]).strip()
         record["feature_response"] = str(row["feature_response"]).strip()
-        record["features_predictor_fixed"] = putly.parse_text_list_values(
-            text=row["features_predictor_fixed"],
+        record["features_predictor_between"] = putly.parse_text_list_values(
+            text=row["features_predictor_between"],
             delimiter=",",
         )
-        record["features_predictor_random"] = putly.parse_text_list_values(
-            text=row["features_predictor_random"],
+        record["features_predictor_within"] = putly.parse_text_list_values(
+            text=row["features_predictor_within"],
             delimiter=",",
         )
         if (
-            (row["groups_random"] is not None) and
-            (len(str(row["groups_random"]).strip()) > 0) and
-            (str(row["groups_random"]).strip().lower() != "none")
+            (row["subject"] is not None) and
+            (len(str(row["subject"]).strip()) > 0) and
+            (str(row["subject"]).strip().lower() != "none")
         ):
-            record["groups_random"] = str(row["groups_random"]).strip()
+            record["subject"] = str(row["subject"]).strip()
         else:
-            record["groups_random"] = None
+            record["subject"] = None
             pass
         if (
             (row["features_continuity_scale"] is not None) and
@@ -257,20 +253,20 @@ def read_source_table_parameters(
 
         # Collect unique names of columns relevant to instance of
         # parameters from current row in table.
-        features_regression = list()
-        features_regression.append(record["feature_response"])
-        features_regression.extend(record["features_predictor_fixed"])
-        features_regression.extend(record["features_predictor_random"])
+        features_anova = list()
+        features_anova.append(record["feature_response"])
+        features_anova.extend(record["features_predictor_between"])
+        features_anova.extend(record["features_predictor_within"])
         #if (record["identifier_observations"] is not None):
-        #    features_regression.insert(
+        #    features_anova.insert(
         #        0,
         #        record["identifier_observations"],
         #    )
         #    pass
-        features_regression = putly.collect_unique_elements(
-            elements=features_regression,
+        features_anova = putly.collect_unique_elements(
+            elements=features_anova,
         )
-        record["features_regression"] = copy.deepcopy(features_regression)
+        record["features_anova"] = copy.deepcopy(features_anova)
         features_relevant = list()
         dictionaries = [
             "selection_observations",
@@ -281,11 +277,11 @@ def read_source_table_parameters(
                 pass
             pass
         features_relevant.extend(record["features_continuity_scale"])
-        features_relevant.extend(features_regression)
-        if (record["groups_random"] is not None):
+        features_relevant.extend(features_anova)
+        if (record["subject"] is not None):
             features_relevant.insert(
                 0,
-                record["groups_random"],
+                record["subject"],
             )
             pass
         if (record["identifier_observations"] is not None):
@@ -314,7 +310,7 @@ def read_source_table_parameters(
         # Print information.
         putly.print_terminal_partition(level=3)
         print("package: partner")
-        print("module: script_drive_regressions_from_table_parameters.py")
+        print("module: drive_analyses_variance_from_table_parameters.py")
         print("function: read_source_table_parameters()")
         putly.print_terminal_partition(level=5)
         print("parameter table:")
@@ -396,7 +392,7 @@ def read_source_table_data(
         # Print.
         putly.print_terminal_partition(level=3)
         print("package: partner")
-        print("module: script_drive_regressions_from_table_parameters.py")
+        print("module: drive_analyses_variance_from_table_parameters.py")
         print("function: read_source_table_data()")
         putly.print_terminal_partition(level=5)
         print("data table:")
@@ -458,124 +454,8 @@ def read_source_parallel_branch_products(
     return pails
 
 
-##########
-# Organize information from regressions in a table.
-
-
-def organize_summary_table_regressions(
-    pails_regression=None,
-    report=None,
-):
-    """
-    Organize information from multiple regressions within a table for summary.
-
-    arguments:
-        pails_regression (list<dict<str>>): collections of information from
-            files of parallel branch procedures
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (object): Pandas data-frame table of information that summarizes
-            multiple regression analyses
-
-    """
-
-    # pail (dict): collection of information about a regression analysis
-    #     entries_parameter_instance (list<str>): names and sequence of entries
-    #         with information about the instance of parameters for the
-    #         regression
-    #     entries_model (list<str>): names and sequence of entries with
-    #         information about the regression model as a whole
-    #     entries_intercept_predictors (list<str>): names and sequence of
-    #         entries with with information about model's intercept and
-    #         predictors
-    #     record (dict<str>): record for collection and assembly as rows within
-    #         a Pandas data-frame table, using the lists of entries to sort the
-    #         columns in the table
-
-    # When creating a Pandas data-frame table from a list of dictionary
-    # records, if one or more records have key entries that do not match those
-    # from other records, then the operation automatically introduces missing
-    # values.
-
-    # Copy information.
-    pails_regression = copy.deepcopy(pails_regression)
-
-    # Collect information about all entries that the records represent
-    # collectively.
-    entries = dict()
-    entries["entries_parameter_instance"] = list() # expect to be same for all
-    #                                                 records
-    entries["entries_model"] = list() # composition depends on types of
-    #                                    regression
-    entries["entries_intercept_predictors"] = list() # composition depends on
-    #                                                   count of predictors in
-    #                                                   regression model
-    # Example.
-    # For linear ordinary least squares regression, "entries_model" includes
-    # "r_square", "r_square_adjust", and "condition", all of which are not in
-    # "entries_model" for logistic regression. In contrast, for logistic
-    # regression, "entries_model" includes "r_square_pseudo", which is not in
-    # "entries_model" for linear ordinary least squares regression.
-    # Here is the preferrable sequence of columns.
-    # "r_square", "r_square_adjust", "log_likelihood", "akaike", "bayes",
-    # "condition",
-    # A simple solution is to insert missing values for the respective types of
-    # regression.
-    # Collect records.
-    records = list()
-    for pail in pails_regression:
-        for entry_type in entries.keys():
-            if (pail[entry_type] is not None):
-                # Filter to keep novel entries only.
-                entries_novel = list(filter(
-                    lambda entry: (entry not in entries[entry_type]),
-                    pail[entry_type]
-                ))
-                entries[entry_type].extend(entries_novel)
-            pass
-        # Collect records.
-        records.append(copy.deepcopy(pail["record"]))
-        pass
-
-    # Create table.
-    table = pandas.DataFrame(data=records)
-    # Organize information in table.
-    entries_total = list()
-    entries_total.extend(entries["entries_parameter_instance"])
-    entries_total.extend(entries["entries_model"])
-    entries_total.extend(entries["entries_intercept_predictors"])
-    # Filter and sort columns in table.
-    table = porg.filter_sort_table_columns(
-        table=table,
-        columns_sequence=entries_total,
-        report=report,
-    )
-    # Sort rows in table.
-    table.sort_values(
-        by=["sequence"],
-        axis="index",
-        ascending=True,
-        inplace=True,
-    )
-    table.reset_index(
-        level=None,
-        inplace=True,
-        drop=True, # remove index; do not move to regular columns
-    )
-
-    # Return information.
-    return table
-
-
 ################################################################################
 # Procedure
-
-# TODO: TCW; 3 April 2025
-# Now integrate the functionality for logistic regression.
-
 
 
 ##########
@@ -589,13 +469,13 @@ def control_procedure_part_branch(
     name=None,
     name_combination=None,
     selection_observations=None,
-    type_regression=None,
+    type_anova=None,
     formula_text=None,
     feature_response=None,
-    features_predictor_fixed=None,
-    features_predictor_random=None,
-    groups_random=None,
-    features_regression=None,
+    features_predictor_between=None,
+    features_predictor_within=None,
+    subject=None,
+    features_anova=None,
     features_continuity_scale=None,
     features_relevant=None,
     identifier_observations=None,
@@ -626,23 +506,26 @@ def control_procedure_part_branch(
             for feature variables with values on quantitative, continuous scale
             of measurement, interval or ratio, for which to standardize the
             scale by z score
-        type_regression (str): name of type of regression model to use
-        formula_text (str): human readable formula for regression model,
-            treated as a note for clarification
+        type_anova (str): name of type of analysis of variance (ANOVA) to use,
+            either '2way_repeat', or '2way_repeat_mix'
+        formula_text (str): human readable formula for ANOVA model, treated as
+            a note for clarification
         feature_response (str): name of column in data table for feature
-            variable to include in regression model as response dependent
+            variable to include in ANOVA model as response dependent
             variable
-        features_predictor_fixed (list<str>): names of columns in data table
-            for feature variables to include in regression model as predictor
-            independent variables with fixed effects
-        features_predictor_random (list<str>): names of columns in data table
-            for feature variables to include in regression model as predictor
-            independent variables with random effects
-        groups_random (str): name of column in data table for identifiers or
-            designations of groups of observations for which to allow random
-            effects in the regression model
-        features_regression (list<str>): names of columns in data table for
-            feature variables that are relevant to the actual regression model
+        features_predictor_between (list<str>): names of columns in data table
+            for feature variables to include in ANOVA model as predictor
+            independent variables that distinguish measurements between
+            separate groups of observations
+        features_predictor_within (list<str>): names of columns in data table
+            for feature variables to include in ANOVA model as predictor
+            independent variables that distinguish measurements within separate
+            groups of observations
+        subject (str): name of column in data table for identifier of subject
+            or individual source of pairs of samples or observations
+            corresponding to repeat measures
+        features_anova (list<str>): names of columns in data table for
+            feature variables that are relevant to the actual ANOVA model
         features_relevant (list<str>): names of columns in data table for
             feature variables that are relevant to the current instance of
             parameters
@@ -692,7 +575,7 @@ def control_procedure_part_branch(
             table=table,
             selection_observations=selection_observations,
             features_relevant=features_relevant,
-            features_regression=features_regression,
+            features_anova=features_anova,
             features_continuity_scale=features_continuity_scale,
             index_columns_source="features",
             index_columns_product="features",
@@ -713,7 +596,7 @@ def control_procedure_part_branch(
             table=table,
             selection_observations=selection_observations,
             features_relevant=features_relevant,
-            features_essential=features_regression,
+            features_essential=features_anova,
             features_continuity_scale=features_continuity_scale,
             index_columns_source="features",
             index_columns_product="features",
@@ -732,16 +615,16 @@ def control_procedure_part_branch(
     # Check parameters and table of data for performing regression analysis.
     # It only makes sense to compare the variance of features if there has not
     # been scale standardization by z-score.
-    if True:
+    if False:
         pail_check = preg.check_parameters_table_data_regression(
             table=table,
             name_combination=name_combination,
-            type_regression=type_regression,
+            type_anova=type_anova,
             formula_text=formula_text,
             feature_response=feature_response,
-            features_predictor_fixed=features_predictor_fixed,
-            features_predictor_random=features_predictor_random,
-            groups_random=groups_random,
+            features_predictor_between=features_predictor_between,
+            features_predictor_within=features_predictor_within,
+            subject=subject,
             threshold_features_variance=0.01,
             threshold_observations_count=5,
             measure_variance="variance",
@@ -755,7 +638,7 @@ def control_procedure_part_branch(
     ##########
     # Perform regression analysis.
     record_extra = dict()
-    pail_regression = preg.collect_organize_record_regression_analysis(
+    pail_regression = preg.collect_organize_record_analysis_variance_anova(
         table=table,
         index_columns="features",
         index_rows="observations",
@@ -764,13 +647,12 @@ def control_procedure_part_branch(
         name=name,
         name_combination=name_combination,
         check_overall=pail_check["check_overall"],
-        type_regression=type_regression,
+        type_anova=type_anova,
         formula_text=formula_text,
         feature_response=feature_response,
-        features_predictor_fixed=features_predictor_fixed,
-        features_predictor_random=features_predictor_random,
-        groups_random=groups_random,
-        method_fit=None,
+        features_predictor_between=features_predictor_between,
+        features_predictor_within=features_predictor_within,
+        subject=subject,
         record_extra=record_extra,
         delimiter_list_items=",", # delimiter to flatten list items in strings
         report=report,
@@ -779,8 +661,7 @@ def control_procedure_part_branch(
     ##########
     # Prepare text summary of regression analysis.
     description_analysis = str(
-        "Linear Regression with Mixed Effects: Fixed Slopes and Random " +
-        " Slopes and Intercepts; Standard Model"
+        "Two-Way Repeate Measures ANOVA with Mixed Effects:"
     )
     formula_text = str(
         formula_text
@@ -788,25 +669,24 @@ def control_procedure_part_branch(
     description_response = str(
         feature_response
     )
-    description_groups_random = str(
-        groups_random
+    description_subject = str(
+        subject
     )
     description_predictor = textwrap.dedent("""\
-        fixed effects:
-           {fixed_effects}
-        random effects, intercepts:
-           {random_effects}
-        random effects, slope coefficients:
+        differences between subjects:
+           {features_predictor_between}
+        differences within subjects (repeat measures):
+           {features_predictor_within}
     """).format(
-        fixed_effects=features_predictor_fixed,
-        random_effects=features_predictor_random,
+        features_predictor_between=features_predictor_between,
+        features_predictor_within=features_predictor_within,
     )
     summary_text = preg.prepare_text_summary_regression_anova(
         title="Regressions from table of parameters",
         description_analysis=description_analysis,
         formula_text=formula_text,
         description_response=description_response,
-        description_groups_random=description_groups_random,
+        description_groups_random=description_subject,
         description_predictor=description_predictor,
         summary_1=str(pail_regression["table_summary"]),
         summary_2="",
@@ -841,7 +721,7 @@ def control_procedure_part_branch(
     if report:
         putly.print_terminal_partition(level=3)
         print("package: partner")
-        print("module: script_drive_regressions_from_table_parameters.py")
+        print("module: drive_analyses_variance_from_table_parameters.py")
         print("function: control_procedure_part_branch()")
         putly.print_terminal_partition(level=5)
         print("name for instance of parameters: " + name)
@@ -876,24 +756,26 @@ def control_parallel_instance(
             selection_observations (dict<list<str>>): names of columns in data
                 table for feature variables and their categorical values by
                 which to filter rows for observations in data table
-            type_regression (str): name of type of regression model to use
-            formula_text (str): human readable formula for regression model,
-                treated as a note for clarification
+            type_anova (str): name of type of analysis of variance (ANOVA) to
+                use, either '2way_repeat', or '2way_repeat_mix'
+            formula_text (str): human readable formula for ANOVA model, treated
+                as a note for clarification
             feature_response (str): name of column in data table for feature
-                variable to include in regression model as response dependent
+                variable to include in ANOVA model as response dependent
                 variable
-            features_predictor_fixed (list<str>): names of columns in data
-                table for feature variables to include in regression model as
-                predictor independent variables with fixed effects
-            features_predictor_random (list<str>): names of columns in data
-                table for feature variables to include in regression model as
-                predictor independent variables with random effects
-            groups_random (str): name of column in data table for identifiers
-                or designations of groups of observations for which to allow
-                random effects in the regression model
-            features_regression (list<str>): names of columns in data table for
-                feature variables that are relevant to the actual regression
-                model
+            features_predictor_between (list<str>): names of columns in data
+                table for feature variables to include in ANOVA model as
+                predictor independent variables that distinguish measurements
+                between separate groups of observations
+            features_predictor_within (list<str>): names of columns in data
+                table for feature variables to include in ANOVA model as
+                predictor independent variables that distinguish measurements
+                within separate groups of observations
+            subject (str): name of column in data table for identifier of
+                subject or individual source of pairs of samples or
+                observations corresponding to repeat measures
+            features_anova (list<str>): names of columns in data table for
+                feature variables that are relevant to the actual ANOVA model
             features_continuity_scale (list<str>): names of columns in data
                 table for feature variables with values on quantitative,
                 continuous scale of measurement, interval or ratio, for which
@@ -945,13 +827,13 @@ def control_parallel_instance(
     name = instance_record["name"]
     name_combination = instance_record["name_combination"]
     selection_observations = instance_record["selection_observations"]
-    type_regression = instance_record["type_regression"]
+    type_anova = instance_record["type_anova"]
     formula_text = instance_record["formula_text"]
     feature_response = instance_record["feature_response"]
-    features_predictor_fixed = instance_record["features_predictor_fixed"]
-    features_predictor_random = instance_record["features_predictor_random"]
-    groups_random = instance_record["groups_random"]
-    features_regression = instance_record["features_regression"]
+    features_predictor_between = instance_record["features_predictor_between"]
+    features_predictor_within = instance_record["features_predictor_within"]
+    subject = instance_record["subject"]
+    features_anova = instance_record["features_anova"]
     features_continuity_scale = instance_record["features_continuity_scale"]
     features_relevant = instance_record["features_relevant"]
     identifier_observations = instance_record["identifier_observations"]
@@ -977,13 +859,13 @@ def control_parallel_instance(
             name=name,
             name_combination=name_combination,
             selection_observations=selection_observations,
-            type_regression=type_regression,
+            type_anova=type_anova,
             formula_text=formula_text,
             feature_response=feature_response,
-            features_predictor_fixed=features_predictor_fixed,
-            features_predictor_random=features_predictor_random,
-            groups_random=groups_random,
-            features_regression=features_regression,
+            features_predictor_between=features_predictor_between,
+            features_predictor_within=features_predictor_within,
+            subject=subject,
+            features_anova=features_anova,
             features_continuity_scale=features_continuity_scale,
             features_relevant=features_relevant,
             identifier_observations=identifier_observations,
@@ -1132,7 +1014,7 @@ def execute_procedure(
     if report:
         putly.print_terminal_partition(level=3)
         print("package: partner")
-        print("module: script_drive_regressions_from_table_parameters.py")
+        print("module: drive_analyses_variance_from_table_parameters.py")
         print("function: execute_procedure()")
         putly.print_terminal_partition(level=5)
         print("system: local")
@@ -1147,7 +1029,7 @@ def execute_procedure(
     # Control procedure for parallel instances.
     # Define paths to directories.
     path_directory_parallel = os.path.join(
-        path_directory_product, "temporary_parallel_branch_products",
+        path_directory_product, "temporary_parallel_branch_products_anova",
     )
     # Create directories.
     putly.create_directories(
@@ -1175,8 +1057,8 @@ def execute_procedure(
 
     ##########
     # Organize information within a table.
-    table_regressions = organize_summary_table_regressions(
-        pails_regression=pails_parallel,
+    table_anovas = preg.organize_summary_table_anovas(
+        pails_anova=pails_parallel,
         report=report,
     )
 
@@ -1185,7 +1067,7 @@ def execute_procedure(
     # Collect information.
     # Collections of files.
     pail_write_tables = dict()
-    pail_write_tables[str("table_regressions")] = table_regressions
+    pail_write_tables[str("table_anovas")] = table_anovas
 
     ##########
     # 5. Write product information to file.

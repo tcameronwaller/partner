@@ -96,7 +96,7 @@ mv "$path_directory_parameters/parameters" "$path_directory_parameters/partner"
 cp -r "$path_directory_repository_project_main/parameters" "$path_directory_parameters/parameters"
 mv "$path_directory_parameters/parameters" "$path_directory_parameters/${project_main}"
 cp -r $path_directory_parameters_private_source $path_directory_dock
-mv "${path_directory_dock}/parameters" "${path_directory_dock}/${project_main}"
+mv "${path_directory_dock}/parameters_private" "${path_directory_dock}/${project_main}"
 mv "${path_directory_dock}/${project_main}" $path_directory_parameters_private
 
 ##########
