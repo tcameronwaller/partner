@@ -544,6 +544,254 @@ def check_parameters_table_data_regression(
     return pail
 
 
+
+def check_parameters_table_data_anova(
+    table=None,
+    name_combination=None,
+    type_anova=None,
+    formula_text=None,
+    feature_response=None,
+    features_predictor_between=None,
+    features_predictor_within=None,
+    subject=None,
+    threshold_features_variance=None,
+    threshold_observations_count=None,
+    measure_variance=None,
+    report=None,
+):
+    """
+    Check parameters for regression, including the table of data with features
+    and observations.
+
+    For the check on the variance of features across observations, it is most
+    accurate and informative to compare the variances after transforming the
+    values of features to have unit range between zero (0) and one (1). Do not
+    compare variances after transforming the values of features to standard
+    z scores, as this transformation forces values of all features to have the
+    same variance, unit standard deviation.
+
+    Review: TCW; 2 April 2025
+
+    arguments:
+        table (object): Pandas data-frame table of data with features
+            and observations for regression
+        name_combination (str): compound name for instance of parameters
+        type_anova (str): name of type of analysis of variance (ANOVA) to use,
+            either '2way_repeat', or '2way_repeat_mix'
+        formula_text (str): human readable formula for ANOVA model, treated as
+            a note for clarification
+        feature_response (str): name of column in data table for feature
+            variable to include in ANOVA model as response dependent
+            variable
+        features_predictor_between (list<str>): names of columns in data table
+            for feature variables to include in ANOVA model as predictor
+            independent variables that distinguish measurements between
+            separate groups of observations
+        features_predictor_within (list<str>): names of columns in data table
+            for feature variables to include in ANOVA model as predictor
+            independent variables that distinguish measurements within separate
+            groups of observations
+        subject (str): name of column in data table for identifier of subject
+            or individual source of pairs of samples or observations
+            corresponding to repeat measures
+        threshold_features_variance (float): threshold minimal variance for
+            values of features across observations
+        threshold_observations_count (int): threshold minimal count of
+            observations that must have nonmissing values of all features
+        measure_variance (str): name of measure to use for variance, either
+            'variance', 'standard_deviation', or 'coefficient_variation'
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict<object>): collection of information
+
+    """
+
+    # Copy information.
+    table = table.copy(deep=True)
+    features_predictor_between = copy.deepcopy(features_predictor_between)
+    features_predictor_within = copy.deepcopy(features_predictor_within)
+
+    # Check that functionality currently supports the type of regression.
+    types = [
+        "2way_repeat",
+        "2way_repeat_mix",
+    ]
+    if (
+        (type_anova is not None) and
+        (len(str(type_anova)) > 0) and
+        (str(type_anova).strip().lower() != "none") and
+        (str(type_anova) in types)
+    ):
+        check_type = True
+    else:
+        check_type = False
+        pass
+
+    # Check for features in the regression model that features exist in the
+    # table of data.
+    columns_available = copy.deepcopy(table.columns.to_list())
+    check_between = putly.compare_lists_by_inclusion(
+        items_dominant=columns_available,
+        items_subordinate=features_predictor_between,
+    )
+    check_within = putly.compare_lists_by_inclusion(
+        items_dominant=columns_available,
+        items_subordinate=features_predictor_within,
+    )
+    if (
+        (len(columns_available) > 1) and
+        (feature_response in columns_available) and
+        (check_between) and
+        (check_within)
+    ):
+        check_features_exist = True
+    else:
+        check_features_exist = False
+        pass
+
+    # Check for at least two values of each predictor feature.
+    table_nonmissing = table.copy(deep=True)
+    features_anova = list()
+    features_anova.append(feature_response)
+    features_anova.extend(features_predictor_between)
+    features_anova.extend(features_predictor_within)
+    table_nonmissing.dropna(
+        axis="index",
+        how="any",
+        subset=features_anova,
+        inplace=True,
+    )
+    check_between = (
+        table_nonmissing[features_predictor_between[0]].nunique() >= 2
+    )
+    check_within = (
+        table_nonmissing[features_predictor_within[0]].nunique() >= 2
+    )
+    if (
+        (check_between) and
+        (check_within)
+    ):
+        check_adequate_feature_values = True
+    else:
+        check_adequate_feature_values = False
+        pass
+
+    # Check for features in the regression model that adequate observations
+    # with nonmissing values exist in the table of data.
+    def check_features_nonmissing_observations(
+        table=None,
+        features=None,
+        threshold_observations_count=None,
+    ):
+        """
+        Define subordinate function for internal use within dominant function.
+        """
+        for feature in features:
+            count = table[feature].dropna().count()
+            if (count >= threshold_observations_count):
+                return True
+            else:
+                return False
+            pass
+        pass
+    # Copy information.
+    table_count = table.copy(deep=True)
+    # Evaluate features separately.
+    #check_fixed = check_features_nonmissing_observations(
+    #    table=table_count,
+    #    features=features_predictor_fixed,
+    #    threshold_observations_count=threshold_observations_count,
+    #)
+    # Evaluate features together.
+    features_anova = list()
+    features_anova.append(feature_response)
+    features_anova.extend(features_predictor_between)
+    features_anova.extend(features_predictor_within)
+    table_count.dropna(
+        axis="index",
+        how="any",
+        subset=features_anova,
+        inplace=True,
+    )
+    count_rows = int(table_count.shape[0])
+    if (count_rows >= threshold_observations_count):
+        check_observations_count = True
+    else:
+        check_observations_count = False
+        pass
+
+
+    # Check whether there was failure of any checks overall.
+    if (
+        (check_type) and
+        (check_features_exist) and
+        (check_adequate_feature_values) and
+        (check_observations_count)
+    ):
+        check_overall = True
+    else:
+        check_overall = False
+        pass
+
+    # Collect information.
+    pail = dict()
+    pail["check_type"] = check_type
+    pail["check_features_exist"] = check_features_exist
+    pail["check_adequate_feature_values"] = check_adequate_feature_values
+    pail["check_observations_count"] = check_observations_count
+    pail["check_overall"] = check_overall
+
+    # Warn.
+    if (not check_overall):
+        # Print.
+        putly.print_terminal_partition(level=3)
+        putly.print_terminal_warning()
+        putly.print_terminal_partition(level=5)
+        print("package: partner")
+        print("module: regression.py")
+        name_function = str(
+            "check_parameters_table_data_regression()"
+        )
+        print("function: " + name_function)
+        putly.print_terminal_partition(level=5)
+        print(
+            "Parameters and or data for a regression analysis failed checks!"
+        )
+        print("name_combination: " + name_combination)
+        putly.print_terminal_partition(level=5)
+
+        pass
+
+    # Report.
+    if report:
+        # Organize.
+        #count_records = len(records)
+        # Print.
+        putly.print_terminal_partition(level=4)
+        print("package: partner")
+        print("module: regression.py")
+        name_function = str(
+            "check_parameters_table_data_regression()"
+        )
+        print("function: " + name_function)
+        putly.print_terminal_partition(level=5)
+        print("check_type: " + str(check_type))
+        print("check_features_exist: " + str(check_features_exist))
+        print(
+            "check_adequate_feature_values: " +
+            str(check_adequate_feature_values)
+        )
+        print("check_observations_count: " + str(check_observations_count))
+        #print("check_variance: " + str(check_variance))
+        print("check_overall: " + str(check_overall))
+        pass
+    # Return information.
+    return pail
+
+
 ##########
 # Organize information from regresion.
 

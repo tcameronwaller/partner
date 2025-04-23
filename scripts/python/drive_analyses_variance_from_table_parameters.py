@@ -615,8 +615,8 @@ def control_procedure_part_branch(
     # Check parameters and table of data for performing regression analysis.
     # It only makes sense to compare the variance of features if there has not
     # been scale standardization by z-score.
-    if False:
-        pail_check = preg.check_parameters_table_data_regression(
+    if True:
+        pail_check = preg.check_parameters_table_data_anova(
             table=table,
             name_combination=name_combination,
             type_anova=type_anova,
@@ -934,7 +934,7 @@ def control_parallel_instances(
     else:
         # Execute procedure directly for testing.
         control_parallel_instance(
-            instance=instances[1],
+            instance=instances[14],
             parameters=parameters,
         )
     pass
