@@ -582,10 +582,6 @@ def organize_summary_table_regressions(
 # Control procedure within branch for parallelization.
 
 
-# TODO: TCW; 10 April 2025
-# Switch to use the new function in "regression.py" that organizes information
-# about regression analysis in a text summary
-
 def control_procedure_part_branch(
     execution=None,
     sequence=None,
@@ -774,39 +770,49 @@ def control_procedure_part_branch(
         features_predictor_fixed=features_predictor_fixed,
         features_predictor_random=features_predictor_random,
         groups_random=groups_random,
+        method_fit=None,
         record_extra=record_extra,
         delimiter_list_items=",", # delimiter to flatten list items in strings
         report=report,
     )
 
-    #print(str(pail_regression["table_summary"]))
-    summary_text = str(
-        str(pail_regression["record"]["name_combination"]) +
-        textwrap.dedent("""\
-
-            ----------
-        """) +
-        str(pail_regression["record"]["formula_text"]) +
-        textwrap.dedent("""\
-
-            ----------
-        """) +
-        str(pail_regression["record"]["type_regression"]) +
-        textwrap.dedent("""\
-
-            ----------
-            ----------
-            ----------
-        """) +
-        str(pail_regression["table_summary"]) +
-        textwrap.dedent("""\
-
-            --------------------------------------------------
-            --------------------------------------------------
-            --------------------------------------------------
-        """)
+    ##########
+    # Prepare text summary of regression analysis.
+    description_analysis = str(
+        "Linear Regression with Mixed Effects: Fixed Slopes and Random " +
+        " Slopes and Intercepts; Standard Model"
     )
-    print(summary_text)
+    formula_text = str(
+        formula_text
+    )
+    description_response = str(
+        feature_response
+    )
+    description_groups_random = str(
+        groups_random
+    )
+    description_predictor = textwrap.dedent("""\
+        fixed effects:
+           {fixed_effects}
+        random effects, intercepts:
+           {random_effects}
+        random effects, slope coefficients:
+    """).format(
+        fixed_effects=features_predictor_fixed,
+        random_effects=features_predictor_random,
+    )
+    summary_text = preg.prepare_text_summary_regression_anova(
+        title="Regressions from table of parameters",
+        description_analysis=description_analysis,
+        formula_text=formula_text,
+        description_response=description_response,
+        description_groups_random=description_groups_random,
+        description_predictor=description_predictor,
+        summary_1=str(pail_regression["table_summary"]),
+        summary_2="",
+        summary_3="",
+        report=report,
+    )
 
     ##########
     # Write information to file.

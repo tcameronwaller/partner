@@ -3792,7 +3792,12 @@ def merge_columns_two_tables(
 ##########
 # Prepare columns of features and rows of observations in table for analysis.
 
-
+# TODO: TCW; 22 April 2025
+# It is very common to need to troubleshoot problems with indices on tables.
+# Make the code in this function more general to be able to accommodate all
+# possibilities of a table's indices (1. named index exists matching "index_rows_source",
+# 2. column matches but isn't yet a named index 3. no index or column match, create new).
+# and place within a new function.
 def prepare_table_features_observations_for_analysis(
     table=None,
     selection_observations=None,
@@ -4003,7 +4008,7 @@ def prepare_table_features_observations_for_analysis(
     # identifiers of observations that will become index across rows.
     if (
         (index_rows_source is not None) and
-        (index_rows_source in (table.columns.tolist())) and
+        (index_rows_source in (table.columns.to_list())) and
         (explicate_indices)
     ):
         # Remove rows from table for observations with redundancy in identifiers
@@ -4094,7 +4099,7 @@ def prepare_table_features_observations_for_analysis(
     if report:
         putly.print_terminal_partition(level=4)
         print("package: partner")
-        print("module: regression.py")
+        print("module: organization.py")
         name_function = str(
             "prepare_table_features_observations_for_analysis()"
         )

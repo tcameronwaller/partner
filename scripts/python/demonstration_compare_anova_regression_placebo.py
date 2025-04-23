@@ -290,7 +290,11 @@ def manage_procedure_van_dongen(
 
     ##########
     # Organize information in table.
-    table_source["observations"] = table_source["identifier_subject"]
+    # Remember that "identifier_subject" designates individuals who have pairs
+    # of samples for repeate measures. Do not use the identifier of these
+    # individuals as the index across rows, or else the table will lose rows
+    # for the repeat measures.
+    #table_source["observations"] = table_source["identifier_subject"]
     table_source["identifier_subject_raw"] = table_source["identifier_subject"]
     table_source["identifier_subject"] = table_source.apply(
         lambda row: str(
@@ -302,7 +306,7 @@ def manage_procedure_van_dongen(
     selection_observations["condition"] = [0, 1,]
     selection_observations["time_point"] = [0, 1,]
     features_relevant = [
-        "observations",
+        #"observations", # function will create this column and index
         "identifier_subject",
         "condition",
         "time_point",
@@ -321,7 +325,7 @@ def manage_procedure_van_dongen(
         features_continuity_scale=list(),
         index_columns_source="features",
         index_columns_product="features",
-        index_rows_source="observations",
+        index_rows_source=None, # function will create new index
         index_rows_product="observations",
         remove_missing=True,
         remove_redundancy=True,
@@ -330,6 +334,7 @@ def manage_procedure_van_dongen(
         explicate_indices=True,
         report=False,
     )
+    features_relevant.insert(0, "observations")
 
     # Two-Way ANOVA with Repeated Measures.
     # This version of ANOVA does not fit the study design and data, because the
@@ -389,7 +394,7 @@ def manage_procedure_van_dongen(
         description_response=description_response,
         description_groups_random=description_groups_random,
         description_predictor=description_predictor,
-        summary_1=str(pail_anova_mix["anova"].round(3)),
+        summary_1=str(pail_anova_mix["table_summary"].round(3)),
         summary_2=str(pail_anova_mix["t_test_within"]),
         summary_3=str(pail_anova_mix["t_test_between"]),
         report=report,
