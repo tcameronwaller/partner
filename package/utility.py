@@ -1651,7 +1651,7 @@ def read_all_pandas_tables_files_within_parent_directory(
     return pail
 
 
-def determine_logical_binary_designator(
+def determine_category_text_logical_binary(
     category_text=None,
     values_1=None,
     values_0=None,
@@ -1661,7 +1661,7 @@ def determine_logical_binary_designator(
     category as a text value. Introduce a float missing value if the category
     does not match any values for either one (1) or zero (0).
 
-    Review: TCW; 9 April 2025
+    Review: TCW; 24 April 2025
 
     arguments:
         category_text (str): category text for which to determine logical
@@ -1700,6 +1700,72 @@ def determine_logical_binary_designator(
     # Return information.
     return designator
 
+
+def determine_category_text_two_intersection_interaction(
+    value_intersection=None,
+    value_other=None,
+    value_else=None,
+    category_one=None,
+    values_one_intersection=None,
+    values_one_other=None,
+    category_two=None,
+    values_two_intersection=None,
+    values_two_other=None,
+):
+    """
+    Determines appropriate text categorical designation of positive, true or
+    negative, false interaction or intersection between specific values of two
+    text categorical variables.
+
+    Review: TCW; 24 April 2025
+
+    arguments:
+        value_intersection (str): text value designation of positive or true
+            intersection between specific values of two original categories
+        value_other (str): text value designation of negative or false
+            intersection between specific values of two original categories
+        value_else (str): text value designation of a situation that matches
+            neither the positive, true nor the negative, false
+        category_one (str): text value of first category for which to determine
+            custom intersection with a second category
+        values_one_intersection (list<str>):
+        values_one_other (list<str>):
+        category_two (str): text value of second category for which to determine
+            custom intersection with a first category
+        values_two_intersection (list<str>):
+        values_two_other (list<str>):
+
+    raises:
+
+    returns:
+        (str): text categorical designation of interaction
+
+    """
+
+    # Determine designator.
+    if (
+        (pandas.notna(category_one)) and
+        (len(str(category_one).strip()) > 0) and
+        (pandas.notna(category_two)) and
+        (len(str(category_two).strip()) > 0)
+    ):
+        if (
+            (str(category_one).strip() in values_one_intersection) and
+            (str(category_two).strip() in values_two_intersection)
+        ):
+            designator = value_intersection
+        elif (
+            (str(category_one).strip() in values_one_other) and
+            (str(category_two).strip() in values_two_other)
+        ):
+            designator = value_other
+        else:
+            designator = value_else
+    else:
+        designator = value_else
+        pass
+    # Return information.
+    return designator
 
 
 
