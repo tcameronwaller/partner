@@ -932,6 +932,7 @@ def calculate_ratios_to_geometric_mean_across_feature_observations(
     efficiency. While matrix transformations would be more efficient, they
     would also be more difficult to follow and critique.
 
+    Review: 29 April 2025
     Review: 17 September 2024
 
     arguments:
@@ -964,25 +965,30 @@ def calculate_ratios_to_geometric_mean_across_feature_observations(
             ),
         axis="columns", # apply function to each row
     )
-    # For this method, it is necessary to exclude any features that have a
-    # geometric mean of zero across samples.
-    table["mean_geometric"] = table["mean_geometric"].replace(
-        to_replace=0.0,
-        value=pandas.NA,
-    )
-    table.dropna(
-        axis="index",
-        how="all",
-        subset=["mean_geometric"],
-        inplace=True,
-    )
+
+    #table["mean_geometric"] = table["mean_geometric"].replace(
+    #    to_replace=0.0,
+    #    value=pandas.NA,
+    #)
+    #table.dropna(
+    #    axis="index",
+    #    how="all",
+    #    subset=["mean_geometric"],
+    #    inplace=True,
+    #)
+
     # Calculate ratio of each observation of each feature to that feature's
     # geometric mean value across all observations.
-    # if row["mean_geometric"] != 0.0 else pandas.NA
+    # For this method, it is necessary to return missing values for any
+    # features that have a geometric mean of zero across samples.
     for column in columns:
         table[str(column + "_ratio")] = table.apply(
             lambda row:
-                (row[column] / row["mean_geometric"]),
+                (row[column] / row["mean_geometric"])
+                if (
+                    (not pandas.isna(row["mean_geometric"])) and
+                    (row["mean_geometric"] != 0.0)
+                ) else pandas.NA,
             axis="columns", # apply function to each row
         )
         pass
@@ -1058,6 +1064,7 @@ def scale_feature_values_between_observations_by_deseq(
     efficiency. While matrix transformations would be more efficient, they
     would also be more difficult to follow and critique.
 
+    Review: 29 April 2025
     Review: 13 September 2024
 
     arguments:
@@ -1074,6 +1081,19 @@ def scale_feature_values_between_observations_by_deseq(
             columns and for features across rows
 
     """
+
+    # Define subordinate functions for internal use.
+    def calculate_scale_value(value_source=None, median_ratio=None):
+        if (
+            (not pandas.isna(median_ratio)) and
+            (median_ratio != 0.0)
+        ):
+            value_product = (
+                value_source / median_ratio
+            )
+        else:
+            value_product = pandas.NA
+        return value_product
 
     # Copy information in table.
     table_scale = table.copy(deep=True)
@@ -1120,8 +1140,10 @@ def scale_feature_values_between_observations_by_deseq(
     for column in names_columns:
         table_scale[str(column + "_scale")] = table_scale.apply(
             lambda row:
-                (row[column] / median_ratios[str(column + "_ratio")])
-                if median_ratios[str(column + "_ratio")] != 0.0 else pandas.NA,
+                calculate_scale_value(
+                    value_source=row[column],
+                    median_ratio=median_ratios[str(column + "_ratio")],
+                ),
             axis="columns", # apply function to each row
         )
         pass
