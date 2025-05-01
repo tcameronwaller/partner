@@ -2583,12 +2583,12 @@ def compare_lists_by_mutual_inclusion(
     """
 
     forward = compare_lists_by_inclusion(
-        list_primary=list_primary,
-        list_secondary=list_secondary
+        items_dominant=list_primary,
+        items_subordinate=list_secondary
     )
     reverse = compare_lists_by_inclusion(
-        list_primary=list_secondary,
-        list_secondary=list_primary
+        items_dominant=list_secondary,
+        items_subordinate=list_primary
     )
     comparison = (forward and reverse)
     return comparison
