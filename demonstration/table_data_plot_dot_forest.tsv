@@ -1,0 +1,14 @@
+feature_source	value_primary_source	interval_low_primary_source	interval_high_primary_source	value_secondary_source	interval_low_secondary_source	interval_high_secondary_source
+feature_1	-0.3	0.05	0.1	0.7	0.05	0.1
+feature_2	-0.2	0.05	0.1	0.6	0.05	0.1
+feature_3	-0.1	0.05	0.1	0.5	0.05	0.1
+feature_4	0.1	0.05	0.1	0.4	0.05	0.1
+feature_5	0.2	0.05	0.1	0.3	0.05	0.1
+feature_6	0.3	0.05	0.1	0.2	0.05	0.1
+feature_7	0.4	0.05	0.1	0.1	0.05	0.1
+feature_8	0.5	0.05	0.1	-0.1	0.05	0.1
+feature_9	0.6	0.05	0.1	-0.2	0.05	0.1
+feature_10	0.7	0.05	0.1	-0.3	0.05	0.1
+feature_11	0.8	0.05	0.1	-0.4	0.05	0.1
+feature_12	0.9	0.05	0.1	-0.5	0.05	0.1
+feature_13	1	0.05	0.1	-0.6	0.05	0.1

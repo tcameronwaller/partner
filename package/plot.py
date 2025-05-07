@@ -508,6 +508,7 @@ def define_color_properties():
 
     pail["yellow"] = (1.0, 0.8, 0.0, 1.0) # (red: 255; green: 200; blue: 0)
     pail["yellow_sunshine"] = (1.0, 1.0, 0.196, 1.0) # (red: 255; green: 255; blue: 50)
+    pail["yellow_sunshine_faint"] = (1.0, 1.0, 0.201, 1.0) # (red: 255; green: 255; blue: 50)
     pail["yellow_sunflower"] = (1.0, 0.784, 0.0, 1.0) # (red: 255; green: 200; blue: 0)
     pail["yellow_butter"] = (1.0, 1.0, 0.392, 1.0) # (red: 255; green: 255; blue: 100)
     pail["yellow_cream"] = (1.0, 1.0, 0.784, 1.0) # (red: 255; green: 255; blue: 200)
@@ -516,12 +517,14 @@ def define_color_properties():
     pail["green_forest"] = (0.15, 0.55, 0.15, 1.0) # (red: 38; green: 140; blue: 38)
     pail["green_kelly"] = (0.3, 0.7, 0.1, 1.0) # (red: 77; green: 179; blue: 26)
     pail["green_mint"] = (0.5, 0.9, 0.5, 1.0) # (red: 128; green: 230; blue: 128) # TCW; 24 March 2025
+    pail["green_mint_faint"] = (0.55, 0.95, 0.55, 1.0) # (red: 128; green: 230; blue: 128) # TCW; 24 March 2025
 
     #pail["blue_navy"] = (0.039, 0.196, 0.588, 1.0) # (red: 10; green: 50; blue: 150)
     pail["blue_navy"] = (0.118, 0.118, 0.510, 1.0) # (red: 30; green: 30; blue: 130) # TCW; 11 February 2025
     pail["blue_navy_faint"] = (0.039, 0.196, 0.588, 0.75)
     pail["blue_navy_light"] = (0.118, 0.314, 0.706, 1.0) # (r: 30; g: 80; b: 180)
     pail["blue_sky"] = (0.196, 0.588, 1.0, 1.0) # (red: 50; green: 150; blue: 255)
+    pail["blue_sky_faint"] = (0.201, 0.593, 1.0, 1.0) # (red: 50; green: 150; blue: 255)
     pail["blue_navy_bright"] = (0.784, 0.824, 1.0, 1.0) # (r: 200; g: 210; b: 255)
     pail["blue_periwinkle"] = (0.667, 0.667, 1.0, 1.0) # (red: 170; green: 170; blue: 255)
     pail["blue_indigo"] = (0.196, 0.0, 0.588, 1.0) # (red: 50; green: 0; blue: 150) # TCW; 11 February 2025
@@ -532,6 +535,7 @@ def define_color_properties():
     pail["purple_lavender"] = (0.784, 0.784, 1.0, 1.0) # (red: 200; green: 200; blue: 255)
     pail["purple_lilac"] = (0.784, 0.667, 0.784, 1.0) # (red: 200; green: 170; blue: 200)
     pail["purple_violet"] = (0.5, 0.0, 1.0, 1.0) # (red: 128; green: 0; blue: 255)
+    pail["purple_violet_faint"] = (0.55, 0.05, 1.0, 1.0) # (red: 128; green: 0; blue: 255)
 
     # Return information.
     return pail
@@ -4472,6 +4476,10 @@ def plot_boxes_groups(
         return pail
 
     ##########
+    # Parameters.
+    type_plot = "box" # or "violin"
+
+    ##########
     # Prepare information for plot.
     # Prepare values.
     values_groups_nonempty = list(filter(
@@ -4504,7 +4512,7 @@ def plot_boxes_groups(
     #axes = matplotlib.pyplot.axes()
     axes = figure.add_subplot(111)
     # Create boxes.
-    if False:
+    if (type_plot == "box"):
         handle = axes.boxplot(
             values_groups,
             notch=False, # whether to draw notch at center of box
@@ -4543,7 +4551,7 @@ def plot_boxes_groups(
                 "color": colors["black"],
             },
         )
-    if True:
+    elif (type_plot == "violin"):
         # white circle: mean
         # horizontal bold line: median
         # vertical bold line or rectangle: 25%-75% interquartile range
@@ -4610,13 +4618,13 @@ def plot_boxes_groups(
         colors_groups = (
             matplotlib.colormaps["tab10"].colors[0:len(values_groups)]
         )
-    if False:
+    if (type_plot == "box"):
         for box_patch, color_box in zip(handle["boxes"], colors_groups):
             box_patch.set_facecolor(color_box)
             #body_patch.set_alpha(1.0)
             pass
         pass
-    if True:
+    elif (type_plot == "violin"):
         for body_patch, color_body in zip(handle["bodies"], colors_groups):
             body_patch.set_facecolor(color_body)
             body_patch.set_alpha(1.0)
@@ -6356,86 +6364,130 @@ def plot_scatter_qq_gwas(
 # Dot, Point, Forest plots
 
 
-def plot_scatter_points_forest_category_ordinate_two_groups(
+def plot_dot_forest_category_ordinate_two_series(
     table=None,
-    column_group=None,
-    column_ordinate_label=None,
-    column_ordinate_sort=None,
-    column_abscissa_value=None,
-    column_abscissa_interval_below=None,
-    column_abscissa_interval_above=None,
-    group_one=None,
-    group_two=None,
-    abscissa_minimum=None,
-    abscissa_maximum=None,
-    ordinate_title=None,
-    abscissa_title=None,
-    label_chart=None,
-    label_size_ordinate_categories=None,
-    label_size_abscissa_values=None,
-    size_marker_one=None,
-    size_marker_two=None,
-    color_marker_one=None,
-    color_marker_two=None,
-    space_groups=None,
+    column_feature=None,
+    column_feature_name=None,
+    column_value_primary=None,
+    column_interval_low_primary=None,
+    column_interval_high_primary=None,
+    column_value_secondary=None,
+    column_interval_low_secondary=None,
+    column_interval_high_secondary=None,
+    title_chart=None,
+    title_abscissa=None,
+    title_ordinate=None,
+    size_title_chart=None,
+    size_title_abscissa=None,
+    size_title_ordinate=None,
+    size_label_abscissa=None,
+    size_label_ordinate=None,
+    aspect=None,
+    minimum_abscissa=None,
+    maximum_abscissa=None,
+    factor_space_series=None,
+    space_between_series=None,
+    position_line_origin=None,
+    size_marker_primary=None,
+    size_marker_secondary=None,
+    size_line_origin=None,
+    size_line_interval=None,
+    color_marker_primary=None,
+    color_marker_secondary=None,
+    color_interval_primary=None,
+    color_interval_secondary=None,
     fonts=None,
     colors=None,
+    report=None,
 ):
     """
-    Creates a figure of a chart of type scatter with discrete, categorical,
-    textual labels on the vertical ordinate axis and continuous points with
-    error bars on the horizontal abscissa axis.
+    Dependency:
+    This function is a dependency of the functions below.
+    package: partner
+    module or script: drive_plot_dot_forest_from_table_data.py
+    function: create_write_plot_dot_forest()
 
-    Common name of this chart design is "Forest Plot".
+    Create a plot chart of type scatter with discrete, categorical, text labels
+    corresponding to features along the vertical ordinate axis and with
+    points and error bars corresponding to quantitative, continuous values
+    along the horizontal abscissa axis.
 
-    This function accommodates exactly two groups of values (series).
+    A common name of this chart design is "Forest Plot".
+
+    This function accommodates exactly two groups of values (series), along
+    with their respective intervals.
 
     This plot's ordinate (vertical, y axis) fits best for a variable with
     discrete categorical values that serve as names.
 
     This plot's abscissa (horizontal, x axis) fits best for a variable with
-    continuous, ratio-scale values that center on zero.
+    quantitative, continuous values on an interval or ratio scale of
+    measurement that is centered on zero.
 
     MatPlotLib accepts intervals, not ranges for error bars. The function does
     the arithmetic to calculate ranges below and above the central value.
 
+    Review: 6 May 2025
+
     arguments:
-        table (object): Pandas data frame of feature variables across columns
-            and observation records across rows
-        column_group (str): name of table's column with names of groups or
-            series of values
-        column_ordinate_label (str): name of table's column with textual
-            categorical values for representation as labels on the vertical
-            ordinate (y) axis
-        column_ordinate_sort (str): name of table's column with integer values
-            for sort order on categorical values for ordinate
-        column_abscissa_value (str): name of table's column with floating point
-            continuous scale coefficient values for representation as points on
-            the horizontal abscissa (x) axis
-        column_abscissa_interval_below (str): name of table's column for the
-            extent (interval) of the error bar below the point value
-        column_abscissa_interval_above (str): name of table's column for the
-            extent (interval) of the error bar above the point value
-        group_one (str): textual categorical name of first group of values
-            (series) within table's column with name 'column_group'
-        group_two (str): textual categorical name of second group of values
-            (series) within table's column with name 'group'
-        abscissa_minimum (float): minimal value for range of abscissa axis
-        abscissa_maximum (float): maximal value for range of abscissa axis
-        ordinate_title (str): title for ordinate or vertical axis
-        abscissa_title (str): title for abscissa or horizontal axis
-        label_chart (str): text label title of chart to include on figure
-        label_size_ordinate_categories (str): label size for categories on
-            vertical axis
-        label_size_abscissa_values (str): label size for values on
-            horizontal axis
-        size_marker_one (int): size of markers for group one
-        size_marker_two (int): size of markers for group two
-        color_marker_one (str): name of color for markers of group one
-        color_marker_two (str): name of color for markers of group two
-        space_groups (float): vertical spacing between markers for groups
-        fonts (dict<object>): references to definitions of font properties
-        colors (dict<tuple>): references to definitions of color properties
+        table (object): Pandas data-frame table of features across rows with
+            statistical measures such as correlation coefficients or regression
+            coefficients and their confidence intervals across columns
+        column_feature (str): name of column in table corresponding to unique
+            names or identifiers of features in their proper sequence across
+            rows
+        column_feature_name (str): name of column in table corresponding to
+            readable names of features for visual representation on labels
+        column_value_primary (str): name of column in table corresponding to
+            values
+        column_interval_low_primary (str): name of column in table
+            corresponding to intervals below values
+        column_interval_high_primary (str): name of column in table
+            corresponding to intervals above values
+        column_value_secondary (str): name of column in table corresponding to
+            values
+        column_interval_low_secondary (str): name of column in table
+            corresponding to intervals below values
+        column_interval_high_secondary (str): name of column in table
+            corresponding to intervals above values
+        title_chart (str): title for plot chart as a whole
+        title_abscissa (str): title for abscissa or horizontal axis
+        title_ordinate (str): title for ordinate or vertical axis
+        size_title_chart (str): font size for title of plot chart as a whole
+        size_title_abscissa (str): font size for title of abscissa horizontal
+            axis
+        size_title_ordinate (str): font size for title of ordinate vertical
+            axis
+        size_label_abscissa (str): font size for labels of abscissa horizontal
+            axis
+        size_label_ordinate (str): font size for labels of ordinate vertical
+            axis
+        aspect (str): aspect ratio for MatPlotLib chart figure
+        minimum_abscissa (float): minimal value for range of abscissa axis
+        maximum_abscissa (float): maximal value for range of abscissa axis
+        factor_space_series (float): factor for automatic calculation of
+            space between series on the basis of counts of features
+        space_between_series (float): vertical space between markers for series
+        position_line_origin (float): value of intercept on abscissa horizontal
+            axis at which for a vertical line to cross, representing the origin
+            or visual reference
+        size_marker_primary (int): size of markers for primary series of values
+        size_marker_secondary (int): size of markers for secondary series of
+            values
+        size_line_origin (int): size, width, or thickness of line for origin
+        size_line_interval (int): size, width, or thickness of lines for
+            representation of the interval of error or confidence
+        color_marker_primary (str): color red, green, blue, alpha parameters
+            for markers of primary series of values
+        color_marker_secondary (str): color red, green, blue, alpha parameters
+            for markers of secondary series of values
+        color_interval_primary (str): color red, green, blue, alpha parameters
+            for markers of primary intervals
+        color_interval_secondary (str): color red, green, blue, alpha
+            parameters for markers of secondary intervals
+        fonts (dict<object>): definitions of font properties
+        colors (dict<tuple>): definitions of color properties
+        report (bool): whether to print reports
 
     raises:
 
@@ -6444,204 +6496,208 @@ def plot_scatter_points_forest_category_ordinate_two_groups(
 
     """
 
-    # Organize information from table.
-    # It is important that the sorts orders of labels and values are identical
-    # for series one and series two.
-    table = table.copy(deep=True)
-    columns = [
-        column_group, column_ordinate_label, column_ordinate_sort,
-        column_abscissa_value,
-        column_abscissa_interval_below, column_abscissa_interval_above,
-    ]
-    table_columns = table.loc[
-        :, table.columns.isin(columns)
-    ]
-    table_columns.sort_values(
-        by=[column_group, column_ordinate_sort],
-        axis="index",
-        ascending=False, # Non-ascending sort order is more intuitive here
-        inplace=True,
-    )
-    # Accommodate missing values.
-    table_columns[column_abscissa_value].fillna(
-        value=-3,
-        inplace=True,
-    )
-    table_columns[column_abscissa_interval_below].fillna(
-        value=0,
-        inplace=True,
-    )
-    table_columns[column_abscissa_interval_above].fillna(
-        value=0,
-        inplace=True,
-    )
-    #print("plot function")
-    #print(table_columns)
-    # Stratify.
-    table_group_one = table_columns.loc[
-        (
-            (table_columns[column_group] == group_one)
-        ), :
-    ]
-    table_group_two = table_columns.loc[
-        (
-            (table_columns[column_group] == group_two)
-        ), :
-    ]
+    ##########
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("module: partner.plot.py")
+        print("function: plot_dot_forest_category_ordinate_two_series()")
+        putly.print_terminal_partition(level=5)
+        pass
 
-    # Organize information for categorical labels on ordinate vertical axis.
-    # Assign positions for Group One to be above center point.
-    # Assign positions for Group Two to be below center point.
-    ordinate_labels = table_group_one[column_ordinate_label].to_list()
-    ordinate_positions_center = range(len(ordinate_labels))
-    ordinate_positions_one = list(map(
-        lambda position: (position + space_groups),
-        ordinate_positions_center
+    ##########
+    # Organize information for chart.
+
+    # Copy information.
+    table = table.copy(deep=True)
+
+    # Organize information for categorical labels and positions of those labels
+    # and their corresponding dot points along the ordinate vertical axis.
+    # Assign positions for primary series to be above center point.
+    # Assign positions for secondary series to be below center point.
+    labels_ordinate = table[column_feature_name].to_list()
+    count_ordinate = len(labels_ordinate)
+    positions_ordinate_center = list(map(
+        lambda position: (position + 1),
+        range(count_ordinate)
     ))
-    ordinate_positions_two = list(map(
-        lambda position: (position - space_groups),
-        ordinate_positions_center
+    positions_ordinate_primary = list(map(
+        lambda position: (position + space_between_series),
+        positions_ordinate_center
     ))
-    # Extract information for labels, values, and error bars.
-    abscissa_positions_one = table_group_one[column_abscissa_value].to_numpy()
-    abscissa_intervals_one_below = (
-        table_group_one[column_abscissa_interval_below].to_numpy()
+    positions_ordinate_secondary = list(map(
+        lambda position: (position - space_between_series),
+        positions_ordinate_center
+    ))
+    if (
+        (factor_space_series is not None) and
+        (factor_space_series != 0)
+    ):
+        space_between_series = float(count_ordinate / factor_space_series)
+
+    # Organize information for labels, dot points, and error bars along the
+    # abscissa horizontal axis.
+    positions_abscissa_primary = table[column_value_primary].to_numpy()
+    intervals_abscissa_low_primary = (
+        table[column_interval_low_primary].to_numpy()
     )
-    abscissa_intervals_one_above = (
-        table_group_one[column_abscissa_interval_above].to_numpy()
+    intervals_abscissa_high_primary = (
+        table[column_interval_high_primary].to_numpy()
     )
-    abscissa_positions_two = table_group_two[column_abscissa_value].to_numpy()
-    abscissa_intervals_two_below = (
-        table_group_two[column_abscissa_interval_below].to_numpy()
+    positions_abscissa_secondary = table[column_value_secondary].to_numpy()
+    intervals_abscissa_low_secondary = (
+        table[column_interval_low_secondary].to_numpy()
     )
-    abscissa_intervals_two_above = (
-        table_group_two[column_abscissa_interval_above].to_numpy()
+    intervals_abscissa_high_secondary = (
+        table[column_interval_high_secondary].to_numpy()
     )
     # Shape (n, 2)
     #errors_ordinate = numpy.array(list(zip(
     #    errors_ordinate_low, errors_ordinate_high
     #)))
     # Shape (2, n)
-    abscissa_intervals_one = numpy.array(
-        [abscissa_intervals_one_below, abscissa_intervals_one_above]
+    intervals_abscissa_primary = numpy.array(
+        [intervals_abscissa_low_primary, intervals_abscissa_high_primary]
     )
-    abscissa_intervals_two = numpy.array(
-        [abscissa_intervals_two_below, abscissa_intervals_two_above]
+    intervals_abscissa_secondary = numpy.array(
+        [intervals_abscissa_low_secondary, intervals_abscissa_high_secondary]
     )
 
     ##########
+    # Create and initialize figure chart object.
+
     # Create figure.
-    figure = matplotlib.pyplot.figure(
-        figsize=(11.811, 15.748),
-        tight_layout=True
+    figure = initialize_matplotlib_figure_aspect(
+        aspect=aspect,
     )
     # Create axes.
-    axes = matplotlib.pyplot.axes()
-    axes.set_xlim(
-        xmin=abscissa_minimum,
-        xmax=abscissa_maximum,
-    )
+    #axes = matplotlib.pyplot.axes()
+    axes = figure.add_subplot(111)
+    # Define limits for axes.
+    if (minimum_abscissa is not None):
+        axes.set_xlim(xmin=minimum_abscissa)
+    if (maximum_abscissa is not None):
+        axes.set_xlim(xmax=maximum_abscissa)
+    axes.set_ylim(ymin=0)
+    axes.set_ylim(ymax=(count_ordinate + 1))
     # Set titles for axes.
-    if (len(abscissa_title) > 0):
+    if (len(title_abscissa) > 0):
         axes.set_xlabel(
-            xlabel=abscissa_title,
-            labelpad=30,
+            xlabel=title_abscissa,
+            labelpad=15,
             alpha=1.0,
             backgroundcolor=colors["white"],
             color=colors["black"],
-            fontproperties=fonts["properties"]["one"]
+            fontproperties=fonts["properties"][size_title_abscissa]
         )
-    if (len(ordinate_title) > 0):
+    if (len(title_ordinate) > 0):
         axes.set_ylabel(
-            ylabel=ordinate_title,
-            labelpad=30,
+            ylabel=title_ordinate,
+            labelpad=15,
             alpha=1.0,
             backgroundcolor=colors["white"],
             color=colors["black"],
-            fontproperties=fonts["properties"]["one"]
+            fontproperties=fonts["properties"][size_title_ordinate]
         )
-    # Set tick parameters for axes.
+    # Set parameters for tick labels on axes.
     axes.tick_params(
-        axis="y", # "y", "x", or "both"
-        which="both",
+        axis="both", # "y", "x", or "both"
+        which="both", # "major", "minor", or "both"
         direction="out",
-        length=15.0, # 5.0
-        width=11.0, # 3.0
+        top=False,
+        labeltop=False,
+        bottom=True,
+        labelbottom=True,
+        left=True,
+        labelleft=True,
+        right=False,
+        labelright=False,
+        length=7.5, # 5.0
+        width=5.0, # 3.0, 5.0
+        pad=10.0, # 5.0, 7.5
         color=colors["black"],
-        pad=25,
-        labelsize=fonts["values"][label_size_ordinate_categories]["size"],
-        labelcolor=colors["black"]
+        labelcolor=colors["black"],
     )
     axes.tick_params(
-        axis="x", # "y", "x", or "both"
+        axis="x",
         which="both",
-        direction="out",
-        length=15.0, # 5.0
-        width=11.0, # 3.0
-        color=colors["black"],
-        pad=25,
-        labelsize=fonts["values"][label_size_abscissa_values]["size"],
-        labelcolor=colors["black"]
+        labelsize=fonts["values"][size_label_abscissa]["size"],
     )
+    axes.tick_params(
+        axis="y",
+        which="both",
+        labelsize=fonts["values"][size_label_ordinate]["size"],
+    )
+    # Keep axes, ticks, and labels, but remove border.
+    # ["left", "top", "right", "bottom",]
+    for position in ["top", "right",]:
+        matplotlib.pyplot.gca().spines[position].set_visible(False)
+
+
     # Set explicit tick positions and labels on vertical ordinate axis.
     # (https://matplotlib.org/3.5.1/api/_as_gen/
     # matplotlib.axes.Axes.set_yticks.html)
     axes.set_xticks(
-        [round(abscissa_minimum, 1), 0.0, round(abscissa_maximum, 1)],
+        [round(minimum_abscissa, 1), 0.0, round(maximum_abscissa, 1)],
         labels=None,
         minor=False,
     )
     axes.set_yticks(
-        ordinate_positions_center, # center positions with even spacing
-        labels=ordinate_labels, # place labels at center positions
+        positions_ordinate_center, # center positions with even spacing
+        labels=labels_ordinate, # place labels at center positions
         minor=False,
     )
-    # Plot dashed line at zero.
+    # Plot dashed line at origin.
     # Consider the "dashes" argument for fine control of line dash pattern.
     axes.axvline(
-        x=0,
+        x=position_line_origin,
         ymin=0,
         ymax=1,
         alpha=1.0,
         color=colors["black"],
         linestyle="--",
-        linewidth=11.0, # 7.5
+        linewidth=size_line_origin,
     )
-    # Plot points and error bars for values and ranges from each group.
+
+    ##########
+    # Represent information on the chart figure object.
+
+    # Plot points and error bars for values and intervals from each series.
     # First plot markers for group two so that these are below.
     # Second plot markers for group one so that these are above.
     # (https://matplotlib.org/3.5.1/api/_as_gen/
     # matplotlib.axes.Axes.errorbar.html)
-    handle_two = axes.errorbar(
-        abscissa_positions_two,
-        ordinate_positions_two,
+    handle_secondary = axes.errorbar(
+        positions_abscissa_secondary,
+        positions_ordinate_secondary,
         yerr=None,
-        xerr=abscissa_intervals_two,
-        ecolor=colors["gray_light"],
-        elinewidth=11.0, # 7.5
+        xerr=intervals_abscissa_secondary,
+        ecolor=color_interval_secondary,
+        elinewidth=size_line_interval, # 7.5
         barsabove=False, # whether to print error bars in layer above points,
         linestyle="",
         marker="D", # "^" marker shape: up triangle
-        markersize=size_marker_two, # 5, 15
-        markeredgecolor=colors[color_marker_two], # colors["green"],
-        markerfacecolor=colors[color_marker_two], # colors["green"],
+        markersize=size_marker_secondary, # 5, 15
+        markeredgecolor=color_marker_secondary, # colors["green"],
+        markerfacecolor=color_marker_secondary, # colors["green"],
     )
     handle_one = axes.errorbar(
-        abscissa_positions_one,
-        ordinate_positions_one,
+        positions_abscissa_primary,
+        positions_ordinate_primary,
         yerr=None,
-        xerr=abscissa_intervals_one,
-        ecolor=colors["gray_dark"],
-        elinewidth=13.0, # 7.5
+        xerr=intervals_abscissa_primary,
+        ecolor=color_interval_primary,
+        elinewidth=size_line_interval, # 7.5
         barsabove=False, # whether to print error bars in layer above points
         linestyle="",
         marker="o", # marker shape: circle
-        markersize=size_marker_one, # 5, 15, 50, 70
-        markeredgecolor=colors[color_marker_one], # colors["purple"],
-        markerfacecolor=colors[color_marker_one], # colors["purple"],
+        markersize=size_marker_primary, # 5, 15, 50, 70
+        markeredgecolor=color_marker_primary, # colors["purple"],
+        markerfacecolor=color_marker_primary, # colors["purple"],
     )
+
     # Include title label on plot.
-    if len(label_chart) > 0:
+    if len(title_chart) > 0:
         matplotlib.pyplot.text(
             0.99,
             0.99,

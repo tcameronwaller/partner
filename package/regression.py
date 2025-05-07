@@ -933,6 +933,8 @@ def parse_regression_model_predictor(
         str(code + "_name"),
         str(code + "_parameter"),
         str(code + "_error"),
+        str(code + "_interval_99"),
+        str(code + "_interval_99_copy"),
         str(code + "_ci99_low"),
         str(code + "_ci99_high"),
         str(code + "_pvalue"),
@@ -948,6 +950,12 @@ def parse_regression_model_predictor(
     pail_confidence = pdesc.determine_95_99_confidence_intervals_ranges(
         estimate=parameters[name_source],
         standard_error=standard_errors[name_source],
+    )
+    pail["predictor"][str(code + "_interval_99")] = float(
+        pail_confidence["interval_99"]
+    )
+    pail["predictor"][str(code + "_interval_99_copy")] = float(
+        pail_confidence["interval_99"]
     )
     pail["predictor"][str(code + "_ci99_low")] = float(
         pail_confidence["range_99_low"]

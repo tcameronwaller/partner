@@ -2300,6 +2300,7 @@ def parse_text_list_values(
     if (
         (text is not None) and
         (len(str(text)) > 0) and
+        (str(text) != "") and
         (str(text).strip().lower() != "none")
     ):
         values_split = str(text).strip().split(delimiter)

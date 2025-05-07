@@ -960,7 +960,7 @@ def sort_table_rows_by_single_column_reference(
         )
     }
 
-    Review: TCW; 14 April 2025
+    Review: TCW; 5 May 2025
 
     arguments:
         table (object): Pandas data-frame table
@@ -990,9 +990,18 @@ def sort_table_rows_by_single_column_reference(
         drop=True, # remove index; do not move to regular columns
     )
     # Sort rows in table by reference.
-    table[column_sort_temporary] = table[column_reference].copy(deep=True)
-    table[column_sort_temporary] = table[column_sort_temporary].replace(
-        reference_sort
+    #table[column_sort_temporary] = table[column_reference].copy(deep=True)
+    #table[column_sort_temporary].astype(pandas.Int8Dtype())
+    #table[column_sort_temporary] = table[column_sort_temporary].replace(
+    #    reference_sort
+    #)
+    table[column_sort_temporary] = table.apply(
+        lambda row: (
+            reference_sort[row[column_reference]]
+            ) if (
+                row[column_reference] in reference_sort.keys()
+            ) else pandas.NA,
+        axis="columns", # apply function to each row
     )
     # Sort rows in table.
     table.sort_values(
