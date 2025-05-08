@@ -871,6 +871,117 @@ def transform_unit_range_by_table_columns(
     return table_scale
 
 
+# Manage transformation of scale for values of features on a quantitative,
+# continuous, ratio or interval scale of measurement.
+
+
+def manage_transform_scale_feature_by_table_columns(
+    table=None,
+    features_continuity_scale=None,
+    adjust_scale=None,
+    method_scale=None,
+    report=None,
+):
+    """
+    Dependency:
+    This function is a dependency of the functions below.
+    1.
+    package: partner
+    module or script: organization.py
+    function: prepare_table_features_observations_for_analysis()
+
+    Manage transformation of scale for values of features on a quantitative,
+    continuous, ratio or interval scale of measurement.
+
+    ----------
+    Format of source data table (name: "table")
+    ----------
+    Format of source data table is in wide format with features across columns
+    and values corresponding to their observations across rows. A special
+    header row gives identifiers or names corresponding to each feature across
+    columns, and a special column gives identifiers or names corresponding to
+    each observation across rows. For versatility, this table does not have
+    explicitly defined indices across rows or columns.
+    ----------
+    identifiers     feature_1 feature_2 feature_3 feature_4 feature_5 ...
+
+    observation_1   0.001     0.001     0.001     0.001     0.001     ...
+    observation_2   0.001     0.001     0.001     0.001     0.001     ...
+    observation_3   0.001     0.001     0.001     0.001     0.001     ...
+    observation_4   0.001     0.001     0.001     0.001     0.001     ...
+    observation_5   0.001     0.001     0.001     0.001     0.001     ...
+    ----------
+
+    Review: TCW; 8 May 2025
+
+    arguments:
+        table (object): Pandas data-frame table of data with features
+            and observations for analysis
+        features_continuity_scale (list<str>): names of columns in data table
+            for feature variables with values on quantitative, continuous scale
+            of measurement, interval or ratio, for which to standardize the
+            scale by z score
+        adjust_scale (bool): whether to adjust or standardize the scale of
+            values for features across observations
+        method_scale (str): name of method to use to adjust the scale of values
+            for features across observations, either 'z_score' or 'unit_range'
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table of data with features and
+            observations for analysis
+
+    """
+
+    # Copy information.
+    table = table.copy(deep=True)
+    features_continuity_scale = copy.deepcopy(features_continuity_scale)
+
+
+    # Standardize scale of values for observations of features.
+    if (
+        (adjust_scale) and
+        (len(features_continuity_scale) > 0) and
+        (str(features_continuity_scale).strip().lower() != "none") and
+        (method_scale is not None) and
+        (str(method_scale).strip().lower() != "none")
+    ):
+        if (
+            (str(method_scale).strip().lower() == "z_score")
+        ):
+            table = transform_standard_z_score_by_table_columns(
+                    table=table,
+                    columns=features_continuity_scale,
+                    report=report,
+            )
+        elif (
+            (str(method_scale).strip().lower() == "unit_range")
+        ):
+            table = transform_unit_range_by_table_columns(
+                    table=table,
+                    columns=features_continuity_scale,
+                    report=report,
+            )
+            pass
+        pass
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        print("module: scale.py")
+        name_function = (
+            "manage_transform_scale_feature_by_table_columns()"
+        )
+        print(str("function: " + name_function))
+        putly.print_terminal_partition(level=5)
+        pass
+    # Return information.
+    return table
+
+
 
 ##########
 # Scale adjustment by the DESeq method of median-ratio scaling

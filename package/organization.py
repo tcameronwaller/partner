@@ -4060,31 +4060,13 @@ def prepare_table_features_observations_for_analysis(
         pass
 
     # Standardize scale of values for observations of features.
-    if (
-        (adjust_scale) and
-        (len(features_continuity_scale) > 0) and
-        (str(features_continuity_scale).strip().lower() != "none") and
-        (method_scale is not None) and
-        (str(method_scale).strip().lower() != "none")
-    ):
-        if (
-            (str(method_scale).strip().lower() == "z_score")
-        ):
-            table = pscl.transform_standard_z_score_by_table_columns(
-                    table=table,
-                    columns=features_continuity_scale,
-                    report=report,
-            )
-        elif (
-            (str(method_scale).strip().lower() == "unit_range")
-        ):
-            table = pscl.transform_unit_range_by_table_columns(
-                    table=table,
-                    columns=features_continuity_scale,
-                    report=report,
-            )
-            pass
-        pass
+    table = pscl.manage_transform_scale_feature_by_table_columns(
+        table=table,
+        features_continuity_scale=features_continuity_scale,
+        adjust_scale=adjust_scale,
+        method_scale=method_scale,
+        report=report,
+    )
 
     # Organize indices in table.
     # Determine whether parameters specified a column in the table for
