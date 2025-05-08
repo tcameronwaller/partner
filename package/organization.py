@@ -3874,6 +3874,7 @@ def merge_columns_two_tables(
 ##########
 # Prepare columns of features and rows of observations in table for analysis.
 
+
 # TODO: TCW; 22 April 2025
 # It is very common to need to troubleshoot problems with indices on tables.
 # Make the code in this function more general to be able to accommodate all
