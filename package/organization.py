@@ -1529,6 +1529,79 @@ def extract_array_values_from_column_by_separate_tables_rows(
 # Filter.
 
 
+def sort_table_columns_explicit_other(
+    table=None,
+    columns_sequence=None,
+    report=None,
+):
+    """
+    Sort the sequence of columns in a Pandas data-frame table without requiring
+    the explicit specification of all columns.
+
+    Review: TCW; 8 May 2025
+
+    arguments:
+        table (object): Pandas data-frame table
+        columns_sequence (list<str>): identifiers or names of an explicit,
+            priority selection of columns in their proper sort sequence
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    # Copy information.
+    table_sort = table.copy(deep=True)
+    columns_sequence = copy.deepcopy(columns_sequence)
+
+    # Extract names of columns in the table.
+    columns_available = copy.deepcopy(table_sort.columns.to_list())
+
+    # Confirm that explicit selection of columns exist in the table.
+    columns_sequence = list(filter(
+        lambda item: item in columns_available, columns_sequence
+    ))
+
+    # Sort the names of columns that are not in the priority selection.
+    columns_sequence_other = list(filter(
+        lambda item: item not in columns_sequence, columns_available
+    ))
+    columns_sequence_other = sorted(columns_sequence_other)
+
+    # Combine explicit and other names of columns.
+    columns_sequence_all = copy.deepcopy(columns_sequence)
+    columns_sequence_all.extend(columns_sequence_other)
+
+    # Filter and sort columns in table.
+    table_sort = filter_sort_table_columns(
+        table=table_sort,
+        columns_sequence=columns_sequence_all,
+        report=report,
+    )
+
+    # Report.
+    if report:
+        count_columns_source = (table.shape[1])
+        count_columns_product = (table_sort.shape[1])
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        print("module: organization.py")
+        print("function: sort_sequence_table_columns_priority_selection()")
+        putly.print_terminal_partition(level=5)
+        print("count of columns in source table: " + str(count_columns_source))
+        print(
+            "count of columns in product table: " +
+            str(count_columns_product)
+        )
+        putly.print_terminal_partition(level=5)
+    # Return information.
+    return table_sort
+
+
+
 def filter_sort_table_columns(
     table=None,
     columns_sequence=None,
