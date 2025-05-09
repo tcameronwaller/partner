@@ -56,7 +56,7 @@ path_environment_main="$path_directory_tools/python/environments/main"
 echo $path_environment_main
 
 # Initialize directory.
-rm -r $path_directory_product # caution
+#rm -r $path_directory_product # caution
 mkdir -p $path_directory_product
 #mkdir -p $path_directory_temporary
 

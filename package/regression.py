@@ -933,10 +933,10 @@ def parse_regression_model_predictor(
         str(code + "_name"),
         str(code + "_parameter"),
         str(code + "_error"),
-        str(code + "_interval_99"),
-        str(code + "_interval_99_copy"),
-        str(code + "_ci99_low"),
-        str(code + "_ci99_high"),
+        str(code + "_interval_95"),
+        str(code + "_interval_95_copy"),
+        str(code + "_ci95_low"),
+        str(code + "_ci95_high"),
         str(code + "_pvalue"),
         str(code + "_variance_inflation"),
     ]
@@ -951,17 +951,17 @@ def parse_regression_model_predictor(
         estimate=parameters[name_source],
         standard_error=standard_errors[name_source],
     )
-    pail["predictor"][str(code + "_interval_99")] = float(
-        pail_confidence["interval_99"]
+    pail["predictor"][str(code + "_interval_95")] = float(
+        pail_confidence["interval_95"]
     )
-    pail["predictor"][str(code + "_interval_99_copy")] = float(
-        pail_confidence["interval_99"]
+    pail["predictor"][str(code + "_interval_95_copy")] = float(
+        pail_confidence["interval_95"]
     )
-    pail["predictor"][str(code + "_ci99_low")] = float(
-        pail_confidence["range_99_low"]
+    pail["predictor"][str(code + "_ci95_low")] = float(
+        pail_confidence["range_95_low"]
     )
-    pail["predictor"][str(code + "_ci99_high")] = float(
-        pail_confidence["range_99_high"]
+    pail["predictor"][str(code + "_ci95_high")] = float(
+        pail_confidence["range_95_high"]
     )
     pail["predictor"][str(code + "_pvalue")] = float(pvalues[name_source])
     if (variance_inflation):
@@ -3638,7 +3638,6 @@ def prepare_text_summary_regression_anova(
 # Organize information from regressions in a table.
 
 
-
 def organize_summary_table_anovas(
     pails_anova=None,
     report=None,
@@ -3853,9 +3852,6 @@ def organize_summary_table_regressions(
 
     # Return information.
     return table
-
-
-
 
 
 ###############################################################################

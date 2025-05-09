@@ -517,9 +517,6 @@ def read_organize_source_table_data(
 # Create plot chart and write to file.
 
 
-# TODO: TCW; 6 May 2025
-# Next write the figure object to file.
-
 def create_write_plot_dot_forest(
     table=None,
     column_feature=None,
@@ -603,15 +600,15 @@ def create_write_plot_dot_forest(
         size_label_abscissa="ten",
         size_label_ordinate="ten",
         aspect="portrait",
-        minimum_abscissa=-1.0,
-        maximum_abscissa=1.0,
-        factor_space_series=66.0, # if not zero or None, overrides space
+        minimum_abscissa=-3.5,
+        maximum_abscissa=3.5,
+        factor_space_series=100.0, # if not zero or None, overrides space
         space_between_series=0.15,
         position_line_origin=0.0,
-        size_marker_primary=25,
-        size_marker_secondary=20,
-        size_line_origin=9,
-        size_line_interval=7,
+        size_marker_primary=15,
+        size_marker_secondary=10,
+        size_line_origin=5,
+        size_line_interval=3,
         color_marker_primary=colors["blue_navy"],
         color_marker_secondary=colors["orange_burnt"],
         color_interval_primary=colors["black"],

@@ -457,10 +457,6 @@ def read_source_parallel_branch_products(
 ################################################################################
 # Procedure
 
-# TODO: TCW; 3 April 2025
-# Now integrate the functionality for logistic regression.
-
-
 
 ##########
 # Control procedure within branch for parallelization.
@@ -611,6 +607,7 @@ def control_procedure_part_branch(
             report=False,
         )
         pass
+
 
     ##########
     # Check parameters and table of data for performing regression analysis.
@@ -936,7 +933,7 @@ def control_parallel_instances(
     else:
         # Execute procedure directly for testing.
         control_parallel_instance(
-            instance=instances[1],
+            instance=instances[0],
             parameters=parameters,
         )
     pass
