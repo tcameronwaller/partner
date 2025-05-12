@@ -6377,11 +6377,15 @@ def plot_dot_forest_category_ordinate_two_series(
     title_chart=None,
     title_abscissa=None,
     title_ordinate=None,
+    show_legend=None,
+    legend_series_primary=None,
+    legend_series_secondary=None,
     size_title_chart=None,
     size_title_abscissa=None,
     size_title_ordinate=None,
     size_label_abscissa=None,
     size_label_ordinate=None,
+    size_label_legend=None,
     aspect=None,
     minimum_abscissa=None,
     maximum_abscissa=None,
@@ -6428,7 +6432,7 @@ def plot_dot_forest_category_ordinate_two_series(
     MatPlotLib accepts intervals, not ranges for error bars. The function does
     the arithmetic to calculate ranges below and above the central value.
 
-    Review: 6 May 2025
+    Review: 12 May 2025
 
     arguments:
         table (object): Pandas data-frame table of features across rows with
@@ -6454,6 +6458,11 @@ def plot_dot_forest_category_ordinate_two_series(
         title_chart (str): title for plot chart as a whole
         title_abscissa (str): title for abscissa or horizontal axis
         title_ordinate (str): title for ordinate or vertical axis
+        show_legend (bool): whether to create legend on plot chart for
+            explanation of the series
+        legend_series_primary (str): description in legend for primary series
+        legend_series_secondary (str): description in legend for secondary
+            series
         size_title_chart (str): font size for title of plot chart as a whole
         size_title_abscissa (str): font size for title of abscissa horizontal
             axis
@@ -6463,6 +6472,7 @@ def plot_dot_forest_category_ordinate_two_series(
             axis
         size_label_ordinate (str): font size for labels of ordinate vertical
             axis
+        size_label_legend (str): font size for labels in legend
         aspect (str): aspect ratio for MatPlotLib chart figure
         minimum_abscissa (float): minimal value for range of abscissa axis
         maximum_abscissa (float): maximal value for range of abscissa axis
@@ -6655,7 +6665,7 @@ def plot_dot_forest_category_ordinate_two_series(
         ymin=0,
         ymax=1,
         alpha=1.0,
-        color=colors["black"],
+        color=colors["gray"],
         linestyle="--",
         linewidth=size_line_origin,
     )
@@ -6682,7 +6692,7 @@ def plot_dot_forest_category_ordinate_two_series(
         markeredgecolor=color_marker_secondary, # colors["green"],
         markerfacecolor=color_marker_secondary, # colors["green"],
     )
-    handle_one = axes.errorbar(
+    handle_primary = axes.errorbar(
         positions_abscissa_primary,
         positions_ordinate_primary,
         yerr=None,
@@ -6699,17 +6709,59 @@ def plot_dot_forest_category_ordinate_two_series(
 
     # Include title label on plot.
     if len(title_chart) > 0:
-        matplotlib.pyplot.text(
-            0.99,
-            0.99,
-            label_chart,
-            horizontalalignment="right",
+        axes.set_title(
+            title_chart,
+            fontproperties=fonts["properties"][size_title_chart],
+            #loc="center",
+            horizontalalignment="center",
             verticalalignment="top",
-            transform=axes.transAxes,
-            backgroundcolor=colors["white_faint"],
-            color=colors["black"],
-            fontproperties=fonts["properties"]["eight"]
+            pad=5,
         )
+        pass
+
+    # Create legend.
+    # Create custom elements for the legend.
+    if show_legend:
+        handle_primary = axes.errorbar(
+            [0],
+            [-1], # create outside of visible portion of axes
+            yerr=None,
+            xerr=0.05,
+            label=legend_series_primary,
+            ecolor=color_interval_primary,
+            elinewidth=(size_line_interval/1.5),
+            barsabove=False, # whether to print error bars in layer above points
+            linestyle="",
+            marker="o", # marker shape: circle
+            markersize=(size_marker_primary/1.5), # 5, 15, 50, 70
+            markeredgecolor=color_marker_primary, # colors["purple"],
+            markerfacecolor=color_marker_primary, # colors["purple"],
+        )
+        handle_secondary = axes.errorbar(
+            [0],
+            [-1], # create outside of visible portion of axes
+            yerr=None,
+            xerr=0.05,
+            label=legend_series_secondary,
+            ecolor=color_interval_secondary,
+            elinewidth=(size_line_interval/1.5),
+            barsabove=False, # whether to print error bars in layer above points
+            linestyle="",
+            marker="D", # "^" marker shape: up triangle
+            markersize=(size_marker_secondary/1.5), # 5, 15
+            markeredgecolor=color_marker_secondary, # colors["green"],
+            markerfacecolor=color_marker_secondary, # colors["green"],
+        )
+        axes.legend(
+            handles=[
+                handle_primary, handle_secondary,
+            ],
+            loc="upper right",
+            prop=fonts["properties"][size_label_legend],
+            title="",
+            title_fontsize=fonts["values"][size_label_legend]["size"]
+        )
+        pass
 
     # Return figure.
     return figure

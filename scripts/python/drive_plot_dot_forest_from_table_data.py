@@ -80,14 +80,21 @@ import partner.plot as pplot
 # Functionality
 
 
+# TODO: TCW; 9 May 2025
+# pass a new parameter for the name of the file for the plot chart
+
+
 ##########
 # Read source information from file.
 
 
 def parse_text_parameters(
+    title=None,
     feature=None,
     features=None,
     translation_features=None,
+    legend_series_primary=None,
+    legend_series_secondary=None,
     values_intervals_primary=None,
     values_intervals_secondary=None,
     report=None,
@@ -96,9 +103,13 @@ def parse_text_parameters(
     Parse parameters from text.
 
     arguments:
+        title (str): title for top center of plot chart
         feature (str): parameters for extraction of features
         features (str): parameters for extraction of features
         translation_features (str): parameters for extraction of features
+        legend_series_primary (str): description in legend for primary series
+        legend_series_secondary (str): description in legend for secondary
+            series
         values_intervals_primary (str): parameters for extraction of values
             and intervals
         values_intervals_secondary (str): parameters for extraction of values
@@ -137,6 +148,8 @@ def parse_text_parameters(
     """
 
     # Parse and extract information from text.
+    # title.
+    title_parse = str(title).replace("#", " ")
     # feature.
     if (
         (feature is not None) and
@@ -186,6 +199,14 @@ def parse_text_parameters(
         translation_features_parse = None
         pass
 
+    # legend_series_primary.
+    legend_series_primary_parse = str(
+        legend_series_primary
+    ).replace("#", " ")
+    # legend_series_secondary.
+    legend_series_secondary_parse = str(
+        legend_series_secondary
+    ).replace("#", " ")
     # values_intervals_primary.
     if (
         (values_intervals_primary is not None) and
@@ -302,11 +323,14 @@ def parse_text_parameters(
     pail["columns_continuity_product"] = columns_continuity_product
     pail["translation_columns"] = translation_columns
     pail["translation_features"] = translation_features_parse
+    pail["title"] = title_parse
     pail["feature"] = feature_parse
     pail["feature_source"] = feature_source
     pail["feature_product"] = feature_product
     pail["features"] = features_parse
     pail["sequence_features"] = sequence_features
+    pail["legend_series_primary"] = legend_series_primary_parse
+    pail["legend_series_secondary"] = legend_series_secondary_parse
     pail["values_intervals_primary"] = values_intervals_primary_parse
     pail["values_intervals_secondary"] = values_intervals_secondary_parse
     pail["report"] = report_parse
@@ -518,6 +542,9 @@ def read_organize_source_table_data(
 
 
 def create_write_plot_dot_forest(
+    title=None,
+    legend_series_primary=None,
+    legend_series_secondary=None,
     table=None,
     column_feature=None,
     column_feature_name=None,
@@ -539,9 +566,13 @@ def create_write_plot_dot_forest(
     markings, whereas the values designated as secondary will appear on bottom
     with less prominent markings.
 
-    Review: TCW; 6 May 2025
+    Review: TCW; 12 May 2025
 
     arguments:
+        title (str): title for top center of plot chart
+        legend_series_primary (str): description in legend for primary series
+        legend_series_secondary (str): description in legend for secondary
+            series
         table (object): Pandas data-frame table of features across rows with
             statistical measures such as correlation coefficients or regression
             coefficients and their confidence intervals across columns
@@ -591,23 +622,27 @@ def create_write_plot_dot_forest(
         column_value_secondary=column_value_secondary,
         column_interval_low_secondary=column_interval_low_secondary,
         column_interval_high_secondary=column_interval_high_secondary,
-        title_chart="",
-        title_abscissa="",
+        title_chart=title,
+        title_abscissa="Regression Coefficient (95% CI)",
         title_ordinate="",
+        show_legend=True,
+        legend_series_primary=legend_series_primary,
+        legend_series_secondary=legend_series_secondary,
         size_title_chart="ten",
         size_title_abscissa="ten",
         size_title_ordinate="ten",
         size_label_abscissa="ten",
         size_label_ordinate="ten",
+        size_label_legend="fifteen",
         aspect="portrait",
-        minimum_abscissa=-3.5,
-        maximum_abscissa=3.5,
+        minimum_abscissa=-5.0,
+        maximum_abscissa=5.0,
         factor_space_series=100.0, # if not zero or None, overrides space
         space_between_series=0.15,
         position_line_origin=0.0,
         size_marker_primary=15,
         size_marker_secondary=10,
-        size_line_origin=5,
+        size_line_origin=3,
         size_line_interval=3,
         color_marker_primary=colors["blue_navy"],
         color_marker_secondary=colors["orange_burnt"],
@@ -674,9 +709,12 @@ def create_write_plot_dot_forest(
 
 def execute_procedure(
     path_file_table_data=None,
+    title=None,
     feature=None,
     features=None,
     translation_features=None,
+    legend_series_primary=None,
+    legend_series_secondary=None,
     values_intervals_primary=None,
     values_intervals_secondary=None,
     path_directory_product=None,
@@ -690,9 +728,13 @@ def execute_procedure(
         path_file_table_data (str): path to source file in text format as a
             table with tab delimiters between columns and newline delimiters
             between rows, with data for creation of plot chart
+        title (str): title for top center of plot chart
         feature (str): parameters for extraction of features
         features (str): parameters for extraction of features
         translation_features (str): parameters for extraction of features
+        legend_series_primary (str): description in legend for primary series
+        legend_series_secondary (str): description in legend for secondary
+            series
         values_intervals_primary (str): parameters for extraction of values
             and intervals
         values_intervals_secondary (str): parameters for extraction of values
@@ -712,9 +754,12 @@ def execute_procedure(
     ##########
     # Parameters.
     pail_parameters = parse_text_parameters(
+        title=title,
         feature=feature,
         features=features,
         translation_features=translation_features,
+        legend_series_primary=legend_series_primary,
+        legend_series_secondary=legend_series_secondary,
         values_intervals_primary=values_intervals_primary,
         values_intervals_secondary=values_intervals_secondary,
         report=report,
@@ -763,6 +808,9 @@ def execute_procedure(
     ##########
     # Create visual representation in plot chart and write to file.
     create_write_plot_dot_forest(
+        title=pail_parameters["title"],
+        legend_series_primary=pail_parameters["legend_series_primary"],
+        legend_series_secondary=pail_parameters["legend_series_secondary"],
         table=table,
         column_feature=pail_parameters["feature_product"],
         column_feature_name="feature_translation",
@@ -786,21 +834,27 @@ if (__name__ == "__main__"):
     # Parse arguments from terminal.
     path_file_script = sys.argv[0] # always the first argument
     path_file_table_data = sys.argv[1]
-    feature = sys.argv[2]
-    features = sys.argv[3]
-    translation_features = sys.argv[4]
-    values_intervals_primary = sys.argv[5]
-    values_intervals_secondary = sys.argv[6]
-    path_directory_product = sys.argv[7]
-    path_directory_dock = sys.argv[8]
-    report = sys.argv[9]
+    title=sys.argv[2]
+    feature = sys.argv[3]
+    features = sys.argv[4]
+    translation_features = sys.argv[5]
+    legend_series_primary = sys.argv[6]
+    legend_series_secondary = sys.argv[7]
+    values_intervals_primary = sys.argv[8]
+    values_intervals_secondary = sys.argv[9]
+    path_directory_product = sys.argv[10]
+    path_directory_dock = sys.argv[11]
+    report = sys.argv[12]
 
     # Call function for procedure.
     execute_procedure(
         path_file_table_data=path_file_table_data,
+        title=title,
         feature=feature,
         features=features,
         translation_features=translation_features,
+        legend_series_primary=legend_series_primary,
+        legend_series_secondary=legend_series_secondary,
         values_intervals_primary=values_intervals_primary,
         values_intervals_secondary=values_intervals_secondary,
         path_directory_product=path_directory_product,
