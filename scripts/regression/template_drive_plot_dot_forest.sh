@@ -87,9 +87,11 @@ features="feature_1,feature_2,feature_3,feature_4,feature_5,feature_6,feature_7,
 translation_features="feature_1:feature_1_test"
 legend_series_primary="predictor_primary"
 legend_series_secondary="predictor_secondary"
+legend_series_tertiary="none" # or "none"
 values_intervals_primary="value_primary:value_primary_source;interval_low_primary:interval_low_primary_source;interval_high_primary:interval_high_primary_source"
 #values_intervals_secondary="none"
 values_intervals_secondary="value_secondary:value_secondary_source;interval_low_secondary:interval_low_secondary_source;interval_high_secondary:interval_high_secondary_source"
+values_intervals_tertiary="none"
 
 ###############################################################################
 # Activate Python virtual environment.
@@ -133,8 +135,10 @@ $features \
 $translation_features \
 $legend_series_primary \
 $legend_series_secondary \
+$legend_series_tertiary \
 $values_intervals_primary \
 $values_intervals_secondary \
+$values_intervals_tertiary \
 $path_directory_product \
 $path_directory_dock \
 $report

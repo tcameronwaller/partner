@@ -6364,7 +6364,7 @@ def plot_scatter_qq_gwas(
 # Dot, Point, Forest plots
 
 
-def plot_dot_forest_category_ordinate_two_series(
+def plot_dot_forest_category_ordinate_three_series(
     table=None,
     column_feature=None,
     column_feature_name=None,
@@ -6374,12 +6374,16 @@ def plot_dot_forest_category_ordinate_two_series(
     column_value_secondary=None,
     column_interval_low_secondary=None,
     column_interval_high_secondary=None,
+    column_value_tertiary=None,
+    column_interval_low_tertiary=None,
+    column_interval_high_tertiary=None,
     title_chart=None,
     title_abscissa=None,
     title_ordinate=None,
     show_legend=None,
     legend_series_primary=None,
     legend_series_secondary=None,
+    legend_series_tertiary=None,
     size_title_chart=None,
     size_title_abscissa=None,
     size_title_ordinate=None,
@@ -6394,12 +6398,15 @@ def plot_dot_forest_category_ordinate_two_series(
     position_line_origin=None,
     size_marker_primary=None,
     size_marker_secondary=None,
+    size_marker_tertiary=None,
     size_line_origin=None,
     size_line_interval=None,
     color_marker_primary=None,
     color_marker_secondary=None,
+    color_marker_tertiary=None,
     color_interval_primary=None,
     color_interval_secondary=None,
+    color_interval_tertiary=None,
     fonts=None,
     colors=None,
     report=None,
@@ -6432,7 +6439,7 @@ def plot_dot_forest_category_ordinate_two_series(
     MatPlotLib accepts intervals, not ranges for error bars. The function does
     the arithmetic to calculate ranges below and above the central value.
 
-    Review: 12 May 2025
+    Review: 13 May 2025
 
     arguments:
         table (object): Pandas data-frame table of features across rows with
@@ -6455,6 +6462,12 @@ def plot_dot_forest_category_ordinate_two_series(
             corresponding to intervals below values
         column_interval_high_secondary (str): name of column in table
             corresponding to intervals above values
+        column_value_tertiary (str): name of column in table corresponding to
+            values
+        column_interval_low_tertiary (str): name of column in table
+            corresponding to intervals below values
+        column_interval_high_tertiary (str): name of column in table
+            corresponding to intervals above values
         title_chart (str): title for plot chart as a whole
         title_abscissa (str): title for abscissa or horizontal axis
         title_ordinate (str): title for ordinate or vertical axis
@@ -6462,6 +6475,8 @@ def plot_dot_forest_category_ordinate_two_series(
             explanation of the series
         legend_series_primary (str): description in legend for primary series
         legend_series_secondary (str): description in legend for secondary
+            series
+        legend_series_tertiary (str): description in legend for tertiary
             series
         size_title_chart (str): font size for title of plot chart as a whole
         size_title_abscissa (str): font size for title of abscissa horizontal
@@ -6485,6 +6500,8 @@ def plot_dot_forest_category_ordinate_two_series(
         size_marker_primary (int): size of markers for primary series of values
         size_marker_secondary (int): size of markers for secondary series of
             values
+        size_marker_tertiary (int): size of markers for tertiary series of
+            values
         size_line_origin (int): size, width, or thickness of line for origin
         size_line_interval (int): size, width, or thickness of lines for
             representation of the interval of error or confidence
@@ -6492,10 +6509,14 @@ def plot_dot_forest_category_ordinate_two_series(
             for markers of primary series of values
         color_marker_secondary (str): color red, green, blue, alpha parameters
             for markers of secondary series of values
+        color_marker_tertiary (str): color red, green, blue, alpha parameters
+            for markers of tertiary series of values
         color_interval_primary (str): color red, green, blue, alpha parameters
             for markers of primary intervals
         color_interval_secondary (str): color red, green, blue, alpha
             parameters for markers of secondary intervals
+        color_interval_tertiary (str): color red, green, blue, alpha
+            parameters for markers of tertiary intervals
         fonts (dict<object>): definitions of font properties
         colors (dict<tuple>): definitions of color properties
         report (bool): whether to print reports
@@ -6521,6 +6542,28 @@ def plot_dot_forest_category_ordinate_two_series(
 
     # Copy information.
     table = table.copy(deep=True)
+    columns_available = table.columns.to_list()
+
+    # Determine whether to represent values for one, two, or three series.
+    # Assume that there is definition of parameters for the primary, secondary,
+    # and tertiary series in sequential order.
+    count_series = 0
+    columns_series = [
+        column_value_primary,
+        column_value_secondary,
+        column_value_tertiary,
+    ]
+    for column in columns_series:
+        if (
+            (column is not None) and
+            (len(str(column)) > 0) and
+            (str(column) != "") and
+            (str(column).strip().lower() != "none") and
+            (column in columns_available)
+        ):
+            count_series += 1
+            pass
+        pass
 
     # Organize information for categorical labels and positions of those labels
     # and their corresponding dot points along the ordinate vertical axis.
@@ -6532,47 +6575,86 @@ def plot_dot_forest_category_ordinate_two_series(
         lambda position: (position + 1),
         range(count_ordinate)
     ))
-    positions_ordinate_primary = list(map(
-        lambda position: (position + space_between_series),
-        positions_ordinate_center
-    ))
-    positions_ordinate_secondary = list(map(
-        lambda position: (position - space_between_series),
-        positions_ordinate_center
-    ))
     if (
         (factor_space_series is not None) and
-        (factor_space_series != 0)
+        (factor_space_series > 0)
     ):
         space_between_series = float(count_ordinate / factor_space_series)
+        pass
+    if (count_series == 1):
+        positions_ordinate_primary = positions_ordinate_center
+    elif (count_series == 2):
+        positions_ordinate_primary = list(map(
+            lambda position: (position + (2 * (space_between_series / 3))),
+            positions_ordinate_center
+        ))
+        positions_ordinate_secondary = list(map(
+            lambda position: (position - (2 * (space_between_series / 3))),
+            positions_ordinate_center
+        ))
+    elif (count_series == 3):
+        positions_ordinate_primary = list(map(
+            lambda position: (position + (space_between_series / 2)),
+            positions_ordinate_center
+        ))
+        positions_ordinate_secondary = positions_ordinate_center
+        positions_ordinate_tertiary = list(map(
+            lambda position: (position - (space_between_series / 2)),
+            positions_ordinate_center
+        ))
+        pass
 
     # Organize information for labels, dot points, and error bars along the
     # abscissa horizontal axis.
-    positions_abscissa_primary = table[column_value_primary].to_numpy()
-    intervals_abscissa_low_primary = (
-        table[column_interval_low_primary].to_numpy()
-    )
-    intervals_abscissa_high_primary = (
-        table[column_interval_high_primary].to_numpy()
-    )
-    positions_abscissa_secondary = table[column_value_secondary].to_numpy()
-    intervals_abscissa_low_secondary = (
-        table[column_interval_low_secondary].to_numpy()
-    )
-    intervals_abscissa_high_secondary = (
-        table[column_interval_high_secondary].to_numpy()
-    )
     # Shape (n, 2)
     #errors_ordinate = numpy.array(list(zip(
     #    errors_ordinate_low, errors_ordinate_high
     #)))
     # Shape (2, n)
-    intervals_abscissa_primary = numpy.array(
-        [intervals_abscissa_low_primary, intervals_abscissa_high_primary]
-    )
-    intervals_abscissa_secondary = numpy.array(
-        [intervals_abscissa_low_secondary, intervals_abscissa_high_secondary]
-    )
+    if (
+        (count_series == 1) or
+        (count_series == 2) or
+        (count_series == 3)
+    ):
+        positions_abscissa_primary = table[column_value_primary].to_numpy()
+        intervals_abscissa_low_primary = (
+            table[column_interval_low_primary].to_numpy()
+        )
+        intervals_abscissa_high_primary = (
+            table[column_interval_high_primary].to_numpy()
+        )
+        intervals_abscissa_primary = numpy.array([
+            intervals_abscissa_low_primary,
+            intervals_abscissa_high_primary
+        ])
+    if (
+        (count_series == 2) or
+        (count_series == 3)
+    ):
+        positions_abscissa_secondary = table[column_value_secondary].to_numpy()
+        intervals_abscissa_low_secondary = (
+            table[column_interval_low_secondary].to_numpy()
+        )
+        intervals_abscissa_high_secondary = (
+            table[column_interval_high_secondary].to_numpy()
+        )
+        intervals_abscissa_secondary = numpy.array([
+            intervals_abscissa_low_secondary,
+            intervals_abscissa_high_secondary
+        ])
+    if (count_series == 3):
+        positions_abscissa_tertiary = table[column_value_tertiary].to_numpy()
+        intervals_abscissa_low_tertiary = (
+            table[column_interval_low_tertiary].to_numpy()
+        )
+        intervals_abscissa_high_tertiary = (
+            table[column_interval_high_tertiary].to_numpy()
+        )
+        intervals_abscissa_tertiary = numpy.array([
+            intervals_abscissa_low_tertiary,
+            intervals_abscissa_high_tertiary
+        ])
+        pass
 
     ##########
     # Create and initialize figure chart object.
@@ -6584,6 +6666,17 @@ def plot_dot_forest_category_ordinate_two_series(
     # Create axes.
     #axes = matplotlib.pyplot.axes()
     axes = figure.add_subplot(111)
+    # Include title label on plot.
+    if len(title_chart) > 0:
+        axes.set_title(
+            title_chart,
+            fontproperties=fonts["properties"][size_title_chart],
+            #loc="center",
+            horizontalalignment="center",
+            verticalalignment="top",
+            pad=5,
+        )
+        pass
     # Define limits for axes.
     if (minimum_abscissa is not None):
         axes.set_xlim(xmin=minimum_abscissa)
@@ -6644,7 +6737,6 @@ def plot_dot_forest_category_ordinate_two_series(
     for position in ["top", "right",]:
         matplotlib.pyplot.gca().spines[position].set_visible(False)
 
-
     # Set explicit tick positions and labels on vertical ordinate axis.
     # (https://matplotlib.org/3.5.1/api/_as_gen/
     # matplotlib.axes.Axes.set_yticks.html)
@@ -6678,89 +6770,156 @@ def plot_dot_forest_category_ordinate_two_series(
     # Second plot markers for group one so that these are above.
     # (https://matplotlib.org/3.5.1/api/_as_gen/
     # matplotlib.axes.Axes.errorbar.html)
-    handle_secondary = axes.errorbar(
-        positions_abscissa_secondary,
-        positions_ordinate_secondary,
-        yerr=None,
-        xerr=intervals_abscissa_secondary,
-        ecolor=color_interval_secondary,
-        elinewidth=size_line_interval, # 7.5
-        barsabove=False, # whether to print error bars in layer above points,
-        linestyle="",
-        marker="D", # "^" marker shape: up triangle
-        markersize=size_marker_secondary, # 5, 15
-        markeredgecolor=color_marker_secondary, # colors["green"],
-        markerfacecolor=color_marker_secondary, # colors["green"],
-    )
-    handle_primary = axes.errorbar(
-        positions_abscissa_primary,
-        positions_ordinate_primary,
-        yerr=None,
-        xerr=intervals_abscissa_primary,
-        ecolor=color_interval_primary,
-        elinewidth=size_line_interval, # 7.5
-        barsabove=False, # whether to print error bars in layer above points
-        linestyle="",
-        marker="o", # marker shape: circle
-        markersize=size_marker_primary, # 5, 15, 50, 70
-        markeredgecolor=color_marker_primary, # colors["purple"],
-        markerfacecolor=color_marker_primary, # colors["purple"],
-    )
-
-    # Include title label on plot.
-    if len(title_chart) > 0:
-        axes.set_title(
-            title_chart,
-            fontproperties=fonts["properties"][size_title_chart],
-            #loc="center",
-            horizontalalignment="center",
-            verticalalignment="top",
-            pad=5,
+    if (
+        (count_series == 1) or
+        (count_series == 2) or
+        (count_series == 3)
+    ):
+        handle_primary = axes.errorbar(
+            positions_abscissa_primary,
+            positions_ordinate_primary,
+            yerr=None,
+            xerr=intervals_abscissa_primary,
+            ecolor=color_interval_primary,
+            elinewidth=size_line_interval, # 7.5
+            barsabove=False, # whether to print error bars in layer above points
+            linestyle="",
+            marker="o", # marker shape: circle
+            markersize=size_marker_primary, # 5, 15, 50, 70
+            markeredgecolor=color_marker_primary, # colors["purple"],
+            markerfacecolor=color_marker_primary, # colors["purple"],
+        )
+        pass
+    if (
+        (count_series == 2) or
+        (count_series == 3)
+    ):
+        handle_secondary = axes.errorbar(
+            positions_abscissa_secondary,
+            positions_ordinate_secondary,
+            yerr=None,
+            xerr=intervals_abscissa_secondary,
+            ecolor=color_interval_secondary,
+            elinewidth=size_line_interval, # 7.5
+            barsabove=False, # whether to print error bars in layer above points,
+            linestyle="",
+            marker="D", # "D" marker shape: diamond
+            markersize=size_marker_secondary, # 5, 15
+            markeredgecolor=color_marker_secondary, # colors["green"],
+            markerfacecolor=color_marker_secondary, # colors["green"],
+        )
+        pass
+    if (count_series == 3):
+        handle_tertiary = axes.errorbar(
+            positions_abscissa_tertiary,
+            positions_ordinate_tertiary,
+            yerr=None,
+            xerr=intervals_abscissa_tertiary,
+            ecolor=color_interval_tertiary,
+            elinewidth=size_line_interval, # 7.5
+            barsabove=False, # whether to print error bars in layer above points,
+            linestyle="",
+            marker="s", # "s" marker shape: square
+            markersize=size_marker_tertiary, # 5, 15
+            markeredgecolor=color_marker_tertiary, # colors["green"],
+            markerfacecolor=color_marker_tertiary, # colors["green"],
         )
         pass
 
     # Create legend.
     # Create custom elements for the legend.
-    if show_legend:
-        handle_primary = axes.errorbar(
-            [0],
-            [-1], # create outside of visible portion of axes
-            yerr=None,
-            xerr=0.05,
-            label=legend_series_primary,
-            ecolor=color_interval_primary,
-            elinewidth=(size_line_interval/1.5),
-            barsabove=False, # whether to print error bars in layer above points
-            linestyle="",
-            marker="o", # marker shape: circle
-            markersize=(size_marker_primary/1.5), # 5, 15, 50, 70
-            markeredgecolor=color_marker_primary, # colors["purple"],
-            markerfacecolor=color_marker_primary, # colors["purple"],
-        )
-        handle_secondary = axes.errorbar(
-            [0],
-            [-1], # create outside of visible portion of axes
-            yerr=None,
-            xerr=0.05,
-            label=legend_series_secondary,
-            ecolor=color_interval_secondary,
-            elinewidth=(size_line_interval/1.5),
-            barsabove=False, # whether to print error bars in layer above points
-            linestyle="",
-            marker="D", # "^" marker shape: up triangle
-            markersize=(size_marker_secondary/1.5), # 5, 15
-            markeredgecolor=color_marker_secondary, # colors["green"],
-            markerfacecolor=color_marker_secondary, # colors["green"],
-        )
-        axes.legend(
-            handles=[
-                handle_primary, handle_secondary,
-            ],
-            loc="upper right",
-            prop=fonts["properties"][size_label_legend],
-            title="",
-            title_fontsize=fonts["values"][size_label_legend]["size"]
-        )
+    if (show_legend):
+        if (
+            (count_series == 1) or
+            (count_series == 2) or
+            (count_series == 3)
+        ):
+            handle_primary = axes.errorbar(
+                [0],
+                [-1], # create outside of visible portion of axes
+                yerr=None,
+                xerr=5.0,
+                label=legend_series_primary,
+                ecolor=color_interval_primary,
+                elinewidth=(size_line_interval/1.5),
+                barsabove=False, # whether to print error bars in layer above points
+                linestyle="",
+                marker="o", # "o" marker shape: circle
+                markersize=(size_marker_primary/1.5), # 5, 15, 50, 70
+                markeredgecolor=color_marker_primary, # colors["purple"],
+                markerfacecolor=color_marker_primary, # colors["purple"],
+            )
+            pass
+        if (
+            (count_series == 2) or
+            (count_series == 3)
+        ):
+            handle_secondary = axes.errorbar(
+                [0],
+                [-1], # create outside of visible portion of axes
+                yerr=None,
+                xerr=5.0,
+                label=legend_series_secondary,
+                ecolor=color_interval_secondary,
+                elinewidth=(size_line_interval/1.5),
+                barsabove=False, # whether to print error bars in layer above points
+                linestyle="",
+                marker="D", # "D" marker shape: diamond
+                markersize=(size_marker_secondary/1.5), # 5, 15
+                markeredgecolor=color_marker_secondary, # colors["green"],
+                markerfacecolor=color_marker_secondary, # colors["green"],
+            )
+            pass
+        if (count_series == 3):
+            handle_tertiary = axes.errorbar(
+                [0],
+                [-1], # create outside of visible portion of axes
+                yerr=None,
+                xerr=5.0,
+                label=legend_series_tertiary,
+                ecolor=color_interval_tertiary,
+                elinewidth=(size_line_interval/1.5),
+                barsabove=False, # whether to print error bars in layer above points
+                linestyle="",
+                marker="s", # "s" marker shape: square
+                markersize=(size_marker_tertiary/1.5), # 5, 15
+                markeredgecolor=color_marker_tertiary, # colors["green"],
+                markerfacecolor=color_marker_tertiary, # colors["green"],
+            )
+            pass
+        if (count_series == 1):
+            axes.legend(
+                handles=[
+                    handle_primary,
+                ],
+                loc="upper right",
+                prop=fonts["properties"][size_label_legend],
+                title="",
+                title_fontsize=fonts["values"][size_label_legend]["size"]
+            )
+            pass
+        elif (count_series == 2):
+            axes.legend(
+                handles=[
+                    handle_primary, handle_secondary,
+                ],
+                loc="upper right",
+                prop=fonts["properties"][size_label_legend],
+                title="",
+                title_fontsize=fonts["values"][size_label_legend]["size"]
+            )
+            pass
+        elif (count_series == 3):
+            axes.legend(
+                handles=[
+                    handle_primary, handle_secondary, handle_tertiary,
+                ],
+                loc="upper right",
+                prop=fonts["properties"][size_label_legend],
+                title="",
+                title_fontsize=fonts["values"][size_label_legend]["size"]
+            )
+            pass
         pass
 
     # Return figure.

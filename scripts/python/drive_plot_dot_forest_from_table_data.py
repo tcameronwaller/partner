@@ -95,8 +95,10 @@ def parse_text_parameters(
     translation_features=None,
     legend_series_primary=None,
     legend_series_secondary=None,
+    legend_series_tertiary=None,
     values_intervals_primary=None,
     values_intervals_secondary=None,
+    values_intervals_tertiary=None,
     report=None,
 ):
     """
@@ -110,9 +112,12 @@ def parse_text_parameters(
         legend_series_primary (str): description in legend for primary series
         legend_series_secondary (str): description in legend for secondary
             series
+        legend_series_tertiary (str): description in legend for tertiary series
         values_intervals_primary (str): parameters for extraction of values
             and intervals
         values_intervals_secondary (str): parameters for extraction of values
+            and intervals
+        values_intervals_tertiary (str): parameters for extraction of values
             and intervals
         report (str): whether to print reports
 
@@ -143,6 +148,8 @@ def parse_text_parameters(
             values_intervals_primary (dict<str>): translations of columns in
                 table for values and their intervals
             values_intervals_secondary (dict<str>): translations of columns in
+                table for values and their intervals
+            values_intervals_tertiary (dict<str>): translations of columns in
                 table for values and their intervals
             report (bool): whether to print reports
     """
@@ -207,6 +214,10 @@ def parse_text_parameters(
     legend_series_secondary_parse = str(
         legend_series_secondary
     ).replace("#", " ")
+    # legend_series_tertiary.
+    legend_series_tertiary_parse = str(
+        legend_series_tertiary
+    ).replace("#", " ")
     # values_intervals_primary.
     if (
         (values_intervals_primary is not None) and
@@ -249,6 +260,27 @@ def parse_text_parameters(
     else:
         values_intervals_secondary_parse = None
         pass
+    # values_intervals_tertiary.
+    if (
+        (values_intervals_tertiary is not None) and
+        (len(str(values_intervals_tertiary)) > 0) and
+        (str(values_intervals_tertiary) != "") and
+        (str(values_intervals_tertiary).strip().lower() != "none")
+    ):
+        extraction = (
+            putly.parse_extract_text_keys_values_semicolon_colon_comma(
+                text=values_intervals_tertiary,
+            )
+        )["features_values"]
+        values_intervals_tertiary_parse = dict()
+        for key in extraction.keys():
+            values_intervals_tertiary_parse[key] = copy.deepcopy(
+                extraction[key][0]
+            )
+            pass
+    else:
+        values_intervals_tertiary_parse = None
+        pass
     # report.
     if (
         (report is not None) and
@@ -276,6 +308,11 @@ def parse_text_parameters(
             columns_continuity_source.append(
                 values_intervals_secondary_parse[key]
             )
+    if (values_intervals_tertiary_parse is not None):
+        for key in values_intervals_tertiary_parse.keys():
+            columns_continuity_source.append(
+                values_intervals_tertiary_parse[key]
+            )
             pass
         pass
     columns_source.extend(copy.deepcopy(columns_continuity_source))
@@ -287,6 +324,7 @@ def parse_text_parameters(
         feature_parse,
         values_intervals_primary_parse,
         values_intervals_secondary_parse,
+        values_intervals_tertiary_parse,
     ]
     for extraction in extractions:
         if (extraction is not None):
@@ -301,12 +339,18 @@ def parse_text_parameters(
     columns_product = list()
     columns_continuity_product = list()
     columns_product.append(feature_product)
-    columns_continuity_product.extend(copy.deepcopy(list(
-        values_intervals_primary_parse.keys()
-    )))
-    columns_continuity_product.extend(copy.deepcopy(list(
-        values_intervals_secondary_parse.keys()
-    )))
+    extractions = [
+        values_intervals_primary_parse,
+        values_intervals_secondary_parse,
+        values_intervals_tertiary_parse,
+    ]
+    for extraction in extractions:
+        if (extraction is not None):
+            columns_continuity_product.extend(copy.deepcopy(list(
+                extraction.keys()
+            )))
+            pass
+        pass
     columns_product.extend(copy.deepcopy(columns_continuity_product))
 
     # Prepare reference to sort rows by group in a subsequent table.
@@ -331,8 +375,10 @@ def parse_text_parameters(
     pail["sequence_features"] = sequence_features
     pail["legend_series_primary"] = legend_series_primary_parse
     pail["legend_series_secondary"] = legend_series_secondary_parse
+    pail["legend_series_tertiary"] = legend_series_tertiary_parse
     pail["values_intervals_primary"] = values_intervals_primary_parse
     pail["values_intervals_secondary"] = values_intervals_secondary_parse
+    pail["values_intervals_tertiary"] = values_intervals_tertiary_parse
     pail["report"] = report_parse
 
     # Report.
@@ -401,6 +447,7 @@ def read_organize_source_table_data(
     sequence_features=None,
     values_intervals_primary=None,
     values_intervals_secondary=None,
+    values_intervals_tertiary=None,
     path_directory_dock=None,
     report=None,
 ):
@@ -410,7 +457,7 @@ def read_organize_source_table_data(
     Notice that Pandas does not accommodate missing values within series of
     integer variable types.
 
-    Review: TCW; 5 May 2025
+    Review: TCW; 13 May 2025
 
     arguments:
         path_file_table_data (str): path to source file in text format as a
@@ -440,6 +487,8 @@ def read_organize_source_table_data(
             for values and their intervals
         values_intervals_secondary (dict<str>): translations of columns in
             table for values and their intervals
+        values_intervals_tertiary (dict<str>): translations of columns in
+            table for values and their intervals
         path_directory_dock (str): path to dock directory for procedure's
             source and product directories and files
         report (bool): whether to print reports
@@ -450,18 +499,6 @@ def read_organize_source_table_data(
         (dict): collection of source information about parameters
 
     """
-
-    if False:
-        # Fill missing values.
-        table["value_primary"].fillna(
-            value=-3,
-            inplace=True,
-        )
-        table["interval_low_primary"].fillna(
-            value=0,
-            inplace=True,
-        )
-        pass
 
     # Read information from file.
     types_columns = define_column_types_table_data(
@@ -545,6 +582,7 @@ def create_write_plot_dot_forest(
     title=None,
     legend_series_primary=None,
     legend_series_secondary=None,
+    legend_series_tertiary=None,
     table=None,
     column_feature=None,
     column_feature_name=None,
@@ -554,6 +592,9 @@ def create_write_plot_dot_forest(
     column_value_secondary=None,
     column_interval_low_secondary=None,
     column_interval_high_secondary=None,
+    column_value_tertiary=None,
+    column_interval_low_tertiary=None,
+    column_interval_high_tertiary=None,
     path_directory_product=None,
     report=None,
 ):
@@ -572,6 +613,8 @@ def create_write_plot_dot_forest(
         title (str): title for top center of plot chart
         legend_series_primary (str): description in legend for primary series
         legend_series_secondary (str): description in legend for secondary
+            series
+        legend_series_tertiary (str): description in legend for tertiary
             series
         table (object): Pandas data-frame table of features across rows with
             statistical measures such as correlation coefficients or regression
@@ -593,6 +636,12 @@ def create_write_plot_dot_forest(
             corresponding to intervals below values
         column_interval_high_secondary (str): name of column in table
             corresponding to intervals above values
+        column_value_tertiary (str): name of column in table corresponding to
+            values
+        column_interval_low_tertiary (str): name of column in table
+            corresponding to intervals below values
+        column_interval_high_tertiary (str): name of column in table
+            corresponding to intervals above values
         path_directory_product (str): path to directory for procedure's product
             directories and files
         report (bool): whether to print reports
@@ -612,7 +661,7 @@ def create_write_plot_dot_forest(
     colors = pplot.define_color_properties()
 
     # Create figure.
-    figure = pplot.plot_dot_forest_category_ordinate_two_series(
+    figure = pplot.plot_dot_forest_category_ordinate_three_series(
         table=table,
         column_feature=column_feature,
         column_feature_name=column_feature_name,
@@ -622,12 +671,16 @@ def create_write_plot_dot_forest(
         column_value_secondary=column_value_secondary,
         column_interval_low_secondary=column_interval_low_secondary,
         column_interval_high_secondary=column_interval_high_secondary,
+        column_value_tertiary=column_value_tertiary,
+        column_interval_low_tertiary=column_interval_low_tertiary,
+        column_interval_high_tertiary=column_interval_high_tertiary,
         title_chart=title,
         title_abscissa="Regression Coefficient (95% CI)",
         title_ordinate="",
         show_legend=True,
         legend_series_primary=legend_series_primary,
         legend_series_secondary=legend_series_secondary,
+        legend_series_tertiary=legend_series_tertiary,
         size_title_chart="ten",
         size_title_abscissa="ten",
         size_title_ordinate="ten",
@@ -637,17 +690,20 @@ def create_write_plot_dot_forest(
         aspect="portrait",
         minimum_abscissa=-5.0,
         maximum_abscissa=5.0,
-        factor_space_series=100.0, # if not zero or None, overrides space
+        factor_space_series=50.0, # if not zero or None, overrides space
         space_between_series=0.15,
         position_line_origin=0.0,
-        size_marker_primary=15,
-        size_marker_secondary=10,
+        size_marker_primary=13,
+        size_marker_secondary=9,
+        size_marker_tertiary=9,
         size_line_origin=3,
-        size_line_interval=3,
+        size_line_interval=2,
         color_marker_primary=colors["blue_navy"],
         color_marker_secondary=colors["orange_burnt"],
+        color_marker_tertiary=colors["red_burgundy"],
         color_interval_primary=colors["black"],
         color_interval_secondary=colors["gray_dark"],
+        color_interval_tertiary=colors["gray_dark"],
         fonts=fonts,
         colors=colors,
         report=report,
@@ -697,8 +753,6 @@ def create_write_plot_dot_forest(
     pass
 
 
-
-
 ################################################################################
 # Procedure
 
@@ -715,8 +769,10 @@ def execute_procedure(
     translation_features=None,
     legend_series_primary=None,
     legend_series_secondary=None,
+    legend_series_tertiary=None,
     values_intervals_primary=None,
     values_intervals_secondary=None,
+    values_intervals_tertiary=None,
     path_directory_product=None,
     path_directory_dock=None,
     report=None,
@@ -735,9 +791,12 @@ def execute_procedure(
         legend_series_primary (str): description in legend for primary series
         legend_series_secondary (str): description in legend for secondary
             series
+        legend_series_tertiary (str): description in legend for tertiary series
         values_intervals_primary (str): parameters for extraction of values
             and intervals
         values_intervals_secondary (str): parameters for extraction of values
+            and intervals
+        values_intervals_tertiary (str): parameters for extraction of values
             and intervals
         path_directory_product (str): path to directory for procedure's product
             directories and files
@@ -760,8 +819,10 @@ def execute_procedure(
         translation_features=translation_features,
         legend_series_primary=legend_series_primary,
         legend_series_secondary=legend_series_secondary,
+        legend_series_tertiary=legend_series_tertiary,
         values_intervals_primary=values_intervals_primary,
         values_intervals_secondary=values_intervals_secondary,
+        values_intervals_tertiary=values_intervals_tertiary,
         report=report,
     )
 
@@ -801,6 +862,9 @@ def execute_procedure(
         values_intervals_secondary=(
             pail_parameters["values_intervals_secondary"]
         ),
+        values_intervals_tertiary=(
+            pail_parameters["values_intervals_tertiary"]
+        ),
         path_directory_dock=path_directory_dock,
         report=pail_parameters["report"],
     )
@@ -811,6 +875,7 @@ def execute_procedure(
         title=pail_parameters["title"],
         legend_series_primary=pail_parameters["legend_series_primary"],
         legend_series_secondary=pail_parameters["legend_series_secondary"],
+        legend_series_tertiary=pail_parameters["legend_series_tertiary"],
         table=table,
         column_feature=pail_parameters["feature_product"],
         column_feature_name="feature_translation",
@@ -820,6 +885,9 @@ def execute_procedure(
         column_value_secondary="value_secondary",
         column_interval_low_secondary="interval_low_secondary",
         column_interval_high_secondary="interval_high_secondary",
+        column_value_tertiary="value_tertiary",
+        column_interval_low_tertiary="interval_low_tertiary",
+        column_interval_high_tertiary="interval_high_tertiary",
         path_directory_product=path_directory_product,
         report=report,
     )
@@ -840,11 +908,13 @@ if (__name__ == "__main__"):
     translation_features = sys.argv[5]
     legend_series_primary = sys.argv[6]
     legend_series_secondary = sys.argv[7]
-    values_intervals_primary = sys.argv[8]
-    values_intervals_secondary = sys.argv[9]
-    path_directory_product = sys.argv[10]
-    path_directory_dock = sys.argv[11]
-    report = sys.argv[12]
+    legend_series_tertiary = sys.argv[8]
+    values_intervals_primary = sys.argv[9]
+    values_intervals_secondary = sys.argv[10]
+    values_intervals_tertiary = sys.argv[11]
+    path_directory_product = sys.argv[12]
+    path_directory_dock = sys.argv[13]
+    report = sys.argv[14]
 
     # Call function for procedure.
     execute_procedure(
@@ -855,8 +925,10 @@ if (__name__ == "__main__"):
         translation_features=translation_features,
         legend_series_primary=legend_series_primary,
         legend_series_secondary=legend_series_secondary,
+        legend_series_tertiary=legend_series_tertiary,
         values_intervals_primary=values_intervals_primary,
         values_intervals_secondary=values_intervals_secondary,
+        values_intervals_tertiary=values_intervals_tertiary,
         path_directory_product=path_directory_product,
         path_directory_dock=path_directory_dock,
         report=report,
