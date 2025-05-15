@@ -33,8 +33,8 @@ License:
 ################################################################################
 # Author: T. Cameron Waller, Ph.D.
 # Date, first execution: 28 March 2025
-# Date, last execution or modification: 10 April 2025
-# Review: TCW; 10 April 2025
+# Date, last execution or modification: 14 May 2025
+# Review: TCW; 14 May 2025
 ################################################################################
 # Note
 
@@ -127,6 +127,7 @@ def define_column_types_table_parameters():
 
 
 def read_source_table_parameters(
+    groups_raw=None,
     path_file_table_parameters=None,
     path_directory_dock=None,
     report=None,
@@ -140,6 +141,8 @@ def read_source_table_parameters(
     Review: TCW; 31 March 2025
 
     arguments:
+        groups_raw (str): names of groups of instances of parameters to include
+            in batch for execution
         path_file_table_parameters (str): path to source file in text format as
             a table with tab delimiters between columns and newline delimiters
             between rows, with parameters for multiple regressions
@@ -179,6 +182,18 @@ def read_source_table_parameters(
         downcast="integer",
         errors="coerce",
     )
+
+    # Extract names of groups.
+    groups = putly.parse_text_list_values(
+        text=groups_raw,
+        delimiter=",",
+    )
+
+    # Filter rows in table by names of groups.
+    table = table.loc[(
+        table["group"].isin(groups)
+    ), :].copy(deep=True)
+
 
     # Collect information.
     records = list()
@@ -944,7 +959,10 @@ def control_parallel_instances(
 
 
 def execute_procedure(
+    groups_raw=None,
     path_file_table_parameters=None,
+    path_file_table_results=None,
+    path_directory_source=None,
     path_directory_product=None,
     path_directory_dock=None,
     report=None,
@@ -969,9 +987,16 @@ def execute_procedure(
        write this information to file
 
     arguments:
+        groups_raw (str): names of groups of instances of parameters to include
+            in batch for execution
         path_file_table_parameters (str): path to source file in text format as
             a table with tab delimiters between columns and newline delimiters
             between rows, with parameters for multiple regressions
+        path_file_table_results (str): path to product file in text format as
+            a table with tab delimiters between columns and newline delimiters
+            between rows, with parameters for multiple regressions
+        path_directory_source (str): path to directory for procedure's source
+            directories and files
         path_directory_product (str): path to directory for procedure's product
             directories and files
         path_directory_dock (str): path to dock directory for procedure's
@@ -999,6 +1024,7 @@ def execute_procedure(
     ##########
     # Read source information from file.
     pail_source = read_source_table_parameters(
+        groups_raw=groups_raw,
         path_file_table_parameters=path_file_table_parameters,
         path_directory_dock=path_directory_dock,
         report=report,
@@ -1030,6 +1056,8 @@ def execute_procedure(
     path_directory_parallel = os.path.join(
         path_directory_product, "temporary_parallel_branch_products_regress",
     )
+    # Remove any previous directories.
+    putly.remove_directory(path=path_directory_parallel)
     # Create directories.
     putly.create_directories(
         path=path_directory_parallel,
@@ -1067,25 +1095,37 @@ def execute_procedure(
     # Collections of files.
     pail_write_tables = dict()
     pail_write_tables[str("table_regressions")] = table_regressions
-
-    ##########
-    # 5. Write product information to file.
-    putly.write_tables_to_file(
-        pail_write=pail_write_tables,
-        path_directory=path_directory_product,
+    # Organize information for write.
+    # Extract information from path to directory and file.
+    path_directory_parent = os.path.dirname(path_file_table_results)
+    name_suffix_file = os.path.basename(path_file_table_results)
+    name_file, suffix_file = os.path.splitext(name_suffix_file)
+    # Create directories.
+    putly.create_directories(
+        path=path_directory_product,
+    )
+    putly.create_directories(
+        path=path_directory_parent,
+    )
+    # Write product information to file.
+    putly.write_table_to_file(
+        table=table_regressions,
+        name_file=name_file,
+        path_directory=path_directory_parent,
         reset_index_rows=False,
         write_index_rows=False,
         write_index_columns=True,
         type="text",
         delimiter="\t",
-        suffix=".tsv",
+        suffix=suffix_file,
     )
-    putly.write_tables_to_file(
-        pail_write=pail_write_tables,
-        path_directory=path_directory_product,
-        reset_index_rows=None,
-        write_index_rows=None,
-        write_index_columns=None,
+    putly.write_table_to_file(
+        table=table_regressions,
+        name_file=name_file,
+        path_directory=path_directory_parent,
+        reset_index_rows=False,
+        write_index_rows=False,
+        write_index_columns=True,
         type="pickle",
         delimiter=None,
         suffix=".pickle",
@@ -1097,14 +1137,20 @@ def execute_procedure(
 if (__name__ == "__main__"):
     # Parse arguments from terminal.
     path_file_script = sys.argv[0] # always the first argument
-    path_file_table_parameters = sys.argv[1]
-    path_directory_product = sys.argv[2]
-    path_directory_dock = sys.argv[3]
-    report = sys.argv[4]
+    groups_raw = sys.argv[1]
+    path_file_table_parameters = sys.argv[2]
+    path_file_table_results = sys.argv[3]
+    path_directory_source = sys.argv[4]
+    path_directory_product = sys.argv[5]
+    path_directory_dock = sys.argv[6]
+    report = sys.argv[7]
 
     # Call function for procedure.
     execute_procedure(
+        groups_raw=groups_raw,
         path_file_table_parameters=path_file_table_parameters,
+        path_file_table_results=path_file_table_results,
+        path_directory_source=path_directory_source,
         path_directory_product=path_directory_product,
         path_directory_dock=path_directory_dock,
         report=report,
