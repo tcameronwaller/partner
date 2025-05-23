@@ -688,10 +688,10 @@ def create_write_plot_dot_forest(
         size_label_ordinate="ten",
         size_label_legend="fifteen",
         aspect="portrait",
-        minimum_abscissa=-5.0,
-        maximum_abscissa=5.0,
-        factor_space_series=50.0, # if not zero or None, overrides space
-        space_between_series=0.15,
+        minimum_abscissa=-2.5, # -2.5
+        maximum_abscissa=2.5, # 2.5
+        factor_space_series=None, # if not zero or None, overrides space
+        space_between_series=0.33,
         position_line_origin=0.0,
         size_marker_primary=13,
         size_marker_secondary=9,
@@ -734,7 +734,7 @@ def create_write_plot_dot_forest(
     #)
     pplot.write_product_plots_parent_directory(
         pail_write=pail_write_plot,
-        format="jpg", # jpg, png, svg
+        format="svg", # jpg, png, svg
         resolution=300,
         path_directory=path_directory,
     )

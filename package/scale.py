@@ -249,6 +249,14 @@ def transform_logarithm_by_table_columns(
             # math.log(value, base)
             logarithms = (numpy.log(values) / numpy.log(base))
             pass
+        # Handle missing values.
+        logarithms = numpy.nan_to_num(
+            logarithms,
+            nan=numpy.nan,
+            posinf=numpy.nan,
+            neginf=numpy.nan,
+            copy=True,
+        )
         return logarithms
 
     # Copy information.

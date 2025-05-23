@@ -35,18 +35,36 @@ sudo apt install gnome-tweaks
 # uninstall snap version
 # sudo snap remove --purge libreoffice
 # installation:
-# - date, installation: 5 March 2025
-# - version, installation: v25.2.1
+# - date, installation: 16 May 2025
+# - version, installation: v25.2.3
 # confirm installation of dependency, Java Runtime Environment
 java -version
-wget https://www.libreoffice.org/donate/dl/deb-x86_64/25.2.1/en-US/LibreOffice_25.2.1_Linux_x86-64_deb.tar.gz
-wget https://www.libreoffice.org/donate/dl/deb-x86_64/25.2.1/en-US/LibreOffice_25.2.1_Linux_x86-64_deb.tar.gz
+wget https://www.libreoffice.org/donate/dl/deb-x86_64/25.2.3/en-US/LibreOffice_25.2.3_Linux_x86-64_deb.tar.gz
 tar -xzvf ./LibreOffice_25.2.1_Linux_x86-64_deb.tar.gz -C ./
 #tar --extract --file="LibreOffice_25.2.1_Linux_x86-64_deb.tar.gz" --gzip --verbose
 cd ./LibreOffice_25.2.1_Linux_x86-64_deb/DEBS/
 sudo dpkg -i ./LibreOffice_25.2.1_Linux_x86-64_deb/DEBS/*.deb
 # uninstall
-sudo dpkg -r packagename
+#sudo dpkg -r libreoffice*
+#sudo dpkg -P libreoffice*
+dpkg --get-selections > ~/InstalledPackages.list
+cat ~/InstalledPackages.list
+rm ~/InstalledPackages.list
+#libreoffice25.2					install
+#libreoffice25.2-base				install
+#libreoffice25.2-calc				install
+#libreoffice25.2-debian-menus			install
+#libreoffice25.2-dict-en				install
+#libreoffice25.2-dict-es				install
+#libreoffice25.2-dict-fr				install
+#libreoffice25.2-draw				install
+#libreoffice25.2-en-us				install
+#libreoffice25.2-impress				install
+#libreoffice25.2-math				install
+#libreoffice25.2-ure				install
+#libreoffice25.2-writer				install
+sudo apt remove --purge "libreoffice*"
+
 
 
 ##########
@@ -102,14 +120,18 @@ snap install spotify
 # https://zoom.us/download
 # - Ubuntu Linux
 # - 64 bit
-# - 16.04+
+# - 18.04+
+# installation:
+# - date, installation: 16 May 2025
+# - version, installation: v6.4.6.1370
 # sudo apt install libgl1-mesa-glx # "Package 'libgl1-mesa-glx' has no installation candidate"
 sudo apt install libglib2.0-0t64 libxcb-shape0 libxcb-shm0 libxcb-xfixes0 libxcb-randr0 libxcb-image0 libfontconfig1 libxi6 libsm6 libxrender1 libpulse0 libxcomposite1 libxslt1.1 libsqlite3-0 libxcb-keysyms1 libxcb-xtest0 ibus
 sudo apt install libxcb-cursor0 # TCW; 23 March 2023
 sudo apt --fix-broken install
 # libgstreamer-plugins-base0.10-0
 cd ~/Downloads
-wget https://zoom.us/client/6.4.1.587/zoom_amd64.deb # TCW; 25 March 2025
+wget https://zoom.us/client/6.4.6.1370/zoom_amd64.deb # TCW; 16 May 2025
+#wget https://zoom.us/client/6.4.1.587/zoom_amd64.deb # TCW; 25 March 2025
 #wget https://zoom.us/client/6.1.0.198/zoom_amd64.deb
 #wget https://zoom.us/client/5.15.11.7239/zoom_amd64.deb
 #wget https://zoom.us/client/5.17.10.3512/zoom_amd64.deb
@@ -121,7 +143,9 @@ sudo dpkg -i ./zoom_amd64.deb
 #sudo apt install ./zoom_amd64.deb
 sudo apt update
 sudo apt upgrade
-sudo apt remove zoom
+# Uninstall
+#sudo apt remove zoom
+sudo apt remove --purge zoom
 
 # darktable
 # description: edit digital photographs in raw format

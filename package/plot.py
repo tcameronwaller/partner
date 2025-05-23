@@ -4027,12 +4027,13 @@ def plot_distribution_histogram(
     bar_width=None,
     label_bins=None,
     label_counts=None,
-    fonts=None,
-    colors=None,
     line=None,
     line_position=None,
     label_title=None,
     label_report=None,
+    aspect=None,
+    fonts=None,
+    colors=None,
 ):
     """
     Creates a figure of a chart of type histogram to represent the frequency
@@ -4049,13 +4050,14 @@ def plot_distribution_histogram(
         bar_width (float): proportional width of bar relative to bin
         label_bins (str): label for bins
         label_counts (str): label for counts
-        fonts (dict<object>): references to definitions of font properties
-        colors (dict<tuple>): references to definitions of color properties
         line (bool): whether to draw a vertical line
         line_position (float): position for vertical line
         label_title (str): text label title to include on figure
         label_report (bool): whether to include label for report of count and
             mean of values
+        aspect (str): aspect ratio for MatPlotLib chart figure
+        fonts (dict<object>): references to definitions of font properties
+        colors (dict<tuple>): references to definitions of color properties
 
     raises:
 
@@ -4082,11 +4084,19 @@ def plot_distribution_histogram(
         bin_edges = numpy.histogram_bin_edges(array, bins=bin_method)
 
     ##########
+    # Create and initialize figure chart object.
+
     # Create figure.
     figure = initialize_matplotlib_figure_aspect(
-        aspect="landscape",
+        aspect=aspect,
     )
-    axes = matplotlib.pyplot.axes()
+    # Create axes.
+    #axes = matplotlib.pyplot.axes()
+    axes = figure.add_subplot(111)
+
+    ##########
+    # Represent main information on the chart figure object.
+
     values, bins, patches = axes.hist(
         array,
         bins=bin_edges,
@@ -6571,15 +6581,15 @@ def plot_dot_forest_category_ordinate_three_series(
     # Assign positions for secondary series to be below center point.
     labels_ordinate = table[column_feature_name].to_list()
     count_ordinate = len(labels_ordinate)
-    positions_ordinate_center = list(map(
+    positions_ordinate_center = list(reversed(list(map(
         lambda position: (position + 1),
         range(count_ordinate)
-    ))
+    ))))
     if (
         (factor_space_series is not None) and
         (factor_space_series > 0)
     ):
-        space_between_series = float(count_ordinate / factor_space_series)
+        space_between_series = float(factor_space_series / count_ordinate)
         pass
     if (count_series == 1):
         positions_ordinate_primary = positions_ordinate_center
@@ -6682,8 +6692,8 @@ def plot_dot_forest_category_ordinate_three_series(
         axes.set_xlim(xmin=minimum_abscissa)
     if (maximum_abscissa is not None):
         axes.set_xlim(xmax=maximum_abscissa)
-    axes.set_ylim(ymin=0)
-    axes.set_ylim(ymax=(count_ordinate + 1))
+    axes.set_ylim(ymin=float(min(positions_ordinate_center) - 1))
+    axes.set_ylim(ymax=float(max(positions_ordinate_center) + 1))
     # Set titles for axes.
     if (len(title_abscissa) > 0):
         axes.set_xlabel(
@@ -6763,7 +6773,7 @@ def plot_dot_forest_category_ordinate_three_series(
     )
 
     ##########
-    # Represent information on the chart figure object.
+    # Represent main information on the chart figure object.
 
     # Plot points and error bars for values and intervals from each series.
     # First plot markers for group two so that these are below.

@@ -1523,8 +1523,6 @@ def extract_array_values_from_column_by_separate_tables_rows(
     return pail
 
 
-
-
 ##########
 # Filter.
 
