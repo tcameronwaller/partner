@@ -1572,6 +1572,9 @@ def sort_table_columns_explicit_other(
     # Combine explicit and other names of columns.
     columns_sequence_all = copy.deepcopy(columns_sequence)
     columns_sequence_all.extend(columns_sequence_other)
+    columns_sequence_all = putly.collect_unique_elements(
+        elements=columns_sequence_all,
+    )
 
     # Filter and sort columns in table.
     table_sort = filter_sort_table_columns(
@@ -1597,7 +1600,6 @@ def sort_table_columns_explicit_other(
         putly.print_terminal_partition(level=5)
     # Return information.
     return table_sort
-
 
 
 def filter_sort_table_columns(
