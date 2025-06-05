@@ -1661,7 +1661,7 @@ def determine_category_text_logical_binary(
     category as a text value. Introduce a float missing value if the category
     does not match any values for either one (1) or zero (0).
 
-    Review: TCW; 24 April 2025
+    Review: TCW; 4 June 2025
 
     arguments:
         category_text (str): category text for which to determine logical
@@ -1717,7 +1717,7 @@ def determine_category_text_two_intersection_interaction(
     negative, false interaction or intersection between specific values of two
     text categorical variables.
 
-    Review: TCW; 24 April 2025
+    Review: TCW; 4 June 2025
 
     arguments:
         value_intersection (str): text value designation of positive or true

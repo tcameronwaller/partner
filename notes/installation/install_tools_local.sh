@@ -179,12 +179,14 @@ sudo add-apt-repository universe
 sudo apt install gnome-tweak-tool
 
 # Inkscape
-# website: https://inkscape.org/
+# path: https://inkscape.org/
+# path: https://inkscape.org/cs/release/inkscape-1.2.2/gnulinux/ubuntu/ppa/
 # review: TCW; 5 February 2025
 sudo add-apt-repository ppa:inkscape.dev/stable
 sudo apt update
 sudo apt install inkscape
 sudo apt upgrade
+sudo apt dist-upgrade
 sudo apt remove inkscape
 
 # Audacity

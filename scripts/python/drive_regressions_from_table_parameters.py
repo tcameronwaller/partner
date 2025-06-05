@@ -45,6 +45,20 @@ License:
 # Useful functionality for preparing the table of data for regression.
 # pandas.get_dummies(groups).values
 
+
+
+# TODO: TCW; 30 May 2025
+# It will be a common occurrence to need to run regressions with and without
+# transformation (logarithm, exponent, etc) and scale standardization (to
+# happen after any transformation; mean center, z score, etc).
+# Implement a new column in the parameter table for names of continuous
+# features for which to apply log transformation. This transformation will
+# replace the values in the original column without changing the name of the
+# column.
+
+
+
+
 ##########
 # Review: TCW; 3 April 2025
 # - On 3 April 2025, TCW confirmed that extracted values from linear OLS

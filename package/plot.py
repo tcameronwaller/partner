@@ -4356,6 +4356,11 @@ def plot_bar_stack(
 # color the individual V's using the "bodies" item in the returned dictionary
 # "bodies" is analogous to "boxes"
 
+# TODO: TCW; 27 May 2025
+# Create a main manager function that determines whether to represent 1 or 2
+# series for each label in the box plot. Then call the appropriate function.
+# https://stackoverflow.com/questions/16592222/how-to-create-grouped-boxplots
+
 # TODO: TCW; 5 February 2025
 # Idea:
 # Make a "main" manager function "plot_groups_box_violin" to perform the more
