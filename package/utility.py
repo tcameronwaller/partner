@@ -1338,8 +1338,9 @@ def read_file_text(
 
 
 def read_file_text_list(
+    path_file=None,
     delimiter=None,
-    path_file=None
+    unique=None,
 ):
     """
     Reads and organizes source information from file.
@@ -1347,8 +1348,9 @@ def read_file_text_list(
     Delimiters include "\n", "\t", ";", ":", ",", " ".
 
     arguments:
-        delimiter (str): delimiter between items in text representation of list
         path_file (str): path to directory and file
+        delimiter (str): delimiter between items in text representation of list
+        unique (bool): whether to filter to unique items or elements
 
     returns:
         (list<str>): information from file
@@ -1360,14 +1362,22 @@ def read_file_text_list(
     # Read information from file
     content = read_file_text(path_file=path_file)
     # Split content by line delimiters.
-    values_split = content.split(delimiter)
-    values_strip = list(map(lambda value: value.strip(), values_split))
-    values_not_empty = list(filter(
-        lambda value: (len(value) > 0),
-        values_strip
+    items_split = content.split(delimiter)
+    items_strip = list(map(lambda item: item.strip(), items_split))
+    items_not_empty = list(filter(
+        lambda item: (len(item) > 0),
+        items_strip
     ))
+    # Collect unique items.
+    if (unique):
+        items = collect_unique_items(
+            items=items_not_empty,
+        )
+    else:
+        items = items_not_empty
+        pass
     # Return information
-    return values_not_empty
+    return items
 
 
 def read_child_files_text_list_count_unique_items(
@@ -2473,9 +2483,38 @@ def select_elements_by_sets(
     return passes
 
 
+def collect_unique_items(
+    items=None
+):
+    """
+    Collect unique items from a list. Items are strings of text characters.
+
+    Review: TCW; 26 June 2025
+
+    arguments:
+        items (list<str>): sequence of items
+
+    returns:
+        (list<str>): unique items
+
+    raises:
+
+    """
+
+    items = copy.deepcopy(items)
+    items_unique = list() # []
+    for item in items:
+        if (item not in items_unique):
+            items_unique.append(item)
+            pass
+        pass
+    return items_unique
+
+
 def collect_unique_elements(elements=None):
     """
-    Collects unique elements
+    Becoming obsolete. This function calls collect_unique_items for
+    compatibility during phase out.
 
     arguments:
         elements (list): sequence of elements
@@ -2487,12 +2526,7 @@ def collect_unique_elements(elements=None):
 
     """
 
-    elements = copy.deepcopy(elements)
-    elements_unique = []
-    for element in elements:
-        if element not in elements_unique:
-            elements_unique.append(element)
-    return elements_unique
+    return collect_unique_items(items=elements)
 
 
 def collect_value_from_records(key=None, records=None):

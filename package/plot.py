@@ -1943,7 +1943,7 @@ def plot_heatmap_signal_features_observations_labels(
             which="both", # "major", "minor", or "both"
             length=5.0, # 5.0
             width=3.5, # 3.5
-            pad=10, # 7.5
+            pad=17, # 7.5 - 17.5
             direction="out",
             color=colors["black"],
             labelcolor=colors["black"],
@@ -1961,7 +1961,7 @@ def plot_heatmap_signal_features_observations_labels(
             orientation="vertical",
             ax=axes_main,
             location="right",
-            shrink=0.9, # 0.7; factor for dimensions of the Scale Bar.
+            shrink=0.5, # 0.7; factor for dimensions of the Scale Bar.
         )
         if (len(title_bar) > 0):
             bar.ax.set_ylabel(
@@ -4664,7 +4664,7 @@ def plot_boxes_groups(
             alpha=1.0,
             backgroundcolor=colors["white"],
             color=colors["black"],
-            fontproperties=fonts["properties"]["five"], # seven
+            fontproperties=fonts["properties"]["seven"], # seven
         )
 
     # Set tick parameters for axes.
@@ -6686,8 +6686,8 @@ def plot_dot_forest_category_ordinate_three_series(
         axes.set_title(
             title_chart,
             fontproperties=fonts["properties"][size_title_chart],
-            #loc="center",
-            horizontalalignment="center",
+            loc="right",
+            horizontalalignment="right",
             verticalalignment="top",
             pad=5,
         )

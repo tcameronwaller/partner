@@ -633,7 +633,7 @@ def control_procedure_part_branch(
             adjust_scale=True,
             method_scale=method_scale, # 'z_score' or 'unit_range'
             explicate_indices=True,
-            report=False,
+            report=True,
         )
         pass
 

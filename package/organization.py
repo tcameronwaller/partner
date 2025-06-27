@@ -4036,6 +4036,39 @@ def prepare_table_features_observations_for_analysis(
         report=report,
     )
 
+    # Report names of columns and their types of values.
+    if report:
+        putly.print_terminal_partition(level=4)
+        print("package: partner")
+        print("module: organization.py")
+        name_function = str(
+            "prepare_table_features_observations_for_analysis()"
+        )
+        print("function: " + name_function)
+        putly.print_terminal_partition(level=5)
+        print("check variable types of features across table columns")
+        putly.print_terminal_partition(level=5)
+        print("table:")
+        print(table)
+        putly.print_terminal_partition(level=5)
+        print("names and types of columns:")
+        print(table.dtypes)
+        putly.print_terminal_partition(level=5)
+        pass
+
+    if (
+        (remove_missing) and
+        (len(features_essential) > 0)
+    ):
+        table.dropna(
+            axis="index",
+            how="any",
+            subset=features_essential,
+            inplace=True,
+        )
+        pass
+
+
     # Remove rows from table for observations with missing values for any of
     # the essential features.
     if (

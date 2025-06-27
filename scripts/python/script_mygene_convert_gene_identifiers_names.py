@@ -241,6 +241,17 @@ def parse_delivery_mygene_information(
                 record[type_source] = record_delivery["query"]
                 record[type_product] = identifier_product
                 records.append(record)
+            elif (str(type_product).strip() == "symbol"):
+                if ("symbol" in record_delivery.keys()):
+                    identifier_product = record_delivery["symbol"]
+                else:
+                    identifier_product = record_delivery["query"]
+                    pass
+                # Collect information.
+                record = dict()
+                record[type_source] = record_delivery["query"]
+                record[type_product] = identifier_product
+                records.append(record)
             else:
                 # Collect information.
                 record = dict()

@@ -83,6 +83,8 @@ import partner.plot as pplot
 # TODO: TCW; 9 May 2025
 # pass a new parameter for the name of the file for the plot chart
 
+# TODO: TCW; 12 June 2025
+# pass a new parameter for the limits of the horizontal axis
 
 ##########
 # Read source information from file.
@@ -157,6 +159,7 @@ def parse_text_parameters(
     # Parse and extract information from text.
     # title.
     title_parse = str(title).replace("#", " ")
+    translation_features = str(translation_features).replace("#", " ")
     # feature.
     if (
         (feature is not None) and
@@ -675,7 +678,7 @@ def create_write_plot_dot_forest(
         column_interval_low_tertiary=column_interval_low_tertiary,
         column_interval_high_tertiary=column_interval_high_tertiary,
         title_chart=title,
-        title_abscissa="Regression Coefficient (95% CI)",
+        title_abscissa="Regression Coefficient (Beta)",
         title_ordinate="",
         show_legend=True,
         legend_series_primary=legend_series_primary,
@@ -684,20 +687,20 @@ def create_write_plot_dot_forest(
         size_title_chart="ten",
         size_title_abscissa="ten",
         size_title_ordinate="ten",
-        size_label_abscissa="ten",
-        size_label_ordinate="ten",
-        size_label_legend="fifteen",
+        size_label_abscissa="nine",
+        size_label_ordinate="nine",
+        size_label_legend="thirteen",
         aspect="portrait",
-        minimum_abscissa=-2.5, # -2.5
-        maximum_abscissa=2.5, # 2.5
+        minimum_abscissa=-0.7, # -2.5
+        maximum_abscissa=0.7, # 2.5
         factor_space_series=None, # if not zero or None, overrides space
         space_between_series=0.33,
         position_line_origin=0.0,
-        size_marker_primary=13,
-        size_marker_secondary=9,
+        size_marker_primary=25,
+        size_marker_secondary=20,
         size_marker_tertiary=9,
-        size_line_origin=3,
-        size_line_interval=2,
+        size_line_origin=3.5,
+        size_line_interval=3.5, # 2
         color_marker_primary=colors["blue_navy"],
         color_marker_secondary=colors["orange_burnt"],
         color_marker_tertiary=colors["red_burgundy"],
@@ -734,7 +737,7 @@ def create_write_plot_dot_forest(
     #)
     pplot.write_product_plots_parent_directory(
         pail_write=pail_write_plot,
-        format="svg", # jpg, png, svg
+        format="jpg", # jpg, png, svg
         resolution=300,
         path_directory=path_directory,
     )

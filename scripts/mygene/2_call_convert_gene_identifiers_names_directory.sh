@@ -28,8 +28,12 @@ path_directory_data="$path_directory_dock/in_data" # restore script does not mod
 path_directory_parameters="$path_directory_dock/in_parameters"
 path_directory_parameters_private="$path_directory_dock/in_parameters_private"
 
-path_directory_source="${path_directory_dock}/in_data/mygene_2025-02-14/sets_gene_msigdb_2025-02-14_clean_symbol"
-path_directory_product="${path_directory_dock}/in_data/mygene_2025-02-14/sets_gene_msigdb_2025-02-14_clean_ensembl"
+# dock/out_age_exercise/transcriptomics/operate_sets/lists
+#path_directory_source="${path_directory_dock}/in_data/mygene_2025-02-14/sets_gene_msigdb_2025-02-14_clean_symbol"
+#path_directory_product="${path_directory_dock}/in_data/mygene_2025-02-14/sets_gene_msigdb_2025-02-14_clean_ensembl"
+
+path_directory_source="${path_directory_dock}/out_age_exercise/transcriptomics/operate_sets/lists"
+path_directory_product="${path_directory_dock}/out_mygene_2025-06-10_symbol"
 path_directory_temporary="${path_directory_product}/temporary_process" # hopefully unique
 
 # File suffix.
@@ -52,8 +56,8 @@ cd $path_directory_product
 # Parameters.
 delimiter_source="newline" # "newline", "tab", "\n", "\t", ";", ":", ",", not " "
 delimiter_product="newline" # "newline", "tab", "\n", "\t", ";", ":", ",", not " "
-type_source="symbol" # "entrezgene", "ensembl.gene", "symbol",
-type_product="ensembl.gene" # "entrezgene", "ensembl.gene", "symbol",
+type_source="ensembl.gene" # "entrezgene", "ensembl.gene", "symbol",
+type_product="symbol" # "entrezgene", "ensembl.gene", "symbol",
 species="human" # "human"
 report="true"
 #set -x # enable print commands to standard error
