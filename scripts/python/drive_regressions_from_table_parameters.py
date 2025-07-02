@@ -56,7 +56,19 @@ License:
 # replace the values in the original column without changing the name of the
 # column.
 
+# TODO: TCW; 1 July 2025
+# confirm that the paths are valid and the primary and secondary data files exist
+# read the primary and secondary data tables
 
+
+
+
+##########
+# Note: TCW; 1 July 2025
+# The primary data table orients features across columns and observations
+# across rows.
+# The secondary data table orients features across rows and observations
+# across columns.
 
 
 ##########
@@ -72,6 +84,7 @@ License:
 
 # Standard
 import sys
+# sys.exit() # End execution at this point.
 import os
 import copy
 import textwrap
@@ -130,14 +143,108 @@ def define_column_types_table_parameters():
     types_columns["features_predictor_random"] = "string"
     types_columns["groups_random"] = "string"
     types_columns["features_continuity_scale"] = "string"
-    types_columns["identifier_observations"] = "string"
     types_columns["method_scale"] = "string"
-    types_columns["data_path_directory"] = "string"
-    types_columns["data_file"] = "string"
+    types_columns["identifier_observations_primary"] = "string"
+    types_columns["identifier_features_secondary"] = "string"
+    types_columns["identifier_merge"] = "string"
+    types_columns["path_directory_response"] = "string"
+    types_columns["name_file_list_response"] = "string"
+    types_columns["path_directory_table_primary"] = "string"
+    types_columns["name_file_table_primary"] = "string"
+    types_columns["path_directory_table_secondary"] = "string"
+    types_columns["name_file_table_secondary"] = "string"
     types_columns["review"] = "string"
     types_columns["note"] = "string"
     # Return information.
     return types_columns
+
+
+def extract_organize_path_directory_file(
+    name_file=None,
+    directories_path=None,
+    name_parent=None,
+    path_directory_parent=None,
+    report=None,
+):
+    """
+    Organize from raw parameters the path to a directory and file.
+
+    To specify the parent directory as the directory in which to find the file,
+    include only the name of the parent directory.
+
+    Review: TCW; 1 July 2025
+
+    arguments:
+        name_file (str): name of file
+        directories_path (list<str>): names of directories in a path
+        name_parent (str): name of parent directory as origin of path
+        path_directory_parent (str): path to parent directory
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict): collection of source information about parameters
+
+    """
+
+    # Organize information.
+    name_file = str(name_file).strip()
+    # Determine whether parameters are valid.
+    if (
+        (len(name_file) > 0) and
+        (name_file != "none") and
+        (len(directories_path) > 0)
+    ):
+        validity = True
+        # Define paths to directories and files.
+        if (name_parent in directories_path):
+            directories_path = list(filter(
+                lambda directory: (directory != name_parent),
+                directories_path
+            ))
+            pass
+        path_directory = os.path.join(
+            path_directory_parent,
+            *directories_path, # 'splat' operator unpacks list items
+        )
+        path_file = os.path.join(
+            path_directory, name_file,
+        )
+        # Determine whether the path points to a file that exists.
+        existence_directory = os.path.exists(path_directory)
+        existence_file = os.path.exists(path_file)
+    else:
+        validity = False
+        path_directory = None
+        path_file = None
+        existence_directory = False
+        existence_file = False
+        pass
+
+    # Collect information.
+    pail = dict()
+    pail["validity"] = validity
+    pail["path_directory"] = path_directory
+    pail["path_file"] = path_file
+    pail["existence_directory"] = existence_directory
+    pail["existence_file"] = existence_file
+
+    # Report.
+    if report:
+        # Organize.
+        # Print.
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        print("module: drive_regressions_from_table_parameters.py")
+        print("function: extract_organize_path_directory_file()")
+        putly.print_terminal_partition(level=5)
+        print("path to file:")
+        print(path_file)
+        putly.print_terminal_partition(level=5)
+        pass
+    # Return information.
+    return pail
 
 
 def read_source_table_parameters(
@@ -260,40 +367,66 @@ def read_source_table_parameters(
         else:
             record["features_continuity_scale"] = list()
             pass
-        if (
-            (row["identifier_observations"] is not None) and
-            (len(str(row["identifier_observations"])) > 0) and
-            (str(row["identifier_observations"]).strip().lower() != "none")
-        ):
-            record["identifier_observations"] = str(
-                row["identifier_observations"]
-            ).strip()
-        else:
-            record["identifier_observations"] = None
-            pass
         record["method_scale"] = str(row["method_scale"]).strip()
-        record["data_path_directory"] = putly.parse_text_list_values(
-            text=row["data_path_directory"],
+
+        # Identifiers across rows in tables.
+        identifiers = [
+            "identifier_observations_primary",
+            "identifier_features_secondary",
+            "identifier_merge",
+        ]
+        for identifier in identifiers:
+            if (
+                (row[identifier] is not None) and
+                (len(str(row[identifier])) > 0) and
+                (str(row[identifier]).strip().lower() != "none")
+            ):
+                record[identifier] = str(row[identifier]).strip()
+            else:
+                record[identifier] = None
+                pass
+            pass
+        # Directories and files.
+        record["directories_path_response"] = putly.parse_text_list_values(
+            text=row["path_directory_response"],
             delimiter=",",
         )
-        record["data_file"] = str(row["data_file"]).strip()
+        record["name_file_list_response"] = str(
+            row["name_file_list_response"]
+        ).strip()
+        record["directories_path_table_primary"] = putly.parse_text_list_values(
+            text=row["path_directory_table_primary"],
+            delimiter=",",
+        )
+        record["name_file_table_primary"] = str(
+            row["name_file_table_primary"]
+        ).strip()
+        record["directories_path_table_secondary"] = putly.parse_text_list_values(
+            text=row["path_directory_table_secondary"],
+            delimiter=",",
+        )
+        record["name_file_table_secondary"] = str(
+            row["name_file_table_secondary"]
+        ).strip()
         record["review"] = str(row["review"]).strip()
         record["note"] = str(row["note"]).strip()
 
         # Collect unique names of columns relevant to instance of
         # parameters from current row in table.
         features_regression = list()
-        features_regression.append(record["feature_response"])
+        if (record["feature_response"] != "file_list_response"):
+            features_regression.append(record["feature_response"])
+            pass
         features_regression.extend(record["features_predictor_fixed"])
         features_regression.extend(record["features_predictor_random"])
-        #if (record["identifier_observations"] is not None):
+        #if (record["identifier_observations_primary"] is not None):
         #    features_regression.insert(
         #        0,
-        #        record["identifier_observations"],
+        #        record["identifier_observations_primary"],
         #    )
         #    pass
-        features_regression = putly.collect_unique_elements(
-            elements=features_regression,
+        features_regression = putly.collect_unique_items(
+            items=features_regression,
         )
         record["features_regression"] = copy.deepcopy(features_regression)
         features_relevant = list()
@@ -313,14 +446,18 @@ def read_source_table_parameters(
                 record["groups_random"],
             )
             pass
-        if (record["identifier_observations"] is not None):
-            features_relevant.insert(
-                0,
-                record["identifier_observations"],
-            )
+        identifiers = [
+            "identifier_observations_primary",
+            "identifier_features_secondary",
+            "identifier_merge",
+        ]
+        for identifier in identifiers:
+            if (record[identifier] is not None):
+                features_relevant.insert(0, record[identifier])
+                pass
             pass
-        features_relevant = putly.collect_unique_elements(
-            elements=features_relevant,
+        features_relevant = putly.collect_unique_items(
+            items=features_relevant,
         )
         record["features_relevant"] = copy.deepcopy(features_relevant)
         # Collect information and parameters for current row in table.
@@ -382,38 +519,34 @@ def read_source_table_data(
     raises:
 
     returns:
-        (dict): collection of source information about parameters for selection
-            of sets from MSigDB
+        (dict): collection of source information about parameters
 
     """
 
     # Define paths to directories and files.
-    if ("dock" in directories_path_data):
-        directories_path_data = list(filter(
-            lambda directory: (directory != "dock"),
-            directories_path_data
-        ))
+    pail_path = extract_organize_path_directory_file(
+        name_file=name_file_table_data,
+        directories_path=directories_path_data,
+        name_parent="dock",
+        path_directory_parent=path_directory_dock,
+        report=report,
+    )
+    # Determine whether parameters point path to a file exists.
+    if (pail_path["existence_file"]):
+        # Read information from file.
+        # Table of data with values for observations of features.
+        table = pandas.read_csv(
+            pail_path["path_file"],
+            sep="\t",
+            header=0,
+            na_values=[
+                "nan", "na", "NAN", "NA", "<nan>", "<na>", "<NAN>", "<NA>",
+            ],
+            encoding="utf-8",
+        )
+    else:
+        table = None
         pass
-    path_directory_data = os.path.join(
-        path_directory_dock,
-        *directories_path_data, # 'splat' operator unpacks list items
-    )
-    path_file_table = os.path.join(
-        path_directory_data, name_file_table_data,
-    )
-
-    # Read information from file.
-
-    # Table of data with values for observations of features.
-    table = pandas.read_csv(
-        path_file_table,
-        sep="\t",
-        header=0,
-        na_values=[
-            "nan", "na", "NAN", "NA", "<nan>", "<na>", "<NAN>", "<NA>",
-        ],
-        encoding="utf-8",
-    )
 
     # Report.
     if report:
@@ -432,6 +565,167 @@ def read_source_table_data(
     return table
 
 
+def read_organize_source_data(
+    features_relevant=None,
+    identifier_observations_primary=None,
+    identifier_features_secondary=None,
+    identifier_merge=None,
+    directories_path_table_primary=None,
+    name_file_table_primary=None,
+    directories_path_table_secondary=None,
+    name_file_table_secondary=None,
+    path_directory_dock=None,
+    report=None,
+):
+    """
+    Read and organize source information in tables of data.
+
+    The primary data table orients features across columns and observations
+    across rows.
+    The secondary data table orients features across rows and observations
+    across columns.
+
+    Review: TCW; 2 July 2025
+
+    arguments:
+        features_relevant (list<str>): names of columns in data table for
+            feature variables that are relevant to the current instance of
+            parameters
+        identifier_observations_primary (str): name of column in primary data
+            table for unique identifiers of observations across rows
+        identifier_features_secondary (str): name of column in secondary data
+            table after transposition for unique identifiers of features across
+            rows
+        identifier_merge (str): name of column in primary data table and in
+            secondary data table after transposition by which to merge
+        directories_path_table_primary (list<str>): names of directories in
+            file system path at which to find the file for the table of data
+            with observations of features for regression
+        name_file_table_primary (str): name of file for the table of data with
+            observations of features for regression
+        directories_path_table_secondary (list<str>): names of directories in
+            file system path at which to find the file for the table of data
+            with observations of features for regression
+        name_file_table_secondary (str): name of file for the table of data
+            with observations of features for regression
+        path_directory_dock (str): path to dock directory for procedure's
+            source and product directories and files
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict): collection of source information about parameters
+
+    """
+
+    # Copy information.
+    features_relevant = copy.deepcopy(features_relevant)
+
+    ##########
+    # Read source information from file.
+    table_primary = read_source_table_data(
+        name_file_table_data=name_file_table_primary,
+        directories_path_data=directories_path_table_primary,
+        path_directory_dock=path_directory_dock,
+        report=report,
+    )
+    table_secondary = read_source_table_data(
+        name_file_table_data=name_file_table_secondary,
+        directories_path_data=directories_path_table_secondary,
+        path_directory_dock=path_directory_dock,
+        report=report,
+    )
+    if (
+        (table_primary is not None) and
+        (table_secondary is not None)
+    ):
+        # Filter features according to current instance of parameters.
+        if (len(features_relevant) > 0):
+            table_secondary = table_secondary.loc[
+                table_secondary[identifier_features_secondary].isin(
+                    features_relevant
+                ), :
+            ].copy(deep=True)
+            pass
+        # Remove unnecessary columns.
+        if ("index" in table_secondary.columns.to_list()):
+            table_secondary.drop(
+                labels=["index",],
+                axis="columns",
+                inplace=True
+            )
+        # Organize indices of table.
+        table_secondary = (
+            porg.explicate_table_indices_columns_rows_single_level(
+                table=table_secondary,
+                index_columns=identifier_observations_primary,
+                index_rows=identifier_features_secondary,
+                explicate_indices=True,
+                report=report,
+        ))
+        # Transpose table.
+        table_secondary = table_secondary.transpose(copy=True)
+        # Organize indices of table.
+        table_secondary.reset_index(
+            level=None,
+            inplace=True,
+            drop=False, # remove index; do not move to regular columns
+        )
+        table_secondary.columns.rename(
+            None,
+            inplace=True,
+        ) # single-dimensional index
+        # Merge features and observations from primary and secondary tables.
+        table_merge = porg.merge_columns_two_tables(
+            identifier_first=identifier_merge,
+            identifier_second=identifier_merge,
+            table_first=table_primary,
+            table_second=table_secondary,
+            preserve_index=False,
+            report=report,
+        )
+        # Remove from list of relevant features the name of identifiers for
+        # features that the table now orients across columns after
+        # transposition.
+        if (identifier_features_secondary in features_relevant):
+            features_relevant = list(filter(
+                lambda feature: (feature != identifier_features_secondary),
+                features_relevant
+            ))
+            pass
+        pass
+    else:
+        table_merge = table_primary
+        pass
+
+    # Bundle product information.
+    pail = dict()
+    pail["table_primary"] = table_primary
+    pail["table_secondary"] = table_secondary
+    pail["table_merge"] = table_merge
+    pail["features_relevant"] = features_relevant
+
+    # Report.
+    if report:
+        # Organize.
+        # Print.
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        print("module: script_drive_regressions_from_table_parameters.py")
+        print("function: read_organize_source_data()")
+        putly.print_terminal_partition(level=5)
+        print("data table:")
+        print(table_merge)
+        putly.print_terminal_partition(level=5)
+        pass
+    # Return information.
+    return pail
+
+
+# TODO: TCW; 30 June 2025
+# consider moving this more general function to the regression.py module for
+# easier accessibility.
 def read_source_parallel_branch_products(
     path_directory_parent=None,
     name_file_child_prefix=None,
@@ -483,6 +777,160 @@ def read_source_parallel_branch_products(
     return pails
 
 
+##########
+# Expand plural response features.
+
+
+def expand_plural_response_features(
+    instances=None,
+    path_directory_dock=None,
+    report=None,
+):
+    """
+    Consider whether instances of parameters include any definitions of plural
+    response features. If so, then create new instances of parameters to
+    represent each of the plural response features.
+
+    Review: TCW; 01 July 2025
+
+    arguments:
+        instances (list<dict>): parameters to control individual instances in
+            parallel
+        path_directory_dock (str): path to dock directory for procedure's
+            source and product directories and files
+        report (bool): whether to print reports
+
+
+    raises:
+
+    returns:
+        (dict): collection of source information about parameters
+
+    """
+
+    # Copy information.
+    instances_source = copy.deepcopy(instances)
+    # Determine count of source instances.
+    count_instances_source = int(len(instances_source))
+
+    # Evaluate instances of parameters to consider whether any define plural
+    # response features that require expansion.
+    # If any plural response features are found, replace the source instance
+    # with product instances for each response feature.
+    # Collect novel product instances and combine with the original source
+    # instances.
+    instances_original = list()
+    instances_novel = list()
+    counter = int(count_instances_source + 1)
+    for instance in instances_source:
+        # Copy information.
+        instance = copy.deepcopy(instance)
+        # Organize information.
+        feature_response = str(instance["feature_response"]).strip()
+        # Determine whether there are plural response features.
+        if (
+            (feature_response == "file_list_response")
+        ):
+            # Define paths to directories and files.
+            pail_path = extract_organize_path_directory_file(
+                name_file=instance["name_file_list_response"],
+                directories_path=instance["directories_path_response"],
+                name_parent="dock",
+                path_directory_parent=path_directory_dock,
+                report=report,
+            )
+            # Determine whether parameters point path to a file exists.
+            if (pail_path["existence_file"]):
+                # Read information from file.
+                features_response = putly.read_file_text_list(
+                    path_file=pail_path["path_file"],
+                    delimiter="\n",
+                    unique=True,
+                )
+            else:
+                features_response = None
+
+            # Determine whether to iterate on plural response features.
+            if (
+                (features_response is not None) and
+                (len(features_response) > 0)
+            ):
+                for feature in features_response:
+                    # Copy information.
+                    instance_plurality = copy.deepcopy(instance)
+                    # Specify sequence.
+                    instance_plurality["sequence"] = counter
+                    # Specify name.
+                    instance_plurality["name_combination"] = "_".join([
+                        str(instance_plurality["group"]).strip(),
+                        str(instance_plurality["sequence"]).strip(),
+                        str(instance_plurality["name"]).strip(),
+                    ])
+                    # Specify response feature.
+                    instance_plurality["feature_response"] = feature
+                    # Include response feature in selections of features that
+                    # are relevant and part of the regression model.
+                    instance_plurality["features_regression"].insert(
+                        0, feature,
+                    )
+                    instance_plurality["features_relevant"].insert(
+                        0, feature,
+                    )
+                    # Collect novel instance of parameters.
+                    instances_novel.append(copy.deepcopy(instance_plurality))
+                    # Increment counter for sequence.
+                    counter += 1
+                    pass
+                pass
+
+        else:
+            # Collect and preserve original instance of parameters.
+            instances_original.append(copy.deepcopy(instance))
+            pass
+
+    # Copy information.
+    instances_product = copy.deepcopy(instances_original)
+    # Combine original instances with novel instances.
+    instances_product.extend(instances_novel)
+
+    # Collect information.
+    pail = dict()
+    pail["instances"] = instances_product
+
+    # Report.
+    if report:
+        # Organize information.
+        count_instances_novel = len(instances_novel)
+        count_instances_product = len(instances_product)
+        # Print.
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        print("module: drive_regressions_from_table_parameters.py")
+        print("function: expand_plural_response_features()")
+        putly.print_terminal_partition(level=5)
+        print(
+            str(
+                "count of novel instances from plural expansion for " +
+                "response features: "
+            ) +
+            str(count_instances_novel)
+        )
+        putly.print_terminal_partition(level=5)
+        print("example of a novel instance: ")
+        print(instances_novel[0])
+        putly.print_terminal_partition(level=5)
+        print(
+            str(
+                "count of product instances: "
+            ) +
+            str(count_instances_product)
+        )
+        putly.print_terminal_partition(level=5)
+        pass
+    # Return information.
+    return pail
+
+
 ################################################################################
 # Procedure
 
@@ -507,10 +955,16 @@ def control_procedure_part_branch(
     features_regression=None,
     features_continuity_scale=None,
     features_relevant=None,
-    identifier_observations=None,
     method_scale=None,
-    data_path_directory=None,
-    data_file=None,
+    identifier_observations_primary=None,
+    identifier_features_secondary=None,
+    identifier_merge=None,
+    directories_path_response=None,
+    name_file_list_response=None,
+    directories_path_table_primary=None,
+    name_file_table_primary=None,
+    directories_path_table_secondary=None,
+    name_file_table_secondary=None,
     review=None,
     note=None,
     path_file_table_parameters=None,
@@ -555,15 +1009,30 @@ def control_procedure_part_branch(
         features_relevant (list<str>): names of columns in data table for
             feature variables that are relevant to the current instance of
             parameters
-        identifier_observations (str): name of column in data table for unique
-            identifiers of observations across rows
         method_scale (str): name of method to use to adjust the scale of values
             for features across observations, either 'z_score' or 'unit_range'
-        data_path_directory (list<str>): names of directories in path at which
-            to find the file for the table of data with features and
-            observations for regression
-        data_file (str): name of file for the table of data with features and
-            observations for regression
+        identifier_observations_primary (str): name of column in primary data
+            table for unique identifiers of observations across rows
+        identifier_features_secondary (str): name of column in secondary data
+            table after transposition for unique identifiers of features across
+            rows
+        identifier_merge (str): name of column in primary data table and in
+            secondary data table after transposition by which to merge
+        directories_path_response (list<str>): names of directories in file
+            system path at which to find the file for the table of data with
+            observations of features for regression
+        name_file_list_response (str): name of file for the table of data with
+            observations of features for regression
+        directories_path_table_primary (list<str>): names of directories in
+            file system path at which to find the file for the table of data
+            with observations of features for regression
+        name_file_table_primary (str): name of file for the table of data with
+            observations of features for regression
+        directories_path_table_secondary (list<str>): names of directories in
+            file system path at which to find the file for the table of data
+            with observations of features for regression
+        name_file_table_secondary (str): name of file for the table of data
+            with observations of features for regression
         review (str): notes about review of instance in table of parameters
         note (str): notes about instance in table of parameters
         path_file_table_parameters (str): path to source file in text format as
@@ -582,13 +1051,21 @@ def control_procedure_part_branch(
     """
 
     ##########
-    # Read source information from file.
-    table = read_source_table_data(
-        name_file_table_data=data_file,
-        directories_path_data=data_path_directory,
+    # Read and organize source information from file.
+    pail_source = read_organize_source_data(
+        features_relevant=features_relevant,
+        identifier_observations_primary=identifier_observations_primary,
+        identifier_features_secondary=identifier_features_secondary,
+        identifier_merge=identifier_merge,
+        directories_path_table_primary=directories_path_table_primary,
+        name_file_table_primary=name_file_table_primary,
+        directories_path_table_secondary=directories_path_table_secondary,
+        name_file_table_secondary=name_file_table_secondary,
         path_directory_dock=path_directory_dock,
         report=report,
     )
+    # pail_source["features_relevant"]
+
 
     ##########
     # Evaluate information in table.
@@ -598,14 +1075,14 @@ def control_procedure_part_branch(
     # feature selection that is called 'variance thresholding'.
     if False:
         table = preg.evaluate_table_data(
-            table=table,
+            table=pail_source["table_merge"],
             selection_observations=selection_observations,
-            features_relevant=features_relevant,
+            features_relevant=pail_source["features_relevant"],
             features_regression=features_regression,
             features_continuity_scale=features_continuity_scale,
             index_columns_source="features",
             index_columns_product="features",
-            index_rows_source=identifier_observations,
+            index_rows_source=identifier_observations_primary,
             index_rows_product="observations",
             adjust_scale=True,
             method_scale=method_scale, # 'z_score' or 'unit_range'
@@ -619,14 +1096,14 @@ def control_procedure_part_branch(
     # Organize information in table.
     if True:
         table = porg.prepare_table_features_observations_for_analysis(
-            table=table,
+            table=pail_source["table_merge"],
             selection_observations=selection_observations,
-            features_relevant=features_relevant,
+            features_relevant=pail_source["features_relevant"],
             features_essential=features_regression,
             features_continuity_scale=features_continuity_scale,
             index_columns_source="features",
             index_columns_product="features",
-            index_rows_source=identifier_observations,
+            index_rows_source=identifier_observations_primary,
             index_rows_product="observations",
             remove_missing=True,
             remove_redundancy=True,
@@ -636,7 +1113,6 @@ def control_procedure_part_branch(
             report=True,
         )
         pass
-
 
     ##########
     # Check parameters and table of data for performing regression analysis.
@@ -661,6 +1137,7 @@ def control_procedure_part_branch(
         pail_check = dict()
         pail_check["check_overall"] = True
         pass
+
 
     ##########
     # Perform regression analysis.
@@ -811,16 +1288,31 @@ def control_parallel_instance(
             features_relevant (list<str>): names of columns in data table for
                 feature variables that are relevant to the current instance of
                 parameters
-            identifier_observations (str): name of column in data table for
-                unique identifiers of observations across rows
             method_scale (str): name of method to use to adjust the scale of
                 values for features across observations, either 'z_score' or
                 'unit_range'
-            data_path_directory (list<str>): names of directories in path at
-                which to find the file for the table of data with features and
-                observations for regression
-            data_file (str): name of file for the data table of information
-                about features and observations
+            identifier_observations_primary (str): name of column in primary
+                data table for unique identifiers of observations across rows
+            identifier_features_secondary (str): name of column in secondary
+                data table after transposition for unique identifiers of
+                features across rows
+            identifier_merge (str): name of column in primary data table and in
+                secondary data table after transposition by which to merge
+            directories_path_response (list<str>): names of directories in file
+                system path at which to find the file for the table of data
+                with observations of features for regression
+            name_file_list_response (str): name of file for the table of data
+                with observations of features for regression
+            directories_path_table_primary (list<str>): names of directories in
+                file system path at which to find the file for the table of
+                data with observations of features for regression
+            name_file_table_primary (str): name of file for the table of data
+                with observations of features for regression
+            directories_path_table_secondary (list<str>): names of directories
+                in file system path at which to find the file for the table of
+                data with observations of features for regression
+            name_file_table_secondary (str): name of file for the table of data
+                with observations of features for regression
             review (str): notes about review of instance in table of parameters
             note (str): notes about instance in table of parameters
 
@@ -864,10 +1356,28 @@ def control_parallel_instance(
     features_regression = instance_record["features_regression"]
     features_continuity_scale = instance_record["features_continuity_scale"]
     features_relevant = instance_record["features_relevant"]
-    identifier_observations = instance_record["identifier_observations"]
     method_scale = instance_record["method_scale"]
-    data_path_directory = instance_record["data_path_directory"]
-    data_file = instance_record["data_file"]
+    identifier_observations_primary = (
+        instance_record["identifier_observations_primary"]
+    )
+    identifier_features_secondary = (
+        instance_record["identifier_features_secondary"]
+    )
+    identifier_merge = (
+        instance_record["identifier_merge"]
+    )
+    directories_path_response = (
+        instance_record["directories_path_response"]
+    )
+    name_file_list_response = instance_record["name_file_list_response"]
+    directories_path_table_primary = (
+        instance_record["directories_path_table_primary"]
+    )
+    name_file_table_primary = instance_record["name_file_table_primary"]
+    directories_path_table_secondary = (
+        instance_record["directories_path_table_secondary"]
+    )
+    name_file_table_secondary = instance_record["name_file_table_secondary"]
     review = instance_record["review"]
     note = instance_record["note"]
 
@@ -896,10 +1406,16 @@ def control_parallel_instance(
             features_regression=features_regression,
             features_continuity_scale=features_continuity_scale,
             features_relevant=features_relevant,
-            identifier_observations=identifier_observations,
             method_scale=method_scale,
-            data_path_directory=data_path_directory,
-            data_file=data_file,
+            identifier_observations_primary=identifier_observations_primary,
+            identifier_features_secondary=identifier_features_secondary,
+            identifier_merge=identifier_merge,
+            directories_path_response=directories_path_response,
+            name_file_list_response=name_file_list_response,
+            directories_path_table_primary=directories_path_table_primary,
+            name_file_table_primary=name_file_table_primary,
+            directories_path_table_secondary=directories_path_table_secondary,
+            name_file_table_secondary=name_file_table_secondary,
             review=review,
             note=note,
             path_file_table_parameters=path_file_table_parameters,
@@ -1047,8 +1563,20 @@ def execute_procedure(
     #    print(record)
     #    pass
 
+    # Expand plural response features.
+    pail_expansion = expand_plural_response_features(
+        instances=pail_source["records"],
+        path_directory_dock=path_directory_dock,
+        report=report,
+    )
+    #for instance in pail_expansion["instances"]:
+    #    print(instance["feature_response"])
+    #    print(instance)
+    #    pass
 
     ##########
+    # Organize information.
+    count_instances = len(pail_expansion["instances"])
     # Report.
     if report:
         putly.print_terminal_partition(level=3)
@@ -1061,8 +1589,9 @@ def execute_procedure(
         print("path_directory_product: " + str(path_directory_product))
         print("path_directory_dock: " + str(path_directory_dock))
         putly.print_terminal_partition(level=5)
+        print("count of instances: " + str(count_instances))
+        putly.print_terminal_partition(level=5)
         pass
-
 
     ##########
     # Control procedure for parallel instances.
@@ -1077,7 +1606,7 @@ def execute_procedure(
         path=path_directory_parallel,
     )
     control_parallel_instances(
-        instances=pail_source["records"],
+        instances=pail_expansion["instances"],
         path_file_table_parameters=path_file_table_parameters,
         path_directory_product=path_directory_parallel,
         path_directory_dock=path_directory_dock,
@@ -1133,17 +1662,18 @@ def execute_procedure(
         delimiter="\t",
         suffix=suffix_file,
     )
-    putly.write_table_to_file(
-        table=table_regressions,
-        name_file=name_file,
-        path_directory=path_directory_parent,
-        reset_index_rows=False,
-        write_index_rows=False,
-        write_index_columns=True,
-        type="pickle",
-        delimiter=None,
-        suffix=".pickle",
-    )
+    if False:
+        putly.write_table_to_file(
+            table=table_regressions,
+            name_file=name_file,
+            path_directory=path_directory_parent,
+            reset_index_rows=False,
+            write_index_rows=False,
+            write_index_columns=True,
+            type="pickle",
+            delimiter=None,
+            suffix=".pickle",
+        )
 
     pass
 

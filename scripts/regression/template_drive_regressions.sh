@@ -7,21 +7,15 @@
 # Author: T. Cameron Waller
 # Date, first execution: 28 March 2025
 # Date, last execution or modification: 3 April 2025
-# Review: 3 April 2025
+# Review: 2 July 2025
 ###############################################################################
 # Note
 
-# TODO: TCW; 14 May 2025
-# New parameter from script that determines the name of the table of regression results
-# That'll be convenient when calling the script multiple times with variations on the parameters
-
-# TODO: TCW; 14 May 2025
-# New parameter to filter "parameter instances (ie rows)" in the parameter table by some value, such as name of group
-
-
 ###############################################################################
-# Organize arguments.
+# Organize parameters.
 
+name_of_directory_in_paths_below="place_holder"
+groups="group_a,group_b,group_c"
 
 ################################################################################
 # Organize paths.
@@ -81,11 +75,7 @@ threads=6
 set +x # disable print commands to standard error
 #set -v # enable print input to standard error
 set +v # disable print input to standard error
-
-groups="group_a,group_b,group_c"
-
 report="true"
-
 
 ###############################################################################
 # Activate Python virtual environment.
