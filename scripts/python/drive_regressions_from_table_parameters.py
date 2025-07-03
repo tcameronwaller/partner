@@ -70,6 +70,11 @@ License:
 # The secondary data table orients features across rows and observations
 # across columns.
 
+##########
+# Note: TCW; 2 July 2025
+# With 6 parallel threads on local machine halyard, driving ordinary least
+# squares regression with a simple regression model across 15,000 gene features
+# requires about 1 hour and 30 minutes of time to run.
 
 ##########
 # Review: TCW; 3 April 2025

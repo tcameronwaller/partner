@@ -1914,7 +1914,6 @@ def write_list_to_file_text(
         elements (list<str>): character elements
         delimiter (str): delimiter between elements in list
         path_file (str): path to file
-        path_directory (str): path to directory within which to write file
 
 
     returns:
