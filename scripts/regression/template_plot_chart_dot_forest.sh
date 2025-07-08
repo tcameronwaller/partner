@@ -45,8 +45,8 @@ path_directory_product="${path_directory_dock}/out_regression/demonstration"
 path_file_table_data="${path_directory_demonstration}/partner/table_data_plot_dot_forest.tsv"
 
 # Scripts.
-path_file_script_source="${path_directory_scripts}/partner/python/drive_plot_dot_forest_from_table_data.py"
-path_file_script_product="${path_directory_package}/drive_plot_dot_forest_from_table_data.py"
+path_file_script_source="${path_directory_scripts}/partner/python/plot_chart_dot_forest_from_table.py"
+path_file_script_product="${path_directory_package}/plot_chart_dot_forest_from_table.py"
 
 # Copy Python script to package directory.
 cp $path_file_script_source $path_file_script_product

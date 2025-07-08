@@ -62,6 +62,23 @@ License:
 
 
 
+##########
+# Note: TCW; 3 July 2025
+# Previously, for linear regression with mixed effects, I had not been
+# introducing a constant intercept as a predictor with fixed effect. It was
+# necessary to add this intercept explicitly to the data table and to the
+# regression model. After I included this constant intercept with fixed effect,
+# the results of regression changed, substantially in some cases. I think that
+# before this change, the regression model was not able adequately to permit
+# each group to have its own, random intercept. Rather, I think that the model
+# only described the variance between groups in the "Group Var" row of the
+# summary table.
+
+##########
+# Note: TCW; 2 July 2025
+# With 6 parallel threads on local machine halyard, driving ordinary least
+# squares regression with a simple regression model across 15,000 gene features
+# requires about 1 hour and 30 minutes of time to run.
 
 ##########
 # Note: TCW; 1 July 2025
@@ -69,12 +86,6 @@ License:
 # across rows.
 # The secondary data table orients features across rows and observations
 # across columns.
-
-##########
-# Note: TCW; 2 July 2025
-# With 6 parallel threads on local machine halyard, driving ordinary least
-# squares regression with a simple regression model across 15,000 gene features
-# requires about 1 hour and 30 minutes of time to run.
 
 ##########
 # Review: TCW; 3 April 2025
@@ -1071,6 +1082,34 @@ def control_procedure_part_branch(
     )
     # pail_source["features_relevant"]
 
+    # Copy information.
+    features_predictor_fixed_no_intercept = copy.deepcopy(
+        features_predictor_fixed
+    )
+    features_predictor_random_no_intercept = copy.deepcopy(
+        features_predictor_random
+    )
+    features_regression_no_intercept = copy.deepcopy(features_regression)
+    features_relevant_no_intercept = copy.deepcopy(
+        pail_source["features_relevant"]
+    )
+    # Organize predictor features without intercept.
+    features_predictor_fixed_no_intercept = list(filter(
+        lambda feature: (feature not in ["intercept",]),
+        features_predictor_fixed_no_intercept
+    ))
+    features_predictor_random_no_intercept = list(filter(
+        lambda feature: (feature not in ["intercept",]),
+        features_predictor_random_no_intercept
+    ))
+    features_regression_no_intercept = list(filter(
+        lambda feature: (feature not in ["intercept",]),
+        features_regression_no_intercept
+    ))
+    features_relevant_no_intercept = list(filter(
+        lambda feature: (feature not in ["intercept",]),
+        features_relevant_no_intercept
+    ))
 
     ##########
     # Evaluate information in table.
@@ -1082,8 +1121,8 @@ def control_procedure_part_branch(
         table = preg.evaluate_table_data(
             table=pail_source["table_merge"],
             selection_observations=selection_observations,
-            features_relevant=pail_source["features_relevant"],
-            features_regression=features_regression,
+            features_relevant=features_relevant_no_intercept,
+            features_regression=features_regression_no_intercept,
             features_continuity_scale=features_continuity_scale,
             index_columns_source="features",
             index_columns_product="features",
@@ -1103,8 +1142,8 @@ def control_procedure_part_branch(
         table = porg.prepare_table_features_observations_for_analysis(
             table=pail_source["table_merge"],
             selection_observations=selection_observations,
-            features_relevant=pail_source["features_relevant"],
-            features_essential=features_regression,
+            features_relevant=features_relevant_no_intercept,
+            features_essential=features_regression_no_intercept,
             features_continuity_scale=features_continuity_scale,
             index_columns_source="features",
             index_columns_product="features",
@@ -1130,8 +1169,8 @@ def control_procedure_part_branch(
             type_regression=type_regression,
             formula_text=formula_text,
             feature_response=feature_response,
-            features_predictor_fixed=features_predictor_fixed,
-            features_predictor_random=features_predictor_random,
+            features_predictor_fixed=features_predictor_fixed_no_intercept,
+            features_predictor_random=features_predictor_random_no_intercept,
             groups_random=groups_random,
             threshold_features_variance=0.01,
             threshold_observations_count=5,

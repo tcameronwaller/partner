@@ -1661,6 +1661,67 @@ def read_all_pandas_tables_files_within_parent_directory(
     return pail
 
 
+def determine_category_text_threshold_quantitative(
+    value=None,
+    threshold=None,
+    category_below=None,
+    category_above=None,
+    category_missing=None,
+):
+    """
+    Determine a text categorical designator or indicator by applying a simple
+    threshold to a feature variable with values on a quantitative scale of
+    measurement. Assigns specific categorical text designator for missing
+    values.
+
+    below: value < threshold
+    above: value >= threshold
+
+    For more sophisticated definitions, apply filters to the quantitative
+    values before calling this function.
+
+    Review: TCW; 8 July 2025
+
+    arguments:
+        value (float): value of feature variable with values on a quantitative
+            scale of measurement
+        threshold (float): threshold below which (value < threshold) to assign
+            the below category and above which (value >= threshold) to assign
+            the above category
+        category_below (str): category text to designate values below threshold
+        category_above (str): category text to designate values above threshold
+        category_missing (str): category text to designate missing values
+
+    raises:
+
+    returns:
+        (float): designator or indicator
+
+    """
+
+    # Determine whether there is adequate information.
+    if (
+        (value is not None) and
+        (pandas.notna(value))
+    ):
+        # There is adequate information.
+        # Determine designator.
+        if (value < threshold):
+            designator = category_below
+        elif (value >= threshold):
+            designator = category_above
+        else:
+            # This should not happen.
+            designator = category_missing
+            pass
+    else:
+        # There is inadequate information.
+        designator = category_missing
+        pass
+    # Return information.
+    return designator
+
+
 def determine_category_text_logical_binary(
     category_text=None,
     values_1=None,

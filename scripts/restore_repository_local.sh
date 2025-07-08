@@ -51,7 +51,7 @@ path_directory_dock="$path_directory_process/dock"
 #path_directory_data="$path_directory_dock/in_data" # restore script does not modify "in_data" for efficiency
 path_directory_demonstration="$path_directory_dock/in_demonstration"
 path_directory_parameters="$path_directory_dock/in_parameters"
-path_directory_parameters_private_source=$(<"$path_directory_paths/path_parameters_private_${project_main}.txt")
+path_directory_parameters_private_source=$(<"$path_directory_paths/path_directory_parameters_private_${project_main}.txt")
 path_directory_parameters_private="$path_directory_dock/in_parameters_private"
 path_directory_repository_partner=$(<"$path_directory_paths/path_directory_repository_partner.txt")
 path_directory_repository_project_main=$(<"$path_directory_paths/path_directory_repository_${project_main}.txt")
@@ -96,7 +96,7 @@ mv "$path_directory_parameters/parameters" "$path_directory_parameters/partner"
 cp -r "$path_directory_repository_project_main/parameters" "$path_directory_parameters/parameters"
 mv "$path_directory_parameters/parameters" "$path_directory_parameters/${project_main}"
 cp -r $path_directory_parameters_private_source $path_directory_dock
-mv "${path_directory_dock}/parameters_private" "${path_directory_dock}/${project_main}"
+mv "${path_directory_dock}/parameters" "${path_directory_dock}/${project_main}"
 mv "${path_directory_dock}/${project_main}" $path_directory_parameters_private
 
 ##########

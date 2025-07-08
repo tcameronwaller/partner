@@ -1114,10 +1114,25 @@ def parse_organize_regression_intercept_predictors(
     features_predictor = copy.deepcopy(features_predictor)
     features_predictor_intercept = copy.deepcopy(features_predictor)
 
-    # Determine count and sequence of predictors.
-    if ("const" in table_predictor_intercept.columns.to_list()):
+    # Organize information.
+    features_predictor = list(filter(
+        lambda feature: (feature not in ["intercept", "const",]),
+        features_predictor
+    ))
+    if (
+        ("const" in table_predictor_intercept.columns.to_list()) and
+        ("const" not in features_predictor_intercept)
+    ):
+        features_predictor_intercept.insert(0, "const")
+        pass
+    if (
+        ("intercept" in table_predictor_intercept.columns.to_list()) and
+        ("intercept" not in features_predictor_intercept)
+    ):
         features_predictor_intercept.insert(0, "intercept")
         pass
+
+    # Determine count and sequence of predictors.
     count_intercept_predictors = len(features_predictor_intercept)
     features_sequence = define_features_sequence(
         features=features_predictor_intercept,
@@ -1128,7 +1143,7 @@ def parse_organize_regression_intercept_predictors(
         table_predictor_intercept=table_predictor_intercept,
         features_predictor=features_predictor,
         features_sequence=features_sequence,
-        name_intercept_source="const",
+        name_intercept_source="intercept",
         name_intercept_product="intercept",
         parameters=parameters,
         standard_errors=standard_errors,
@@ -1227,33 +1242,58 @@ def regress_continuous_linear_ordinary_least_squares(
 
     """
 
-    # Extract values of response and predictor variables.
-    # It is possible to pass values of response and predictor features either
-    # as NumPy arrays or as Pandas Series and data-frame table respectively.
-    # Passing variables as Pandas Series and Dataframe preserves variable
-    # names.
-    #values_response = table[feature_response].to_numpy()
+    # Copy information.
+    table = table.copy(deep=True)
+    features_predictor_fixed = copy.deepcopy(features_predictor_fixed)
+    features_predictor_intercept = copy.deepcopy(features_predictor_fixed)
 
-    # Keep information for predictor features in Pandas data-frame table to
-    # preserve names of variables.
-    #values_predictor = table.loc[ :, features_predictor_fixed].to_numpy()
-    table_predictor = table.loc[ :, features_predictor_fixed].copy(deep=True)
+    # Organize predictor features.
+    if (
+        ("intercept" not in features_predictor_intercept)
+    ):
+        features_predictor_intercept.insert(0, "intercept")
+        pass
+    features_predictor_intercept = putly.collect_unique_items(
+        items=features_predictor_intercept,
+    )
+
+    # Organize table with predictor features and intercept.
 
     # Introduce constant intercept to predictor features.
     # If any column in the table of information for predictor features already
     # has constant values across observations, then the function skips it by
     # default. It is necessary to change parameter "has_constant" to avoid this
     # conditional behavior.
-    table_predictor_intercept = statsmodels.api.add_constant(
-        table_predictor,
+    # The name of the intercept is "const".
+    table_intercept = statsmodels.api.add_constant(
+        table,
         prepend=True, # insert intercept constant before other features
         has_constant="add", # force introduction of new intercept constant
     )
-    columns_predictor = copy.deepcopy(
-        table_predictor_intercept.columns.to_list()
+    # Translate names of columns.
+    translations = dict()
+    translations["const"] = "intercept"
+    table_intercept.rename(
+        columns=translations,
+        inplace=True,
     )
-    #matrix_predictor = table.to_numpy()
+    # Select columns for predictor features and intercept.
+    table_predictor_intercept = (
+        table_intercept.loc[ :, features_predictor_intercept].copy(deep=True)
+    )
+
     # Define model.
+    # It is possible to pass values of response and predictor features either
+    # as NumPy arrays or as Pandas Series and data-frame table respectively.
+    # Passing variables as Pandas Series and Dataframe preserves variable
+    # names.
+    # Option 1: Extract values of response and predictor variables.
+    #values_response = table[feature_response].to_numpy()
+    # Option 2: Keep information for predictor features in Pandas data-frame
+    # table.
+    # preserve names of variables.
+    #values_predictor = table.loc[ :, features_predictor_fixed].to_numpy()
+    #matrix_predictor = table.to_numpy()
     model = statsmodels.api.OLS(
         table[feature_response],
         table_predictor_intercept,
@@ -1266,6 +1306,7 @@ def regress_continuous_linear_ordinary_least_squares(
     pail = dict()
     pail["model"] = handle_model
     pail["table_predictor_intercept"] = table_predictor_intercept
+    pail["features_predictor_intercept"] = features_predictor_intercept
 
     # Return information.
     return pail
@@ -1361,7 +1402,12 @@ def regress_continuous_linear_mixed_effects_random_intercepts_slopes(
        - site: https://www.statsmodels.org/dev/generated/statsmodels.
                 regression.mixed_linear_model.MixedLM.fit.html
 
-    3. Report of issue in implementation with failure to converge in model fit
+    3. Example of applying mixed effects linear regression in StatsModels
+       - title: 'Linear Mixed Effects Models'
+       - site: https://www.statsmodels.org/0.9.0/examples/notebooks/generated/
+                mixed_lm_example.html
+
+    4. Report of issue in implementation with failure to converge in model fit
        - title: 'Singular matrix error on mixedlm fit #7051'
        - site: https://github.com/statsmodels/statsmodels/issues/7051
        - site: https://github.com/statsmodels/statsmodels/pull/7052
@@ -1369,7 +1415,7 @@ def regress_continuous_linear_mixed_effects_random_intercepts_slopes(
           - 'I get LinAlgError: Singular matrix when I try to fit a mixedlm
              model to my data, even though there are no colinear components.'
 
-    Review: TCW; 9 April 2025
+    Review: TCW; 3 July 2025
 
     arguments:
         table (object): Pandas data-frame table of data with features
@@ -1398,36 +1444,96 @@ def regress_continuous_linear_mixed_effects_random_intercepts_slopes(
 
     """
 
-    # Extract values of response and predictor variables.
-    # It is possible to pass values of response and predictor features either
-    # as NumPy arrays or as Pandas Series and data-frame table respectively.
-    # Passing variables as Pandas Series and Dataframe preserves variable
-    # names.
-    #values_response = table[feature_response].to_numpy()
+    # Copy information.
+    table = table.copy(deep=True)
+    features_predictor_fixed = copy.deepcopy(features_predictor_fixed)
+    features_predictor_random = copy.deepcopy(features_predictor_random)
+    features_predictor_intercept = copy.deepcopy(features_predictor_fixed)
 
-    # Keep information for predictor features in Pandas data-frame table to
-    # preserve names of variables.
-    #values_predictor = table.loc[ :, features_predictor_fixed].to_numpy()
-    #matrix_predictor = table.to_numpy()
-    table_predictor_fixed = (
-        table.loc[ :, features_predictor_fixed].copy(deep=True)
-    )
+    # Organize predictor features.
     if (
         (features_predictor_random is not None) and
         (len(features_predictor_random) > 0) and
         (str(features_predictor_random[0]).strip().lower() != "none")
     ):
+        features_predictor_intercept.extend(features_predictor_random)
+        pass
+    if (
+        ("intercept" not in features_predictor_intercept)
+    ):
+        features_predictor_intercept.insert(0, "intercept")
+        pass
+    features_predictor_intercept = putly.collect_unique_items(
+        items=features_predictor_intercept,
+    )
+
+    # Organize table with predictor features and intercept.
+
+    # Introduce constant intercept to predictor features.
+    # If any column in the table of information for predictor features already
+    # has constant values across observations, then the function skips it by
+    # default. It is necessary to change parameter "has_constant" to avoid this
+    # conditional behavior.
+    # The name of the intercept is "const".
+    table_intercept = statsmodels.api.add_constant(
+        table,
+        prepend=True, # insert intercept constant before other features
+        has_constant="add", # force introduction of new intercept constant
+    )
+    # Translate names of columns.
+    translations = dict()
+    translations["const"] = "intercept"
+    table_intercept.rename(
+        columns=translations,
+        inplace=True,
+    )
+    # Select columns for predictor features and intercept.
+    table_predictor_intercept = (
+        table_intercept.loc[ :, features_predictor_intercept].copy(deep=True)
+    )
+
+    # Organize predictor features with fixed effects.
+    # Include a constant intercept with fixed effects.
+    if (
+        ("intercept" not in features_predictor_fixed)
+    ):
+        features_predictor_fixed.insert(0, "intercept")
+        pass
+    table_predictor_fixed = (
+        table_intercept.loc[ :, features_predictor_fixed].copy(deep=True)
+    )
+    # Organize predictor features with random effects.
+    if (
+        (groups_random is not None) and
+        (len(groups_random) > 0) and
+        (str(groups_random[0]).strip().lower() != "none") and
+        (features_predictor_random is not None) and
+        (len(features_predictor_random) > 0) and
+        (str(features_predictor_random[0]).strip().lower() != "none") and
+        ("intercept" in features_predictor_random)
+    ):
+        # Include specific predictor features with random effects.
+        # Include a constant intercept with random effects.
+        #features_predictor_random = ["intercept",] # if "none"
         table_predictor_random = (
-            table.loc[ :, features_predictor_random].copy(deep=True)
+            table_intercept.loc[ :, features_predictor_random].copy(deep=True)
         )
     else:
         table_predictor_random = None
-
-    # Do not introduce constant intercept to predictor features.
-    # For part of the random effects, the model will create separate intercepts
-    # for each group of observations.
+        pass
 
     # Define model.
+    # It is possible to pass values of response and predictor features either
+    # as NumPy arrays or as Pandas Series and data-frame table respectively.
+    # Passing variables as Pandas Series and Dataframe preserves variable
+    # names.
+    # Option 1: Extract values of response and predictor variables.
+    #values_response = table[feature_response].to_numpy()
+    # Option 2: Keep information for predictor features in Pandas data-frame
+    # table.
+    # preserve names of variables.
+    #values_predictor = table.loc[ :, features_predictor_fixed].to_numpy()
+    #matrix_predictor = table.to_numpy()
     # Because it is the default to include random intercepts for the groups of
     # observations, it is unnecessary to specify this explicitly using the
     # argument "exog_re=table_predictor_intercept["const"],".
@@ -1466,7 +1572,8 @@ def regress_continuous_linear_mixed_effects_random_intercepts_slopes(
     # Collect information.
     pail = dict()
     pail["model"] = handle_model
-    pail["table_predictor_fixed"] = table_predictor_fixed
+    pail["table_predictor_intercept"] = table_predictor_intercept
+    pail["features_predictor_intercept"] = features_predictor_intercept
 
     # Return information.
     return pail
@@ -1556,33 +1663,58 @@ def regress_discrete_logistic_logit(
 
     """
 
-    # Extract values of response and predictor variables.
-    # It is possible to pass values of response and predictor features either
-    # as NumPy arrays or as Pandas Series and data-frame table respectively.
-    # Passing variables as Pandas Series and Dataframe preserves variable
-    # names.
-    #values_response = table[feature_response].to_numpy()
+    # Copy information.
+    table = table.copy(deep=True)
+    features_predictor_fixed = copy.deepcopy(features_predictor_fixed)
+    features_predictor_intercept = copy.deepcopy(features_predictor_fixed)
 
-    # Keep information for predictor features in Pandas data-frame table to
-    # preserve names of variables.
-    #values_predictor = table.loc[ :, features_predictor_fixed].to_numpy()
-    table_predictor = table.loc[ :, features_predictor_fixed].copy(deep=True)
+    # Organize predictor features.
+    if (
+        ("intercept" not in features_predictor_intercept)
+    ):
+        features_predictor_intercept.insert(0, "intercept")
+        pass
+    features_predictor_intercept = putly.collect_unique_items(
+        items=features_predictor_intercept,
+    )
+
+    # Organize table with predictor features and intercept.
 
     # Introduce constant intercept to predictor features.
     # If any column in the table of information for predictor features already
     # has constant values across observations, then the function skips it by
     # default. It is necessary to change parameter "has_constant" to avoid this
     # conditional behavior.
-    table_predictor_intercept = statsmodels.api.add_constant(
-        table_predictor,
+    # The name of the intercept is "const".
+    table_intercept = statsmodels.api.add_constant(
+        table,
         prepend=True, # insert intercept constant before other features
         has_constant="add", # force introduction of new intercept constant
     )
-    columns_predictor = copy.deepcopy(
-        table_predictor_intercept.columns.to_list()
+    # Translate names of columns.
+    translations = dict()
+    translations["const"] = "intercept"
+    table_intercept.rename(
+        columns=translations,
+        inplace=True,
     )
-    #matrix_predictor = table.to_numpy()
+    # Select columns for predictor features and intercept.
+    table_predictor_intercept = (
+        table_intercept.loc[ :, features_predictor_intercept].copy(deep=True)
+    )
+
     # Define model.
+    # It is possible to pass values of response and predictor features either
+    # as NumPy arrays or as Pandas Series and data-frame table respectively.
+    # Passing variables as Pandas Series and Dataframe preserves variable
+    # names.
+    # Option 1: Extract values of response and predictor variables.
+    #values_response = table[feature_response].to_numpy()
+    # Option 2: Keep information for predictor features in Pandas data-frame
+    # table.
+    # preserve names of variables.
+    #values_predictor = table.loc[ :, features_predictor_fixed].to_numpy()
+    #matrix_predictor = table.to_numpy()
     model = statsmodels.api.Logit(
         table[feature_response],
         table_predictor_intercept,
@@ -1605,6 +1737,7 @@ def regress_discrete_logistic_logit(
     pail = dict()
     pail["model"] = handle_model
     pail["table_predictor_intercept"] = table_predictor_intercept
+    pail["features_predictor_intercept"] = features_predictor_intercept
 
     # Return information.
     return pail
@@ -1697,7 +1830,7 @@ def manage_regression_continuous_linear_ordinary_least_squares(
     pvalues = pandas.Series(data=pail_regression["model"].pvalues)
     pail_predictors = parse_organize_regression_intercept_predictors(
         table_predictor_intercept=pail_regression["table_predictor_intercept"],
-        features_predictor=features_predictor_fixed,
+        features_predictor=pail_regression["features_predictor_intercept"],
         parameters=parameters,
         standard_errors=standard_errors,
         pvalues=pvalues,
@@ -1874,8 +2007,8 @@ def manage_regression_continuous_linear_mixed_effects(
     standard_errors = pandas.Series(data=pail_regression["model"].bse)
     pvalues = pandas.Series(data=pail_regression["model"].pvalues)
     pail_predictors = parse_organize_regression_intercept_predictors(
-        table_predictor_intercept=pail_regression["table_predictor_fixed"],
-        features_predictor=features_predictor_fixed,
+        table_predictor_intercept=pail_regression["table_predictor_intercept"],
+        features_predictor=pail_regression["features_predictor_intercept"],
         parameters=parameters,
         standard_errors=standard_errors,
         pvalues=pvalues,
@@ -2033,7 +2166,7 @@ def manage_regression_discrete_logistic_logit(
     pvalues = pandas.Series(data=pail_regression["model"].pvalues)
     pail_predictors = parse_organize_regression_intercept_predictors(
         table_predictor_intercept=pail_regression["table_predictor_intercept"],
-        features_predictor=features_predictor_fixed,
+        features_predictor=pail_regression["features_predictor_intercept"],
         parameters=parameters,
         standard_errors=standard_errors,
         pvalues=pvalues,
