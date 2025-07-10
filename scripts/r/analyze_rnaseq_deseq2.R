@@ -49,6 +49,15 @@
 
 
 
+# Checks and troubleshooting
+# TCW; 8 July 2025
+#    Categorical feature variables in the formula can only have the categorical
+#    levels (values) that are relevant to the formula.
+#    Implement a routine check to make sure, and give a helpful notification.
+
+
+
+
 ###############################################################################
 # Organize libraries and packages.
 
@@ -407,6 +416,14 @@ if (
 ) {
     table_sample[[subject]] <- factor(table_sample[[subject]])
 }
+
+##########
+# Check information before setting up data in DESeq2.
+#print(table_sample)
+#any( is.na( table_sample$sex_text ) )
+#any( is.na( table_sample$body_mass_index ) )
+#print(table_signal_deseq)
+#any( is.na( table_signal_deseq ) )
 
 ##########
 # Initialize data set in DESeq2.

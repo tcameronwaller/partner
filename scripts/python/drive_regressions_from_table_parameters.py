@@ -932,8 +932,9 @@ def expand_plural_response_features(
             str(count_instances_novel)
         )
         putly.print_terminal_partition(level=5)
-        print("example of a novel instance: ")
-        print(instances_novel[0])
+        if (len(instances_novel) > 0):
+            print("example of a novel instance: ")
+            print(instances_novel[0])
         putly.print_terminal_partition(level=5)
         print(
             str(

@@ -2009,7 +2009,6 @@ def filter_table_rows_by_proportion_nonmissing_threshold(
         proportion (float): proportion of values across selection of columns
             that must be nonmissing and within low and high thresholds in order
             to keep the series
-
         report (bool): whether to print reports
 
     raises:

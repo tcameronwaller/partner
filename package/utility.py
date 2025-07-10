@@ -1663,9 +1663,11 @@ def read_all_pandas_tables_files_within_parent_directory(
 
 def determine_category_text_threshold_quantitative(
     value=None,
-    threshold=None,
-    category_below=None,
-    category_above=None,
+    threshold_low=None,
+    threshold_high=None,
+    category_low=None,
+    category_middle=None,
+    category_high=None,
     category_missing=None,
 ):
     """
@@ -1674,22 +1676,26 @@ def determine_category_text_threshold_quantitative(
     measurement. Assigns specific categorical text designator for missing
     values.
 
-    below: value < threshold
-    above: value >= threshold
+    low: value < threshold_low
+    middle: threshold_low <= value < threshold_high
+    high: value >= threshold_high
 
     For more sophisticated definitions, apply filters to the quantitative
     values before calling this function.
 
-    Review: TCW; 8 July 2025
+    Review: TCW; 9 July 2025
 
     arguments:
         value (float): value of feature variable with values on a quantitative
             scale of measurement
-        threshold (float): threshold below which (value < threshold) to assign
-            the below category and above which (value >= threshold) to assign
-            the above category
-        category_below (str): category text to designate values below threshold
-        category_above (str): category text to designate values above threshold
+        threshold_low (float): lower threshold
+        threshold_high (float): higher threshold
+        category_low (str): category text to designate values relative to
+            threshold
+        category_middle (str): category text to designate values relative to
+            threshold
+        category_high (str): category text to designate values relative to
+            threshold
         category_missing (str): category text to designate missing values
 
     raises:
@@ -1706,10 +1712,15 @@ def determine_category_text_threshold_quantitative(
     ):
         # There is adequate information.
         # Determine designator.
-        if (value < threshold):
-            designator = category_below
-        elif (value >= threshold):
-            designator = category_above
+        if (value < threshold_low):
+            designator = category_low
+        elif (
+            (value >= threshold_low) and
+            (value < threshold_high)
+        ):
+            designator = category_middle
+        elif (value >= threshold_high):
+            designator = category_high
         else:
             # This should not happen.
             designator = category_missing

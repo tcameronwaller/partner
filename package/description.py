@@ -1790,35 +1790,37 @@ def describe_compare_quantitative_feature_by_observations_groups(
     names_pvalue = list()
     values_pvalue = list()
     # Iterate on sets of parameters.
-    for ttest in [ttest_one, ttest_two, ttest_three,]:
-        if (
-            (ttest is not None) and
-            (len(str(ttest["name"]).strip()) > 0) and
-            (len(ttest["groups"]) > 1) and
-            (ttest["groups"][0] in groups_values.keys()) and
-            (ttest["groups"][1] in groups_values.keys())
-        ):
-            name_ttest = str(ttest["name"]).strip()
-            values_group_one = (
-                groups_values[ttest["groups"][0]]
-            )
-            values_group_two = (
-                groups_values[ttest["groups"][1]]
-            )
-            pvalue_ttest = perform_t_test(
-                values_group_one=values_group_one,
-                values_group_two=values_group_two,
-                equal_variances=ttest["equal_variances"],
-                independent_groups=ttest["independent_groups"],
-                hypothesis_alternative=ttest["hypothesis_alternative"],
-            )
-        else:
-            name_ttest = str("pvalue_ttest_one")
-            pvalue_ttest = float("nan")
+    if (ttest_one is not None):
+        for ttest in [ttest_one, ttest_two, ttest_three,]:
+            if (
+                (ttest is not None) and
+                (len(str(ttest["name"]).strip()) > 0) and
+                (len(ttest["groups"]) > 1) and
+                (ttest["groups"][0] in groups_values.keys()) and
+                (ttest["groups"][1] in groups_values.keys())
+            ):
+                name_ttest = str(ttest["name"]).strip()
+                values_group_one = (
+                    groups_values[ttest["groups"][0]]
+                )
+                values_group_two = (
+                    groups_values[ttest["groups"][1]]
+                )
+                pvalue_ttest = perform_t_test(
+                    values_group_one=values_group_one,
+                    values_group_two=values_group_two,
+                    equal_variances=ttest["equal_variances"],
+                    independent_groups=ttest["independent_groups"],
+                    hypothesis_alternative=ttest["hypothesis_alternative"],
+                )
+                # Collect information.
+                names_pvalue.append(name_ttest)
+                values_pvalue.append(pvalue_ttest)
+            else:
+                #name_ttest = str("none")
+                #pvalue_ttest = float("nan")
+                pass
             pass
-        # Collect information.
-        names_pvalue.append(name_ttest)
-        values_pvalue.append(pvalue_ttest)
         pass
 
     # Collect records of information, which will become rows in table.
@@ -1841,32 +1843,35 @@ def describe_compare_quantitative_feature_by_observations_groups(
             record["feature_translation"] = name_feature
             pass
         record[key_group] = group
-        # T-test 1.
-        if (
-            (ttest_one is not None) and
-            (group in ttest_one["groups"])
-        ):
-            record[names_pvalue[0]] = round(values_pvalue[0], digits_round)
-        else:
-            record[names_pvalue[0]] = float("nan")
-            pass
-        # T-test 2.
-        if (
-            (ttest_two is not None) and
-            (group in ttest_two["groups"])
-        ):
-            record[names_pvalue[1]] = round(values_pvalue[1], digits_round)
-        else:
-            record[names_pvalue[1]] = float("nan")
-            pass
-        # T-test 3.
-        if (
-            (ttest_three is not None) and
-            (group in ttest_three["groups"])
-        ):
-            record[names_pvalue[2]] = round(values_pvalue[2], digits_round)
-        else:
-            record[names_pvalue[2]] = float("nan")
+        # T-tests.
+        if (ttest_one is not None):
+            # T-test 1.
+            if (
+                (ttest_one is not None) and
+                (group in ttest_one["groups"])
+            ):
+                record[names_pvalue[0]] = round(values_pvalue[0], digits_round)
+            else:
+                record[names_pvalue[0]] = float("nan")
+                pass
+            # T-test 2.
+            if (
+                (ttest_two is not None) and
+                (group in ttest_two["groups"])
+            ):
+                record[names_pvalue[1]] = round(values_pvalue[1], digits_round)
+            else:
+                record[names_pvalue[1]] = float("nan")
+                pass
+            # T-test 3.
+            if (
+                (ttest_three is not None) and
+                (group in ttest_three["groups"])
+            ):
+                record[names_pvalue[2]] = round(values_pvalue[2], digits_round)
+            else:
+                record[names_pvalue[2]] = float("nan")
+                pass
             pass
         # Count.
         record["count_observations"] = int(len(

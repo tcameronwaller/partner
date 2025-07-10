@@ -6,8 +6,8 @@
 ###############################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 4 April 2025
-# Date, last execution or modification: 4 April 2025
-# Review: 4 April 2025
+# Date, last execution or modification: 10 July 2025
+# Review: 10 July 2025
 ###############################################################################
 # Note
 
@@ -22,9 +22,47 @@
 
 
 ###############################################################################
-# Organize arguments.
+# Organize parameters.
+
+##########
+# Define parameters in common for all instances of regression.
+
+type_plural_features="response"
+type_plural_features="predictor"
+
+execution="1"
+sequence=1
+group="group_automatic"
+name="name_automatic" # name for instance of parameters
+selection_observations="group:group_1,group_2,group_3,group_4;sex:female,male"
+type_regression="continuous_ols"
+formula_text="response ~ predictor_fixed_1 + predictor_fixed_2 + predictor_fixed_3 + sex_y"
+feature_response_base="dependent_variable"
+#feature_response="${response}" # this plural parameter might vary across instances
+features_predictor_fixed_base="predictor_fixed_1,predictor_fixed_2"
+#features_predictor_fixed="${predictor},${features_predictor_fixed_base}" # this plural parameter might vary across instances
+features_predictor_random="none"
+groups_random="identifier_subject"
+features_continuity_scale_base="predictor_fixed_1,predictor_fixed_2"
+#features_continuity_scale="${predictor},${features_continuity_scale_base}" # this plural parameter might vary across instances
+method_scale="z_score"
+identifier_observations_primary="observation"
+identifier_features_secondary="feature"
+identifier_merge="merge"
+path_directory_response="none"
+name_file_list_response="none"
+path_directory_table_primary="path"
+name_file_table_primary="name"
+path_directory_table_secondary="path"
+name_file_table_secondary="name"
+review="2025-07-10"
+note="a script prepared this table of parameters automatically"
 
 
+##########
+# Define plural features that vary across instances of regression.
+
+# TODO: move this to the actual assembly below...
 
 ################################################################################
 # Organize paths.
@@ -50,7 +88,7 @@ path_directory_product="${path_directory_dock}/out_regression/demonstration"
 #path_directory_temporary="${path_directory_product}/temporary_${stamp_date}" # hopefully unique
 
 # Files.
-path_file_source="${path_directory_source}/list_regression_responses.txt"
+path_file_source="${path_directory_source}/list_plural_features.txt"
 path_file_product="${path_directory_product}/table_regression_parameters_automatic.tsv"
 
 # Initialize directory.
@@ -69,28 +107,6 @@ set +x # disable print commands to standard error
 #set -v # enable print input to standard error
 set +v # disable print input to standard error
 
-# Common parameters for all instances of parameters for regression.
-execution="1"
-sequence=1
-group="group_automatic"
-name="name_automatic" # name for instance of parameters
-selection_observations="group:group_1,group_2,group_3,group_4;sex:female,male"
-type_regression="continuous_ols"
-formula_text="response ~ predictor_fixed_1 + predictor_fixed_2 + predictor_fixed_3 + sex_y"
-#feature_response="${response}" # this parameter varies
-features_predictor_fixed="predictor_fixed_1,predictor_fixed_2,predictor_fixed_3,sex_y"
-features_predictor_random="none"
-groups_random="identifier_subject"
-features_continuity_scale="predictor_fixed_1,predictor_fixed_2"
-identifier_observations="observation"
-method_scale="z_score"
-data_path_directory="dock,in_data,regression,demonstration"
-data_file="table_regression_data.tsv"
-review="2025-04-04"
-note="a script prepared this table of parameters automatically"
-
-
-
 ###############################################################################
 # Execute procedure.
 
@@ -106,15 +122,15 @@ input=$path_file_source
 if [[ "$delimiter_source" == "newline" ]]; then
   while IFS=$'\n' read -r -a item
   do
-  # Report.
-  if [ "$report" == "true" ]; then
-    echo "----------"
-    echo "item: ${item}"
-    echo "----------"
-  fi
-  # Collect.
-  items_source+=("${item}")
-done < <(tail -n +0 "${input}"; echo) # append new line to tail to ensure read of last line
+    # Report.
+    if [ "$report" == "true" ]; then
+      echo "----------"
+      echo "item: ${item}"
+      echo "----------"
+    fi
+    # Collect.
+    items_source+=("${item}")
+  done < <(tail -n +0 "${input}"; echo) # append new line to tail to ensure read of last line
 fi
 
 # Alternative.
@@ -137,21 +153,56 @@ fi
 printf "execution\tsequence\tgroup\tname\t" > $path_file_product
 printf "selection_observations\ttype_regression\t" >> $path_file_product
 printf "formula_text\tfeature_response\t" >> $path_file_product
-printf "features_predictor_fixed\tfeatures_predictor_random\t" >> $path_file_product
-printf "groups_random\tfeatures_continuity_scale\t" >> $path_file_product
-printf "identifier_observations\tmethod_scale\t" >> $path_file_product
-printf "data_path_directory\tdata_file\treview\tnote\n" >> $path_file_product
-# Write rows in table to file.
-# Iterate on response features in array.
+printf "features_predictor_fixed\t" >> $path_file_product
+printf "features_predictor_random\tgroups_random\t" >> $path_file_product
+printf "features_continuity_scale\tmethod_scale\t" >> $path_file_product
+printf "identifier_observations_primary\t" >> $path_file_product
+printf "identifier_features_secondary\t" >> $path_file_product
+printf "identifier_merge\t" >> $path_file_product
+printf "path_directory_response\t" >> $path_file_product
+printf "name_file_list_response\t" >> $path_file_product
+printf "path_directory_table_primary\t" >> $path_file_product
+printf "name_file_table_primary\t" >> $path_file_product
+printf "path_directory_table_secondary\t" >> $path_file_product
+printf "name_file_table_secondary\t" >> $path_file_product
+printf "review\tnote\n" >> $path_file_product
+
+# Iterate on plural features in array.
 # For each response feature, create a new row of parameters in the table.
 for item_source in "${items_source[@]}"; do
+  # Determine type of plural features.
+  if [ "$type_plural_features" == "response" ]; then
+    response=$item_source
+    feature_response="${response}"
+    features_predictor_fixed=$features_predictor_fixed_base
+    features_continuity_scale=$features_continuity_scale_base
+  fi
+  if [ "$type_plural_features" == "predictor" ]; then
+    predictor=$item_source
+    feature_response=$feature_response_base
+    features_predictor_fixed="${predictor},${features_predictor_fixed_base}"
+    features_continuity_scale="${predictor},${features_continuity_scale_base}"
+  fi
+  # Write rows in table to file.
   printf "${execution}\t${sequence}\t${group}\t${name}\t" >> $path_file_product
-  printf "${selection_observations}\t${type_regression}\t" >> $path_file_product
-  printf "${formula_text}\t${item_source}\t" >> $path_file_product
-  printf "${features_predictor_fixed}\t${features_predictor_random}\t" >> $path_file_product
-  printf "${groups_random}\t${features_continuity_scale}\t" >> $path_file_product
-  printf "${identifier_observations}\t${method_scale}\t" >> $path_file_product
-  printf "${data_path_directory}\t${data_file}\t${review}\t${note}\n" >> $path_file_product
+  printf "${selection_observations}\t" >> $path_file_product
+  printf "${type_regression}\t" >> $path_file_product
+  printf "${formula_text}\t${feature_response}\t" >> $path_file_product
+  printf "${features_predictor_fixed}\t" >> $path_file_product
+  printf "${features_predictor_random}\t" >> $path_file_product
+  printf "${groups_random}\t" >> $path_file_product
+  printf "${features_continuity_scale}\t" >> $path_file_product
+  printf "${method_scale}\t" >> $path_file_product
+  printf "${identifier_observations_primary}\t" >> $path_file_product
+  printf "${identifier_features_secondary}\t" >> $path_file_product
+  printf "${identifier_merge}\t" >> $path_file_product
+  printf "${path_directory_response}\t" >> $path_file_product
+  printf "${name_file_list_response}\t" >> $path_file_product
+  printf "${path_directory_table_primary}\t" >> $path_file_product
+  printf "${name_file_table_primary}\t" >> $path_file_product
+  printf "${path_directory_table_secondary}\t" >> $path_file_product
+  printf "${name_file_table_secondary}\t" >> $path_file_product
+  printf "${review}\t${note}\n" >> $path_file_product
   # Increment sequence.
   ((sequence++))
 done
@@ -165,7 +216,7 @@ if [ "$report" == "true" ]; then
   echo "----------"
   echo "----------"
   echo "----------"
-  echo "script: template_create_parameter_table.sh"
+  echo "script: template_create_table_parameters_regression.sh"
   echo $0 # Print full file path to script.
   echo "done"
   echo "----------"
