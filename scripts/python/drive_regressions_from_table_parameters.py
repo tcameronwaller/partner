@@ -410,17 +410,19 @@ def read_source_table_parameters(
         record["name_file_list_response"] = str(
             row["name_file_list_response"]
         ).strip()
-        record["directories_path_table_primary"] = putly.parse_text_list_values(
-            text=row["path_directory_table_primary"],
-            delimiter=",",
-        )
+        record["directories_path_table_primary"] = (
+            putly.parse_text_list_values(
+                text=row["path_directory_table_primary"],
+                delimiter=",",
+        ))
         record["name_file_table_primary"] = str(
             row["name_file_table_primary"]
         ).strip()
-        record["directories_path_table_secondary"] = putly.parse_text_list_values(
-            text=row["path_directory_table_secondary"],
-            delimiter=",",
-        )
+        record["directories_path_table_secondary"] = (
+            putly.parse_text_list_values(
+                text=row["path_directory_table_secondary"],
+                delimiter=",",
+        ))
         record["name_file_table_secondary"] = str(
             row["name_file_table_secondary"]
         ).strip()

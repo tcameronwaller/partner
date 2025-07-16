@@ -33,8 +33,8 @@ License:
 ################################################################################
 # Author: T. Cameron Waller, Ph.D.
 # Date, first execution: 2 July 2025
-# Date, last execution or modification: 2 July 2025
-# Review: TCW; 2 July 2025
+# Date, last execution or modification: 16 July 2025
+# Review: TCW; 16 July 2025
 ################################################################################
 # Note
 
@@ -80,9 +80,9 @@ def parse_text_parameters(
     name_file_product_table_regression=None,
     name_file_product_table_effect=None,
     name_file_product_rank=None,
-    name_file_product_list_effect=None,
-    name_file_product_list_positive=None,
+    name_file_product_list_significance=None,
     name_file_product_list_negative=None,
+    name_file_product_list_positive=None,
     path_directory_source=None,
     path_directory_product=None,
     path_directory_dock=None,
@@ -90,6 +90,8 @@ def parse_text_parameters(
     column_effect_estimate=None,
     column_effect_error=None,
     column_effect_p=None,
+    column_feature_identifier=None,
+    column_feature_name=None,
     columns_extra_keep=None,
     rate_false_discovery=None,
     report=None,
@@ -103,10 +105,10 @@ def parse_text_parameters(
         name_file_product_table_regression (str): name of product file
         name_file_product_table_effect (str): name of product file
         name_file_product_rank (str): name of product file
-        name_file_product_list_effect (str): name of product file
-        name_file_product_list_positive (str): name of product file
+        name_file_product_list_significance (str): name of product file
         name_file_product_list_negative (str): name of product file
-        path_directory_product (str): path to directory for procedure's source
+        name_file_product_list_positive (str): name of product file
+        path_directory_source (str): path to directory for procedure's source
             directories and files
         path_directory_product (str): path to directory for procedure's product
             directories and files
@@ -116,6 +118,8 @@ def parse_text_parameters(
         column_effect_estimate (str): name of column in source table
         column_effect_error (str): name of column in source table
         column_effect_p (str): name of column in source table
+        column_feature_identifier (str): name of column in source table
+        column_feature_name (str): name of column in source table
         columns_extra_keep (list<str>): names of columns in source table
         rate_false_discovery (str): value for rate of acceptable false
             discoveries
@@ -143,8 +147,8 @@ def parse_text_parameters(
         name_file_product_table_effect
     ).strip()
     pail["name_file_product_rank"] = str(name_file_product_rank).strip()
-    pail["name_file_product_list_effect"] = str(
-        name_file_product_list_effect
+    pail["name_file_product_list_significance"] = str(
+        name_file_product_list_significance
     ).strip()
     pail["name_file_product_list_positive"] = str(
         name_file_product_list_positive
@@ -159,6 +163,8 @@ def parse_text_parameters(
     pail["column_effect_estimate"] = str(column_effect_estimate).strip()
     pail["column_effect_error"] = str(column_effect_error).strip()
     pail["column_effect_p"] = str(column_effect_p).strip()
+    pail["column_feature_identifier"] = str(column_feature_identifier).strip()
+    pail["column_feature_name"] = str(column_feature_name).strip()
     pail["columns_extra_keep"] = putly.parse_text_list_values(
         text=columns_extra_keep,
         delimiter=",",
@@ -177,20 +183,6 @@ def parse_text_parameters(
     else:
         pail["report"] = False
         pass
-
-    # Collect names of relevant columns in original source table.
-    pail["columns_relevant"] = list()
-    pail["columns_relevant"].append(pail["column_effect_identifier"])
-    pail["columns_relevant"].append(pail["column_effect_estimate"])
-    pail["columns_relevant"].append(pail["column_effect_error"])
-    pail["columns_relevant"].append(pail["column_effect_p"])
-    pail["columns_relevant"].extend(copy.deepcopy(
-        pail["columns_extra_keep"]
-    ))
-    pail["columns_relevant"] = putly.collect_unique_items(
-        items=pail["columns_relevant"],
-    )
-
 
     # Collect names of relevant columns in original source table.
     pail["columns_source_text"] = list()
@@ -323,7 +315,6 @@ def read_source(
     pail["table_regression"] = table_regression
     pail["table_feature"] = table_feature
 
-
     # Report.
     if report:
         # Organize information.
@@ -348,13 +339,17 @@ def organize_table_regression(
     column_effect_estimate=None,
     column_effect_error=None,
     column_effect_p=None,
+    column_feature_identifier=None,
+    column_feature_name=None,
     columns_extra_keep=None,
-    columns_relevant=None,
     rate_false_discovery=None,
     report=None,
 ):
     """
-    Function to execute module's main behavior.
+    Organize information from regressions, with effects across many entities or
+    features.
+
+    Review: TCW; 15 July 2025
 
     arguments:
         table_regression (object): Pandas data-frame table
@@ -363,8 +358,9 @@ def organize_table_regression(
         column_effect_estimate (str): name of column in source table
         column_effect_error (str): name of column in source table
         column_effect_p (str): name of column in source table
+        column_feature_identifier (str): name of column in source table
+        column_feature_name (str): name of column in source table
         columns_extra_keep (list<str>): names of columns in source table
-        columns_relevant (list<str>): names of columns in source table
         rate_false_discovery (float): value for acceptable rate of false
             discoveries
         report (bool): whether to print reports
@@ -377,17 +373,49 @@ def organize_table_regression(
 
     # Copy information.
     table_regression = table_regression.copy(deep=True)
+    table_feature = table_feature.copy(deep=True)
     #table_feature = table_feature.copy(deep=True)
     columns_extra_keep = copy.deepcopy(columns_extra_keep)
-    columns_relevant = copy.deepcopy(columns_relevant)
 
-    # Filter and sort columns in table.
-    columns_sequence = copy.deepcopy(columns_relevant)
-    table_regression = porg.filter_sort_table_columns(
-        table=table_regression,
-        columns_sequence=columns_sequence,
-        report=report,
-    )
+    # Determine whether there is a table with supplemental information about
+    # the entities or features that correspond to the effects from regressions.
+    if (table_feature is not None):
+        # Extract names of columns.
+        columns_feature_available = copy.deepcopy(table_feature.columns.to_list())
+        columns_feature_keep = list(filter(
+            lambda feature: (feature in columns_extra_keep),
+            columns_feature_available
+        ))
+        # Copy identifier before merge.
+        table_regression["identifier_merge"] = (
+            table_regression[column_effect_identifier]
+        )
+        #columns_relevant.insert(0, "identifier_merge")
+        # Merge information about features to information about the effects
+        # from regressions.
+        # Notice that the merge operation does not preserve the column for the
+        # identifier in the second table.
+        table_merge = porg.merge_columns_two_tables(
+            identifier_first="identifier_merge",
+            identifier_second=column_feature_identifier,
+            table_first=table_regression,
+            table_second=table_feature,
+            preserve_index=False,
+            report=report,
+        )
+        # Remove from list of relevant features the name of identifiers for
+        # features in the second table.
+        #if (column_feature_identifier in columns_relevant):
+        #    columns_relevant = list(filter(
+        #        lambda feature: (feature != column_feature_identifier),
+        #        columns_relevant
+        #    ))
+        #    pass
+    else:
+        # Copy information.
+        table_merge = table_regression.copy(deep=True)
+        columns_feature_keep = list()
+        pass
 
     # Translate names of columns.
     translations = dict()
@@ -395,22 +423,22 @@ def organize_table_regression(
     translations[column_effect_estimate] = "effect_estimate"
     translations[column_effect_error] = "effect_error"
     translations[column_effect_p] = "effect_p"
-    table_regression.rename(
+    table_merge.rename(
         columns=translations,
         inplace=True,
     )
 
     # Filter rows in table.
-    table_regression = table_regression.loc[
+    table_merge = table_merge.loc[
         (
-            (pandas.notna(table_regression["effect_estimate"])) &
-            (pandas.notna(table_regression["effect_error"])) &
-            (pandas.notna(table_regression["effect_p"])) &
-            (table_regression["effect_p"] >= float(0))
+            (pandas.notna(table_merge["effect_estimate"])) &
+            (pandas.notna(table_merge["effect_error"])) &
+            (pandas.notna(table_merge["effect_p"])) &
+            (table_merge["effect_p"] >= float(0))
         ), :
     ]
     # Fill values of zero for p-value.
-    table_regression["effect_p_fill"] = table_regression.apply(
+    table_merge["effect_p_fill"] = table_merge.apply(
         lambda row:
             2.23E-308 if (
                 float(row["effect_p"]) < 2.23E-308
@@ -421,19 +449,19 @@ def organize_table_regression(
     # Calculate Benjamini-Hochberg q-values for False-Discovery Rate (FDR).
     # Calculate q-values across all comparisons in table.
     # FDR 5% (q <= 0.05).
-    table_regression = pdesc.calculate_table_false_discovery_rate_q_values(
+    table_merge = pdesc.calculate_table_false_discovery_rate_q_values(
         threshold=rate_false_discovery, # alpha; family-wise error rate
         name_column_p_value="effect_p_fill",
         name_column_q_value="effect_q",
         name_column_significance="effect_q_significance",
-        table=table_regression,
+        table=table_merge,
     )
 
     # Calculate the negative, base-ten logarithm of the p-value.
     #table_change["p_value_negative_log10"] = numpy.log10(
     #    table_change["p_value"]
     #)
-    table_regression["effect_p_negative_log10"] = table_regression.apply(
+    table_merge["effect_p_negative_log10"] = table_merge.apply(
         lambda row: (-1*math.log(row["effect_p_fill"], 10)),
         axis="columns", # apply function to each row
     )
@@ -443,7 +471,7 @@ def organize_table_regression(
     # 'preranked' analysis in gene set enrichment (GSEA).
     # Use the p-value rather than the q-value since the q-value tends to have
     # ties between groups of comparisons.
-    table_regression["rank_effect_p"] = table_regression.apply(
+    table_merge["rank_effect_p"] = table_merge.apply(
         lambda row: (
             (row["effect_estimate"])*(row["effect_p_negative_log10"])
         ),
@@ -451,7 +479,7 @@ def organize_table_regression(
     )
 
     # Sort rows within table.
-    table_regression.sort_values(
+    table_merge.sort_values(
         by=[
             "rank_effect_p",
         ],
@@ -461,28 +489,56 @@ def organize_table_regression(
         inplace=True,
     )
 
-
+    # Organize sequence of columns.
+    columns_core = list()
+    columns_core.append("sequence")
+    columns_core.append("group")
+    columns_core.append("name")
+    columns_core.append("name_combination")
+    columns_effect = list()
+    columns_effect.append("effect_identifier")
+    columns_effect.append("effect_estimate")
+    columns_effect.append("effect_error")
+    columns_effect.append("effect_p")
+    columns_effect.append("effect_p_fill")
+    columns_effect.append("effect_p_negative_log10")
+    columns_effect.append("effect_q")
+    columns_effect.append("effect_q_significance")
+    columns_effect.append("rank_effect_p")
+    columns_feature = list()
+    columns_feature.append(column_feature_name)
+    columns_feature.extend(columns_feature_keep)
+    columns_relevant = list()
+    columns_relevant.extend(columns_core)
+    columns_relevant.extend(columns_effect)
+    columns_relevant.extend(columns_feature)
+    columns_relevant.extend(columns_extra_keep)
+    columns_sequence_priority = list()
+    columns_sequence_priority.extend(columns_core)
+    columns_sequence_priority.extend(columns_effect)
+    columns_sequence_priority.extend(columns_feature)
+    columns_relevant = putly.collect_unique_items(
+        items=columns_relevant,
+    )
+    columns_sequence_priority = putly.collect_unique_items(
+        items=columns_sequence_priority,
+    )
     # Filter and sort columns in table.
-    columns_sequence = list()
-    columns_sequence.append("effect_identifier")
-    columns_sequence.append("effect_estimate")
-    columns_sequence.append("effect_error")
-    columns_sequence.append("effect_p")
-    columns_sequence.append("effect_p_fill")
-    columns_sequence.append("effect_p_negative_log10")
-    columns_sequence.append("effect_q")
-    columns_sequence.append("effect_q_significance")
-    columns_sequence.append("rank_effect_p")
-    columns_sequence.extend(copy.deepcopy(columns_extra_keep))
-    table_regression = porg.filter_sort_table_columns(
-        table=table_regression,
-        columns_sequence=columns_sequence,
+    table_merge = porg.filter_sort_table_columns(
+        table=table_merge,
+        columns_sequence=columns_relevant,
+        report=report,
+    )
+    # Sort sequence of columns in table.
+    table_merge = porg.sort_table_columns_explicit_other(
+        table=table_merge,
+        columns_sequence=columns_sequence_priority,
         report=report,
     )
 
     # Bundle product information.
     pail = dict()
-    pail["table_regression"] = table_regression
+    pail["table_merge"] = table_merge
 
     # Report.
     if report:
@@ -494,7 +550,7 @@ def organize_table_regression(
         print("function: organize_table_regression()")
         putly.print_terminal_partition(level=5)
         print("product regression table:")
-        print(table_regression)
+        print(table_merge)
         putly.print_terminal_partition(level=5)
         pass
     # Return information.
@@ -541,11 +597,11 @@ def extract_significant_effects(
     ].copy(deep=True)
 
     # Extract identifiers of effects that were significant.
-    pail_threshold = porg.segregate_fold_change_values_by_thresholds(
+    pail_threshold = porg.segregate_effects_by_thresholds(
         table=table_regression,
-        column_fold_change=column_effect_estimate,
+        column_effect=column_effect_estimate,
         column_significance=column_effect_q,
-        threshold_fold_change=0.0,
+        threshold_effect=0.0,
         threshold_significance=rate_false_discovery,
         report=False,
     )
@@ -558,6 +614,15 @@ def extract_significant_effects(
     )
     effects_negative = copy.deepcopy(
         pail_threshold["table_pass_down"][column_effect_identifier].to_list()
+    )
+    effects_significance = putly.collect_unique_items(
+        items=effects_significance,
+    )
+    effects_positive = putly.collect_unique_items(
+        items=effects_positive,
+    )
+    effects_negative = putly.collect_unique_items(
+        items=effects_negative,
     )
 
     # Bundle product information.
@@ -588,6 +653,125 @@ def extract_significant_effects(
     return pail
 
 
+def organize_table_rank_effects(
+    table_regression=None,
+    identifiers_exclusion=None,
+    column_identifier=None,
+    column_rank=None,
+    report=None,
+):
+    """
+    Prepare a table from which to extract a ranked list of effects for
+    subsequent enrichment analysis. An example use case is the preranked
+    analysis by gene set enrichment analysis (GSEA).
+
+    Exercise caution in the decision to exclude effects from the list in rank
+    format. Simple exclusion might disrupt the calculations of background
+    statistics in GSEA or other methods. Instead of excluding effects from the
+    list, consider nullifying p-values as an alternative.
+
+    arguments:
+        table_regression (object): Pandas data-frame table
+        column_identifier (str): name of column in table for the unique
+            identifier corresponding to the effect
+        column_rank (str): name of column in table for the rank of the effect
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict<object>): collection of information
+
+    """
+
+    # Copy information.
+    table_regression = table_regression.copy(deep=True)
+
+    # Define relevant columns in sequence.
+    columns_sequence = [
+        column_identifier,
+        column_rank,
+    ]
+    # Organize indices in table.
+    table_regression.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    # Determine whether to exclude specific identifiers from selection.
+    if (
+        (identifiers_exclusion is not None) and
+        (len(identifiers_exclusion) > 0)
+    ):
+        # Filter rows in table to exclude specific genes.
+        table_regression = table_regression.loc[
+            (
+                ~table_regression[column_identifier].isin(
+                    identifiers_exclusion
+                )
+            ), :
+        ].copy(deep=True)
+        pass
+
+    # Filter rows in table for non-missing values across relevant columns.
+    table_regression.dropna(
+        axis="index",
+        how="any",
+        subset=columns_sequence,
+        inplace=True,
+    )
+
+    # Remove redundant rows from table on basis of identifier.
+    table_regression.drop_duplicates(
+        subset=[
+            column_identifier,
+        ],
+        keep="first",
+        inplace=True,
+        ignore_index=True,
+    )
+
+    # Sort rows within table.
+    table_regression.sort_values(
+        by=[
+            column_rank,
+        ],
+        axis="index",
+        ascending=True,
+        na_position="last",
+        inplace=True,
+    )
+
+    # Organize indices in table.
+    table_regression.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+
+    # Filter and sort columns within table.
+    table_rank = porg.filter_sort_table_columns(
+        table=table_regression,
+        columns_sequence=columns_sequence,
+        report=report,
+    )
+
+    # Collect information.
+    pail = dict()
+    pail["table_rank"] = table_rank
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        print("module: organize_table_results_regression.py")
+        print("function: organize_table_rank_effects()")
+        putly.print_terminal_partition(level=5)
+        print(table_rank)
+        putly.print_terminal_partition(level=4)
+        pass
+    # Return information.
+    return pail
+
 
 
 ################################################################################
@@ -604,9 +788,9 @@ def execute_procedure(
     name_file_product_table_regression=None,
     name_file_product_table_effect=None,
     name_file_product_rank=None,
-    name_file_product_list_effect=None,
-    name_file_product_list_positive=None,
+    name_file_product_list_significance=None,
     name_file_product_list_negative=None,
+    name_file_product_list_positive=None,
     path_directory_source=None,
     path_directory_product=None,
     path_directory_dock=None,
@@ -614,6 +798,8 @@ def execute_procedure(
     column_effect_estimate=None,
     column_effect_error=None,
     column_effect_p=None,
+    column_feature_identifier=None,
+    column_feature_name=None,
     columns_extra_keep=None,
     rate_false_discovery=None,
     report=None,
@@ -621,16 +807,18 @@ def execute_procedure(
     """
     Function to execute module's main behavior.
 
+    Review: TCW; 15 July 2025
+
     arguments:
         path_file_source_table_regression (str): path to source file
         path_file_source_table_feature (str): path to source file
         name_file_product_table_regression (str): name of product file
         name_file_product_table_effect (str): name of product file
         name_file_product_rank (str): name of product file
-        name_file_product_list_effect (str): name of product file
-        name_file_product_list_positive (str): name of product file
+        name_file_product_list_significance (str): name of product file
         name_file_product_list_negative (str): name of product file
-        path_directory_product (str): path to directory for procedure's source
+        name_file_product_list_positive (str): name of product file
+        path_directory_source (str): path to directory for procedure's source
             directories and files
         path_directory_product (str): path to directory for procedure's product
             directories and files
@@ -640,6 +828,8 @@ def execute_procedure(
         column_effect_estimate (str): name of column in source table
         column_effect_error (str): name of column in source table
         column_effect_p (str): name of column in source table
+        column_feature_identifier (str): name of column in source table
+        column_feature_name (str): name of column in source table
         columns_extra_keep (list<str>): names of columns in source table
         rate_false_discovery (str): value for acceptable rate of false
             discoveries
@@ -661,9 +851,11 @@ def execute_procedure(
             name_file_product_table_effect
         ),
         name_file_product_rank=name_file_product_rank,
-        name_file_product_list_effect=name_file_product_list_effect,
-        name_file_product_list_positive=name_file_product_list_positive,
+        name_file_product_list_significance=(
+            name_file_product_list_significance
+        ),
         name_file_product_list_negative=name_file_product_list_negative,
+        name_file_product_list_positive=name_file_product_list_positive,
         path_directory_source=path_directory_source,
         path_directory_product=path_directory_product,
         path_directory_dock=path_directory_dock,
@@ -671,6 +863,8 @@ def execute_procedure(
         column_effect_estimate=column_effect_estimate,
         column_effect_error=column_effect_error,
         column_effect_p=column_effect_p,
+        column_feature_identifier=column_feature_identifier,
+        column_feature_name=column_feature_name,
         columns_extra_keep=columns_extra_keep,
         rate_false_discovery=rate_false_discovery,
         report=report,
@@ -717,16 +911,25 @@ def execute_procedure(
         column_effect_estimate=pail_parameters["column_effect_estimate"],
         column_effect_error=pail_parameters["column_effect_error"],
         column_effect_p=pail_parameters["column_effect_p"],
+        column_feature_identifier=pail_parameters["column_feature_identifier"],
+        column_feature_name=pail_parameters["column_feature_name"],
         columns_extra_keep=pail_parameters["columns_extra_keep"],
-        columns_relevant=pail_parameters["columns_relevant"],
         rate_false_discovery=pail_parameters["rate_false_discovery"],
         report=pail_parameters["report"],
     )
 
+    # Determine whether to extract identifiers of effects or names of the
+    # corresponding entities or features.
+    if (pail_source["table_feature"] is not None):
+        column_extraction = column_feature_name
+    else:
+        column_extraction = "effect_identifier"
+        pass
+
     # Extract identifiers of significant positive and negative effects.
     pail_change = extract_significant_effects(
-        table_regression=pail_organization["table_regression"],
-        column_effect_identifier="effect_identifier",
+        table_regression=pail_organization["table_merge"],
+        column_effect_identifier=column_extraction,
         column_effect_estimate="effect_estimate",
         column_effect_q="effect_q",
         column_effect_q_significance="effect_q_significance",
@@ -734,29 +937,46 @@ def execute_procedure(
         report=pail_parameters["report"],
     )
 
+    # Prepare information for export and analysis using the preranked algorithm
+    # in GSEA.
+    pail_rank = organize_table_rank_effects(
+        table_regression=pail_organization["table_merge"],
+        identifiers_exclusion=list(),
+        column_identifier=column_extraction,
+        column_rank="rank_effect_p", # (effect * p_value_negative_log10)
+        report=report,
+    )
+
     # TODO: TCW; 2 July 2025
     # 1. organize the rank file export for GSEA
     # 2. create the volcano plot chart
-
-
-
-
 
     ##########
     # Bundle information.
     # Bundles of information for files.
     # Lists.
     pail_write_lists = dict()
-    pail_write_lists[name_file_product_list_effect] = pail_change["effects_significance"]
-    pail_write_lists[name_file_product_list_positive] = pail_change["effects_positive"]
-    pail_write_lists[name_file_product_list_negative] = pail_change["effects_negative"]
+    pail_write_lists[name_file_product_list_significance] = (
+        pail_change["effects_significance"]
+    )
+    pail_write_lists[name_file_product_list_negative] = (
+        pail_change["effects_negative"]
+    )
+    pail_write_lists[name_file_product_list_positive] = (
+        pail_change["effects_positive"]
+    )
     # Tables.
     pail_write_tables = dict()
     pail_write_tables[name_file_product_table_regression] = (
-        pail_organization["table_regression"]
+        pail_organization["table_merge"]
     )
     pail_write_tables[name_file_product_table_effect] = (
         pail_change["table_significance"]
+    )
+    # Ranks.
+    pail_write_ranks = dict()
+    pail_write_ranks[name_file_product_rank] = (
+        pail_rank["table_rank"]
     )
 
     ##########
@@ -778,7 +998,16 @@ def execute_procedure(
         delimiter="\t",
         suffix=".tsv",
     )
-
+    putly.write_tables_to_file(
+        pail_write=pail_write_ranks,
+        path_directory=path_directory_product,
+        reset_index_rows=False,
+        write_index_rows=False,
+        write_index_columns=False,
+        type="text",
+        delimiter="\t",
+        suffix=".rnk",
+    )
     pass
 
 
@@ -793,9 +1022,9 @@ if (__name__ == "__main__"):
     name_file_product_table_regression = sys.argv[3]
     name_file_product_table_effect = sys.argv[4]
     name_file_product_rank = sys.argv[5]
-    name_file_product_list_effect = sys.argv[6]
-    name_file_product_list_positive = sys.argv[7]
-    name_file_product_list_negative = sys.argv[8]
+    name_file_product_list_significance = sys.argv[6]
+    name_file_product_list_negative = sys.argv[7]
+    name_file_product_list_positive = sys.argv[8]
     path_directory_source = sys.argv[9]
     path_directory_product = sys.argv[10]
     path_directory_dock = sys.argv[11]
@@ -803,9 +1032,11 @@ if (__name__ == "__main__"):
     column_effect_estimate = sys.argv[13]
     column_effect_error = sys.argv[14]
     column_effect_p = sys.argv[15]
-    columns_extra_keep = sys.argv[16]
-    rate_false_discovery = sys.argv[17]
-    report = sys.argv[18]
+    column_feature_identifier = sys.argv[16]
+    column_feature_name = sys.argv[17]
+    columns_extra_keep = sys.argv[18]
+    rate_false_discovery = sys.argv[19]
+    report = sys.argv[20]
 
     # Call function for procedure.
     execute_procedure(
@@ -816,9 +1047,11 @@ if (__name__ == "__main__"):
             name_file_product_table_effect
         ),
         name_file_product_rank=name_file_product_rank,
-        name_file_product_list_effect=name_file_product_list_effect,
-        name_file_product_list_positive=name_file_product_list_positive,
+        name_file_product_list_significance=(
+            name_file_product_list_significance
+        ),
         name_file_product_list_negative=name_file_product_list_negative,
+        name_file_product_list_positive=name_file_product_list_positive,
         path_directory_source=path_directory_source,
         path_directory_product=path_directory_product,
         path_directory_dock=path_directory_dock,
@@ -826,6 +1059,8 @@ if (__name__ == "__main__"):
         column_effect_estimate=column_effect_estimate,
         column_effect_error=column_effect_error,
         column_effect_p=column_effect_p,
+        column_feature_identifier=column_feature_identifier,
+        column_feature_name=column_feature_name,
         columns_extra_keep=columns_extra_keep,
         rate_false_discovery=rate_false_discovery,
         report=report,

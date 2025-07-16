@@ -2325,11 +2325,11 @@ def filter_table_rows_columns_by_proportion_nonmissing_threshold(
     return table_filter
 
 
-def segregate_fold_change_values_by_thresholds(
+def segregate_effects_by_thresholds(
     table=None,
-    column_fold_change=None,
+    column_effect=None,
     column_significance=None,
-    threshold_fold_change=None,
+    threshold_effect=None,
     threshold_significance=None,
     report=None,
 ):
@@ -2353,18 +2353,18 @@ def segregate_fold_change_values_by_thresholds(
     observation_4   ...       ...       ...       ...       ...
     observation_5   ...       ...       ...       ...       ...
 
-    Review: TCW; 3 October 2024
+    Review: TCW; 16 July 2025
 
     arguments:
         table (object): Pandas data-frame table of features across columns and
             values for observations across rows
-        column_fold_change (str): name of column in table on which to apply the
-            threshold for the fold change
+        column_effect (str): name of column in table on which to apply the
+            threshold for the effect magnitude and direction
         column_significance (str): name of column in table on which to apply
             the threshold for significance, corresponding to the p-value or
-            q-value corresponding to the estimate of fold change
-        threshold_fold_change (float): value for threshold on fold change
-            (fold change > threshold) that is on the same scale, such as
+            q-value corresponding to the estimate of effect
+        threshold_effect (float): value for threshold on magnitude of effect
+            (|effect| > threshold) that is on the same scale, such as
             base-two logarithm, as the actual values themselves
         threshold_significance (float): value for threshold on p-values or
             q-values (p-value or q-value < threshold) that is not on a scale of
@@ -2384,19 +2384,19 @@ def segregate_fold_change_values_by_thresholds(
     table_pass_any = table.loc[
         (
             (table[column_significance] < threshold_significance) &
-            (abs(table[column_fold_change]) > threshold_fold_change)
+            (abs(table[column_effect]) >= threshold_effect)
         ), :
     ].copy(deep=True)
     table_pass_up = table.loc[
         (
             (table[column_significance] < threshold_significance) &
-            (table[column_fold_change] > threshold_fold_change)
+            (table[column_effect] >= threshold_effect)
         ), :
     ].copy(deep=True)
     table_pass_down = table.loc[
         (
             (table[column_significance] < threshold_significance) &
-            (table[column_fold_change] < (-1*threshold_fold_change))
+            (table[column_effect] <= (-1*threshold_effect))
         ), :
     ].copy(deep=True)
     # Fail.
@@ -2408,7 +2408,7 @@ def segregate_fold_change_values_by_thresholds(
     if report:
         putly.print_terminal_partition(level=3)
         print("module: partner.organization.py")
-        print("function: segregate_fold_change_values_by_thresholds()")
+        print("function: segregate_effects_by_thresholds()")
         putly.print_terminal_partition(level=5)
     # Collect information.
     pail = dict()
