@@ -521,7 +521,7 @@ def create_write_plot_chart_volcano(
     pplot.write_product_plots_parent_directory(
         pail_write=pail_write_plot,
         format="jpg", # jpg, png, svg
-        resolution=150,
+        resolution=100,
         path_directory=path_directory_product,
     )
 

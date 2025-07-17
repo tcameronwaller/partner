@@ -265,7 +265,7 @@ def extract_organize_path_directory_file(
 
 def read_source_table_parameters(
     groups_raw=None,
-    path_file_table_parameters=None,
+    path_file_source_table_parameters=None,
     path_directory_dock=None,
     report=None,
 ):
@@ -280,9 +280,9 @@ def read_source_table_parameters(
     arguments:
         groups_raw (str): names of groups of instances of parameters to include
             in batch for execution
-        path_file_table_parameters (str): path to source file in text format as
-            a table with tab delimiters between columns and newline delimiters
-            between rows, with parameters for multiple regressions
+        path_file_source_table_parameters (str): path to source file in text
+            format as a table with tab delimiters between columns and newline
+            delimiters between rows, with parameters for multiple regressions
         path_directory_dock (str): path to dock directory for procedure's
             source and product directories and files
         report (bool): whether to print reports
@@ -299,7 +299,7 @@ def read_source_table_parameters(
     # Table of parameters for parallel instances.
     types_columns = define_column_types_table_parameters()
     table = pandas.read_csv(
-        path_file_table_parameters,
+        path_file_source_table_parameters,
         sep="\t",
         header=0,
         dtype=types_columns,
@@ -986,7 +986,7 @@ def control_procedure_part_branch(
     name_file_table_secondary=None,
     review=None,
     note=None,
-    path_file_table_parameters=None,
+    path_file_source_table_parameters=None,
     path_directory_product=None,
     path_directory_dock=None,
     report=None,
@@ -1054,9 +1054,9 @@ def control_procedure_part_branch(
             with observations of features for regression
         review (str): notes about review of instance in table of parameters
         note (str): notes about instance in table of parameters
-        path_file_table_parameters (str): path to source file in text format as
-            a table with tab delimiters between columns and newline delimiters
-            between rows, with parameters for multiple regressions
+        path_file_source_table_parameters (str): path to source file in text
+            format as a table with tab delimiters between columns and newline
+            delimiters between rows, with parameters for multiple regressions
         path_directory_product (str): path to directory for procedure's product
             directories and files
         path_directory_dock (str): path to dock directory for procedure's
@@ -1364,9 +1364,10 @@ def control_parallel_instance(
             note (str): notes about instance in table of parameters
 
         parameters (dict): parameters common to all instances
-            path_file_table_parameters (str): path to source file in text format as
-                a table with tab delimiters between columns and newline delimiters
-                between rows, with parameters for multiple regressions
+            path_file_source_table_parameters (str): path to source file in
+                text format as a table with tab delimiters between columns and
+                newline delimiters between rows, with parameters for multiple
+                regressions
             path_directory_product (str): path to directory for procedure's
                 product directories and files
             path_directory_dock (str): path to dock directory for procedure's
@@ -1429,7 +1430,9 @@ def control_parallel_instance(
     note = instance_record["note"]
 
     # Extract parameters common across all instances.
-    path_file_table_parameters = parameters["path_file_table_parameters"]
+    path_file_source_table_parameters = (
+        parameters["path_file_source_table_parameters"]
+    )
     path_directory_product = parameters["path_directory_product"]
     path_directory_dock = parameters["path_directory_dock"]
     report = parameters["report"]
@@ -1465,7 +1468,9 @@ def control_parallel_instance(
             name_file_table_secondary=name_file_table_secondary,
             review=review,
             note=note,
-            path_file_table_parameters=path_file_table_parameters,
+            path_file_source_table_parameters=(
+                path_file_source_table_parameters
+            ),
             path_directory_product=path_directory_product,
             path_directory_dock=path_directory_dock,
             report=report,
@@ -1475,7 +1480,7 @@ def control_parallel_instance(
 
 def control_parallel_instances(
     instances=None,
-    path_file_table_parameters=None,
+    path_file_source_table_parameters=None,
     path_directory_product=None,
     path_directory_dock=None,
     report=None,
@@ -1488,9 +1493,9 @@ def control_parallel_instances(
     arguments:
         instances (list<dict>): parameters to control individual instances in
             parallel
-        path_file_table_parameters (str): path to source file in text format as
-            a table with tab delimiters between columns and newline delimiters
-            between rows, with parameters for multiple regressions
+        path_file_source_table_parameters (str): path to source file in text
+            format as a table with tab delimiters between columns and newline
+            delimiters between rows, with parameters for multiple regressions
         path_directory_product (str): path to directory for procedure's product
             directories and files
         path_directory_dock (str): path to dock directory for procedure's
@@ -1506,7 +1511,9 @@ def control_parallel_instances(
 
     # Collect parameters common across all instances.
     parameters = dict()
-    parameters["path_file_table_parameters"] = path_file_table_parameters
+    parameters["path_file_source_table_parameters"] = (
+        path_file_source_table_parameters
+    )
     parameters["path_directory_product"] = path_directory_product
     parameters["path_directory_dock"] = path_directory_dock
     parameters["report"] = report
@@ -1537,8 +1544,8 @@ def control_parallel_instances(
 
 def execute_procedure(
     groups_raw=None,
-    path_file_table_parameters=None,
-    path_file_table_results=None,
+    path_file_source_table_parameters=None,
+    path_file_product_table_regressions=None,
     path_directory_source=None,
     path_directory_product=None,
     path_directory_dock=None,
@@ -1566,12 +1573,12 @@ def execute_procedure(
     arguments:
         groups_raw (str): names of groups of instances of parameters to include
             in batch for execution
-        path_file_table_parameters (str): path to source file in text format as
-            a table with tab delimiters between columns and newline delimiters
-            between rows, with parameters for multiple regressions
-        path_file_table_results (str): path to product file in text format as
-            a table with tab delimiters between columns and newline delimiters
-            between rows, with parameters for multiple regressions
+        path_file_source_table_parameters (str): path to source file in text
+            format as a table with tab delimiters between columns and newline
+            delimiters between rows, with parameters for multiple regressions
+        path_file_product_table_regressions (str): path to product file in text
+            format as a table with tab delimiters between columns and newline
+            delimiters between rows, with results of multiple regressions
         path_directory_source (str): path to directory for procedure's source
             directories and files
         path_directory_product (str): path to directory for procedure's product
@@ -1602,7 +1609,7 @@ def execute_procedure(
     # Read source information from file.
     pail_source = read_source_table_parameters(
         groups_raw=groups_raw,
-        path_file_table_parameters=path_file_table_parameters,
+        path_file_source_table_parameters=path_file_source_table_parameters,
         path_directory_dock=path_directory_dock,
         report=report,
     )
@@ -1632,7 +1639,9 @@ def execute_procedure(
         print("function: execute_procedure()")
         putly.print_terminal_partition(level=5)
         print("system: local")
-        print("path_file_table_parameters: " + str(path_file_table_parameters))
+        print("path_file_source_table_parameters: " + str(
+            path_file_source_table_parameters
+        ))
         print("path_directory_product: " + str(path_directory_product))
         print("path_directory_dock: " + str(path_directory_dock))
         putly.print_terminal_partition(level=5)
@@ -1654,7 +1663,7 @@ def execute_procedure(
     )
     control_parallel_instances(
         instances=pail_expansion["instances"],
-        path_file_table_parameters=path_file_table_parameters,
+        path_file_source_table_parameters=path_file_source_table_parameters,
         path_directory_product=path_directory_parallel,
         path_directory_dock=path_directory_dock,
         report=report,
@@ -1687,8 +1696,10 @@ def execute_procedure(
     pail_write_tables[str("table_regressions")] = table_regressions
     # Organize information for write.
     # Extract information from path to directory and file.
-    path_directory_parent = os.path.dirname(path_file_table_results)
-    name_suffix_file = os.path.basename(path_file_table_results)
+    path_directory_parent = os.path.dirname(
+        path_file_product_table_regressions
+    )
+    name_suffix_file = os.path.basename(path_file_product_table_regressions)
     name_file, suffix_file = os.path.splitext(name_suffix_file)
     # Create directories.
     putly.create_directories(
@@ -1729,8 +1740,8 @@ if (__name__ == "__main__"):
     # Parse arguments from terminal.
     path_file_script = sys.argv[0] # always the first argument
     groups_raw = sys.argv[1]
-    path_file_table_parameters = sys.argv[2]
-    path_file_table_results = sys.argv[3]
+    path_file_source_table_parameters = sys.argv[2]
+    path_file_product_table_regressions = sys.argv[3]
     path_directory_source = sys.argv[4]
     path_directory_product = sys.argv[5]
     path_directory_dock = sys.argv[6]
@@ -1739,8 +1750,10 @@ if (__name__ == "__main__"):
     # Call function for procedure.
     execute_procedure(
         groups_raw=groups_raw,
-        path_file_table_parameters=path_file_table_parameters,
-        path_file_table_results=path_file_table_results,
+        path_file_source_table_parameters=path_file_source_table_parameters,
+        path_file_product_table_regressions=(
+            path_file_product_table_regressions
+        ),
         path_directory_source=path_directory_source,
         path_directory_product=path_directory_product,
         path_directory_dock=path_directory_dock,

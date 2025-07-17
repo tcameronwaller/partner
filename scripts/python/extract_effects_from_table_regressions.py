@@ -75,12 +75,12 @@ import partner.plot as pplot
 
 
 def parse_text_parameters(
-    path_file_source_table_regression=None,
-    path_file_source_table_feature=None,
-    name_file_product_table_regression=None,
-    name_file_product_table_effect=None,
-    name_file_product_rank=None,
-    name_file_product_list_significance=None,
+    path_file_source_table_regressions=None,
+    path_file_source_table_features=None,
+    name_file_product_table_effects=None,
+    name_file_product_table_significance=None,
+    name_file_product_ranks=None,
+    name_file_product_list_change=None,
     name_file_product_list_negative=None,
     name_file_product_list_positive=None,
     path_directory_source=None,
@@ -100,12 +100,12 @@ def parse_text_parameters(
     Parse parameters from text.
 
     arguments:
-        path_file_source_table_regression (str): path to source file
-        path_file_source_table_feature (str): path to source file
-        name_file_product_table_regression (str): name of product file
-        name_file_product_table_effect (str): name of product file
-        name_file_product_rank (str): name of product file
-        name_file_product_list_significance (str): name of product file
+        path_file_source_table_regressions (str): path to source file
+        path_file_source_table_features (str): path to source file
+        name_file_product_table_effects (str): name of product file
+        name_file_product_table_significance (str): name of product file
+        name_file_product_ranks (str): name of product file
+        name_file_product_list_change (str): name of product file
         name_file_product_list_negative (str): name of product file
         name_file_product_list_positive (str): name of product file
         path_directory_source (str): path to directory for procedure's source
@@ -134,21 +134,21 @@ def parse_text_parameters(
     # Bundle information.
     pail = dict()
     # Parse information.
-    pail["path_file_source_table_regression"] = str(
-        path_file_source_table_regression
+    pail["path_file_source_table_regressions"] = str(
+        path_file_source_table_regressions
     ).strip()
-    pail["path_file_source_table_feature"] = str(
-        path_file_source_table_feature
+    pail["path_file_source_table_features"] = str(
+        path_file_source_table_features
     ).strip()
-    pail["name_file_product_table_regression"] = str(
-        name_file_product_table_regression
+    pail["name_file_product_table_effects"] = str(
+        name_file_product_table_effects
     ).strip()
-    pail["name_file_product_table_effect"] = str(
-        name_file_product_table_effect
+    pail["name_file_product_table_significance"] = str(
+        name_file_product_table_significance
     ).strip()
-    pail["name_file_product_rank"] = str(name_file_product_rank).strip()
-    pail["name_file_product_list_significance"] = str(
-        name_file_product_list_significance
+    pail["name_file_product_ranks"] = str(name_file_product_ranks).strip()
+    pail["name_file_product_list_change"] = str(
+        name_file_product_list_change
     ).strip()
     pail["name_file_product_list_positive"] = str(
         name_file_product_list_positive
@@ -198,7 +198,7 @@ def parse_text_parameters(
         # Print information.
         putly.print_terminal_partition(level=3)
         print("package: partner")
-        print("module: organize_table_results_regression.py")
+        print("module: extract_effects_from_table_regressions.py")
         print("function: parse_text_parameters()")
         putly.print_terminal_partition(level=5)
         print("parameters:")
@@ -242,8 +242,8 @@ def define_column_types_table_source_regression(
 
 
 def read_source(
-    path_file_source_table_regression=None,
-    path_file_source_table_feature=None,
+    path_file_source_table_regressions=None,
+    path_file_source_table_features=None,
     path_directory_dock=None,
     columns_source_text=None,
     columns_source_number=None,
@@ -258,8 +258,8 @@ def read_source(
     Review: TCW; 2 July 2025
 
     arguments:
-        path_file_source_table_regression (str): path to source file
-        path_file_source_table_feature (str): path to source file
+        path_file_source_table_regressions (str): path to source file
+        path_file_source_table_features (str): path to source file
         path_directory_dock (str): path to dock directory for procedure's
             source and product directories and files
         columns_source_text (list<str>): names of relevant columns in table
@@ -279,12 +279,12 @@ def read_source(
         columns_source_number=columns_source_number,
     )
     # Determine paths point to files that exist.
-    existence_regression = os.path.exists(path_file_source_table_regression)
-    existence_features = os.path.exists(path_file_source_table_feature)
+    existence_regression = os.path.exists(path_file_source_table_regressions)
+    existence_features = os.path.exists(path_file_source_table_features)
     # Read information from file.
     if (existence_regression):
         table_regression = pandas.read_csv(
-            path_file_source_table_regression,
+            path_file_source_table_regressions,
             sep="\t",
             header=0,
             dtype=types_columns,
@@ -298,7 +298,7 @@ def read_source(
         pass
     if (existence_features):
         table_feature = pandas.read_csv(
-            path_file_source_table_feature,
+            path_file_source_table_features,
             sep="\t",
             header=0,
             na_values=[
@@ -321,7 +321,7 @@ def read_source(
         # Print information.
         putly.print_terminal_partition(level=3)
         print("package: partner")
-        print("module: organize_table_results_regression.py")
+        print("module: extract_effects_from_table_regressions.py")
         print("function: read_source_table_data()")
         putly.print_terminal_partition(level=5)
         print("table of results from regression:")
@@ -332,7 +332,7 @@ def read_source(
     return pail
 
 
-def organize_table_regression(
+def organize_table_regression_effects(
     table_regression=None,
     table_feature=None,
     column_effect_identifier=None,
@@ -349,7 +349,7 @@ def organize_table_regression(
     Organize information from regressions, with effects across many entities or
     features.
 
-    Review: TCW; 15 July 2025
+    Review: TCW; 17 July 2025
 
     arguments:
         table_regression (object): Pandas data-frame table
@@ -381,7 +381,9 @@ def organize_table_regression(
     # the entities or features that correspond to the effects from regressions.
     if (table_feature is not None):
         # Extract names of columns.
-        columns_feature_available = copy.deepcopy(table_feature.columns.to_list())
+        columns_feature_available = copy.deepcopy(
+            table_feature.columns.to_list()
+        )
         columns_feature_keep = list(filter(
             lambda feature: (feature in columns_extra_keep),
             columns_feature_available
@@ -546,8 +548,8 @@ def organize_table_regression(
         # Print.
         putly.print_terminal_partition(level=3)
         print("package: partner")
-        print("module: organize_table_results_regression.py")
-        print("function: organize_table_regression()")
+        print("module: extract_effects_from_table_regressions.py")
+        print("function: organize_table_regression_effects()")
         putly.print_terminal_partition(level=5)
         print("product regression table:")
         print(table_merge)
@@ -641,7 +643,7 @@ def extract_significant_effects(
         # Print.
         putly.print_terminal_partition(level=3)
         print("package: partner")
-        print("module: organize_table_results_regression.py")
+        print("module: extract_effects_from_table_regressions.py")
         print("function: extract_significant_effects()")
         putly.print_terminal_partition(level=5)
         print("count significant effects: " + str(count_significance))
@@ -763,7 +765,7 @@ def organize_table_rank_effects(
     if report:
         putly.print_terminal_partition(level=3)
         print("package: partner")
-        print("module: organize_table_results_regression.py")
+        print("module: extract_effects_from_table_regressions.py")
         print("function: organize_table_rank_effects()")
         putly.print_terminal_partition(level=5)
         print(table_rank)
@@ -783,12 +785,12 @@ def organize_table_rank_effects(
 
 
 def execute_procedure(
-    path_file_source_table_regression=None,
-    path_file_source_table_feature=None,
-    name_file_product_table_regression=None,
-    name_file_product_table_effect=None,
-    name_file_product_rank=None,
-    name_file_product_list_significance=None,
+    path_file_source_table_regressions=None,
+    path_file_source_table_features=None,
+    name_file_product_table_effects=None,
+    name_file_product_table_significance=None,
+    name_file_product_ranks=None,
+    name_file_product_list_change=None,
     name_file_product_list_negative=None,
     name_file_product_list_positive=None,
     path_directory_source=None,
@@ -810,12 +812,12 @@ def execute_procedure(
     Review: TCW; 15 July 2025
 
     arguments:
-        path_file_source_table_regression (str): path to source file
-        path_file_source_table_feature (str): path to source file
-        name_file_product_table_regression (str): name of product file
-        name_file_product_table_effect (str): name of product file
-        name_file_product_rank (str): name of product file
-        name_file_product_list_significance (str): name of product file
+        path_file_source_table_regressions (str): path to source file
+        path_file_source_table_features (str): path to source file
+        name_file_product_table_effects (str): name of product file
+        name_file_product_table_significance (str): name of product file
+        name_file_product_ranks (str): name of product file
+        name_file_product_list_change (str): name of product file
         name_file_product_list_negative (str): name of product file
         name_file_product_list_positive (str): name of product file
         path_directory_source (str): path to directory for procedure's source
@@ -844,15 +846,15 @@ def execute_procedure(
     ##########
     # Parse parameters.
     pail_parameters = parse_text_parameters(
-        path_file_source_table_regression=path_file_source_table_regression,
-        path_file_source_table_feature=path_file_source_table_feature,
-        name_file_product_table_regression=name_file_product_table_regression,
-        name_file_product_table_effect=(
-            name_file_product_table_effect
+        path_file_source_table_regressions=path_file_source_table_regressions,
+        path_file_source_table_features=path_file_source_table_features,
+        name_file_product_table_effects=name_file_product_table_effects,
+        name_file_product_table_significance=(
+            name_file_product_table_significance
         ),
-        name_file_product_rank=name_file_product_rank,
-        name_file_product_list_significance=(
-            name_file_product_list_significance
+        name_file_product_ranks=name_file_product_ranks,
+        name_file_product_list_change=(
+            name_file_product_list_change
         ),
         name_file_product_list_negative=name_file_product_list_negative,
         name_file_product_list_positive=name_file_product_list_positive,
@@ -875,13 +877,13 @@ def execute_procedure(
     if pail_parameters["report"]:
         putly.print_terminal_partition(level=3)
         print("package: partner")
-        print("module: organize_table_results_regression.py")
+        print("module: extract_effects_from_table_regressions.py")
         print("function: execute_procedure()")
         putly.print_terminal_partition(level=5)
         print("system: local")
         print(
-            "path_file_source_table_regression: " +
-            pail_parameters["path_file_source_table_regression"]
+            "path_file_source_table_regressions: " +
+            pail_parameters["path_file_source_table_regressions"]
         )
         print("path_directory_product: " + str(path_directory_product))
         print("path_directory_dock: " + str(path_directory_dock))
@@ -891,11 +893,11 @@ def execute_procedure(
     ##########
     # Read source information from file.
     pail_source = read_source(
-        path_file_source_table_regression=(
-            pail_parameters["path_file_source_table_regression"]
+        path_file_source_table_regressions=(
+            pail_parameters["path_file_source_table_regressions"]
         ),
-        path_file_source_table_feature=(
-            pail_parameters["path_file_source_table_feature"]
+        path_file_source_table_features=(
+            pail_parameters["path_file_source_table_features"]
         ),
         path_directory_dock=path_directory_dock,
         columns_source_text=pail_parameters["columns_source_text"],
@@ -904,7 +906,7 @@ def execute_procedure(
     )
 
     # Organize information in table.
-    pail_organization = organize_table_regression(
+    pail_effect = organize_table_regression_effects(
         table_regression=pail_source["table_regression"],
         table_feature=pail_source["table_feature"],
         column_effect_identifier=pail_parameters["column_effect_identifier"],
@@ -928,7 +930,7 @@ def execute_procedure(
 
     # Extract identifiers of significant positive and negative effects.
     pail_change = extract_significant_effects(
-        table_regression=pail_organization["table_merge"],
+        table_regression=pail_effect["table_merge"],
         column_effect_identifier=column_extraction,
         column_effect_estimate="effect_estimate",
         column_effect_q="effect_q",
@@ -940,7 +942,7 @@ def execute_procedure(
     # Prepare information for export and analysis using the preranked algorithm
     # in GSEA.
     pail_rank = organize_table_rank_effects(
-        table_regression=pail_organization["table_merge"],
+        table_regression=pail_effect["table_merge"],
         identifiers_exclusion=list(),
         column_identifier=column_extraction,
         column_rank="rank_effect_p", # (effect * p_value_negative_log10)
@@ -956,7 +958,7 @@ def execute_procedure(
     # Bundles of information for files.
     # Lists.
     pail_write_lists = dict()
-    pail_write_lists[name_file_product_list_significance] = (
+    pail_write_lists[name_file_product_list_change] = (
         pail_change["effects_significance"]
     )
     pail_write_lists[name_file_product_list_negative] = (
@@ -967,15 +969,15 @@ def execute_procedure(
     )
     # Tables.
     pail_write_tables = dict()
-    pail_write_tables[name_file_product_table_regression] = (
-        pail_organization["table_merge"]
+    pail_write_tables[name_file_product_table_effects] = (
+        pail_effect["table_merge"]
     )
-    pail_write_tables[name_file_product_table_effect] = (
+    pail_write_tables[name_file_product_table_significance] = (
         pail_change["table_significance"]
     )
     # Ranks.
     pail_write_ranks = dict()
-    pail_write_ranks[name_file_product_rank] = (
+    pail_write_ranks[name_file_product_ranks] = (
         pail_rank["table_rank"]
     )
 
@@ -1017,12 +1019,12 @@ def execute_procedure(
 if (__name__ == "__main__"):
     # Parse arguments from terminal.
     path_file_script = sys.argv[0] # always the first argument
-    path_file_source_table_regression = sys.argv[1]
-    path_file_source_table_feature = sys.argv[2]
-    name_file_product_table_regression = sys.argv[3]
-    name_file_product_table_effect = sys.argv[4]
-    name_file_product_rank = sys.argv[5]
-    name_file_product_list_significance = sys.argv[6]
+    path_file_source_table_regressions = sys.argv[1]
+    path_file_source_table_features = sys.argv[2]
+    name_file_product_table_effects = sys.argv[3]
+    name_file_product_table_significance = sys.argv[4]
+    name_file_product_ranks = sys.argv[5]
+    name_file_product_list_change = sys.argv[6]
     name_file_product_list_negative = sys.argv[7]
     name_file_product_list_positive = sys.argv[8]
     path_directory_source = sys.argv[9]
@@ -1040,16 +1042,14 @@ if (__name__ == "__main__"):
 
     # Call function for procedure.
     execute_procedure(
-        path_file_source_table_regression=path_file_source_table_regression,
-        path_file_source_table_feature=path_file_source_table_feature,
-        name_file_product_table_regression=name_file_product_table_regression,
-        name_file_product_table_effect=(
-            name_file_product_table_effect
+        path_file_source_table_regressions=path_file_source_table_regressions,
+        path_file_source_table_features=path_file_source_table_features,
+        name_file_product_table_effects=name_file_product_table_effects,
+        name_file_product_table_significance=(
+            name_file_product_table_significance
         ),
-        name_file_product_rank=name_file_product_rank,
-        name_file_product_list_significance=(
-            name_file_product_list_significance
-        ),
+        name_file_product_ranks=name_file_product_ranks,
+        name_file_product_list_change=name_file_product_list_change,
         name_file_product_list_negative=name_file_product_list_negative,
         name_file_product_list_positive=name_file_product_list_positive,
         path_directory_source=path_directory_source,
