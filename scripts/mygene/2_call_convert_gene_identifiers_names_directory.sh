@@ -32,8 +32,8 @@ path_directory_parameters_private="$path_directory_dock/in_parameters_private"
 #path_directory_source="${path_directory_dock}/in_data/mygene_2025-02-14/sets_gene_msigdb_2025-02-14_clean_symbol"
 #path_directory_product="${path_directory_dock}/in_data/mygene_2025-02-14/sets_gene_msigdb_2025-02-14_clean_ensembl"
 
-path_directory_source="${path_directory_dock}/out_age_exercise/transcriptomics/operate_sets/lists"
-path_directory_product="${path_directory_dock}/out_mygene_2025-06-10_symbol"
+path_directory_source="${path_directory_dock}/temp_mygene_2025-07-17/input"
+path_directory_product="${path_directory_dock}/temp_mygene_2025-07-17/output"
 path_directory_temporary="${path_directory_product}/temporary_process" # hopefully unique
 
 # File suffix.

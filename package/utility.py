@@ -1193,6 +1193,507 @@ def parse_text_boolean(
     return value
 
 
+##########
+# Operations on simple lists or sets.
+
+
+def select_elements_by_sets(
+    names=None,
+    sets=None,
+    count=None,
+):
+    """
+    Selects unique elements that belong to at a minimal count of specific sets.
+
+    This algorithm assumes that each element can belong to multiple sets but
+    that each set's elements are unique or nonredundant.
+
+    Data format
+    - elements (dict)
+    -- element (list)
+    --- set (str)
+
+    arguments:
+        names (list<str>): names of sets to consider
+        sets (dict<list<str>>): sets of elements
+        count (int): minimal count of sets to which an element must belong
+
+    returns:
+        (list): unique elements that belong to minimal count of specific sets
+
+    raises:
+
+    """
+
+    # Collect sets to which each element belongs.
+    elements = dict()
+    for name in names:
+        for element in collect_unique_elements(elements_original=sets[name]):
+            if element not in elements:
+                elements[element] = list()
+                elements[element].append(name)
+            else:
+                elements[element].append(name)
+        pass
+    pass
+
+    # Filter elements by count of sets.
+    passes = list()
+    for element in elements:
+        if len(elements[element]) >= count:
+            passes.append(element)
+
+    # Return elements that pass filter.
+    return passes
+
+
+def collect_unique_items(
+    items=None
+):
+    """
+    Collect unique items from a list. Items are strings of text characters.
+
+    Review: TCW; 26 June 2025
+
+    arguments:
+        items (list<str>): sequence of items
+
+    returns:
+        (list<str>): unique items
+
+    raises:
+
+    """
+
+    items = copy.deepcopy(items)
+    items_unique = list() # []
+    for item in items:
+        if (item not in items_unique):
+            items_unique.append(item)
+            pass
+        pass
+    return items_unique
+
+
+def collect_unique_elements(elements=None):
+    """
+    Becoming obsolete. This function calls collect_unique_items for
+    compatibility during phase out.
+
+    arguments:
+        elements (list): sequence of elements
+
+    returns:
+        (list): unique elements
+
+    raises:
+
+    """
+
+    return collect_unique_items(items=elements)
+
+
+def compare_lists_by_inclusion(
+    items_dominant=None,
+    items_subordinate=None,
+):
+    """
+    Compares lists by inclusion.
+
+    Returns True if all elements in items_subordinate are in items_dominant.
+
+    Review: TCW; 2 April 2025
+
+    arguments:
+        items_dominant (list<str>): list of items as strings of text characters
+        items_subordinate (list): list of items as strings of text characters
+
+    returns:
+        (bool): whether first list includes all elements from second
+
+    raises:
+
+    """
+
+    def match(item=None):
+        return item in items_dominant
+    matches = list(map(match, items_subordinate))
+    comparison = all(matches)
+    return comparison
+
+
+def compare_lists_by_mutual_inclusion(
+    list_primary=None,
+    list_secondary=None,
+):
+    """
+    Compares lists by mutual inclusion.
+
+    arguments:
+        list_primary (list): list of elements
+        list_secondary (list): list of elements
+
+    returns:
+        (bool): whether each list includes all elements from the other
+
+    raises:
+
+    """
+
+    forward = compare_lists_by_inclusion(
+        items_dominant=list_primary,
+        items_subordinate=list_secondary
+    )
+    reverse = compare_lists_by_inclusion(
+        items_dominant=list_secondary,
+        items_subordinate=list_primary
+    )
+    comparison = (forward and reverse)
+    return comparison
+
+
+def compare_lists_by_elemental_identity(
+    list_primary=None,
+    list_secondary=None,
+):
+    """
+    Compares lists by elemental or element-wise identity, or identity across
+    pairs of elements in matching sequenc.
+
+    arguments:
+        list_primary (list): list of elements
+        list_secondary (list): list of elements
+
+    returns:
+        (bool): whether elements of both lists are identical and share the same
+            sequence
+
+    raises:
+
+    """
+    #comparison = all(x == y for x, y in zip(list_primary, list_secondary))
+    #comparison = all(map(
+    #    lambda primary, secondary: (primary == secondary),
+    #    zip(list_primary, list_secondary)
+    #))
+    comparison = all(map(
+        lambda pair: (pair[0] == pair[1]),
+        zip(list_primary, list_secondary)
+    ))
+    return comparison
+
+
+def filter_common_elements(list_minor=None, list_major=None):
+    """
+    Filters elements in minor list by whether the major list also includes them.
+
+    arguments:
+        list_minor (list): list of elements
+        list_major (list): list of elements
+
+    returns:
+        (list): elements from minor list that major list also includes
+
+    raises:
+
+    """
+
+    def match(element=None):
+        return element in list_major
+    return list(filter(match, list_minor))
+
+
+def filter_unique_common_elements(list_one=None, list_two=None):
+    """
+    Filters elements by whether both of two lists include them
+
+    arguments:
+        list_one (list): list of elements
+        list_two (list): list of elements
+
+    returns:
+        (list): elements that both of two lists include
+
+    raises:
+
+    """
+
+    elements_common = filter_common_elements(
+        list_one=list_one,
+        list_two=list_two,
+    )
+    elements_unique = collect_unique_elements(
+        elements_original=elements_common
+    )
+    return elements_unique
+
+
+def filter_unique_union_elements(list_one=None, list_two=None):
+    """
+    Filters unique elements from union of two lists.
+
+    arguments:
+        list_one (list): list of elements
+        list_two (list): list of elements
+
+    returns:
+        (list): elements that both of two lists include
+
+    raises:
+
+    """
+
+    union = list_one + list_two
+    unique = collect_unique_elements(elements_original=union)
+    return unique
+
+
+def filter_unique_exclusion_elements(
+    elements_exclusion=None,
+    elements_total=None
+):
+    """
+    Filters unique elements by exclusion.
+
+    arguments:
+        elements_exclusion (list): list of elements
+        elements_total (list): list of elements
+
+    returns:
+        (list): elements from total list not in exclusion list
+
+    raises:
+
+    """
+
+    elements_novel = []
+    for element in elements_total:
+        if element not in elements_exclusion:
+            elements_novel.append(element)
+    elements_unique = collect_unique_elements(elements_original=elements_novel)
+    return elements_unique
+
+
+def combine_unique_elements_pairwise_orderless(
+    elements=None,
+):
+    """
+    Combines elements in orderless pairs.
+
+    ABCD: AB AC AD BC BD CD
+
+    arguments:
+        elements (list): elements of interest
+
+    returns:
+        (list<tuple>): unique pairs of elements
+
+    raises:
+
+    """
+
+    # Select unique elements.
+    elements_unique = collect_unique_elements(elements_original=elements)
+    # Combine elements in pairs.
+    pairs = list(itertools.combinations(elements_unique, 2))
+    # Return information.
+    return pairs
+
+
+def combine_unique_elements_pairwise_order(
+    elements=None,
+):
+    """
+    Combines elements in ordered pairs.
+
+    ABCD: AB AC AD BA BC BD CA CB CD DA DB DC
+
+    arguments:
+        elements (list): elements of interest
+
+    returns:
+        (list<tuple>): unique pairs of elements
+
+    raises:
+
+    """
+
+    # Select unique elements.
+    elements_unique = collect_unique_elements(elements_original=elements)
+    # Combine elements in pairs.
+    pairs = list(itertools.permutations(elements_unique, 2))
+    # Return information.
+    return pairs
+
+
+def combine_sets_items_union_unique(
+    sets_items=None,
+    report=None,
+):
+    """
+    Combines items from multiple sets by taking the union and then collecting
+    unique items.
+
+    Review: TCW; 18 July 2025
+
+    arguments:
+        sets_items (list<list<str>>): lists of items in distinct sets
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (list<str>): items in combination set
+
+    """
+
+    # Copy information.
+    sets_items = copy.deepcopy(sets_items)
+    # Collect.
+    items_combination = list()
+    # Iterate.
+    for items_set in sets_items:
+        # Combine by union.
+        items_combination.extend(items_set)
+        pass
+    # Collect unique.
+    items_combination_unique = collect_unique_items(
+        items=items_combination,
+    )
+
+    # Report.
+    if report:
+        print_terminal_partition(level=3)
+        print("package: partner")
+        print("module: utility.py")
+        function = "combine_sets_items_union_unique"
+        print(str("function: " + function + "()"))
+        print_terminal_partition(level=4)
+        # Summarize.
+        count_items = len(items_combination_unique)
+        print(
+            "count of items in combination set: " + str(count_items)
+        )
+        print_terminal_partition(level=5)
+        pass
+    # Return.
+    return items_combination_unique
+
+
+def combine_sets_items_difference_unique(
+    items_inclusion=None,
+    items_exclusion=None,
+    report=None,
+):
+    """
+    Combines items from multiple sets by taking the difference and then
+    collecting unique items.
+
+    Review: TCW; 18 July 2025
+
+    arguments:
+        items_inclusion (list<str>): items to include, main set
+        items_exclusion (list<str>): items to exclude from main, inclusion set
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (list<str>): items in combination set
+
+    """
+
+    # Copy information.
+    items_inclusion = copy.deepcopy(items_inclusion)
+    items_exclusion = copy.deepcopy(items_exclusion)
+    # Filter.
+    items_combination = list(filter(
+        lambda item: (item not in items_exclusion),
+        items_inclusion
+    ))
+    # Collect unique.
+    items_combination_unique = collect_unique_items(
+        items=items_combination,
+    )
+    # Report.
+    if report:
+        print_terminal_partition(level=3)
+        print("package: partner")
+        print("module: utility.py")
+        function = "combine_sets_items_difference_unique"
+        print(str("function: " + function + "()"))
+        print_terminal_partition(level=4)
+        # Summarize.
+        count_items = len(items_combination_unique)
+        print(
+            "count of items in combination set: " + str(count_items)
+        )
+        print_terminal_partition(level=5)
+        pass
+    # Return.
+    return items_combination_unique
+
+
+def combine_sets_items_intersection_unique(
+    items_first=None,
+    items_second=None,
+    report=None,
+):
+    """
+    Combines items from multiple sets by taking the intersection and then
+    collecting unique items.
+
+    Review: TCW; 18 July 2025
+
+    arguments:
+        items_first (list<str>): items to include in intersection
+        items_second (list<str>): items to include in intersection
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (list<str>): items in combination set
+
+    """
+
+    # Copy information.
+    items_first = copy.deepcopy(items_first)
+    items_second = copy.deepcopy(items_second)
+    # Combine items by union.
+    items_union = combine_sets_items_union_unique(
+        sets_items=[
+            items_first,
+            items_second,
+        ],
+        report=False,
+    )
+    # Filter.
+    items_combination = list(filter(
+        lambda item: ((item in items_first) and (item in items_second)),
+        items_union
+    ))
+    # Collect unique.
+    items_combination_unique = collect_unique_items(
+        items=items_combination,
+    )
+    # Report.
+    if report:
+        print_terminal_partition(level=3)
+        print("package: partner")
+        print("module: utility.py")
+        function = "combine_sets_items_intersection_unique"
+        print(str("function: " + function + "()"))
+        print_terminal_partition(level=4)
+        # Summarize.
+        count_items = len(items_combination_unique)
+        print(
+            "count of items in combination set: " + str(count_items)
+        )
+        print_terminal_partition(level=5)
+        pass
+    # Return.
+    return items_combination_unique
 
 
 ##########
@@ -1347,6 +1848,8 @@ def read_file_text_list(
 
     Delimiters include "\n", "\t", ";", ":", ",", " ".
 
+    Review: TCW; 18 July 2025
+
     arguments:
         path_file (str): path to directory and file
         delimiter (str): delimiter between items in text representation of list
@@ -1359,22 +1862,28 @@ def read_file_text_list(
 
     """
 
-    # Read information from file
-    content = read_file_text(path_file=path_file)
-    # Split content by line delimiters.
-    items_split = content.split(delimiter)
-    items_strip = list(map(lambda item: item.strip(), items_split))
-    items_not_empty = list(filter(
-        lambda item: (len(item) > 0),
-        items_strip
-    ))
-    # Collect unique items.
-    if (unique):
-        items = collect_unique_items(
-            items=items_not_empty,
-        )
+    # Determine whether path points to a file that exist.
+    existence = os.path.exists(path_file)
+    if (existence):
+        # Read information from file.
+        content = read_file_text(path_file=path_file)
+        # Split content by line delimiters.
+        items_split = content.split(delimiter)
+        items_strip = list(map(lambda item: item.strip(), items_split))
+        items_not_empty = list(filter(
+            lambda item: (len(item) > 0),
+            items_strip
+        ))
+        # Collect unique items.
+        if (unique):
+            items = collect_unique_items(
+                items=items_not_empty,
+            )
+        else:
+            items = items_not_empty
+            pass
     else:
-        items = items_not_empty
+        items = list()
         pass
     # Return information
     return items
@@ -2504,102 +3013,6 @@ def find_all(match=None, sequence=None):
         return None
 
 
-def select_elements_by_sets(
-    names=None,
-    sets=None,
-    count=None,
-):
-    """
-    Selects unique elements that belong to at a minimal count of specific sets.
-
-    This algorithm assumes that each element can belong to multiple sets but
-    that each set's elements are unique or nonredundant.
-
-    Data format
-    - elements (dict)
-    -- element (list)
-    --- set (str)
-
-    arguments:
-        names (list<str>): names of sets to consider
-        sets (dict<list<str>>): sets of elements
-        count (int): minimal count of sets to which an element must belong
-
-    returns:
-        (list): unique elements that belong to minimal count of specific sets
-
-    raises:
-
-    """
-
-    # Collect sets to which each element belongs.
-    elements = dict()
-    for name in names:
-        for element in collect_unique_elements(elements_original=sets[name]):
-            if element not in elements:
-                elements[element] = list()
-                elements[element].append(name)
-            else:
-                elements[element].append(name)
-        pass
-    pass
-
-    # Filter elements by count of sets.
-    passes = list()
-    for element in elements:
-        if len(elements[element]) >= count:
-            passes.append(element)
-
-    # Return elements that pass filter.
-    return passes
-
-
-def collect_unique_items(
-    items=None
-):
-    """
-    Collect unique items from a list. Items are strings of text characters.
-
-    Review: TCW; 26 June 2025
-
-    arguments:
-        items (list<str>): sequence of items
-
-    returns:
-        (list<str>): unique items
-
-    raises:
-
-    """
-
-    items = copy.deepcopy(items)
-    items_unique = list() # []
-    for item in items:
-        if (item not in items_unique):
-            items_unique.append(item)
-            pass
-        pass
-    return items_unique
-
-
-def collect_unique_elements(elements=None):
-    """
-    Becoming obsolete. This function calls collect_unique_items for
-    compatibility during phase out.
-
-    arguments:
-        elements (list): sequence of elements
-
-    returns:
-        (list): unique elements
-
-    raises:
-
-    """
-
-    return collect_unique_items(items=elements)
-
-
 def collect_value_from_records(key=None, records=None):
     """
     Collects a single value from multiple records
@@ -2639,187 +3052,6 @@ def collect_values_from_records(key=None, records=None):
     for record in records:
         collection.extend(record[key])
     return collection
-
-
-def compare_lists_by_inclusion(
-    items_dominant=None,
-    items_subordinate=None,
-):
-    """
-    Compares lists by inclusion.
-
-    Returns True if all elements in items_subordinate are in items_dominant.
-
-    Review: TCW; 2 April 2025
-
-    arguments:
-        items_dominant (list<str>): list of items as strings of text characters
-        items_subordinate (list): list of items as strings of text characters
-
-    returns:
-        (bool): whether first list includes all elements from second
-
-    raises:
-
-    """
-
-    def match(item=None):
-        return item in items_dominant
-    matches = list(map(match, items_subordinate))
-    comparison = all(matches)
-    return comparison
-
-
-def compare_lists_by_mutual_inclusion(
-    list_primary=None,
-    list_secondary=None,
-):
-    """
-    Compares lists by mutual inclusion.
-
-    arguments:
-        list_primary (list): list of elements
-        list_secondary (list): list of elements
-
-    returns:
-        (bool): whether each list includes all elements from the other
-
-    raises:
-
-    """
-
-    forward = compare_lists_by_inclusion(
-        items_dominant=list_primary,
-        items_subordinate=list_secondary
-    )
-    reverse = compare_lists_by_inclusion(
-        items_dominant=list_secondary,
-        items_subordinate=list_primary
-    )
-    comparison = (forward and reverse)
-    return comparison
-
-
-def compare_lists_by_elemental_identity(
-    list_primary=None,
-    list_secondary=None,
-):
-    """
-    Compares lists by elemental or element-wise identity, or identity across
-    pairs of elements in matching sequenc.
-
-    arguments:
-        list_primary (list): list of elements
-        list_secondary (list): list of elements
-
-    returns:
-        (bool): whether elements of both lists are identical and share the same
-            sequence
-
-    raises:
-
-    """
-    #comparison = all(x == y for x, y in zip(list_primary, list_secondary))
-    #comparison = all(map(
-    #    lambda primary, secondary: (primary == secondary),
-    #    zip(list_primary, list_secondary)
-    #))
-    comparison = all(map(
-        lambda pair: (pair[0] == pair[1]),
-        zip(list_primary, list_secondary)
-    ))
-    return comparison
-
-
-def filter_common_elements(list_minor=None, list_major=None):
-    """
-    Filters elements in minor list by whether the major list also includes them.
-
-    arguments:
-        list_minor (list): list of elements
-        list_major (list): list of elements
-
-    returns:
-        (list): elements from minor list that major list also includes
-
-    raises:
-
-    """
-
-    def match(element=None):
-        return element in list_major
-    return list(filter(match, list_minor))
-
-
-def filter_unique_common_elements(list_one=None, list_two=None):
-    """
-    Filters elements by whether both of two lists include them
-
-    arguments:
-        list_one (list): list of elements
-        list_two (list): list of elements
-
-    returns:
-        (list): elements that both of two lists include
-
-    raises:
-
-    """
-
-    elements_common = filter_common_elements(
-        list_one=list_one,
-        list_two=list_two,
-    )
-    elements_unique = collect_unique_elements(
-        elements_original=elements_common
-    )
-    return elements_unique
-
-
-def filter_unique_union_elements(list_one=None, list_two=None):
-    """
-    Filters unique elements from union of two lists.
-
-    arguments:
-        list_one (list): list of elements
-        list_two (list): list of elements
-
-    returns:
-        (list): elements that both of two lists include
-
-    raises:
-
-    """
-
-    union = list_one + list_two
-    unique = collect_unique_elements(elements_original=union)
-    return unique
-
-
-def filter_unique_exclusion_elements(
-    elements_exclusion=None,
-    elements_total=None
-):
-    """
-    Filters unique elements by exclusion.
-
-    arguments:
-        elements_exclusion (list): list of elements
-        elements_total (list): list of elements
-
-    returns:
-        (list): elements from total list not in exclusion list
-
-    raises:
-
-    """
-
-    elements_novel = []
-    for element in elements_total:
-        if element not in elements_exclusion:
-            elements_novel.append(element)
-    elements_unique = collect_unique_elements(elements_original=elements_novel)
-    return elements_unique
 
 
 def collect_records_targets_by_categories(
@@ -3018,58 +3250,6 @@ def calculate_standard_scores(
         )
         values_standard.append(value_standard)
     return values_standard
-
-
-def combine_unique_elements_pairwise_orderless(
-    elements=None,
-):
-    """
-    Combines elements in orderless pairs.
-
-    ABCD: AB AC AD BC BD CD
-
-    arguments:
-        elements (list): elements of interest
-
-    returns:
-        (list<tuple>): unique pairs of elements
-
-    raises:
-
-    """
-
-    # Select unique elements.
-    elements_unique = collect_unique_elements(elements_original=elements)
-    # Combine elements in pairs.
-    pairs = list(itertools.combinations(elements_unique, 2))
-    # Return information.
-    return pairs
-
-
-def combine_unique_elements_pairwise_order(
-    elements=None,
-):
-    """
-    Combines elements in ordered pairs.
-
-    ABCD: AB AC AD BA BC BD CA CB CD DA DB DC
-
-    arguments:
-        elements (list): elements of interest
-
-    returns:
-        (list<tuple>): unique pairs of elements
-
-    raises:
-
-    """
-
-    # Select unique elements.
-    elements_unique = collect_unique_elements(elements_original=elements)
-    # Combine elements in pairs.
-    pairs = list(itertools.permutations(elements_unique, 2))
-    # Return information.
-    return pairs
 
 
 def parse_extract_text_keys_values_semicolon_colon_comma(

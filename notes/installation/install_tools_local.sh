@@ -227,7 +227,7 @@ sudo apt install musescore
 sudo apt install pulseaudio
 sudo apt install pavucontrol
 
-# Jack Audio Connection Kit
+# 1. Install Jack Audio Connection Kit
 # Utility for high-resolution audio recording without interference from
 # central processing unit.
 sudo apt install jackd
@@ -235,19 +235,25 @@ sudo apt install qjackctl
 whereis jackd
 whereis qjackctl
 qjackctl &
-# Enable Realtime scheduling and memory locking explicitly for user.
-# Make sure file exists: "/etc/security/limits.d/audio.conf".
+# 2. Make sure file exists: "/etc/security/limits.d/audio.conf".
 # If file exists: "/etc/security/limits.d/audio.conf.disabled" then rename to "/etc/security/limits.d/audio.conf".
-# Run command: "sudo usermod -a -G audio tcameronwaller"
-# Restart system to enact changes.
-
-# Manager for CPU Frequency Scaling
+# "# Provided by the jackd package."
+# "..."
+# "@audio   -  rtprio     95"
+# "@audio   -  memlock    unlimited"
+# "#@audio   -  nice      -19"
+# 3. Enable Realtime scheduling and memory locking explicitly for user.
+# "sudo usermod -a -G audio tcameronwaller"
+# sudo dpkg-reconfigure -p high jackd2
+# 4. Manager for CPU Frequency Scaling
 # Select "performance" setting to optimize CPU performance frequency.
 # Important for recording audio with low latency.
+sudo cpupower -c all frequency-set -g performance
+# If necessary, install the packages below or updated versions.
 sudo apt install linux-tools-common
 sudo apt install linux-tools-generic
 sudo apt install linux-tools-5.11.0-27-generic
-sudo cpupower -c all frequency-set -g performance
+# 5. Restart system to enact changes.
 
 # Ardour
 # http://ardour.org/first_time_linux.html
