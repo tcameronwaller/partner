@@ -94,6 +94,7 @@ def parse_text_parameters(
     column_effect_p=None,
     column_feature_identifier=None,
     column_feature_name=None,
+    column_feature_extraction=None,
     columns_extra_keep=None,
     rate_false_discovery=None,
     report=None,
@@ -124,6 +125,7 @@ def parse_text_parameters(
         column_effect_p (str): name of column in source table
         column_feature_identifier (str): name of column in source table
         column_feature_name (str): name of column in source table
+        column_feature_extraction (str): name of column in source table
         columns_extra_keep (str): names of columns in source table
         rate_false_discovery (str): value for acceptable rate of false
             discoveries
@@ -175,6 +177,7 @@ def parse_text_parameters(
     pail["column_effect_p"] = str(column_effect_p).strip()
     pail["column_feature_identifier"] = str(column_feature_identifier).strip()
     pail["column_feature_name"] = str(column_feature_name).strip()
+    pail["column_feature_extraction"] = str(column_feature_extraction).strip()
     pail["columns_extra_keep"] = putly.parse_text_list_values(
         text=columns_extra_keep,
         delimiter=",",
@@ -198,9 +201,16 @@ def parse_text_parameters(
     pail["columns_source_text"] = list()
     pail["columns_source_number"] = list()
     pail["columns_source_text"].append(pail["column_effect_identifier"])
+    pail["columns_source_text"].append(pail["column_feature_extraction"])
     pail["columns_source_number"].append(pail["column_effect_estimate"])
     pail["columns_source_number"].append(pail["column_effect_error"])
     pail["columns_source_number"].append(pail["column_effect_p"])
+    pail["columns_source_text"] = putly.collect_unique_items(
+        items=pail["columns_source_text"],
+    )
+    pail["columns_source_number"] = putly.collect_unique_items(
+        items=pail["columns_source_number"],
+    )
 
     # Report.
     if pail["report"]:
@@ -987,6 +997,7 @@ def execute_procedure(
     column_effect_p=None,
     column_feature_identifier=None,
     column_feature_name=None,
+    column_feature_extraction=None,
     columns_extra_keep=None,
     rate_false_discovery=None,
     report=None,
@@ -1019,6 +1030,7 @@ def execute_procedure(
         column_effect_p (str): name of column in source table
         column_feature_identifier (str): name of column in source table
         column_feature_name (str): name of column in source table
+        column_feature_extraction (str): name of column in source table
         columns_extra_keep (str): names of columns in source table
         rate_false_discovery (str): value for acceptable rate of false
             discoveries
@@ -1060,6 +1072,7 @@ def execute_procedure(
         column_effect_p=column_effect_p,
         column_feature_identifier=column_feature_identifier,
         column_feature_name=column_feature_name,
+        column_feature_extraction=column_feature_extraction,
         columns_extra_keep=columns_extra_keep,
         rate_false_discovery=rate_false_discovery,
         report=report,
@@ -1174,19 +1187,10 @@ def execute_procedure(
         write_nullification = False
         pass
 
-
-    # Determine whether to extract identifiers of effects or names of the
-    # corresponding entities or features.
-    if (pail_source["table_feature"] is not None):
-        column_extraction = column_feature_name
-    else:
-        column_extraction = "effect_identifier"
-        pass
-
     # Extract identifiers of significant positive and negative effects.
     pail_change = extract_significant_effects(
         table_regression=table_extraction,
-        column_effect_identifier=column_extraction,
+        column_effect_identifier=pail_parameters["column_feature_extraction"],
         column_effect_estimate="effect_estimate",
         column_effect_q="effect_q",
         column_effect_q_significance="effect_q_significance",
@@ -1199,7 +1203,7 @@ def execute_procedure(
     pail_rank = organize_table_rank_effects(
         table_regression=table_extraction,
         identifiers_exclusion=list(),
-        column_identifier=column_extraction,
+        column_identifier=pail_parameters["column_feature_extraction"],
         column_rank="rank_effect_p", # (effect * p_value_negative_log10)
         report=report,
     )
@@ -1292,9 +1296,10 @@ if (__name__ == "__main__"):
     column_effect_p = sys.argv[17]
     column_feature_identifier = sys.argv[18]
     column_feature_name = sys.argv[19]
-    columns_extra_keep = sys.argv[20]
-    rate_false_discovery = sys.argv[21]
-    report = sys.argv[22]
+    column_feature_extraction = sys.argv[20]
+    columns_extra_keep = sys.argv[21]
+    rate_false_discovery = sys.argv[22]
+    report = sys.argv[23]
 
     # Call function for procedure.
     execute_procedure(
@@ -1323,6 +1328,7 @@ if (__name__ == "__main__"):
         column_effect_p=column_effect_p,
         column_feature_identifier=column_feature_identifier,
         column_feature_name=column_feature_name,
+        column_feature_extraction=column_feature_extraction,
         columns_extra_keep=columns_extra_keep,
         rate_false_discovery=rate_false_discovery,
         report=report,
