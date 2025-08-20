@@ -81,7 +81,7 @@ java -version # TCW; 16 January 2025
 # 6. edit script to initialize GSEA with more memory
 # change "-Xmx4g" to "-Xmx8g" within file "gsea.sh" and file "gsea-cli.sh"
 # 7. call script to launch GSEA
-cd ./GSEA_Linux_4.3.3
+cd /.../tools/gsea_msigdb/GSEA_Linux_4.3.3
 bash gsea.sh # desktop graphical interface
 bash gsea-cli.sh # command line interface
 # 8. set preferences

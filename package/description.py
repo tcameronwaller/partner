@@ -48,6 +48,7 @@ License:
 
 # Standard
 import os
+import sys
 import csv
 import copy
 import textwrap
@@ -2314,6 +2315,13 @@ def describe_features_from_table_columns_by_groups_rows(
                 column_feature=column_feature,
                 report=False,
         ))
+
+        # Filter by available groups in table.
+        groups_sequence_available = list(filter(
+            lambda group: group in pail_extract["groups_sequence"],
+            groups_sequence
+        ))
+
         # Calculate and organize descriptive statistics for the feature across
         # and getween groups of observations.
         groups_values_nonmissing = pail_extract["groups_values_nonmissing"]
@@ -2322,7 +2330,7 @@ def describe_features_from_table_columns_by_groups_rows(
                 name_feature=column_feature,
                 translations_feature=translations_feature,
                 key_feature=index_features,
-                groups_sequence=groups_sequence,
+                groups_sequence=groups_sequence_available,
                 groups_values=pail_extract["groups_values"],
                 groups_values_nonmissing=groups_values_nonmissing,
                 key_group=key_group,

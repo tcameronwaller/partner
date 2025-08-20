@@ -858,7 +858,7 @@ def organize_table_regression_effects_for_merge(
 
     Discrete scripts call this function.
 
-    Review: TCW; 23 July 2025
+    Review: TCW; 06 August 2025
 
     arguments:
         table_effects (object): Pandas data-frame table
@@ -925,15 +925,30 @@ def organize_table_regression_effects_for_merge(
     table_effects = table_effects.loc[
         (table_effects[column_identifier].isin(selection_rows)), :
     ].copy(deep=True)
-    table_effects.sort_values(
-        by=[
-            column_identifier,
-        ],
-        axis="index",
-        ascending=True,
-        na_position="last",
-        inplace=True,
-    )
+    if True:
+        # Prepare reference to sort rows in table.
+        sequence_rows = dict(zip(
+            selection_rows,
+            range(len(selection_rows))
+        ))
+        table_effects = porg.sort_table_rows_by_single_column_reference(
+            table=table_effects,
+            index_rows=column_identifier,
+            column_reference=column_identifier,
+            column_sort_temporary="sort_temporary_5529637",
+            reference_sort=sequence_rows,
+        )
+    else:
+        table_effects.sort_values(
+            by=[
+                column_identifier,
+            ],
+            axis="index",
+            ascending=True,
+            na_position="last",
+            inplace=True,
+        )
+        pass
 
     # Organize sequence of columns.
     columns_sequence = copy.deepcopy(selection_columns_prefix)

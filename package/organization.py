@@ -1132,14 +1132,15 @@ def extract_filter_array_values_from_series(
     threshold) while treating the upper threshold as exclusive (remove values
     >= threshold).
 
+    Review: TCW; 4 August 2025
     Review: TCW; 27 March 2025
 
     arguments:
         series (object): Pandas series of values of signal intensity
         threshold_low (float): threshold below which (value < threshold) all
-            values are considered invalid and missing
+            values are considered invalid and missing; or None
         threshold_high (float): threshold above which (value >= threshold) all
-            values are considered invalid and missing
+            values are considered invalid and missing; or None
         report (bool): whether to print reports
 
     raises:
@@ -1530,18 +1531,21 @@ def extract_array_values_from_column_by_separate_tables_rows(
 def sort_table_columns_explicit_other(
     table=None,
     columns_sequence=None,
+    sort_other=True,
     report=None,
 ):
     """
     Sort the sequence of columns in a Pandas data-frame table without requiring
     the explicit specification of all columns.
 
+    Review: TCW; 4 August 2025
     Review: TCW; 8 May 2025
 
     arguments:
         table (object): Pandas data-frame table
         columns_sequence (list<str>): identifiers or names of an explicit,
             priority selection of columns in their proper sort sequence
+        sort_other (bool): whether to apply default sort to the other columns
         report (bool): whether to print reports
 
     raises:
@@ -1567,7 +1571,9 @@ def sort_table_columns_explicit_other(
     columns_sequence_other = list(filter(
         lambda item: item not in columns_sequence, columns_available
     ))
-    columns_sequence_other = sorted(columns_sequence_other)
+    if (sort_other):
+        columns_sequence_other = sorted(columns_sequence_other)
+        pass
 
     # Combine explicit and other names of columns.
     columns_sequence_all = copy.deepcopy(columns_sequence)

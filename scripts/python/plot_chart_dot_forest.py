@@ -771,7 +771,7 @@ def create_write_plot_chart_dot_forest(
     )
 
     ##########
-    # Collect information.
+    # Bundle information.
     pail_write_plot = dict()
     pail_write_plot["forest_plot"] = figure
 
