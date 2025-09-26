@@ -39,7 +39,20 @@
 # be ambiguous and difficult to determine whether the GTF annotation file even
 # uses a consistent criterion.
 
-# Deompress file format of the genome annotation.
+# Note: TCW; 27 August 2025
+# The "stranded" argument can make a difference in the quantification
+# algorithm. It is advisable to make sure that this argument is consistent with
+# the sequencing technology and method. It is also advisable to check the
+# results of HTSeq quantification to see how many reads it is missing from the
+# quantification, I think. Notice that when I quantified the RNAseq data for
+# muscle and adipose in 2024, I used the argument setting "--stranded 'no'".
+# I do not know for sure whether this was the most accurate method for the
+# sequencing technology and method that produced our sequencing data; however,
+# I do think that "--stranded 'no'" might be the most versatile and forgiving
+# option, especially in our situation in which I do not know all details about
+# the origin of the data.
+
+# Decompress file format of the genome annotation.
 #gzip -dcvf $path_file_compressed > $path_file_decompressed
 
 # Documentation for htseq-count

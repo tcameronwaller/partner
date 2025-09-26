@@ -3,15 +3,24 @@
 ################################################################################
 # Author: T. Cameron Waller
 # Date, first execution: 12 February 2025
-# Date, last execution or modification: 12 February 2025
-# Review: TCW; 12 February 2025
+# Date, last execution or modification: 24 September 2025
+# Review: TCW; 24 September 2025
 ################################################################################
 # Note
 
+# Recent example of usage:
+# /.../pails_process/omega3/2025-09-22_heterogeneity_candidate_adipose_fibrosis
 
-################################################################################
+###############################################################################
+# Organize arguments.
 
-
+path_directory_source=${1} # full path to source file in text format from which to read identifiers or names of genes
+path_directory_product=${2} # full path to product file to which to write in text format the identifiers or names of genes
+suffix_file_source=${3} # text suffix in names of source files
+suffix_file_product=${4} # text suffix in names of product files
+delimiter_source=${5} # text delimiter between items in source file, not white space
+delimiter_product=${6} # text delimiter between items in product file, not white space
+report=${7} # whether to print reports to terminal
 
 ################################################################################
 # Organize paths.
@@ -22,28 +31,21 @@ path_directory_paths="./Downloads/paths_process_local"
 path_directory_tools=$(<"$path_directory_paths/path_directory_tools.txt")
 path_directory_process=$(<"$path_directory_paths/path_directory_process_local.txt")
 path_directory_scripts="$path_directory_process/scripts"
+path_directory_package="$path_directory_process/package"
 
-path_directory_dock="$path_directory_process/dock"
-path_directory_data="$path_directory_dock/in_data" # restore script does not modify "in_data" for efficiency
-path_directory_parameters="$path_directory_dock/in_parameters"
-path_directory_parameters_private="$path_directory_dock/in_parameters_private"
-
-path_directory_source="${path_directory_dock}/in_data/mygene_2025-02-14/sets_gene_msigdb_2025-02-14_raw"
-path_directory_product="${path_directory_dock}/in_data/mygene_2025-02-14/sets_gene_msigdb_2025-02-14_clean_symbol"
-path_directory_temporary="${path_directory_product}/temporary_process" # hopefully unique
-
-# File suffix.
-suffix_file_source=".v2024.1.Hs.grp"
-suffix_file_product=".txt"
+# Files.
 
 # Scripts.
 
 # Initialize directories.
-rm -r $path_directory_temporary
-rm -r $path_directory_product
-mkdir -p $path_directory_product
-mkdir -p $path_directory_temporary
+#rm -r $path_directory_temporary # caution
+#rm -r $path_directory_product # caution
+#mkdir -p $path_directory_product
+#mkdir -p $path_directory_temporary
 cd $path_directory_product
+
+# Initialize files.
+#rm $path_file_product
 
 ###############################################################################
 # Organize parameters.
@@ -173,8 +175,5 @@ if [ "$report" == "true" ]; then
   echo "----------"
 fi
 
-##########
-# Remove temporary, intermediate files.
-rm -r $path_directory_temporary
 
 #

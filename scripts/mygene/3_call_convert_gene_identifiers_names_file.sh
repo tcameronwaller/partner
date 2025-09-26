@@ -30,7 +30,8 @@ path_directory_parameters_private="$path_directory_dock/in_parameters_private"
 
 # Files.
 path_file_source="${path_directory_dock}/in_data/source_msigdb_hp_insulin_resistance.txt"
-path_file_product="${path_directory_dock}/in_data/msigdb_hp_insulin_resistance.txt"
+path_file_product_list="${path_directory_dock}/in_data/msigdb_hp_insulin_resistance.txt"
+path_file_product_table="${path_directory_dock}/in_data/msigdb_hp_insulin_resistance.tsv"
 
 # Scripts.
 path_file_script="${path_directory_scripts}/partner/mygene/convert_gene_identifiers_names.sh"
@@ -57,7 +58,8 @@ set +v # disable print input to standard error
 
 /usr/bin/bash $path_file_script \
 $path_file_source \
-$path_file_product \
+$path_file_product_list \
+$path_file_product_table \
 $delimiter_source \
 $delimiter_product \
 $type_source \

@@ -2197,6 +2197,12 @@ def describe_features_from_table_columns_by_groups_rows(
     report=None,
 ):
     """
+    Dependency:
+    This function is a dependency of the functions, modules, scripts, or
+    packages below.
+    partner.description.
+    prepare_table_signal_summaries_features_observation_groups()
+
     Describe values corresponding to columns for features within groups of rows
     for observations.
 
@@ -2378,6 +2384,213 @@ def describe_features_from_table_columns_by_groups_rows(
         putly.print_terminal_partition(level=4)
     # Return information.
     return table_product
+
+
+def prepare_table_signal_summaries_features_observation_groups(
+    table=None,
+    index_columns=None,
+    column_group=None,
+    columns_features=None,
+    index_rows=None,
+    names_groups_observations_sequence=None,
+    translations_features=None,
+    summary=None,
+    report=None,
+):
+    """
+    Prepare derivative tables of information about statistical summaries of
+    measurement signal intensities corresponding to individual features across
+    individual observations in groups.
+
+    Any translations of identifiers or names of features and observations occur
+    after the selection of features and observations. Hence identifiers or
+    names for selection of features and observations must match those in the
+    original source table.
+
+    ----------
+    Format of source table (name: "table_source")
+    ----------
+    Format of source table is in wide format with features across columns and
+    observations across rows. A special column gives identifiers corresponding
+    to each observation across rows. Another special column provides names
+    of categorical groups of observations, with multiple observations in each
+    group. For versatility, this table does not have explicitly defined indices
+    across columns or rows. Values for observations of features are on a
+    quantitative, continuous, interval or ratio scale of measurement.
+    ----------
+    observation     group     feature_1 feature_2 feature_3 feature_4 feature_5
+    observation_1   group_1   0.001     0.001     0.001     0.001     0.001
+    observation_2   group_1   0.001     0.001     0.001     0.001     0.001
+    observation_3   group_1   0.001     0.001     0.001     0.001     0.001
+    observation_4   group_2   0.001     0.001     0.001     0.001     0.001
+    observation_5   group_2   0.001     0.001     0.001     0.001     0.001
+    observation_6   group_2   0.001     0.001     0.001     0.001     0.001
+    ----------
+
+    ----------
+    Format of product table (name: "table_product")
+    ----------
+    Format of product table is in wide format with floating-point values of
+    a single, specific type of descriptive statistics (usually either mean or
+    median) corresponding to features across rows and groups of observations
+    across columns.
+    ----------
+    group     group_1 group_2 group_3 group_4
+    feature
+    feature_1 0.01    0.001   0.001   0.015
+    feature_2 0.01    0.001   0.001   0.015
+    feature_3 0.01    0.001   0.001   0.015
+    feature_4 0.01    0.001   0.001   0.015
+    feature_5 0.01    0.001   0.001   0.015
+    ----------
+
+    Review: 25 September 2025
+    Review: 30 December 2024
+
+    arguments:
+        table (object): Pandas data-frame table of values of signal intensity
+            corresponding to features across columns and observations across
+            rows
+        index_columns (str): name for header row index corresponding to
+            features across columns in the original source table
+        column_group (str): name of column corresponding to groups of
+            observations across rows in the original source table
+        columns_features (list<str>): names of columns in source table for
+            features
+        index_rows (str): name of a column for index corresponding to
+            observations across rows in the original source table
+        names_groups_observations_sequence (list<str>): names of groups for
+            observations in specific sequence
+        translations_features (dict<str>): translations for names or
+            identifiers of features
+        summary (str): name of statistical measure to select for summaries of
+            signal intensities within groups of observations
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+
+    """
+
+    ##########
+    # Copy information.
+    table_source = table.copy(deep=True)
+    columns_features = copy.deepcopy(columns_features)
+    names_groups_observations_sequence = copy.deepcopy(
+        names_groups_observations_sequence
+    )
+    translations_features = copy.deepcopy(translations_features)
+
+    # Prepare summary of descriptive statistics for features across
+    # observations in groups.
+    #table_long = pdesc.describe_table_features_by_groups(
+    #    table=table_source,
+    #    column_group=column_group,
+    #    columns_features=columns_features,
+    #    index_feature=index_columns,
+    #    translations_feature=None,
+    #    threshold_observations=5,
+    #    digits_round=3,
+    #    report=False,
+    #)
+    table_long = describe_features_from_table_columns_by_groups_rows(
+        table_group=table_source,
+        index_columns=index_columns,
+        index_rows=index_rows,
+        index_features=index_columns,
+        column_group=column_group,
+        groups_sequence=names_groups_observations_sequence,
+        columns_features=columns_features,
+        translations_feature=None,
+        key_group="group",
+        threshold_observations=5,
+        digits_round=3,
+        ttest_one=None,
+        ttest_two=None,
+        ttest_three=None,
+        report=False,
+    )
+
+    # Organize indices in table.
+    table_long.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    table_wide = table_long.pivot(
+        columns=[column_group,],
+        index=index_columns,
+        values=summary,
+    )
+    # Organize indices in table.
+    table_wide.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
+    table_wide.set_index(
+        [index_columns,],
+        append=False,
+        drop=True,
+        inplace=True,
+    )
+    table_wide.columns.rename(
+        "groups_observations",
+        inplace=True,
+    ) # single-dimensional index
+    # Cluster rows in table.
+    table_wide = porg.cluster_table_rows(
+        table=table_wide,
+    )
+    # Organize indices in table.
+    table_wide.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
+    table_wide.columns.rename(
+        None,
+        inplace=True,
+    ) # single-dimensional index
+    # Filter and sort columns in table.
+    columns_sequence = copy.deepcopy(names_groups_observations_sequence)
+    columns_sequence.insert(0, index_columns)
+    table_product = porg.filter_sort_table_columns(
+        table=table_wide,
+        columns_sequence=columns_sequence,
+        report=False,
+    )
+    # Translate names of features.
+    table_product_translation = (
+        porg.translate_identifiers_table_indices_columns_rows(
+            table=table_product,
+            index_rows=index_columns,
+            translations_columns=None,
+            translations_rows=translations_features,
+            remove_redundancy=True,
+            report=False,
+    ))
+
+    ##########
+    # Collect information.
+    pail_return = dict()
+    pail_return["table_summary"] = table_product
+    pail_return["table_summary_translation"] = table_product_translation
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("package: age_exercise.proteomics")
+        print("module: organize_subject.py")
+        function = str(
+            "prepare_table_signal_summaries_features_observation_groups()"
+        )
+        print("function: " + function)
+        putly.print_terminal_partition(level=5)
+        pass
+    # Return information.
+    return pail_return
 
 
 ##########

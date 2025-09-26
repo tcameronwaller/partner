@@ -34,6 +34,7 @@ License:
 # Author: T. Cameron Waller, Ph.D.
 # Date, first execution: 2 July 2025
 # Date, last execution or modification: 16 July 2025
+# Review: TCW; 22 September 2025
 # Review: TCW; 16 July 2025
 ################################################################################
 # Note
@@ -395,6 +396,7 @@ def organize_table_regression_effects(
     Organize information from regressions, with effects across many entities or
     features.
 
+    Review: TCW; 22 September 2025
     Review: TCW; 17 July 2025
 
     arguments:
@@ -722,11 +724,11 @@ def extract_features_significant_effects(
         print("package: partner")
         print("module: extract_effects_from_table_regressions.py")
         print("function: extract_features_significant_effects()")
-        putly.print_terminal_partition(level=5)
+        putly.print_terminal_partition(level=4)
         print("count significant effects: " + str(count_significance))
         print("count positive effects: " + str(count_positive))
         print("count negative effects: " + str(count_negative))
-        putly.print_terminal_partition(level=5)
+        putly.print_terminal_partition(level=3)
         pass
     # Return information.
     return pail
@@ -1127,6 +1129,9 @@ def organize_table_regression_effects_for_merge(
 
 ################################################################################
 # Procedure
+
+# Note: TCW; 22 August 2025
+# Parameter "name_file_product_table_nullification" is not currently in use.
 
 
 ##########

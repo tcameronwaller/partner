@@ -175,94 +175,6 @@ def define_column_types_table_parameters():
     return types_columns
 
 
-def extract_organize_path_directory_file(
-    name_file=None,
-    directories_path=None,
-    name_parent=None,
-    path_directory_parent=None,
-    report=None,
-):
-    """
-    Organize from raw parameters the path to a directory and file.
-
-    To specify the parent directory as the directory in which to find the file,
-    include only the name of the parent directory.
-
-    Review: TCW; 1 July 2025
-
-    arguments:
-        name_file (str): name of file
-        directories_path (list<str>): names of directories in a path
-        name_parent (str): name of parent directory as origin of path
-        path_directory_parent (str): path to parent directory
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (dict): collection of source information about parameters
-
-    """
-
-    # Organize information.
-    name_file = str(name_file).strip()
-    # Determine whether parameters are valid.
-    if (
-        (len(name_file) > 0) and
-        (name_file != "none") and
-        (len(directories_path) > 0)
-    ):
-        validity = True
-        # Define paths to directories and files.
-        if (name_parent in directories_path):
-            directories_path = list(filter(
-                lambda directory: (directory != name_parent),
-                directories_path
-            ))
-            pass
-        path_directory = os.path.join(
-            path_directory_parent,
-            *directories_path, # 'splat' operator unpacks list items
-        )
-        path_file = os.path.join(
-            path_directory, name_file,
-        )
-        # Determine whether the path points to a file that exists.
-        existence_directory = os.path.exists(path_directory)
-        existence_file = os.path.exists(path_file)
-    else:
-        validity = False
-        path_directory = None
-        path_file = None
-        existence_directory = False
-        existence_file = False
-        pass
-
-    # Collect information.
-    pail = dict()
-    pail["validity"] = validity
-    pail["path_directory"] = path_directory
-    pail["path_file"] = path_file
-    pail["existence_directory"] = existence_directory
-    pail["existence_file"] = existence_file
-
-    # Report.
-    if report:
-        # Organize.
-        # Print.
-        putly.print_terminal_partition(level=3)
-        print("package: partner")
-        print("module: drive_regressions_from_table_parameters.py")
-        print("function: extract_organize_path_directory_file()")
-        putly.print_terminal_partition(level=5)
-        print("path to file:")
-        print(path_file)
-        putly.print_terminal_partition(level=5)
-        pass
-    # Return information.
-    return pail
-
-
 def read_source_table_parameters(
     groups_raw=None,
     path_file_source_table_parameters=None,
@@ -542,7 +454,7 @@ def read_source_table_data(
     """
 
     # Define paths to directories and files.
-    pail_path = extract_organize_path_directory_file(
+    pail_path = putly.extract_organize_path_directory_file(
         name_file=name_file_table_data,
         directories_path=directories_path_data,
         name_parent="dock",
@@ -850,7 +762,7 @@ def expand_plural_response_features(
             (feature_response == "file_list_response")
         ):
             # Define paths to directories and files.
-            pail_path = extract_organize_path_directory_file(
+            pail_path = putly.extract_organize_path_directory_file(
                 name_file=instance["name_file_list_response"],
                 directories_path=instance["directories_path_response"],
                 name_parent="dock",

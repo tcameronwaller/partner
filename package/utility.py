@@ -1780,6 +1780,107 @@ def determine_human_physiology_body_mass_index(
 
 
 ##########
+# Manage paths to directories and files
+
+
+def extract_organize_path_directory_file(
+    name_file=None,
+    directories_path=None,
+    name_parent=None,
+    path_directory_parent=None,
+    report=None,
+):
+    """
+    Dependency:
+    This function is a dependency of the functions, modules, scripts, or
+    packages below.
+    partner.drive_regressions_from_table_parameters.py
+    partner.plot_chart_heatmap_groups_observations_sets_features.py
+
+    Organize from raw parameters the path to a directory and file.
+
+    To specify the parent directory as the directory in which to find the file,
+    include only the name of the parent directory.
+
+    Review: TCW; 1 July 2025
+    Review: TCW; 24 September 2025
+
+    arguments:
+        name_file (str): name of file
+        directories_path (list<str>): names of directories in a path
+        name_parent (str): name of parent directory as origin of path
+        path_directory_parent (str): path to parent directory
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict): collection of source information about parameters
+
+    """
+
+    # Organize information.
+    name_file = str(name_file).strip()
+    # Determine whether parameters are valid.
+    if (
+        (len(name_file) > 0) and
+        (name_file != "none") and
+        (len(directories_path) > 0)
+    ):
+        validity = True
+        # Define paths to directories and files.
+        if (name_parent in directories_path):
+            directories_path = list(filter(
+                lambda directory: (directory != name_parent),
+                directories_path
+            ))
+            pass
+        path_directory = os.path.join(
+            path_directory_parent,
+            *directories_path, # 'splat' operator unpacks list items
+        )
+        path_file = os.path.join(
+            path_directory, name_file,
+        )
+        # Determine whether the path points to a file that exists.
+        existence_directory = os.path.exists(path_directory)
+        existence_file = os.path.exists(path_file)
+    else:
+        validity = False
+        path_directory = None
+        path_file = None
+        existence_directory = False
+        existence_file = False
+        pass
+
+    # Collect information.
+    pail = dict()
+    pail["validity"] = validity
+    pail["path_directory"] = path_directory
+    pail["path_file"] = path_file
+    pail["existence_directory"] = existence_directory
+    pail["existence_file"] = existence_file
+
+    # Report.
+    if report:
+        # Organize.
+        # Print.
+        print_terminal_partition(level=3)
+        print("package: partner")
+        print("module: drive_regressions_from_table_parameters.py")
+        print("function: extract_organize_path_directory_file()")
+        print_terminal_partition(level=5)
+        print("path to file:")
+        print(path_file)
+        print_terminal_partition(level=5)
+        pass
+    # Return information.
+    return pail
+
+
+
+
+##########
 # Read information from file
 
 
@@ -2170,195 +2271,6 @@ def read_all_pandas_tables_files_within_parent_directory(
     return pail
 
 
-def determine_category_text_threshold_quantitative(
-    value=None,
-    threshold_low=None,
-    threshold_high=None,
-    category_low=None,
-    category_middle=None,
-    category_high=None,
-    category_missing=None,
-):
-    """
-    Determine a text categorical designator or indicator by applying a simple
-    threshold to a feature variable with values on a quantitative scale of
-    measurement. Assigns specific categorical text designator for missing
-    values.
-
-    low: value < threshold_low
-    middle: threshold_low <= value < threshold_high
-    high: value >= threshold_high
-
-    For more sophisticated definitions, apply filters to the quantitative
-    values before calling this function.
-
-    Review: TCW; 9 July 2025
-
-    arguments:
-        value (float): value of feature variable with values on a quantitative
-            scale of measurement
-        threshold_low (float): lower threshold
-        threshold_high (float): higher threshold
-        category_low (str): category text to designate values relative to
-            threshold
-        category_middle (str): category text to designate values relative to
-            threshold
-        category_high (str): category text to designate values relative to
-            threshold
-        category_missing (str): category text to designate missing values
-
-    raises:
-
-    returns:
-        (float): designator or indicator
-
-    """
-
-    # Determine whether there is adequate information.
-    if (
-        (value is not None) and
-        (pandas.notna(value))
-    ):
-        # There is adequate information.
-        # Determine designator.
-        if (value < threshold_low):
-            designator = category_low
-        elif (
-            (value >= threshold_low) and
-            (value < threshold_high)
-        ):
-            designator = category_middle
-        elif (value >= threshold_high):
-            designator = category_high
-        else:
-            # This should not happen.
-            designator = category_missing
-            pass
-    else:
-        # There is inadequate information.
-        designator = category_missing
-        pass
-    # Return information.
-    return designator
-
-
-def determine_category_text_logical_binary(
-    category_text=None,
-    values_1=None,
-    values_0=None,
-):
-    """
-    Determine a logical binary designator or indicator for a corresponding
-    category as a text value. Introduce a float missing value if the category
-    does not match any values for either one (1) or zero (0).
-
-    Review: TCW; 4 June 2025
-
-    arguments:
-        category_text (str): category text for which to determine logical
-            binary designator or indicator
-        values_1 (list<str>): values for which to assign a designator or
-            indicator of one (1)
-        values_0 (list<str>): values for which to assign a designator or
-            indicator of zero (0)
-
-    raises:
-
-    returns:
-        (float): designator or indicator
-
-    """
-
-    # Determine whether there is adequate information.
-    if (
-        (pandas.notna(category_text)) and
-        (len(str(category_text).strip()) > 0)
-    ):
-        # There is adequate information.
-        category_text = str(category_text).strip().lower()
-        # Determine designator.
-        if (category_text in values_1):
-            designator = 1
-        elif (category_text in values_0):
-            designator = 0
-        else:
-            designator = float("nan")
-            pass
-    else:
-        # There is inadequate information.
-        designator = float("nan")
-        pass
-    # Return information.
-    return designator
-
-
-def determine_category_text_two_intersection_interaction(
-    value_intersection=None,
-    value_other=None,
-    value_else=None,
-    category_one=None,
-    values_one_intersection=None,
-    values_one_other=None,
-    category_two=None,
-    values_two_intersection=None,
-    values_two_other=None,
-):
-    """
-    Determines appropriate text categorical designation of positive, true or
-    negative, false interaction or intersection between specific values of two
-    text categorical variables.
-
-    Review: TCW; 4 June 2025
-
-    arguments:
-        value_intersection (str): text value designation of positive or true
-            intersection between specific values of two original categories
-        value_other (str): text value designation of negative or false
-            intersection between specific values of two original categories
-        value_else (str): text value designation of a situation that matches
-            neither the positive, true nor the negative, false
-        category_one (str): text value of first category for which to determine
-            custom intersection with a second category
-        values_one_intersection (list<str>):
-        values_one_other (list<str>):
-        category_two (str): text value of second category for which to determine
-            custom intersection with a first category
-        values_two_intersection (list<str>):
-        values_two_other (list<str>):
-
-    raises:
-
-    returns:
-        (str): text categorical designation of interaction
-
-    """
-
-    # Determine designator.
-    if (
-        (pandas.notna(category_one)) and
-        (len(str(category_one).strip()) > 0) and
-        (pandas.notna(category_two)) and
-        (len(str(category_two).strip()) > 0)
-    ):
-        if (
-            (str(category_one).strip() in values_one_intersection) and
-            (str(category_two).strip() in values_two_intersection)
-        ):
-            designator = value_intersection
-        elif (
-            (str(category_one).strip() in values_one_other) and
-            (str(category_two).strip() in values_two_other)
-        ):
-            designator = value_other
-        else:
-            designator = value_else
-    else:
-        designator = value_else
-        pass
-    # Return information.
-    return designator
-
-
 
 ##########
 # Write information to file
@@ -2503,11 +2415,16 @@ def write_list_to_file_text(
 
     """
 
+    elements_string = list()
+    for item in elements:
+        elements_string.append(str(item))
+        pass
+
     # Extract name of file from path.
     #name_file = os.path.basename(path_file_product).split(".")[0]
     # Write information to file
     with open(path_file, "w") as file_product:
-        string = delimiter.join(elements)
+        string = delimiter.join(elements_string)
         file_product.write(string)
     pass
 
@@ -2824,6 +2741,201 @@ def write_tables_to_file_in_child_directories(
         )
         pass
     pass
+
+
+
+# Definitions of categories.
+
+
+def determine_category_text_threshold_quantitative(
+    value=None,
+    threshold_low=None,
+    threshold_high=None,
+    category_low=None,
+    category_middle=None,
+    category_high=None,
+    category_missing=None,
+):
+    """
+    Determine a text categorical designator or indicator by applying a simple
+    threshold to a feature variable with values on a quantitative scale of
+    measurement. Assigns specific categorical text designator for missing
+    values.
+
+    low: value < threshold_low
+    middle: threshold_low <= value < threshold_high
+    high: value >= threshold_high
+
+    For more sophisticated definitions, apply filters to the quantitative
+    values before calling this function.
+
+    Review: TCW; 9 July 2025
+
+    arguments:
+        value (float): value of feature variable with values on a quantitative
+            scale of measurement
+        threshold_low (float): lower threshold
+        threshold_high (float): higher threshold
+        category_low (str): category text to designate values relative to
+            threshold
+        category_middle (str): category text to designate values relative to
+            threshold
+        category_high (str): category text to designate values relative to
+            threshold
+        category_missing (str): category text to designate missing values
+
+    raises:
+
+    returns:
+        (float): designator or indicator
+
+    """
+
+    # Determine whether there is adequate information.
+    if (
+        (value is not None) and
+        (pandas.notna(value))
+    ):
+        # There is adequate information.
+        # Determine designator.
+        if (value < threshold_low):
+            designator = category_low
+        elif (
+            (value >= threshold_low) and
+            (value < threshold_high)
+        ):
+            designator = category_middle
+        elif (value >= threshold_high):
+            designator = category_high
+        else:
+            # This should not happen.
+            designator = category_missing
+            pass
+    else:
+        # There is inadequate information.
+        designator = category_missing
+        pass
+    # Return information.
+    return designator
+
+
+def determine_category_text_logical_binary(
+    category_text=None,
+    values_1=None,
+    values_0=None,
+):
+    """
+    Determine a logical binary designator or indicator for a corresponding
+    category as a text value. Introduce a float missing value if the category
+    does not match any values for either one (1) or zero (0).
+
+    Review: TCW; 4 June 2025
+
+    arguments:
+        category_text (str): category text for which to determine logical
+            binary designator or indicator
+        values_1 (list<str>): values for which to assign a designator or
+            indicator of one (1)
+        values_0 (list<str>): values for which to assign a designator or
+            indicator of zero (0)
+
+    raises:
+
+    returns:
+        (float): designator or indicator
+
+    """
+
+    # Determine whether there is adequate information.
+    if (
+        (pandas.notna(category_text)) and
+        (len(str(category_text).strip()) > 0)
+    ):
+        # There is adequate information.
+        category_text = str(category_text).strip().lower()
+        # Determine designator.
+        if (category_text in values_1):
+            designator = 1
+        elif (category_text in values_0):
+            designator = 0
+        else:
+            designator = float("nan")
+            pass
+    else:
+        # There is inadequate information.
+        designator = float("nan")
+        pass
+    # Return information.
+    return designator
+
+
+def determine_category_text_two_intersection_interaction(
+    value_intersection=None,
+    value_other=None,
+    value_else=None,
+    category_one=None,
+    values_one_intersection=None,
+    values_one_other=None,
+    category_two=None,
+    values_two_intersection=None,
+    values_two_other=None,
+):
+    """
+    Determines appropriate text categorical designation of positive, true or
+    negative, false interaction or intersection between specific values of two
+    text categorical variables.
+
+    Review: TCW; 4 June 2025
+
+    arguments:
+        value_intersection (str): text value designation of positive or true
+            intersection between specific values of two original categories
+        value_other (str): text value designation of negative or false
+            intersection between specific values of two original categories
+        value_else (str): text value designation of a situation that matches
+            neither the positive, true nor the negative, false
+        category_one (str): text value of first category for which to determine
+            custom intersection with a second category
+        values_one_intersection (list<str>):
+        values_one_other (list<str>):
+        category_two (str): text value of second category for which to determine
+            custom intersection with a first category
+        values_two_intersection (list<str>):
+        values_two_other (list<str>):
+
+    raises:
+
+    returns:
+        (str): text categorical designation of interaction
+
+    """
+
+    # Determine designator.
+    if (
+        (pandas.notna(category_one)) and
+        (len(str(category_one).strip()) > 0) and
+        (pandas.notna(category_two)) and
+        (len(str(category_two).strip()) > 0)
+    ):
+        if (
+            (str(category_one).strip() in values_one_intersection) and
+            (str(category_two).strip() in values_two_intersection)
+        ):
+            designator = value_intersection
+        elif (
+            (str(category_one).strip() in values_one_other) and
+            (str(category_two).strip() in values_two_other)
+        ):
+            designator = value_other
+        else:
+            designator = value_else
+    else:
+        designator = value_else
+        pass
+    # Return information.
+    return designator
+
+
 
 
 ##########

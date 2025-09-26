@@ -2,16 +2,31 @@
 
 ################################################################################
 # Author: T. Cameron Waller
-# Date, first execution: 12 February 2025
-# Date, last execution or modification: 12 February 2025
-# Review: TCW; 12 February 2025
+# Date, first execution: 11 September 2025
+# Date, last execution or modification: 11 September 2025
+# Review: TCW; 11 September 2025
 ################################################################################
 # Note
 
+# MSigDB format ".gmt"
+# delimiter between sets in a collection: newline
+# delimiter between genes in a set: tab
+# file name suffix: ".gmt"
 
 ################################################################################
+# Organize parameters.
 
-
+# Parameters.
+delimiter_source="newline" # "newline", "tab", "\n", "\t", ";", ":", ",", not " "
+delimiter_product_set="tab" # "newline", "tab", "\n", "\t", ";", ":", ",", not " "
+delimiter_product_collection="newline" # "newline", "tab", "\n", "\t", ";", ":", ",", not " "
+suffix_file_source=".txt"
+suffix_file_product=".gmt"
+report="true"
+#set -x # enable print commands to standard error
+set +x # disable print commands to standard error
+#set -v # enable print input to standard error
+set +v # disable print input to standard error
 
 ################################################################################
 # Organize paths.
@@ -28,42 +43,19 @@ path_directory_data="$path_directory_dock/in_data" # restore script does not mod
 path_directory_parameters="$path_directory_dock/in_parameters"
 path_directory_parameters_private="$path_directory_dock/in_parameters_private"
 
-# dock/out_age_exercise/transcriptomics/operate_sets/lists
-#path_directory_source="${path_directory_dock}/in_data/mygene_2025-02-14/sets_gene_msigdb_2025-02-14_clean_symbol"
-#path_directory_product="${path_directory_dock}/in_data/mygene_2025-02-14/sets_gene_msigdb_2025-02-14_clean_ensembl"
-
-path_directory_source="${path_directory_dock}/temp_mygene_2025-07-17/input"
-path_directory_product="${path_directory_dock}/temp_mygene_2025-07-17/output"
+path_directory_source="${path_directory_dock}/in_data/mygene_2025-02-14/sets_gene_msigdb_2025-02-14_raw"
+path_directory_product="${path_directory_dock}/in_data/mygene_2025-02-14/sets_gene_msigdb_2025-02-14_clean_symbol"
 path_directory_temporary="${path_directory_product}/temporary_process" # hopefully unique
 
-# File suffix.
-suffix_file_source=".txt"
-suffix_file_product=".txt"
-
 # Scripts.
-path_file_script="${path_directory_scripts}/partner/mygene/convert_gene_identifiers_names.sh"
 
 # Initialize directories.
-rm -r $path_directory_temporary
-rm -r $path_directory_product
+#rm -r $path_directory_temporary # caution
+#rm -r $path_directory_product # caution
 mkdir -p $path_directory_product
 mkdir -p $path_directory_temporary
 cd $path_directory_product
 
-###############################################################################
-# Organize parameters.
-
-# Parameters.
-delimiter_source="newline" # "newline", "tab", "\n", "\t", ";", ":", ",", not " "
-delimiter_product="newline" # "newline", "tab", "\n", "\t", ";", ":", ",", not " "
-type_source="ensembl.gene" # "entrezgene", "ensembl.gene", "symbol",
-type_product="symbol" # "entrezgene", "ensembl.gene", "symbol",
-species="human" # "human"
-report="true"
-#set -x # enable print commands to standard error
-set +x # disable print commands to standard error
-#set -v # enable print input to standard error
-set +v # disable print input to standard error
 
 ################################################################################
 # Execute procedure.
@@ -111,18 +103,59 @@ for path_file_source in "${paths_files_source[@]}"; do
     echo $path_file_product
     echo "----------"
   fi
+
   ##########
-  # Translate identifiers or names.
-  /usr/bin/bash $path_file_script \
-  $path_file_source \
-  $path_file_product \
-  $delimiter_source \
-  $delimiter_product \
-  $type_source \
-  $type_product \
-  $species
+  # Read text items from file to array.
+  # Initialize array.
+  items_source=() # lines
+  # Read text items from file using delimiters such as new line.
+  input=$path_file_source
+  if [[ "$delimiter_source" == "newline" ]]; then
+    while IFS=$'\n' read -r -a item
+    do
+    # Report.
+    #if [ "$report" == "true" ]; then
+    #  echo "----------"
+    #  echo "item: ${item}"
+    #  echo "----------"
+    #fi
+    # Collect.
+    items_source+=("${item}")
+  done < <(tail -n +0 "${input}"; echo) # append new line to tail to ensure read of last line
+  fi
+
+  ##########
+  # Write text items to file.
+  count_items_source=${#items_source[@]}
+  # Initialize counter.
+  counter=0
+  for item in "${items_source[@]}"; do
+    # Determine whether item is non-empty.
+    if [[ -n "$item" ]]; then
+      if [[ $counter -eq "0" ]]; then
+        # Initialize entry for the set.
+        printf "${name_base_file_product}\t" > $path_file_product
+        printf "${name_base_file_product}\t" > $path_file_product
+        # Write item to text in file with appropriate delimiter.
+        #echo -n "${item}" >> $path_file_product
+        printf "${item}" >> $path_file_product
+      elif [[ $counter -gt "0" ]]; then
+        # Write item to text in file with appropriate delimiter.
+        #echo -n "\t${item}" >> $path_file_product
+        printf "\t${item}" >> $path_file_product
+      fi
+      # Increment counter.
+      ((counter++))
+    fi
+  done
+
+  # Create new line.
+  printf "\n" >> $path_file_product
+  # Initialize counter.
+  counter=0
 
 done
+
 
 
 ################################################################################
@@ -131,7 +164,7 @@ if [ "$report" == "true" ]; then
   echo "----------"
   echo "----------"
   echo "----------"
-  echo "script: call_convert_gene_identifiers_names_directory.sh"
+  echo "script: assemble_collection_genes_sets_directory.sh"
   echo $0 # Print full file path to script.
   echo "done"
   echo "----------"
@@ -140,6 +173,5 @@ fi
 ##########
 # Remove temporary, intermediate files.
 rm -r $path_directory_temporary
-
 
 #

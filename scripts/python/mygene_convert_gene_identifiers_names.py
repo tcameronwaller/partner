@@ -33,7 +33,8 @@ License:
 ################################################################################
 # Author: T. Cameron Waller, Ph.D.
 # Date, first execution: 31 October 2024
-# Date, last execution: 1 November 2024
+# Date, last execution: 11 September 2025
+# Review: TCW; 11 September 2025
 # Review: TCW; 1 November 2024
 ################################################################################
 # Note
@@ -297,12 +298,14 @@ def parse_delivery_mygene_information(
 
 def execute_procedure(
     path_file_source=None,
-    path_file_product=None,
+    path_file_product_list=None,
+    path_file_product_table=None,
     delimiter_source=None,
     delimiter_product=None,
     type_source=None,
     type_product=None,
     species=None,
+    report=None,
 ):
     """
     Function to execute module's main behavior.
@@ -310,8 +313,8 @@ def execute_procedure(
     arguments:
         path_file_source (str): path to source file in text format from which
             to read identifiers or names of genes
-        path_file_product (str): path to product file to which to write in text
-            format the identifiers or names of genes
+        path_file_product_list (str): path to product file for list
+        path_file_product_table (str): path to product file for table
         delimiter_source (str): text delimiter between items in source file,
             not white space
         delimiter_product (str): text delimiter between items in product file,
@@ -322,6 +325,7 @@ def execute_procedure(
             delivery
         species (str): name of species, either "human", "mouse", or another
             relevant option
+        report (str): whether to print reports
 
     raises:
 
@@ -331,7 +335,16 @@ def execute_procedure(
 
     ##########
     # Parameters.
-    report = True
+    if (
+        (report is not None) and
+        (str(report) != "") and
+        (str(report) != "none") and
+        (str(report) == "true")
+    ):
+        report = True
+    else:
+        report = False
+        pass
 
     ##########
     # Report.
@@ -342,7 +355,8 @@ def execute_procedure(
         putly.print_terminal_partition(level=5)
         print("system: local")
         print("path_file_source: " + str(path_file_source))
-        print("path_file_product: " + str(path_file_product))
+        print("path_file_product_list: " + str(path_file_product_list))
+        print("path_file_product_table: " + str(path_file_product_table))
         print("delimiter_source: " + str(delimiter_source))
         print("delimiter_product: " + str(delimiter_product))
         print("type_source: " + str(type_source))
@@ -370,14 +384,14 @@ def execute_procedure(
         species=species,
         report=report,
     )
-    print("!!!!!!!!!!!!!!!! mygene delivery")
-    print(delivery)
+    #print("!!!!!!!!!!!!!!!! mygene delivery")
+    #print(delivery)
     # Use temporary file for testing to avoid repetitive queries at
     # MyGene.info.
     if False:
         # Write product information to file.
         name_file = str(os.path.basename(path_file_source) + "_temp")
-        path_directory = os.path.dirname(path_file_product)
+        path_directory = os.path.dirname(path_file_product_list)
         putly.write_object_to_file_pickle(
             object=delivery,
             name_file=name_file,
@@ -400,18 +414,41 @@ def execute_procedure(
         species=species,
         report=report,
     )
+    #pail["table"]
+    #pail["items"]
 
     ##########
     # Write product information to file.
-    #name_file = os.path.basename(path_file_product).split()
-    #path_directory = os.path.dirname(path_file_product)
+    # Organize information for write.
     # Resolve misinterpretation of delimiter strings.
     delimiter_product = delimiter_product.replace("tab", "\t")
     delimiter_product = delimiter_product.replace("newline", "\n")
+    # Extract information from path to directory and file.
+    #path_directory = os.path.dirname(path_file_product)
+    #name_file = os.path.basename(path_file_product).split()
+    path_directory_product_table = os.path.dirname(
+        path_file_product_table
+    )
+    name_suffix_file_table = os.path.basename(path_file_product_table)
+    name_file_table, suffix_file_table = os.path.splitext(
+        name_suffix_file_table
+    )
+    # Write product information to file.
     putly.write_list_to_file_text(
         elements=pail["items"],
         delimiter=delimiter_product,
-        path_file=path_file_product,
+        path_file=path_file_product_list,
+    )
+    putly.write_table_to_file(
+        table=pail["table"],
+        name_file=name_file_table,
+        path_directory=path_directory_product_table,
+        reset_index_rows=False,
+        write_index_rows=False,
+        write_index_columns=True,
+        type="text",
+        delimiter="\t",
+        suffix=suffix_file_table,
     )
 
     pass
@@ -421,22 +458,26 @@ if (__name__ == "__main__"):
     # Parse arguments from terminal.
     path_file_script = sys.argv[0] # always the first argument
     path_file_source = sys.argv[1]
-    path_file_product = sys.argv[2]
-    delimiter_source = sys.argv[3]
-    delimiter_product = sys.argv[4]
-    type_source = sys.argv[5]
-    type_product = sys.argv[6]
-    species = sys.argv[7]
+    path_file_product_list = sys.argv[2]
+    path_file_product_table = sys.argv[3]
+    delimiter_source = sys.argv[4]
+    delimiter_product = sys.argv[5]
+    type_source = sys.argv[6]
+    type_product = sys.argv[7]
+    species = sys.argv[8]
+    report = sys.argv[9]
 
     # Call function for procedure.
     execute_procedure(
         path_file_source=path_file_source,
-        path_file_product=path_file_product,
+        path_file_product_list=path_file_product_list,
+        path_file_product_table=path_file_product_table,
         delimiter_source=delimiter_source,
         delimiter_product=delimiter_product,
         type_source=type_source,
         type_product=type_product,
         species=species,
+        report=report,
     )
 
     pass

@@ -409,54 +409,56 @@ def explicate_table_indices_columns_rows_single_level(
 ##########
 # Transfer, Fill.
 
+
 # Transfer information between tables.
 # This operation differs from a merge or join in that it does not require a
 # one to one match of identifiers.
-def transfer_table_rows_attributes_reference(
+def transfer_table_columns_by_match_rows(
     table_main=None,
-    column_main_key=None,
-    table_reference=None,
-    column_reference_key=None,
-    columns_reference_transfer=None,
-    prefix_reference_main=None,
-    suffix_reference_main=None,
+    match_column_main=None,
+    table_supplement=None,
+    match_column_supplement=None,
+    columns_transfer=None,
+    prefix=None,
+    suffix=None,
     report=None,
 ):
     """
-    Transfers attributes from a reference Pandas data-frame table to a main
-    Pandas data-frame table on the basis of a specific factor variable of which
-    the individual values serve as keys.
+    Transfer values for columns from a supplement table to a main table by
+    matching identifiers in their respective rows.
+
+    Notice that the supplemental table must include information for each and
+    every unique value of the key match factor variable from the main table.
+
+    Unlike a merge operation on tables, this function requires the key factor
+    variable to become a unique, unambiguous index in the reference supplement
+    table but does not require the key factor variable to be unique in the main
+    table.
+
+    Neither the main table nor the supplement table ought to have special,
+    named indices, as this function would remove them.
 
     In this context, the values of the factor variable could be identifiers or
     names for individual samples, groups of samples, groups of experimental
     conditions, or other distinguishing variables such as outcome dependent
     variables and predictor independent variables in regression analyses.
 
-    Notice that the reference table must include information for each and every
-    unique value of the key factor variable.
-
-    Unlike a merge operation on tables, this function requires the key factor
-    variable to become a unique, unambiguous index in the reference table but
-    does not require the key factor variable to be unique in the main table.
-
-    Neither the main table nor the reference table ought to have special,
-    named indices, as this function would remove them.
-
+    Review: TCW; 18 September 2024
     Review: TCW; 1 August 2024
 
     arguments:
         table_main (object): Pandas data-frame table
-        column_main_key (str): name of column in main table for the key
+        match_column_main (str): name of column in main table for the key
             factor
-        table_reference (object): reference table of attributes corresponding
+        table_supplement (object): reference table of attributes corresponding
             to unique values of the key factor in the main table
-        column_reference_key (str): name of column in reference table for the
+        match_column_supplement (str): name of column in reference table for the
             key factor
-        columns_reference_transfer (list<str>): name of columns in reference
+        columns_transfer (list<str>): name of columns in reference
             table for attributes corresponding to values of the key factor
-        prefix_reference_main (str): prefix to append to names of attributes
+        prefix (str): prefix to append to names of attributes
             when transfered to the main table
-        suffix_reference_main (str): suffix to append to names of attributes
+        suffix (str): suffix to append to names of attributes
             when transfered to the main table
         report (bool): whether to print reports
 
@@ -467,62 +469,67 @@ def transfer_table_rows_attributes_reference(
 
     """
 
-    # Copy information in table.
-    table_reference = table_reference.copy(deep=True)
+    # Copy information.
+    table_main = table_main.copy(deep=True)
+    table_supplement = table_supplement.copy(deep=True)
+    table_main_fill = table_main.copy(deep=True)
+
     # Create dictionary for reference.
-    table_reference.reset_index(
+    table_supplement.reset_index(
         level=None,
         inplace=True,
         drop=True, # remove index; do not move to regular columns
     )
-    table_reference.set_index(
-        [column_reference_key],
+    table_supplement.set_index(
+        [match_column_supplement],
         append=False,
         drop=True,
         inplace=True,
     )
-    reference_attributes = table_reference.to_dict("index")
+    reference_supplement = table_supplement.to_dict("index")
 
-    # Copy information in table.
-    table_main_attribute = table_main.copy(deep=True)
     # Organize information in table.
-    table_main_attribute.reset_index(
+    table_main_fill.reset_index(
         level=None,
         inplace=True,
         drop=True, # remove index; do not move to regular columns
     )
-    # Transfer attributes from reference table to the main table.
-    for column_reference in columns_reference_transfer:
+    # Transfer information from supplemental table to main table.
+    for column_transfer in columns_transfer:
         column_novel = str(
-            prefix_reference_main +
-            column_reference +
-            suffix_reference_main
+            prefix +
+            column_transfer +
+            suffix
         )
-        table_main_attribute[column_novel] = table_main_attribute.apply(
+        table_main_fill[column_novel] = table_main_fill.apply(
             lambda row: (
-                reference_attributes[row[column_main_key]][column_reference]
+                reference_supplement[row[match_column_main]][column_transfer]
             ),
             axis="columns", # apply function to each row
         )
         pass
     # Report.
     if report:
+        # Organize.
+        count_columns_source = (table_main.shape[1])
+        count_columns_product = (table_main_fill.shape[1])
+        # Report.
         putly.print_terminal_partition(level=3)
         print("module: partner.organization.py")
-        print("function: transfer_table_rows_attributes_reference()")
+        print("function: transfer_table_columns_by_match_rows()")
         putly.print_terminal_partition(level=5)
-        count_columns_source = (table_main.shape[1])
-        count_columns_product = (table_main_attribute.shape[1])
+        print("columns transfer:")
+        print(columns_transfer)
         print("count of columns in source table: " + str(count_columns_source))
         print(
             "count of columns in product table: " +
             str(count_columns_product)
         )
         print("table")
-        print(table_main_attribute)
+        print(table_main_fill)
         putly.print_terminal_partition(level=4)
     # Return information.
-    return table_main_attribute
+    return table_main_fill
 
 
 def determine_fill_table_groups_rows_with_replicates(
@@ -748,7 +755,7 @@ def sort_table_rows_primary_secondary_reference(
 
     The implementation strategy of this function relates closely to the function
     below.
-    partner.organization.transfer_table_rows_attributes_reference()
+    partner.organization.transfer_table_columns_by_match_rows()
 
     Review: TCW; 27 March 2024
 
@@ -3597,9 +3604,86 @@ def fill_missing_values_table_by_row(
 ##########
 # Combine tables.
 
-# TODO: TCW; 1 July 2024
-# From within these two "merge..." functions, call function "filter_sort_table_columns()"
-# to clean up the table after the combination.
+
+def append_name_prefix_suffix_table_columns(
+    table=None,
+    prefix=None,
+    suffix=None,
+    columns=None,
+    report=None,
+):
+    """
+    Append custom prefix or suffix to names of a specific selection of columns
+    in a table.
+
+    Review: TCW; 15 September 2025
+
+    arguments:
+        table (object): Pandas data-frame table
+        prefix (str): prefix to append on names of columns
+        suffix (str): suffix to append on names of columns
+        columns (list<str>): names of columns in table
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    # Copy information.
+    table_source = table.copy(deep=True)
+    table_product = table.copy(deep=True)
+    columns = copy.deepcopy(columns)
+
+    # Filter to selection of columns that exist in the table.
+    columns_available = list(filter(
+        lambda item: item in copy.deepcopy(table_product.columns.to_list()),
+        columns
+    ))
+
+    # Prepare translations for names of columns.
+    translations = dict()
+    for column in columns_available:
+        translation = str(
+            prefix + column + suffix
+        )
+        translations[column] = translation
+        pass
+
+    # Translate names of columns in table.
+    table_product.rename(
+        columns=translations,
+        inplace=True,
+    )
+
+    # Report.
+    if report:
+        # Organize.
+        count_columns = (table_product.shape[1])
+        count_rows = (table_product.shape[0])
+        # Print.
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        print("module: organization.py")
+        print("function: append_name_prefix_suffix_table_columns()")
+        putly.print_terminal_partition(level=5)
+        print("source table:")
+        print(table_source)
+        print(table_source.columns.to_list())
+        putly.print_terminal_partition(level=5)
+        print("product table:")
+        print(table_product)
+        print(table_product.columns.to_list())
+        print("count columns: " + str(count_columns))
+        print("count rows: " + str(count_rows))
+        putly.print_terminal_partition(level=5)
+        pass
+    # Return information.
+    return table_product
+
+
 def merge_columns_tables_supplements_to_main(
     identifier_main=None,
     identifier_supplement=None,
@@ -3755,7 +3839,12 @@ def merge_columns_two_tables(
     columns.
 
     This function also does not check that columns in both tables have unique
-    names.
+    names. If any columns other than the key identifier have identical names,
+    the merge function will change the names and then these will get lost in
+    the subsequent filter.
+
+    Review:
+    TCW; 26 August 2025
 
     arguments:
         identifier_first (str): name of column in first table on which to merge
@@ -3848,7 +3937,11 @@ def merge_columns_two_tables(
     #    inplace=True
     #)
     # Determine unique columns from collection.
-    columns_collection = list(set(columns_collection))
+    #columns_collection = list(set(columns_collection))
+    columns_collection_unique = putly.collect_unique_items(
+        items=columns_collection,
+    )
+
     # Remove unnecessary columns from transformations on tables.
     # The goal is to avoid any columns from the merge operations themselves.
     #table_merge.drop(
@@ -3857,7 +3950,7 @@ def merge_columns_two_tables(
     #    inplace=True
     #)
     table = table.loc[
-        :, table.columns.isin(columns_collection)
+        :, table.columns.isin(columns_collection_unique)
     ]
 
     # Report.
@@ -3880,12 +3973,6 @@ def merge_columns_two_tables(
 # Prepare columns of features and rows of observations in table for analysis.
 
 
-# TODO: TCW; 22 April 2025
-# It is very common to need to troubleshoot problems with indices on tables.
-# Make the code in this function more general to be able to accommodate all
-# possibilities of a table's indices (1. named index exists matching "index_rows_source",
-# 2. column matches but isn't yet a named index 3. no index or column match, create new).
-# and place within a new function.
 def prepare_table_features_observations_for_analysis(
     table=None,
     selection_observations=None,
@@ -3962,6 +4049,7 @@ def prepare_table_features_observations_for_analysis(
     observation_5   0.001     0.001     0.001     0.001     0.001     ...
     ----------
 
+    Review: TCW; 22 April 2025
     Review: TCW; 10 April 2025
 
     arguments:
@@ -4060,19 +4148,6 @@ def prepare_table_features_observations_for_analysis(
         print(table.dtypes)
         putly.print_terminal_partition(level=5)
         pass
-
-    if (
-        (remove_missing) and
-        (len(features_essential) > 0)
-    ):
-        table.dropna(
-            axis="index",
-            how="any",
-            subset=features_essential,
-            inplace=True,
-        )
-        pass
-
 
     # Remove rows from table for observations with missing values for any of
     # the essential features.
