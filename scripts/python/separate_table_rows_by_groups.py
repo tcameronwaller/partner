@@ -39,6 +39,10 @@ License:
 # Note
 
 
+# Recent example of usage:
+# /.../pails_process/orphan/2025-09-17_rnaseq_adipose_muscle_olink_geroscience
+
+
 ##########
 # Review: TCW; 19 September 2025
 

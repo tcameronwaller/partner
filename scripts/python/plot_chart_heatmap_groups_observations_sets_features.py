@@ -78,7 +78,6 @@ License:
 # Recent example of usage:
 # /.../pails_process/omega3/2025-09-22_heterogeneity_candidate_adipose_fibrosis
 
-
 ##########
 # Review: TCW; 26 September 2025
 
