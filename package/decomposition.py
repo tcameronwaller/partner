@@ -48,6 +48,8 @@ License:
 # Installation and importation
 
 # Standard
+import sys
+# sys.exit() # End execution at this point.
 import os
 import csv
 import copy
@@ -69,7 +71,7 @@ import numpy
 import statsmodels.api
 
 # Custom
-import partner.utility as utility # this import path for subpackage
+import partner.utility as putly # this import path for subpackage
 import partner.organization as porg
 
 #dir()
@@ -88,262 +90,6 @@ import partner.organization as porg
 # Note: TCW, 17 August 2021
 # The SVD method delivers Principal Components that match the SKLearn method.
 # I need to confirm that both methods deliver identical loadings.
-
-
-# TODO: TCW; 2 April 2025
-# This function needs substantial update.
-# It does not make sense to compare variance between features after than have
-# been standardized by z-score (standard deviation 1).
-# Rather, use the "unit_range" method to adjust scale of features and then
-# select or filter features by "variance thresholding".
-# Refer to "partner.script_drive_regressions_from_table_parameters".
-# Step 1: transform features to unit range, before any z-score standardization.
-# Step 2: filter features by their variance when at unit range (var >= 0.001).
-def filter_table_columns_by_nonmissing_variance(
-    threshold_valid_proportion_per_column=None,
-    threshold_column_variance=None,
-    type_variance=None,
-    table=None,
-    report=None,
-):
-    """
-    Filters columns in a table by their proportions of non-missing values and by
-    their relative varances across rows.
-
-    Table format: Pandas data frame with variables (features) across columns and
-    their samples (cases, observations) across rows with an explicit index
-
-    arguments:
-        threshold_valid_proportion_per_column (float): minimal proportion of
-            a column's rows that must have a valid value
-        threshold_column_variance (float): minimal value of variance measure in
-            each column's values
-        type_variance (str): type of measurement of variance, either
-            "standard_deviation" or "relative_variance"
-        table (object): Pandas data frame with variables (features) across
-            columns and samples (cases, observations) across rows with an
-            explicit index
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (dict): collection of information for the singular value decomposition
-
-    """
-
-    # Nested function.
-    def match_column_variance(
-        name=None,
-        threshold_column_variance=None,
-        variances=None,
-    ):
-        if (str(name) in variances.keys()):
-            variance = variances[name]
-            if (
-                (not math.isnan(variance)) and
-                (threshold_column_variance <= variance)
-            ):
-                match = True
-            else:
-                match = False
-        else:
-            match = False
-        return match
-
-    # Copy information.
-    table_source = table.copy(deep=True)
-    table_product = table.copy(deep=True)
-    # Drop any columns with inadequate valid (non-missing) values across rows.
-    if (0.001 <= threshold_valid_proportion_per_column):
-        rows = table_product.shape[0]
-        threshold = round(rows*threshold_valid_proportion_per_column)
-        table_product.dropna(
-            axis="columns", # drop columns
-            thresh=threshold,
-            subset=None,
-            inplace=True,
-        )
-    # Drop any columns with minimal relative variance.
-    if (0.00001 <= threshold_column_variance):
-        if (type_variance == "standard_deviation"):
-            series_variance = table_product.aggregate(
-                lambda column: numpy.nanstd(column.to_numpy()),
-                axis="index", # apply function to each column
-            )
-            #series_variance = table_product.aggregate(
-            #    lambda column: column.std(),
-            #    axis="index", # apply function to each column
-            #)
-        elif (type_variance == "relative_variance"):
-            series_variance = table_product.aggregate(
-                lambda column: calculate_relative_variance(
-                    array=column.to_numpy()
-                ),
-                axis="index", # apply function to each column
-            )
-            pass
-        variances = series_variance.to_dict()
-        columns = copy.deepcopy(table.columns.to_list())
-        columns_variance = list(filter(
-            lambda column_trial: match_column_variance(
-                name=column_trial,
-                threshold_column_variance=(
-                    threshold_column_variance
-                ),
-                variances=variances,
-            ),
-            columns
-        ))
-        table_product = table_product.loc[
-            :, table_product.columns.isin(columns_variance)
-        ]
-    # Determine any columns removed.
-    columns_exclusion = list(filter(
-        lambda column: (str(column) not in table_product.columns.tolist()),
-        table_source.columns.tolist()
-    ))
-
-    # Report.
-    if report:
-        print_terminal_partition(level=2)
-        print(
-            "Report from: " +
-            "filter_table_columns_by_nonmissing_relative_variance()"
-        )
-        print_terminal_partition(level=3)
-        print("count rows in source table: " + str(table_source.shape[0]))
-        print("count columns in source table: " + str(table_source.shape[1]))
-        print("series variance: " + str(type_variance))
-        print(series_variance.iloc[0:25])
-        print("count rows in product table: " + str(table_product.shape[0]))
-        print("count columns in product table: " + str(table_product.shape[1]))
-        print("any columns removed from table: ")
-        print(columns_exclusion)
-    # Return.
-    return table_product
-
-
-def organize_table_matrix_for_decomposition(
-    table=None,
-    report=None,
-):
-    """
-    Organizes a table and relevant information for Singular Value Decomposition
-    (SVD).
-
-    Table format: Pandas data frame with variables (features) across columns and
-    their samples (cases, observations) across rows with an explicit index
-
-    Notice that "count_samples" represents the count of samples in the matrix
-    after thresholding. This is the count of samples for the actual calculation
-    of the Singular Value Decomposition.
-
-    arguments:
-        table (object): Pandas data frame with variables (features) across
-            columns and samples (cases, observations) across rows with an
-            explicit index
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (dict): collection of information for the singular value decomposition
-
-    """
-
-    # Copy information.
-    table = table.copy(deep=True)
-
-    # Remove columns with inadequate non-missing values or inadequate variance
-    # (standard deviation) across rows.
-    # This preliminary filter on columns avoids losing table rows for missing
-    # values in an unnecessary column.
-    table = filter_table_columns_by_nonmissing_variance(
-        threshold_valid_proportion_per_column=0.05,
-        threshold_column_variance=0.001,
-        type_variance="standard_deviation",
-        table=table,
-        report=report,
-    )
-    # Drop any rows with missing values in any columns.
-    table.dropna(
-        axis="index", # drop rows
-        how="any",
-        subset=None,
-        inplace=True,
-    )
-    # Remove columns with inadequate non-missing values or inadequate variance
-    # (standard deviation) across rows.
-    # Filter columns again since the removal of missing values changes the
-    # variance of columns.
-    table = filter_table_columns_by_nonmissing_variance(
-        threshold_valid_proportion_per_column=0.05,
-        threshold_column_variance=0.001,
-        type_variance="standard_deviation",
-        table=table,
-        report=report,
-    )
-
-    # Principal components analysis assumptions require at least centering the
-    # means (mean = 0) of variables (features).
-    # Standardizing the scale of variables (features) by Standard Z Score is
-    # equivalent to calculation on correlation matrix instead of covariance
-    # matrix.
-    # Standardize scale across variables (features) to mean zero (mean = 0) and
-    # standard deviation one (standard deviation = 1).
-    # Copy information in table.
-    table_scale = table.copy(deep=True)
-    # Calculate Standard Z Scores across values in each column.
-    # This method inserts missing values if the standard deviation is zero.
-    table_scale = table_scale.apply(
-        lambda column: scipy.stats.zscore(
-            column.to_numpy(),
-            axis=0,
-            ddof=1, # (N - 1) Degrees of Freedom for Sample Standard Deviation.
-            nan_policy="omit", # Ignore missing values in calculation.
-        ),
-        axis="index", # Apply function to each column of table.
-    )
-    # Remove missing values.
-    table_scale.dropna(
-        axis="index",
-        how="any",
-        subset=None,
-        inplace=True,
-    )
-    # Copy information.
-    index = copy.deepcopy(table_scale.index)
-    count_index = len(index.to_list())
-    # Organize matrix.
-    # Matrix format has samples (cases, observations) across rows (dimension 0)
-    # and variables (features) across columns (dimension 1).
-    #matrix = numpy.transpose(table_scale.to_numpy())
-    matrix = numpy.copy(table_scale.to_numpy())
-    count_samples = copy.deepcopy(matrix.shape[0])
-    count_variables = copy.deepcopy(matrix.shape[1])
-    # Report.
-    if report:
-        utility.print_terminal_partition(level=2)
-        print(
-            "Report from: " +
-            "organize_table_matrix_for_singular_value_decomposition()"
-        )
-        utility.print_terminal_partition(level=3)
-        print("count matrix samples (dimension 0): " + str(count_samples))
-        print("count matrix variables (dimension 1): " + str(count_variables))
-        print("count index: " + str(count_index))
-    # Compile information.
-    pail = dict()
-    pail["table_threshold"] = table
-    pail["table_threshold_scale"] = table_scale
-    pail["index"] = index
-    pail["count_index"] = count_index
-    pail["matrix"] = matrix
-    pail["count_samples"] = count_samples
-    pail["count_variables"] = count_variables
-    # Return.
-    return pail
 
 
 def sort_decomposition_factors_by_decreasing_singular_values(
@@ -398,15 +144,15 @@ def sort_decomposition_factors_by_decreasing_singular_values(
     vt_sort = vt[indices_sort,:]
     # Report.
     if report:
-        utility.print_terminal_partition(level=2)
+        putly.print_terminal_partition(level=2)
         print(
             "Report from: " +
             "sort_decomposition_factors_by_decreasing_singular_values()"
         )
-        utility.print_terminal_partition(level=3)
+        putly.print_terminal_partition(level=3)
         print("singular values before sort: ")
         print(s)
-        utility.print_terminal_partition(level=5)
+        putly.print_terminal_partition(level=5)
         print("singular values after sort: ")
         print(s_sort)
     # Compile information.
@@ -499,12 +245,12 @@ def calculate_sort_singular_value_decomposition_factors(
 
     # Report.
     if report:
-        utility.print_terminal_partition(level=2)
+        putly.print_terminal_partition(level=2)
         print(
             "Report from: " +
             "calculate_singular_value_decomposition_factors()"
         )
-        utility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
         # Compare original matrix to matrix calculation from SVD factors.
         print("Shape of original matrix: " + str(matrix_source.shape))
         print("Shape of product matrix: " + str(matrix_product.shape))
@@ -528,7 +274,7 @@ def calculate_sort_singular_value_decomposition_factors(
             equal_nan=False,
         ))
         # Describe SVD factor matrices.
-        utility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
         print(
             "Shape of sorted matrix U (left singular vectors): " +
             str(pail_sort["u"].shape)
@@ -616,12 +362,12 @@ def calculate_principal_component_eigenvalues_from_singular_values(
     )
     # Report.
     if report:
-        utility.print_terminal_partition(level=2)
+        putly.print_terminal_partition(level=2)
         print(
             "Report from: " +
             "calculate_principal_component_eigenvalues_from_singular_values()"
         )
-        utility.print_terminal_partition(level=2)
+        putly.print_terminal_partition(level=2)
         print("Singular values...")
         print(
             "- - - shape: " + str(singular_values.shape)
@@ -639,55 +385,6 @@ def calculate_principal_component_eigenvalues_from_singular_values(
         print(eigenvalues_second)
     # Return.
     return eigenvalues_second
-
-
-def calculate_principal_component_explanation_variance_proportions(
-    eigenvalues=None,
-    report=None,
-):
-    """
-    Calculates the proportion of variance explained by Eigenvectors of
-    Principal Components Analysis (PCA).
-
-    Sum of proportional variance explained across all Eigenvectors is one.
-
-    arguments:
-        eigenvalues (object): NumPy array of Eigenvalues
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (object): NumPy array of proportions of variance explained
-
-    """
-
-    def divide_by_total(value, total):
-        return (value / (total))
-    array_divide_by_total = numpy.vectorize(divide_by_total)
-
-    # Copy information.
-    eigenvalues = numpy.copy(eigenvalues)
-    # Calculate total variance across all Eigenvectors.
-    variance_total = numpy.sum(eigenvalues)
-    # Calculate proportional variance across Eigenvectors.
-    variance_proportions = array_divide_by_total(
-        eigenvalues, variance_total
-    )
-    # Report.
-    if report:
-        utility.print_terminal_partition(level=2)
-        print(
-            "Report from: " +
-            "calculate_principal_component_explanation_variance_proportions()"
-        )
-        utility.print_terminal_partition(level=2)
-        print("Eigenvalues...")
-        print(eigenvalues)
-        print("Variance proportions...")
-        print(variance_proportions)
-    # Return.
-    return variance_proportions
 
 
 def calculate_loadings_from_eigenvalues_eigenvectors(
@@ -730,14 +427,14 @@ def calculate_loadings_from_eigenvalues_eigenvectors(
     loadings = numpy.dot(eigenvectors, eigenvalues_root_diagonal)
     # Report.
     if report:
-        utility.print_terminal_partition(level=2)
+        putly.print_terminal_partition(level=2)
         print(
             "Report from: " +
             "calculate_loadings_from_eigenvalues_eigenvectors()"
         )
-        utility.print_terminal_partition(level=3)
+        putly.print_terminal_partition(level=3)
         print("Shape of loadings: " + str(loadings.shape))
-        utility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
         print("Loadings = Eigenvectors [dot] square_root(diagonal Eigenvalues)")
         print(loadings)
     # Return.
@@ -783,23 +480,19 @@ def calculate_loadings_from_decomposition_factors(
     loadings = numpy.dot(vt, quotients_diagonal)
     # Report.
     if report:
-        utility.print_terminal_partition(level=2)
+        putly.print_terminal_partition(level=2)
         print(
             "Report from: " +
             "calculate_loadings_from_decomposition_factors()"
         )
-        utility.print_terminal_partition(level=3)
+        putly.print_terminal_partition(level=3)
         print("Shape of loadings: " + str(loadings.shape))
-        utility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
         print("Loadings = (V [dot] (S / square_root(samples - 1)))")
         print(loadings)
     # Return.
     return loadings
 
-
-# TODO: TCW 17 August 2021
-# TODO: organize table with labels of rows and columns
-# TODO: feature X PC (which dimension is which?)
 
 def calculate_principal_component_loadings(
     eigenvectors=None,
@@ -846,15 +539,15 @@ def calculate_principal_component_loadings(
 
     # Report.
     if report:
-        utility.print_terminal_partition(level=2)
+        putly.print_terminal_partition(level=2)
         print(
             "Report from: " +
             "calculate_principal_component_loadings()"
         )
-        utility.print_terminal_partition(level=3)
+        putly.print_terminal_partition(level=3)
         print("Shape of Eigen loadings: " + str(loadings_eigen.shape))
         print("Shape of factor loadings: " + str(loadings_factor.shape))
-        utility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
         print("Compare loadings from both methods: ")
         print(numpy.allclose(
             loadings_eigen, loadings_factor,
@@ -864,59 +557,6 @@ def calculate_principal_component_loadings(
         ))
     # Return.
     return loadings_eigen
-
-
-def organize_principal_component_variance_proportion_table(
-    variance_proportions=None,
-    index_name=None,
-    prefix=None,
-    separator=None,
-    report=None,
-):
-    """
-    Organizes a table of proportion of variance explained by each Eigenvector
-    and Principal Component factor.
-
-    arguments:
-        variance_proportions (object): NumPy array of proportions of variance
-            explained
-        index_name (str): name for table's index column
-        prefix (str): prefix for names of new columns in table corresponding to
-            scores or factors for principal components
-        separator (str): separator for names of new columns
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (dict): collection of information
-
-    """
-
-    # Copy information.
-    variance_proportions = numpy.copy(variance_proportions).tolist()
-    # Organize information.
-    count = 1
-    records = list()
-    for variance_proportion in variance_proportions:
-        record = dict()
-        record[index_name] = str(str(prefix) + str(separator) + str(count))
-        record["variance_proportion"] = variance_proportion
-        records.append(record)
-        count += 1
-    table = pandas.DataFrame(data=records)
-    # Report.
-    if report:
-        utility.print_terminal_partition(level=2)
-        print(
-            "Report from: " +
-            "organize_principal_component_variance_proportion_table()"
-        )
-        utility.print_terminal_partition(level=3)
-        print("Table after organization:")
-        print(table)
-    # Return.
-    return table
 
 
 def calculate_principal_component_scores_from_factors(
@@ -965,12 +605,12 @@ def calculate_principal_component_scores_from_factors(
 
     # Report.
     if report:
-        utility.print_terminal_partition(level=2)
+        putly.print_terminal_partition(level=2)
         print(
             "Report from: " +
             "calculate_principal_component_scores_from_factors()"
         )
-        utility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
         # Compare alternative calculations of the scores.
         print("Shape of source matrix: " + str(matrix_source.shape))
         print(
@@ -993,74 +633,6 @@ def calculate_principal_component_scores_from_factors(
     pail["matrix_scores"] = matrix_scores_second
     # Return.
     return pail
-
-
-def organize_principal_component_scores_table(
-    matrix=None,
-    index=None,
-    index_name=None,
-    prefix=None,
-    separator=None,
-    report=None,
-):
-    """
-    Organizes a table with Principal Components Analysis (PCA) Scores.
-
-    arguments:
-        matrix (object): NumPy matrix of Principal Component Scores
-        index (object): Pandas series of index from original table
-        index_name (str): name of table's index column
-        prefix (str): prefix for names of new columns in table corresponding to
-            scores or factors for principal components
-        separator (str): separator for names of new columns
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (object): Pandas data frame of Principal Component Scores
-
-    """
-
-    # Copy information.
-    matrix= numpy.copy(matrix)
-
-    # Organize table.
-    count_columns = matrix.shape[1]
-    count = 1
-    columns = list()
-    for component in range(0, count_columns, 1):
-        column = str(str(prefix) + str(separator) + str(count))
-        columns.append(column)
-        count += 1
-    table = pandas.DataFrame(
-        data=matrix,
-        index=index,
-        columns=columns,
-        dtype="float32",
-        copy=True,
-    )
-    table.rename_axis(
-        index=index_name,
-        axis="index",
-        copy=False,
-        inplace=True,
-    )
-    # Report.
-    if report:
-        utility.print_terminal_partition(level=2)
-        print(
-            "Report from: " +
-            "organize_principal_component_scores_table()"
-        )
-        utility.print_terminal_partition(level=4)
-        # Compare alternative calculations of the scores.
-        print("Shape of source matrix: " + str(matrix.shape))
-        utility.print_terminal_partition(level=4)
-        print("table...")
-        print(table)
-    # Return.
-    return table
 
 
 # TODO: TCW, 27 January 2022
@@ -1276,24 +848,721 @@ def organize_principal_components_by_singular_value_decomposition(
     return pail
 
 
-# StatsModels
 
-# TODO: TCW; 30 November 2024
-# It would still be nice to organize the loadings better for readability.
+
+##########
+# General utility.
+# dependency: calculate_principal_components_sets_features_groups_observations.py
+
+
+# TODO: TCW; 2 April 2025
+# This function needs substantial update.
+# It does not make sense to compare variance between features after than have
+# been standardized by z-score (standard deviation 1).
+# Rather, use the "unit_range" method to adjust scale of features and then
+# select or filter features by "variance thresholding".
+# Refer to "partner.script_drive_regressions_from_table_parameters".
+# Step 1: transform features to unit range, before any z-score standardization.
+# Step 2: filter features by their variance when at unit range (var >= 0.001).
+def filter_table_columns_by_nonmissing_variance(
+    threshold_valid_proportion_per_column=None,
+    threshold_column_variance=None,
+    type_variance=None,
+    table=None,
+    report=None,
+):
+    """
+    Filters columns in a table by their proportions of non-missing values and by
+    their relative varances across rows.
+
+    Table format: Pandas data frame with variables (features) across columns and
+    their samples (cases, observations) across rows with an explicit index
+
+    arguments:
+        threshold_valid_proportion_per_column (float): minimal proportion of
+            a column's rows that must have a valid value
+        threshold_column_variance (float): minimal value of variance measure in
+            each column's values
+        type_variance (str): type of measurement of variance, either
+            "standard_deviation" or "relative_variance"
+        table (object): Pandas data frame with variables (features) across
+            columns and samples (cases, observations) across rows with an
+            explicit index
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict): collection of information for the singular value decomposition
+
+    """
+
+    # Nested function.
+    def match_column_variance(
+        name=None,
+        threshold_column_variance=None,
+        variances=None,
+    ):
+        if (str(name) in variances.keys()):
+            variance = variances[name]
+            if (
+                (not math.isnan(variance)) and
+                (threshold_column_variance <= variance)
+            ):
+                match = True
+            else:
+                match = False
+        else:
+            match = False
+        return match
+
+    # Copy information.
+    table_source = table.copy(deep=True)
+    table_product = table.copy(deep=True)
+    # Drop any columns with inadequate valid (non-missing) values across rows.
+    if (0.001 <= threshold_valid_proportion_per_column):
+        rows = table_product.shape[0]
+        threshold = round(rows*threshold_valid_proportion_per_column)
+        table_product.dropna(
+            axis="columns", # drop columns
+            thresh=threshold,
+            subset=None,
+            inplace=True,
+        )
+    # Drop any columns with minimal relative variance.
+    if (0.00001 <= threshold_column_variance):
+        if (type_variance == "standard_deviation"):
+            series_variance = table_product.aggregate(
+                lambda column: numpy.nanstd(column.to_numpy()),
+                axis="index", # apply function to each column
+            )
+            #series_variance = table_product.aggregate(
+            #    lambda column: column.std(),
+            #    axis="index", # apply function to each column
+            #)
+        elif (type_variance == "relative_variance"):
+            series_variance = table_product.aggregate(
+                lambda column: calculate_relative_variance(
+                    array=column.to_numpy()
+                ),
+                axis="index", # apply function to each column
+            )
+            pass
+        variances = series_variance.to_dict()
+        columns = copy.deepcopy(table.columns.to_list())
+        columns_variance = list(filter(
+            lambda column_trial: match_column_variance(
+                name=column_trial,
+                threshold_column_variance=(
+                    threshold_column_variance
+                ),
+                variances=variances,
+            ),
+            columns
+        ))
+        table_product = table_product.loc[
+            :, table_product.columns.isin(columns_variance)
+        ]
+    # Determine any columns removed.
+    columns_exclusion = list(filter(
+        lambda column: (str(column) not in table_product.columns.tolist()),
+        table_source.columns.tolist()
+    ))
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=2)
+        print(
+            "Report from: " +
+            "filter_table_columns_by_nonmissing_relative_variance()"
+        )
+        putly.print_terminal_partition(level=3)
+        print("count rows in source table: " + str(table_source.shape[0]))
+        print("count columns in source table: " + str(table_source.shape[1]))
+        print("series variance: " + str(type_variance))
+        print(series_variance.iloc[0:25])
+        print("count rows in product table: " + str(table_product.shape[0]))
+        print("count columns in product table: " + str(table_product.shape[1]))
+        print("any columns removed from table: ")
+        print(columns_exclusion)
+    # Return.
+    return table_product
+
+
+def organize_table_matrix_for_decomposition(
+    table=None,
+    report=None,
+):
+    """
+    Organizes a table and relevant information for Singular Value Decomposition
+    (SVD).
+
+    Table format: Pandas data frame with variables (features) across columns and
+    their samples (cases, observations) across rows with an explicit index
+
+    Notice that "count_samples" represents the count of samples in the matrix
+    after thresholding. This is the count of samples for the actual calculation
+    of the Singular Value Decomposition.
+
+    arguments:
+        table (object): Pandas data frame with variables (features) across
+            columns and samples (cases, observations) across rows with an
+            explicit index
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict): collection of information for the singular value decomposition
+
+    """
+
+    # Copy information.
+    table = table.copy(deep=True)
+
+    # Remove columns with inadequate non-missing values or inadequate variance
+    # (standard deviation) across rows.
+    # This preliminary filter on columns avoids losing table rows for missing
+    # values in an unnecessary column.
+    table = filter_table_columns_by_nonmissing_variance(
+        threshold_valid_proportion_per_column=0.05,
+        threshold_column_variance=0.001,
+        type_variance="standard_deviation",
+        table=table,
+        report=report,
+    )
+    # Drop any rows with missing values in any columns.
+    table.dropna(
+        axis="index", # drop rows
+        how="any",
+        subset=None,
+        inplace=True,
+    )
+    # Remove columns with inadequate non-missing values or inadequate variance
+    # (standard deviation) across rows.
+    # Filter columns again since the removal of missing values changes the
+    # variance of columns.
+    table = filter_table_columns_by_nonmissing_variance(
+        threshold_valid_proportion_per_column=0.05,
+        threshold_column_variance=0.001,
+        type_variance="standard_deviation",
+        table=table,
+        report=report,
+    )
+
+    # Principal components analysis assumptions require at least centering the
+    # means (mean = 0) of variables (features).
+    # Standardizing the scale of variables (features) by Standard Z Score is
+    # equivalent to calculation on correlation matrix instead of covariance
+    # matrix.
+    # Standardize scale across variables (features) to mean zero (mean = 0) and
+    # standard deviation one (standard deviation = 1).
+    # Copy information in table.
+    table_scale = table.copy(deep=True)
+    # Calculate Standard Z Scores across values in each column.
+    # This method inserts missing values if the standard deviation is zero.
+    table_scale = table_scale.apply(
+        lambda column: scipy.stats.zscore(
+            column.to_numpy(),
+            axis=0,
+            ddof=1, # (N - 1) Degrees of Freedom for Sample Standard Deviation.
+            nan_policy="omit", # Ignore missing values in calculation.
+        ),
+        axis="index", # Apply function to each column of table.
+    )
+    # Remove missing values.
+    table_scale.dropna(
+        axis="index",
+        how="any",
+        subset=None,
+        inplace=True,
+    )
+
+    # Extract names or identifiers of features across columns.
+    identifiers_columns = copy.deepcopy(
+        table.columns.to_list()
+    )
+    count_identifiers_columns = len(identifiers_columns)
+    # Extract names or identifiers of observations across rows.
+    #identifiers_rows = copy.deepcopy(
+    #    table_scale.index.get_level_values(
+    #        index_name
+    #    ).to_list()
+    #)
+    index_rows = copy.deepcopy(table_scale.index)
+    identifiers_rows = copy.deepcopy(table_scale.index.to_list())
+    count_index_rows = len(index_rows.to_list())
+    count_identifiers_rows = len(identifiers_rows)
+
+    # Organize matrix.
+    # Matrix format has samples (cases, observations) across rows (dimension 0)
+    # and variables (features) across columns (dimension 1).
+    #matrix = numpy.transpose(table_scale.to_numpy())
+    matrix = numpy.copy(table_scale.to_numpy())
+    count_samples = copy.deepcopy(matrix.shape[0])
+    count_variables = copy.deepcopy(matrix.shape[1])
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=2)
+        print(
+            "Report from: " +
+            "organize_table_matrix_for_singular_value_decomposition()"
+        )
+        putly.print_terminal_partition(level=3)
+        print("count matrix samples (dimension 0): " + str(count_samples))
+        print("count matrix variables (dimension 1): " + str(count_variables))
+        print("count index rows: " + str(count_index_rows))
+    # Compile information.
+    pail = dict()
+    pail["table_threshold"] = table
+    pail["table_threshold_scale"] = table_scale
+    pail["identifiers_columns"] = identifiers_columns
+    pail["count_identifiers_columns"] = count_identifiers_columns
+    pail["index_rows"] = index_rows
+    pail["count_index_rows"] = count_index_rows
+    pail["identifiers_rows"] = identifiers_rows
+    pail["count_identifiers_rows"] = count_identifiers_rows
+    pail["matrix"] = matrix
+    pail["count_samples"] = count_samples
+    pail["count_variables"] = count_variables
+    # Return.
+    return pail
+
+
+def calculate_principal_component_explanation_variance_proportions(
+    eigenvalues=None,
+    report=None,
+):
+    """
+    Calculates the proportion of variance explained by Eigenvectors of
+    Principal Components Analysis (PCA).
+
+    Sum of proportional variance explained across all Eigenvectors is one.
+
+    arguments:
+        eigenvalues (object): NumPy array of Eigenvalues
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): NumPy array of proportions of variance explained
+
+    """
+
+    def divide_by_total(value, total):
+        return (value / (total))
+    array_divide_by_total = numpy.vectorize(divide_by_total)
+
+    # Copy information.
+    eigenvalues = numpy.copy(eigenvalues)
+    # Calculate total variance across all Eigenvectors.
+    variance_total = numpy.sum(eigenvalues)
+    # Calculate proportional variance across Eigenvectors.
+    variance_proportions = array_divide_by_total(
+        eigenvalues, variance_total
+    )
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=2)
+        print(
+            "Report from: " +
+            "calculate_principal_component_explanation_variance_proportions()"
+        )
+        putly.print_terminal_partition(level=2)
+        print("Eigenvalues...")
+        print(eigenvalues)
+        print("Variance proportions...")
+        print(variance_proportions)
+    # Return.
+    return variance_proportions
+
+
+def organize_principal_component_variance_proportion_table(
+    variance_proportions=None,
+    name_index_columns=None,
+    name_index_rows=None,
+    prefix=None,
+    separator=None,
+    explicate_indices=None,
+    report=None,
+):
+    """
+    Organize a table of proportion of variance explained by each Eigenvector
+    and Principal Component factor.
+
+    Review: TCW; 1 October 2025
+
+    arguments:
+        variance_proportions (object): NumPy array of proportions of variance
+            explained
+        name_index_columns (str): name of an assigned index in table that
+            defines identifiers for columns
+        name_index_rows (str): name of a column or assigned index in table that
+            defines identifiers for rows
+        prefix (str): prefix for names of new columns in table corresponding to
+            scores or factors for principal components
+        separator (str): separator for names of new columns
+        explicate_indices (bool): whether to explicate, define, or specify
+            explicit indices across columns and rows in table
+        report (bool): whether to print reports
+
+
+
+    raises:
+
+    returns:
+        (dict): collection of information
+
+    """
+
+    # Copy information.
+    variance_proportions = numpy.copy(variance_proportions).tolist()
+    # Organize information.
+    count = 1
+    variance_proportion_cumulative = float(0)
+    records = list()
+    for variance_proportion in variance_proportions:
+        record = dict()
+        record[name_index_rows] = str(
+            str(prefix) + str(separator) + str(count)
+        )
+        record["variance_proportion"] = variance_proportion
+        variance_proportion_cumulative = float(
+            variance_proportion_cumulative + variance_proportion
+        )
+        record["variance_proportion_cumulative"] = (
+            variance_proportion_cumulative
+        )
+        records.append(record)
+        count += 1
+    table = pandas.DataFrame(data=records)
+
+    # Sort rows within table.
+    table.sort_values(
+        by=["variance_proportion",],
+        axis="index",
+        ascending=False,
+        inplace=True,
+    )
+    table.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+
+    # Organize indices in table.
+    table.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
+    table = (
+        porg.explicate_table_indices_columns_rows_single_level(
+            table=table,
+            index_columns=name_index_columns,
+            index_rows=name_index_rows,
+            explicate_indices=explicate_indices,
+            report=report,
+    ))
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=2)
+        print(
+            "Report from: " +
+            "organize_principal_component_variance_proportion_table()"
+        )
+        putly.print_terminal_partition(level=3)
+        print("Table after organization:")
+        print(table)
+    # Return.
+    return table
+
+
+def organize_principal_component_scores_table(
+    matrix=None,
+    index_rows=None,
+    identifiers_rows=None,
+    name_index_columns=None,
+    name_index_rows=None,
+    prefix=None,
+    separator=None,
+    explicate_indices=None,
+    report=None,
+):
+    """
+    Organizes a table with Principal Components Analysis (PCA) Scores.
+
+    Review: TCW; 1 October 2025
+
+    arguments:
+        matrix (object): NumPy matrix of Principal Component Scores
+        index_rows (object): Pandas series of index across rows in original
+            table of features and observations
+        identifiers_rows (list<str>): names or identifiers of rows in original
+            table of features and observations
+        name_index_columns (str): name of an assigned index in table that
+            defines identifiers for columns
+        name_index_rows (str): name of a column or assigned index in table that
+            defines identifiers for rows
+        prefix (str): prefix for names of new columns in table corresponding to
+            scores or factors for principal components
+        separator (str): separator for names of new columns
+        explicate_indices (bool): whether to explicate, define, or specify
+            explicit indices across columns and rows in table
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data frame of Principal Component Scores
+
+    """
+
+    # Copy information.
+    matrix= numpy.copy(matrix)
+
+    # Determine counts.
+    count_observations = int(matrix.shape[0])
+    count_components = int(matrix.shape[1])
+
+    # Assemble and organize table.
+    count_columns = matrix.shape[1]
+    count = 1
+    identifiers_columns = list()
+    for component in range(0, count_columns, 1):
+        column = str(str(prefix) + str(separator) + str(count))
+        identifiers_columns.append(column)
+        count += 1
+        pass
+    table = pandas.DataFrame(
+        data=matrix,
+        index=identifiers_rows,
+        columns=identifiers_columns,
+        dtype="float32",
+        copy=True,
+    )
+    table.rename_axis(
+        index=name_index_rows,
+        axis="index",
+        copy=False,
+        inplace=True,
+    )
+
+    # Organize indices in table.
+    table.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
+    table = (
+        porg.explicate_table_indices_columns_rows_single_level(
+            table=table,
+            index_columns=name_index_columns,
+            index_rows=name_index_rows,
+            explicate_indices=explicate_indices,
+            report=report,
+    ))
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        print("module: partner.decomposition.py")
+        function = str(
+            "organize_principal_component_scores_table"
+        )
+        print(str("function: " + function))
+        putly.print_terminal_partition(level=5)
+        # Compare alternative calculations of the scores.
+        print("Shape of source matrix: " + str(matrix.shape))
+        putly.print_terminal_partition(level=5)
+        print("table:")
+        print(table)
+        putly.print_terminal_partition(level=5)
+    # Return.
+    return table
+
+
+def organize_principal_component_loadings_table(
+    matrix=None,
+    identifiers_features=None,
+    name_index_features=None,
+    name_index_components=None,
+    prefix=None,
+    separator=None,
+    transpose_table=None,
+    explicate_indices=None,
+    report=None,
+):
+    """
+    Organizes a table with Principal Components Analysis (PCA) loadings.
+
+    Review: TCW; 1 October 2025
+
+    arguments:
+        matrix (object): NumPy matrix of Principal Component Scores
+        identifiers_features (list<str>): names or identifiers of features
+        name_index_features (str): name of an assigned index in table for
+            features
+        name_index_components (str): name of an assigned index in table for
+            components
+        prefix (str): prefix for names of new columns in table corresponding to
+            scores or factors for principal components
+        separator (str): separator for names of new columns
+        transpose_table (bool): whether to transpose table after assembly
+        explicate_indices (bool): whether to explicate, define, or specify
+            explicit indices across columns and rows in table
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data frame of Principal Component Scores
+
+    """
+
+    # Copy information.
+    matrix = numpy.copy(matrix)
+
+    # Determine counts.
+    # If there are more features than observations, then there will only be as
+    # many components as there are observations.
+    # Assuming that the orientation of the loadings matrix does not change
+    # when there are more features than observations, the matrix's first
+    # dimension corresponds to features, while its second dimension corresponds
+    # to components.
+    count_features = int(matrix.shape[0])
+    count_components = int(matrix.shape[1])
+
+    # Assemble and organize table.
+    count_columns = matrix.shape[1]
+    count = 1
+    identifiers_components = list()
+    for component in range(0, count_columns, 1):
+        identifier = str(str(prefix) + str(separator) + str(count))
+        identifiers_components.append(identifier)
+        count += 1
+        pass
+
+    table = pandas.DataFrame(
+        data=matrix,
+        index=identifiers_features,
+        columns=identifiers_components,
+        dtype="float32",
+        copy=True,
+    )
+    table.rename_axis(
+        index=name_index_features,
+        axis="index",
+        copy=False,
+        inplace=True,
+    )
+
+    # Determine whether to transpose table.
+    if (transpose_table):
+        # Organize indices in table.
+        table.reset_index(
+            level=None,
+            inplace=True,
+            drop=False, # remove index; do not move to regular columns
+        )
+        table = (
+            porg.explicate_table_indices_columns_rows_single_level(
+                table=table,
+                index_columns=name_index_components,
+                index_rows=name_index_features,
+                explicate_indices=True,
+                report=report,
+        ))
+        # Transpose table.
+        table = table.transpose(
+            copy=True
+        )
+        # Organize indices in table.
+        table.reset_index(
+            level=None,
+            inplace=True,
+            drop=False, # remove index; do not move to regular columns
+        )
+        table.columns.rename(
+            None,
+            inplace=True,
+        ) # single-dimensional index
+
+        # Organize indices in table.
+        table.reset_index(
+            level=None,
+            inplace=True,
+            drop=False, # remove index; do not move to regular columns
+        )
+        table = (
+            porg.explicate_table_indices_columns_rows_single_level(
+                table=table,
+                index_columns=name_index_features,
+                index_rows=name_index_components,
+                explicate_indices=explicate_indices,
+                report=report,
+        ))
+    else:
+        # Organize indices in table.
+        table.reset_index(
+            level=None,
+            inplace=True,
+            drop=False, # remove index; do not move to regular columns
+        )
+        table = (
+            porg.explicate_table_indices_columns_rows_single_level(
+                table=table,
+                index_columns=name_index_components,
+                index_rows=name_index_features,
+                explicate_indices=explicate_indices,
+                report=report,
+        ))
+        pass
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        print("module: partner.decomposition.py")
+        function = str(
+            "organize_principal_component_loadings_table"
+        )
+        print(str("function: " + function))
+        putly.print_terminal_partition(level=5)
+        # Compare alternative calculations of the scores.
+        print("Shape of source matrix: " + str(matrix.shape))
+        putly.print_terminal_partition(level=5)
+        print("table:")
+        print(table)
+        putly.print_terminal_partition(level=5)
+    # Return.
+    return table
+
+
+
+# StatsModels
 
 
 def calculate_principal_components_by_statsmodels(
     matrix_source=None,
-    standard_scale=False,
+    count_components=None,
+    standard_scale=None,
     report=None,
 ):
     """
     Calculate Principal Components (PCs) by StatsModels.
 
+    The maximal count of principal components is the minimal count of either
+    the features or the observations.
+
     arguments:
         matrix_source (object): NumPy matrix with samples (cases, observations)
             across rows (dimension 0) and variables (features) across columns
             (dimension 1)
+        count_components (int): count of components to calculate
         standard_scale (bool): whether to apply StatsModels conversion to
             standard scale
         report (bool): whether to print reports
@@ -1313,7 +1582,7 @@ def calculate_principal_components_by_statsmodels(
         # Execute principle component analysis.
         pca = statsmodels.multivariate.pca.PCA(
             matrix_source,
-            ncomp=None, # determine number of components automatically
+            ncomp=count_components, # if None then determine number of components automatically
             standardize=True, # calculate standard z scores
             demean=True, # center mean if not calculating standard z scores
             normalize=True, # normalize factors and loadings to have unit inner product
@@ -1324,7 +1593,7 @@ def calculate_principal_components_by_statsmodels(
         # Execute principle component analysis.
         pca = statsmodels.multivariate.pca.PCA(
             matrix_source,
-            ncomp=None, # determine number of components automatically
+            ncomp=count_components, # determine number of components automatically
             standardize=False, # calculate standard z scores
             demean=False, # center mean if not calculating standard z scores
             normalize=False, # normalize factors and loadings to have unit inner product
@@ -1341,18 +1610,18 @@ def calculate_principal_components_by_statsmodels(
 
     # Report.
     if report:
-        utility.print_terminal_partition(level=2)
+        putly.print_terminal_partition(level=2)
         print(
             "Report from: " +
             "calculate_principal_components_by_statsmodels()"
         )
-        utility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
         # Compare matrices.
         print("Shape of source matrix: " + str(matrix_source.shape))
         print(
             "Shape of score matrix: " + str(matrix_scores.shape)
         )
-        utility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
         #print("Proportional variance for each component...")
         #print(table_component_variance_proportions)
     # Compile information.
@@ -1369,10 +1638,12 @@ def calculate_principal_components_by_statsmodels(
 
 def organize_principal_components_by_statsmodels(
     table=None,
-    index_name=None,
+    name_index_columns=None,
+    name_index_rows=None,
     custom_scale=None,
     prefix=None,
     separator=None,
+    explicate_indices=None,
     report=None,
 ):
     """
@@ -1388,6 +1659,11 @@ def organize_principal_components_by_statsmodels(
     In terms of the relevant dimension, the Principal Components represent
     variance across features.
 
+    If the count of features is greater than the count of observations, then it
+    is necessary to tell the function in StatsModels how many principal
+    components to return. Otherwise, it will return the lesser of the count of
+    features or observations.
+
     Reference:
     https://www.statsmodels.org/dev/examples/notebooks/generated/
     + pca_fertility_factors.html
@@ -1398,12 +1674,17 @@ def organize_principal_components_by_statsmodels(
         table (object): Pandas data frame of variables (features) across
             columns and samples (cases, observations) across rows with an
             explicit index
-        index_name (str): name of table's index column
+        name_index_columns (str): name of an assigned index in source table
+            that defines identifiers for columns
+        name_index_rows (str): name of a column or assigned index in source
+            table that defines identifiers for rows
         custom_scale (bool): whether to apply a custom set of filters and
             conversion to standard scale
         prefix (str): prefix for names of new columns in table corresponding to
             scores or factors for principal components
         separator (str): separator for names of new columns
+        explicate_indices (bool): whether to explicate, define, or specify
+            explicit indices across columns and rows in table
         report (bool): whether to print reports
 
     raises:
@@ -1414,11 +1695,16 @@ def organize_principal_components_by_statsmodels(
 
     """
 
+    # Copy information.
+    table = table.copy(deep=True)
+
     # Threshold and organize information from original table.
     pail_organization = organize_table_matrix_for_decomposition(
         table=table,
         report=report,
     )
+    #pail_organization["count_variables"]
+
     # Determine whether to apply a custom set of filters and conversion to
     # standard scale.
     if custom_scale:
@@ -1427,6 +1713,7 @@ def organize_principal_components_by_statsmodels(
         # Calculate Principal Component Scores in SKLearn.
         pail_statsmodels = calculate_principal_components_by_statsmodels(
             matrix_source=matrix,
+            count_components=None,
             standard_scale=False,
             report=report,
         )
@@ -1436,53 +1723,64 @@ def organize_principal_components_by_statsmodels(
         # Calculate Principal Component Scores in SKLearn.
         pail_statsmodels = calculate_principal_components_by_statsmodels(
             matrix_source=matrix,
+            count_components=None,
             standard_scale=True,
             report=report,
         )
         pass
 
-    #Shape of Eigen loadings: (208, 80)
-    #Shape of factor loadings: (208, 80)
-
     # Table of principal component factors or scores for original features and
     # observations.
-    table_component_scores = organize_principal_component_scores_table(
+    table_scores = organize_principal_component_scores_table(
         matrix=pail_statsmodels["matrix_scores"],
-        index=pail_organization["index"],
-        index_name=index_name,
+        index_rows=pail_organization["index_rows"],
+        identifiers_rows=pail_organization["identifiers_rows"],
+        name_index_columns="components",
+        name_index_rows=name_index_rows,
         prefix=prefix,
         separator=separator,
+        explicate_indices=explicate_indices,
         report=report,
     )
+    # Table of individual and cumulative proportional variance that each
+    # principal component explains.
     variance_proportions = (
         calculate_principal_component_explanation_variance_proportions(
             eigenvalues=pail_statsmodels["eigenvalues"],
             report=report,
     ))
-    table_component_variance_proportions = (
+    table_variances = (
         organize_principal_component_variance_proportion_table(
             variance_proportions=variance_proportions,
-            index_name="eigenvectors_components",
+            name_index_columns="estimates_variance",
+            name_index_rows="eigenvectors_components",
             prefix=prefix, # "component_"
             separator=separator,
+            explicate_indices=explicate_indices,
             report=report,
     ))
 
+    # Table of loadings, or coefficients for the linear combination of original
+    # features that compose each principal component.
+    # Organize table.
+    table_loadings = organize_principal_component_loadings_table(
+        matrix=pail_statsmodels["loadings"],
+        identifiers_features=pail_organization["identifiers_columns"],
+        name_index_features="features",
+        name_index_components="components",
+        prefix=prefix,
+        separator=separator,
+        transpose_table=False,
+        explicate_indices=explicate_indices,
+        report=report,
+    )
 
     # Compile information.
     pail = dict()
-    #pail["table_source_threshold"] = (pail_organization["table_threshold"])
-    #pail["table_source_threshold_scale"] = (
-    #    pail_organization["table_threshold_scale"]
-    #)
-    #pail["count_samples"] = pail_organization["count_samples"]
-    #pail["count_variables"] = pail_organization["count_variables"]
-    pail["matrix_component_scores"] = pail_statsmodels["matrix_scores"]
-    pail["table_component_scores"] = table_component_scores
-    pail["table_component_variance_proportions"] = (
-        table_component_variance_proportions
-    )
-    pail["loadings"] = pail_statsmodels["loadings"]
+    #pail["matrix_scores"] = pail_statsmodels["matrix_scores"]
+    pail["table_scores"] = table_scores
+    pail["table_variances"] = table_variances
+    pail["table_loadings"] = table_loadings
     # Return.
     return pail
 
@@ -1537,18 +1835,18 @@ def calculate_principal_components_by_sklearn(
 
     # Report.
     if report:
-        utility.print_terminal_partition(level=2)
+        putly.print_terminal_partition(level=2)
         print(
             "Report from: " +
             "calculate_principal_components_by_sklearn()"
         )
-        utility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
         # Compare matrices.
         print("Shape of source matrix: " + str(matrix_source.shape))
         print(
             "Shape of score matrix: " + str(matrix_scores.shape)
         )
-        utility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
         print("Proportional variance for each component...")
         print(table_component_variance_proportions)
     # Compile information.
@@ -1717,16 +2015,16 @@ def compare_principal_components_methods(
 
     # Report.
     if report:
-        utility.print_terminal_partition(level=3)
+        putly.print_terminal_partition(level=3)
         print("package: partner")
         print("module: partner.decomposition.py")
         print("function: compare_principal_components_methods()")
-        utility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
         # Compare original matrix to matrix calculation from SVD factors.
         print(
             "Shape of source matrix: " + str(pail_organization["matrix"].shape)
         )
-        utility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
         print("Shapes of matrices for Principal Component Scores")
         print(
             "SVD factor product: " +
@@ -1736,7 +2034,7 @@ def compare_principal_components_methods(
             pail_statsmodels["matrix_component_scores"].shape)
         )
         print("SKLearn: " + str(pail_sklearn["matrix_component_scores"].shape))
-        utility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
         print("Compare score matrices between methods...")
         print("SVD versus Statsmodels match:")
         print(numpy.allclose(
@@ -1754,32 +2052,35 @@ def compare_principal_components_methods(
             atol=1e-3,
             equal_nan=False,
         ))
-        utility.print_terminal_partition(level=4)
+        putly.print_terminal_partition(level=4)
         print("Compare proportions of variance for principal components...")
         print("SVD:")
         print(pail_svd["table_component_variance_proportions"])
-        utility.print_terminal_partition(level=5)
+        putly.print_terminal_partition(level=5)
         print("StatsModels:")
         print(pail_statsmodels["table_component_variance_proportions"])
-        utility.print_terminal_partition(level=5)
+        putly.print_terminal_partition(level=5)
         print("SKLearn:")
         print(pail_sklearn["table_component_variance_proportions"])
-        utility.print_terminal_partition(level=5)
+        putly.print_terminal_partition(level=5)
 
     pass
 
 
 # Convenient calculation of principal components on a selection of a table's
-# columns
+# columns.
 
 
-def calculate_principal_components_table_columns_selection(
+def calculate_principal_components_table_features_observations(
     table=None,
-    index_rows=None,
+    name_index_columns=None,
+    name_index_rows=None,
     columns_selection=None,
+    rows_selection=None,
     prefix=None,
     separator=None,
     threshold_proportion=None,
+    explicate_indices=None,
     report=None,
 ):
     """
@@ -1787,20 +2088,29 @@ def calculate_principal_components_table_columns_selection(
     columns in a table and integrate scores as new columns with a name prefix
     within the original table.
 
+
+    Review: TCW; 1 October 2025
     Review: TCW; 30 November 2024
 
     arguments:
         table (object): Pandas data-frame table of information about samples
-        index_rows (str): name of a column in source table which defines an
-            index corresponding to information across rows
-        columns_selection (list<str>): names of columns corresponding to
-            features for which to calculate principal components
+        name_index_columns (str): name of an assigned index in source table
+            that defines identifiers for columns
+        name_index_rows (str): name of a column or assigned index in source
+            table that defines identifiers for rows
+        columns_selection (list<str>): names or identifiers of columns
+            corresponding to features for which to calculate principal
+            components
+        rows_selection (list<str>): names or identifiers of rows corresponding
+            to observations for which to calculate principal components
         prefix (str): prefix for names of new columns in table corresponding to
             scores or factors for principal components
         separator (str): separator for names of new columns
-        threshold_proportion (float): threshold on the proportion of total
-            variance in the values of the original features across observations
-            that each principal component must explain
+        threshold_proportion (float): threshold on the cumulative proportion of
+            total variance in the values of the original features across
+            observations that each principal component must explain to keep
+        explicate_indices (bool): whether to explicate, define, or specify
+            explicit indices across columns and rows in table
         report (bool): whether to print reports
 
     raises:
@@ -1810,12 +2120,11 @@ def calculate_principal_components_table_columns_selection(
 
     """
 
-    # Copy information in table.
+    # Copy information.
     table_main = table.copy(deep=True)
     table_excerpt = table.copy(deep=True)
-    # Copy other information.
     columns_selection = copy.deepcopy(columns_selection)
-    count_columns_selection = len(columns_selection)
+    rows_selection = copy.deepcopy(rows_selection)
 
     # Organize indices in table.
     table_main.reset_index(
@@ -1823,31 +2132,30 @@ def calculate_principal_components_table_columns_selection(
         inplace=True,
         drop=True, # remove index; do not move to regular columns
     )
-    table_main.set_index(
-        [index_rows],
-        append=False,
-        drop=True,
-        inplace=True,
-    )
+    #table_main.set_index(
+    #    [index_rows],
+    #    append=False,
+    #    drop=True,
+    #    inplace=True,
+    #)
     table_excerpt.reset_index(
         level=None,
         inplace=True,
         drop=True, # remove index; do not move to regular columns
     )
 
-    # Separate information in table for a specific selection of columns.
-    columns_excerpt = copy.deepcopy(columns_selection)
-    columns_excerpt.insert(0, index_rows)
-    # Filter columns in table.
-    #table_excerpt = table_excerpt.loc[
-    #    :, table_excerpt.columns.isin(columns_excerpt)
-    #].copy(deep=True)
-    table_excerpt = table_excerpt.filter(
-        items=columns_excerpt,
-        axis="columns",
-    )
+    # Filter columns and rows in table.
+    table_excerpt = (
+        porg.filter_select_table_columns_rows_by_identifiers(
+            table=table_excerpt,
+            index_rows=name_index_rows,
+            identifiers_columns=columns_selection,
+            identifiers_rows=rows_selection,
+            report=False,
+    ))
+    # Organize indices in table.
     table_excerpt.set_index(
-        [index_rows],
+        [name_index_rows],
         append=False,
         drop=True,
         inplace=True,
@@ -1864,120 +2172,172 @@ def calculate_principal_components_table_columns_selection(
     # dimensionality.
     pail_reduction = organize_principal_components_by_statsmodels(
         table=table_excerpt,
-        index_name=index_rows,
+        name_index_columns=name_index_columns,
+        name_index_rows=name_index_rows,
         custom_scale=False,
         prefix=prefix,
         separator="_",
+        explicate_indices=explicate_indices,
         report=False,
     )
-    #pail_reduction["table_component_scores"]
-    #pail_reduction["table_component_variance_proportions"]
-    #pail_reduction["loadings"]
-    table_component_scores = (
-        pail_reduction["table_component_scores"].copy(deep=True)
-    )
+    #pail_reduction["table_scores"]
+    #pail_reduction["table_variances"]
+    #pail_reduction["table_loadings"]
+
+    # Copy information.
+    table_loadings =  pail_reduction["table_loadings"].copy(deep=True)
+    table_variances = pail_reduction["table_variances"].copy(deep=True)
+    table_scores = pail_reduction["table_scores"].copy(deep=True)
+
+    # Organize indices in table.
+    if (explicate_indices):
+        table_loadings.reset_index(
+            level=None,
+            inplace=True,
+            drop=False, # remove index; do not move to regular columns
+        )
+        table_variances.reset_index(
+            level=None,
+            inplace=True,
+            drop=False, # remove index; do not move to regular columns
+        )
+        table_scores.reset_index(
+            level=None,
+            inplace=True,
+            drop=False, # remove index; do not move to regular columns
+        )
+        pass
+
     # Filter principal components by the proportion of variance that they
     # explain in values of the original features across observations.
-    table_proportions = copy.deepcopy(
-        pail_reduction["table_component_variance_proportions"]
-    )
-    table_prop_filter = copy.deepcopy(
-        pail_reduction["table_component_variance_proportions"]
-    )
     #table_proportions["variance_proportion"] = (
     #    table_proportions["variance_proportion"].astype("float32")
     #)
+    components_total = copy.deepcopy(
+        table_variances["eigenvectors_components"].unique().tolist()
+    )
     if (threshold_proportion is not None):
-        table_prop_filter = table_prop_filter.loc[
-            (table_prop_filter["variance_proportion"] > threshold_proportion),
-            :
+        table_variances = table_variances.loc[
+            (
+                table_variances["variance_proportion_cumulative"] <=
+                threshold_proportion
+            ), :
         ].copy(deep=True)
         components_keep = copy.deepcopy(
-            table_prop_filter["eigenvectors_components"].unique().tolist()
-        )
-        count_components_keep = len(components_keep)
-        table_component_scores = table_component_scores.filter(
-            items=components_keep,
-            axis="columns",
+            table_variances["eigenvectors_components"].unique().tolist()
         )
     else:
-        components_keep = (
-            copy.deepcopy(table_component_scores.columns.to_list())
+        components_keep = copy.deepcopy(
+            table_variances["eigenvectors_components"].unique().tolist()
         )
-        count_components_keep = len(components_keep)
         pass
 
+    # Filter and sort columns in table.
+    columns_sequence = copy.deepcopy(components_keep)
+    columns_sequence.insert(0, name_index_rows) # unnecessary if index defined
+    table_scores = porg.filter_sort_table_columns(
+        table=table_scores,
+        columns_sequence=columns_sequence,
+        report=False,
+    )
     # Organize indices in table.
-    table_component_scores.reset_index(
+    table_scores.set_index(
+        [name_index_rows],
+        append=False,
+        drop=True,
+        inplace=True,
+    )
+    # Extract names of columns corresponding to scores for principal
+    # components.
+    columns_scores = (
+        copy.deepcopy(table_scores.columns.to_list())
+    )
+    # Organize indices in table.
+    table_scores.reset_index(
         level=None,
         inplace=True,
         drop=False,
     )
-    table_component_scores.set_index(
-        index_rows,
-        append=False,
-        drop=True,
-        inplace=True
-    )
-    # Extract names of columns corresponding to scores for principal
-    # components.
-    columns_component_scores = (
-        copy.deepcopy(table_component_scores.columns.to_list())
-    )
+
     # Merge scores for principal components with the main table.
     table_merge = porg.merge_columns_two_tables(
-        identifier_first=index_rows,
-        identifier_second=index_rows,
+        identifier_first=name_index_rows,
+        identifier_second=name_index_rows,
         table_first=table_main,
-        table_second=table_component_scores,
-        preserve_index=True,
+        table_second=table_scores,
+        preserve_index=False,
         report=False,
     )
 
     # Report.
     if report:
-        utility.print_terminal_partition(level=3)
+        # Organize information.
+        count_columns_selection = len(columns_selection)
+        count_rows_selection = len(rows_selection)
+        count_components_total = len(components_total)
+        count_components_keep = len(components_keep)
+        # Print information.
+        putly.print_terminal_partition(level=3)
         print("package: partner")
         print("module: partner.decomposition.py")
-        print("function: calculate_principal_components_columns_selection()")
-        utility.print_terminal_partition(level=5)
+        function = str(
+            "calculate_principal_components_table_features_observations"
+        )
+        print(str("function: " + function))
+        putly.print_terminal_partition(level=5)
         #print("table of excerpt information for decomposition: ")
         #print(table_excerpt)
-        #utility.print_terminal_partition(level=5)
+        #putly.print_terminal_partition(level=5)
         #print("table of scores for principal components: ")
         #print(table_component_scores.iloc[0:10, 0:])
-        utility.print_terminal_partition(level=5)
-        print(str(
-            "names of original features: "
-        ))
-        print(columns_selection)
+        putly.print_terminal_partition(level=5)
+        #print(str(
+        #    "names of original features: "
+        #))
+        #print(columns_selection)
         print(str(
             "count of original features: " +
             str(count_columns_selection)
         ))
-        utility.print_terminal_partition(level=5)
         print(str(
-            "table of proportions of variance in original features across " +
-            "observations that each principal component explains: "
+            "count of original observations: " +
+            str(count_rows_selection)
         ))
-        print(table_proportions.iloc[0:25, 0:])
-        utility.print_terminal_partition(level=5)
+        putly.print_terminal_partition(level=5)
+        print(str(
+            "count of total principal component scores: " +
+            str(count_components_total)
+        ))
+        print(str(
+            "count of kept principal component scores (threshold): " +
+            str(count_components_keep)
+        ))
         print(str(
             "threshold on proportion of variance explained by components: " +
             str(threshold_proportion)
         ))
+        #print(str(
+        #    "names of components that pass threshold filter: "
+        #))
+        #print(components_keep)
+        putly.print_terminal_partition(level=5)
+        print("table_loadings:")
+        print(table_loadings)
+        putly.print_terminal_partition(level=5)
         print(str(
-            "names of components that pass threshold filter: "
+            "table of proportions of variance in original features across " +
+            "observations that each principal component explains: "
         ))
-        print(components_keep)
-        print(str(
-            "count of components above threshold: " +
-            str(count_components_keep)
-        ))
-        utility.print_terminal_partition(level=5)
+        print("table_variances:")
+        print(table_variances)
+        putly.print_terminal_partition(level=5)
+        print("table of component scores:")
+        print("table_scores:")
+        print(table_scores)
+        putly.print_terminal_partition(level=5)
         print("columns of scores for principal components: ")
-        print(columns_component_scores)
-        utility.print_terminal_partition(level=5)
+        print(columns_scores)
+        putly.print_terminal_partition(level=5)
         # Compare methods for calculation of Pincipal Component Analysis.
         if False:
             compare_principal_components_methods(
@@ -1988,15 +2348,13 @@ def calculate_principal_components_table_columns_selection(
                 report=report,
             )
         pass
-    # Collect information.
+    # Bundle information.
     pail = dict()
-    pail["table"] = table_merge
-    pail["table_component_scores"] = pail_reduction["table_component_scores"]
-    pail["table_component_variance_proportions"] = (
-        pail_reduction["table_component_variance_proportions"]
-    )
-    pail["loadings"] = pail_reduction["loadings"]
-    pail["columns_component_scores"] = columns_component_scores
+    pail["table_merge"] = table_merge
+    pail["table_loadings"] = table_loadings
+    pail["table_variances"] = table_variances
+    pail["table_scores"] = table_scores
+    pail["columns_scores"] = columns_scores
     # Return information.
     return pail
 

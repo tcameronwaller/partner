@@ -50,8 +50,10 @@ License:
 #    partner.organization.
 #    extract_array_values_from_table_column_by_groups_rows()
 
-
-
+# Note: TCW; 30 September 2025
+# As it is currently written, this procedure requires features of interest to
+# be in the table "table_signals", with or without the need for a
+# transposition.
 
 # Note: TCW; 25 September 2025
 # It is possible to include features that do not explicitly belong to any of
@@ -109,6 +111,7 @@ import partner.scale as pscl
 import partner.description as pdesc
 #import partner.regression as preg
 import partner.plot as pplot
+import utility_special as sutly
 
 
 #dir()
@@ -124,18 +127,18 @@ def parse_text_parameters(
     path_directory_source=None,
     path_directory_product=None,
     path_directory_dock=None,
-    path_file_source_table_observations=None,
     path_file_source_table_features=None,
+    path_file_source_table_observations=None,
     path_file_source_table_signals=None,
-    path_file_source_table_groups_observations=None,
     path_file_source_table_sets_features=None,
     path_file_source_list_features_selection=None,
     path_file_source_list_features_cluster_one=None,
     path_file_source_list_features_cluster_two=None,
-    column_identifier_observation=None,
+    path_file_source_table_groups_observations=None,
     column_identifier_feature=None,
-    column_identifier_signal=None,
     column_name_feature=None,
+    column_identifier_observation=None,
+    column_identifier_signal=None,
     transpose_table_signals=None,
     allow_replicate_observations=None,
     report=None,
@@ -241,7 +244,7 @@ def parse_text_parameters(
         putly.print_terminal_partition(level=3)
         print("package: partner")
         module = str(
-            "plot_chart_heatmap_groups_observations_sets_features.py"
+            "plot_chart_heatmap_sets_features_groups_observations.py"
         )
         print(str("module: " + module))
         print("function: parse_text_parameters()")
@@ -293,14 +296,14 @@ def read_source(
     path_directory_source=None,
     path_directory_product=None,
     path_directory_dock=None,
-    path_file_source_table_observations=None,
     path_file_source_table_features=None,
+    path_file_source_table_observations=None,
     path_file_source_table_signals=None,
-    path_file_source_table_groups_observations=None,
     path_file_source_table_sets_features=None,
     path_file_source_list_features_selection=None,
     path_file_source_list_features_cluster_one=None,
     path_file_source_list_features_cluster_two=None,
+    path_file_source_table_groups_observations=None,
     report=None,
 ):
     """
@@ -321,7 +324,6 @@ def read_source(
 
         ...
 
-
         report (bool): whether to print reports
 
     raises:
@@ -335,16 +337,6 @@ def read_source(
     pail = dict()
 
     # Read information from file.
-    pail["table_observations"] = pandas.read_csv(
-        path_file_source_table_observations,
-        sep="\t",
-        header=0,
-        #dtype=types_columns,
-        na_values=[
-            "nan", "na", "NAN", "NA", "<nan>", "<na>", "<NAN>", "<NA>",
-        ],
-        encoding="utf-8",
-    )
     pail["table_features"] = pandas.read_csv(
         path_file_source_table_features,
         sep="\t",
@@ -355,8 +347,8 @@ def read_source(
         ],
         encoding="utf-8",
     )
-    pail["table_signals"] = pandas.read_csv(
-        path_file_source_table_signals,
+    pail["table_observations"] = pandas.read_csv(
+        path_file_source_table_observations,
         sep="\t",
         header=0,
         #dtype=types_columns,
@@ -365,8 +357,8 @@ def read_source(
         ],
         encoding="utf-8",
     )
-    pail["table_groups"] = pandas.read_csv(
-        path_file_source_table_groups_observations,
+    pail["table_signals"] = pandas.read_csv(
+        path_file_source_table_signals,
         sep="\t",
         header=0,
         #dtype=types_columns,
@@ -400,6 +392,16 @@ def read_source(
         delimiter="\n",
         unique=True,
     )
+    pail["table_groups"] = pandas.read_csv(
+        path_file_source_table_groups_observations,
+        sep="\t",
+        header=0,
+        #dtype=types_columns,
+        na_values=[
+            "nan", "na", "NAN", "NA", "<nan>", "<na>", "<NAN>", "<NA>",
+        ],
+        encoding="utf-8",
+    )
 
     # Report.
     if report:
@@ -408,7 +410,7 @@ def read_source(
         putly.print_terminal_partition(level=3)
         print("package: partner")
         module = str(
-            "plot_chart_heatmap_groups_observations_sets_features.py"
+            "plot_chart_heatmap_sets_features_groups_observations.py"
         )
         print(str("module: " + module))
         print("function: read_source()")
@@ -421,150 +423,6 @@ def read_source(
 # Organize parameters and information about observations and features.
 
 
-def organize_parameters_groups_observations(
-    table=None,
-    column_name=None,
-    report=None,
-):
-    """
-    Blank.
-
-    Review: TCW; 24 September 2025
-
-    arguments:
-        table (object): Pandas data-frame table
-        column_name (str): name of column to use for names of groups
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (dict<object>): bundle of information
-
-    """
-
-    # Copy information.
-    table = table.copy(deep=True)
-
-    # Organize information.
-    table["execution"] = pandas.to_numeric(
-        table["execution"],
-        downcast="integer",
-        errors="coerce",
-    )
-    table["sequence"] = pandas.to_numeric(
-        table["sequence"],
-        downcast="integer",
-        errors="coerce",
-    )
-
-    # Filter rows in table.
-    table_execution = table.loc[
-        (table["execution"] == 1), :
-    ].copy(deep=True)
-    # Sort rows in table.
-    table_execution.sort_values(
-        by=["sequence",],
-        axis="index",
-        ascending=True,
-        na_position="last",
-        inplace=True,
-    )
-    # Organize indices in table.
-    table_execution.reset_index(
-        level=None,
-        inplace=True,
-        drop=True, # remove index; do not move to regular columns
-    )
-    # Extract names of groups.
-    groups_sequence = copy.deepcopy(
-        table_execution[column_name].unique().tolist()
-    )
-
-    # Collect information.
-    categories_groups = list()
-    records = list()
-    for index, row in table_execution.iterrows():
-        # Collect information and parameters from current row in table.
-        record = dict()
-        record["execution"] = int(row["execution"])
-        record["sequence"] = row["sequence"]
-        record["category"] = str(row["category"]).strip()
-        record["name"] = str(row["name"]).strip() # name for group
-        record["name_combination"] = "_".join([
-            str(row["sequence"]).strip(),
-            str(row["category"]).strip(),
-            str(row["name"]).strip(),
-        ])
-        record["abbreviation"] = str(row["abbreviation"]).strip() # name for group
-        record["selection_observations"] = (
-            putly.parse_extract_text_keys_values_semicolon_colon_comma(
-                text=row["selection_observations"],
-            )
-        )["features_values"]
-        record["review"] = str(row["review"]).strip()
-        record["note"] = str(row["note"]).strip()
-
-        # Collect unique names of columns for features relevant to instance of
-        # parameters from current row in table.
-        categories_groups_instance = list()
-        dictionaries = [
-            "selection_observations",
-        ]
-        for dictionary in dictionaries:
-            if record[dictionary] is not None:
-                categories_groups_instance.extend(copy.deepcopy(list(
-                    record[dictionary].keys()
-                )))
-                pass
-            pass
-        #categories_groups.extend(record["any_others"])
-        categories_groups_instance = putly.collect_unique_items(
-            items=categories_groups_instance,
-        )
-        record["categories_groups_instance"] = copy.deepcopy(
-            categories_groups_instance
-        )
-        categories_groups.extend(copy.deepcopy(
-            categories_groups_instance
-        ))
-        # Collect information and parameters for current row in table.
-        records.append(record)
-        pass
-
-    # Names of columns for relevant features.
-    categories_groups = putly.collect_unique_items(
-        items=categories_groups,
-    )
-
-    # Bundle information.
-    pail = dict()
-    pail["table"] = table_execution
-    pail["names_groups_observations_sequence"] = groups_sequence
-    pail["categories_groups"] = categories_groups
-    pail["records"] = records
-
-    # Report.
-    if report:
-        # Organize.
-        count_records = len(records)
-        # Report.
-        putly.print_terminal_partition(level=3)
-        print("package: partner")
-        module = str(
-            "plot_chart_heatmap_groups_observations_sets_features.py"
-        )
-        print(str("module: " + module))
-        print("function: organize_parameters_groups_observations()")
-        putly.print_terminal_partition(level=5)
-        print("count of records: " + str(count_records))
-        print("sequence of groups:")
-        print(groups_sequence)
-        pass
-    # Return information.
-    return pail
-
-
 def combine_filter_sets_features(
     features_available=None,
     features_selection=None,
@@ -575,7 +433,7 @@ def combine_filter_sets_features(
     """
     Combine and filter custom sets of features.
 
-    Review: TCW; 25 September 2025
+    Review: TCW; 29 September 2025
 
     arguments:
         features_available (list<str>): identifiers of features with available
@@ -682,7 +540,7 @@ def combine_filter_sets_features(
         putly.print_terminal_partition(level=3)
         print("package: partner")
         module = str(
-            "plot_chart_heatmap_groups_observations_sets_features.py"
+            "plot_chart_heatmap_sets_features_groups_observations.py"
         )
         print(str("module: " + module))
         print("function: combine_filter_sets_features()")
@@ -721,7 +579,7 @@ def read_organize_parameters_sets_features(
     """
     Blank.
 
-    Review: TCW; 24 September 2025
+    Review: TCW; 29 September 2025
 
     arguments:
         path_directory_source (str): path to directory for procedure's source
@@ -756,9 +614,21 @@ def read_organize_parameters_sets_features(
     features_cluster_one = copy.deepcopy(features_cluster_one)
     features_cluster_two = copy.deepcopy(features_cluster_two)
 
+    # Read and organize from table the information and parameters about
+    # sets of features.
+    pail_sets_table = sutly.read_organize_parameters_sets_features(
+        path_directory_source=path_directory_source,
+        path_directory_product=path_directory_product,
+        path_directory_dock=path_directory_dock,
+        table=table,
+        column_name=column_name,
+        features_available=features_available,
+        report=report,
+    )
+
     # Filter sets of features for custom selection and constraint of cluster
     # operation.
-    pail_sets = combine_filter_sets_features(
+    pail_sets_other = combine_filter_sets_features(
         features_available=features_available,
         features_selection=features_selection,
         features_cluster_one=features_cluster_one,
@@ -766,289 +636,22 @@ def read_organize_parameters_sets_features(
         report=report,
     )
 
-    # Organize information.
-    table["execution"] = pandas.to_numeric(
-        table["execution"],
-        downcast="integer",
-        errors="coerce",
-    )
-    table["sequence"] = pandas.to_numeric(
-        table["sequence"],
-        downcast="integer",
-        errors="coerce",
-    )
-
-    # Filter rows in table.
-    table_execution = table.loc[
-        (table["execution"] == 1), :
-    ].copy(deep=True)
-    # Sort rows in table.
-    table_execution.sort_values(
-        by=["sequence",],
-        axis="index",
-        ascending=True,
-        na_position="last",
-        inplace=True,
-    )
-    # Organize indices in table.
-    table_execution.reset_index(
-        level=None,
-        inplace=True,
-        drop=True, # remove index; do not move to regular columns
-    )
-    # Extract names of groups.
-    sets_sequence = copy.deepcopy(
-        table_execution[column_name].unique().tolist()
-    )
-
-    # Collect information.
-    sets_features = dict()
-    features_sets_union = list()
-    records = list()
-    for index, row in table_execution.iterrows():
-        # Collect information and parameters from current row in table.
-        record = dict()
-        record["execution"] = int(row["execution"])
-        record["sequence"] = row["sequence"]
-        record["category"] = str(row["category"]).strip()
-        record["name"] = str(row["name"]).strip() # name for group
-        record["name_combination"] = "_".join([
-            str(row["sequence"]).strip(),
-            str(row["category"]).strip(),
-            str(row["name"]).strip(),
-        ])
-        record["abbreviation"] = str(row["abbreviation"]).strip() # name for group
-        record["directories_path_sets"] = (
-            putly.parse_text_list_values(
-                text=row["path_directory_sets_features"],
-                delimiter=",",
-        ))
-        record["names_files_sets"] = (
-            putly.parse_text_list_values(
-                text=row["names_files_sets_features"],
-                delimiter=",",
-        ))
-        record["review"] = str(row["review"]).strip()
-        record["note"] = str(row["note"]).strip()
-
-        # Read, organize, and collect sets of features.
-        # A single set can be the union of identifiers from multiple separate
-        # files.
-        features_set = list()
-        for name_file in record["names_files_sets"]:
-            # Define paths to directories and files.
-            pail_path = putly.extract_organize_path_directory_file(
-                name_file=name_file,
-                directories_path=record["directories_path_sets"],
-                name_parent="dock",
-                path_directory_parent=path_directory_dock,
-                report=report,
-            )
-            # Determine whether parameters point path to a file exists.
-            if (pail_path["existence_file"]):
-                # Read information from file.
-                features = putly.read_file_text_list(
-                    path_file=pail_path["path_file"],
-                    delimiter="\n",
-                    unique=True,
-                )
-                # Collect features in set.
-                features_set.extend(features)
-                pass
-            pass
-        # Filter to features with available signals.
-        features_set_available = list(filter(
-            lambda feature: (feature in features_available),
-            features_set
-        ))
-        # Collect unique features in set.
-        record["features_set"] = putly.collect_unique_items(
-            items=features_set_available,
-        )
-        sets_features[record[column_name]] = copy.deepcopy(
-            record["features_set"]
-        )
-        features_sets_union.extend(record["features_set"])
-        # Collect information and parameters for current row in table.
-        records.append(record)
-        pass
-
-    # Selection of total inclusive features from all sets.
-    features_sets_union = putly.collect_unique_items(
-        items=features_sets_union,
-    )
-
     # Bundle information.
     pail = dict()
-    pail.update(pail_sets)
-    pail["table"] = table_execution
-    pail["names_sets_features_sequence"] = sets_sequence
-    pail["sets_features"] = sets_features
-    pail["features_sets_union"] = features_sets_union
-    pail["records"] = records
+    pail.update(pail_sets_table)
+    pail.update(pail_sets_other)
 
     # Report.
     if report:
         # Organize.
-        count_records = len(records)
-        count_features_sets_union = len(features_sets_union)
         # Report.
         putly.print_terminal_partition(level=3)
         print("package: partner")
         module = str(
-            "plot_chart_heatmap_groups_observations_sets_features.py"
+            "plot_chart_heatmap_sets_features_groups_observations.py"
         )
         print(str("module: " + module))
         print("function: read_organize_parameters_sets_features()")
-        putly.print_terminal_partition(level=5)
-        print("count of records: " + str(count_records))
-        print("sequence of sets:")
-        print(sets_sequence)
-        print(
-            "count of total selection of features: " +
-            str(count_features_sets_union)
-        )
-        #print("sets of features:")
-        #print(sets_features)
-        pass
-    # Return information.
-    return pail
-
-
-def organize_parameters_further_groups_observations(
-    table_observations=None,
-    column_identifier_observation=None,
-    column_identifier_signal=None,
-    instances_groups_observations=None,
-    key_name=None,
-    names_groups_observations_sequence=None,
-    report=None,
-):
-    """
-    Organize parameters and information about observations.
-
-    Review: TCW; 25 September 2025
-
-    arguments:
-        table_observations (object): Pandas data-frame table
-        column_identifier_observation (str): name of column in source table
-        column_identifier_signal (str): name of column in source table
-        instances_groups_observations (list<dict>): multiple instances, each
-            with parameters for the name and selection of a group of
-            observations
-            execution (int): logical binary indicator of whether to execute and
-                handle the parameters for the current instance
-            sequence (int): sequential index for instance's name and sort order
-            category (str): categorical group of instances
-            name (str): name or designator for instance of parameters
-            name_combination (str): compound name for instance of parameters
-            abbreviation (str): name abbreviation
-            selection_observations (dict<list<str>>): names of columns in table
-                for feature variables and their categorical values by which to
-                filter rows for observations in table
-            review (str):
-            note (str):
-        key_name (str): name of entry to use for names of groups
-        names_groups_observations_sequence (list<str>): names of groups for
-            observations in specific sequence
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (dict<object>): collection of information
-
-    """
-
-    # Define subordinate functions for internal use.
-    def alias_filter_extract(
-        table=None,
-        column_identifier=None,
-        name=None,
-        columns_categories=None,
-        report=None,
-    ):
-        identifiers = (
-            porg.filter_extract_table_row_identifiers_by_columns_categories(
-                table=table,
-                column_identifier=column_identifier,
-                name=name,
-                columns_categories=columns_categories,
-                report=report,
-        ))
-        return identifiers
-
-    # Copy information.
-    table_observations = table_observations.copy(deep=True)
-    instances_groups_observations = copy.deepcopy(
-        instances_groups_observations
-    )
-    names_groups_observations_sequence = copy.deepcopy(
-        names_groups_observations_sequence
-    )
-
-    # Extract and organize information about samples in groups.
-    # Collect information.
-    groups_observations = dict()
-    observations_selection = list()
-    # Iterate across instances of parameters.
-    instances_execution = list(filter(
-        lambda instance: (int(instance["execution"]) == 1),
-        instances_groups_observations
-    ))
-    for instance in instances_execution:
-        if (
-            (names_groups_observations_sequence is not None) and
-            (len(names_groups_observations_sequence) > 0) and
-            (instance[key_name] in names_groups_observations_sequence)
-        ):
-            # Filter and extract identifiers of cohort sample observations
-            # corresponding to selection criteria for current instance.
-            observations = (
-                alias_filter_extract(
-                    table=table_observations,
-                    column_identifier=column_identifier_signal,
-                    name=instance[key_name],
-                    columns_categories=instance["selection_observations"],
-                    report=report,
-            ))
-            # Collect information.
-            groups_observations[instance[key_name]] = observations
-            observations_selection.extend(observations)
-            pass
-        pass
-    # Collect unique names of sample observations.
-    observations_selection = putly.collect_unique_items(
-        items=observations_selection,
-    )
-    # Filter rows in table for selection of features.
-    if (len(observations_selection) > 0):
-        table_observations_selection = table_observations.loc[
-            table_observations[column_identifier_signal].isin(
-                observations_selection
-            ), :
-        ].copy(deep=True)
-        pass
-
-    # Bundle information.
-    pail = dict()
-    pail["table_observations_selection"] = table_observations_selection
-    pail["observations_selection"] = observations_selection
-    pail["translations_observations"] = None
-    pail["names_groups_observations_sequence"] = (
-        names_groups_observations_sequence
-    )
-    pail["groups_observations"] = groups_observations
-
-    # Report.
-    if report:
-        putly.print_terminal_partition(level=3)
-        print("package: partner")
-        module = str(
-            "plot_chart_heatmap_groups_observations_sets_features.py"
-        )
-        print(str("module: " + module))
-        print("function: organize_parameters_further_groups_observations()")
         putly.print_terminal_partition(level=5)
         pass
     # Return information.
@@ -1071,7 +674,7 @@ def organize_parameters_further_sets_features(
     """
     Organize parameters and information about features.
 
-    Review: TCW; 25 September 2025
+    Review: TCW; 29 September 2025
 
     arguments:
         table_features (object): Pandas data-frame table
@@ -1079,6 +682,9 @@ def organize_parameters_further_sets_features(
         column_name_feature (str): name of column in source table
         features_selection (list<str>): identifiers of features for which to
             include signals across observations
+        features_sets_union (list<str>): identifiers of features in union of
+            all sets
+        ...
         sets_features (dict<list<str>>): names of sets and identifiers
             of features that belong to each of these sets
         names_sets_features_sequence (list<str>): names of sets for features in
@@ -1103,51 +709,17 @@ def organize_parameters_further_sets_features(
     sets_features = copy.deepcopy(sets_features)
     names_sets_features_sequence = copy.deepcopy(names_sets_features_sequence)
 
-    # Filter rows in table for selection of features.
-    if (len(features_selection) > 0):
-        table_features_selection = table_features.loc[
-            table_features[column_identifier_feature].isin(
-                features_selection
-            ), :
-        ].copy(deep=True)
-        pass
-    table_features_selection = table_features_selection.loc[
-        (table_features_selection[column_name_feature].str.len() > 0), :
-    ].copy(deep=True)
-    table_features_selection = table_features_selection.loc[
-        (table_features_selection[column_identifier_feature].str.len() > 0), :
-    ].copy(deep=True)
-    # Extract information for translation of names of columns.
-    table_translations = table_features_selection.filter(
-        items=[column_identifier_feature, column_name_feature,],
-        axis="columns",
+    pail_features = sutly.organize_parameters_further_sets_features(
+        table_features=table_features,
+        column_identifier_feature=column_identifier_feature,
+        column_name_feature=column_name_feature,
+        features_selection=features_selection,
+        features_sets_union=features_sets_union,
+        sets_features=sets_features,
+        names_sets_features_sequence=names_sets_features_sequence,
+        prefix_name_feature=prefix_name_feature,
+        report=report,
     )
-    series_translations = pandas.Series(
-        table_translations[column_name_feature].to_list(),
-        index=table_translations[column_identifier_feature],
-    )
-    translations_features = series_translations.to_dict()
-
-    # Translate names of genes in set for selection.
-    if (translations_features is not None):
-        features_selection_translation = list(map(
-            lambda feature: (translations_features[feature]),
-            features_selection_translation
-        ))
-        pass
-
-    # Append prefix to names of columns in table for genes.
-    features_selection_prefix = list()
-    for name in features_selection_translation:
-        name_prefix = str(prefix_name_feature + name)
-        features_selection_prefix.append(name_prefix)
-        pass
-    translations_features_prefix = copy.deepcopy(translations_features)
-    for key in translations_features_prefix.keys():
-        name = str(translations_features_prefix[key])
-        name_prefix = str(prefix_name_feature + name)
-        translations_features_prefix[key] = name_prefix
-        pass
 
     # Determine sets of features for constraint on cluster operation.
     if (
@@ -1178,21 +750,17 @@ def organize_parameters_further_sets_features(
             features_sets_union
         )
         names_sets_features_sequence_cluster = ["union",]
+    else:
+        sets_features_cluster = dict()
+        names_sets_features_sequence_cluster = list()
         pass
 
     # Bundle information.
     pail = dict()
-    pail["table_features_selection"] = table_features_selection
-    pail["features_selection"] = features_selection
-    pail["features_selection_translation"] = features_selection_translation
-    pail["features_selection_prefix"] = features_selection_prefix
-    pail["translations_features"] = translations_features
-    pail["translations_features_prefix"] = translations_features_prefix
-    pail["names_sets_features_sequence"] = names_sets_features_sequence
+    pail.update(pail_features)
     pail["names_sets_features_sequence_cluster"] = (
         names_sets_features_sequence_cluster
     )
-    pail["sets_features"] = sets_features
     pail["sets_features_cluster"] = sets_features_cluster
 
     # Report.
@@ -1200,7 +768,7 @@ def organize_parameters_further_sets_features(
         putly.print_terminal_partition(level=3)
         print("package: partner")
         module = str(
-            "plot_chart_heatmap_groups_observations_sets_features.py"
+            "plot_chart_heatmap_sets_features_groups_observations.py"
         )
         print(str("module: " + module))
         print("function: organize_parameters_further_sets_features()")
@@ -1408,20 +976,20 @@ def organize_preliminary_information_to_prepare_tables_signal(
     return pail
 
 
-def prepare_tables_signals_groups_observations_sets_features(
+def prepare_tables_signals_sets_features_groups_observations(
     table=None,
-    index_observations=None,
     index_features=None,
-    observations_selection=None,
+    index_observations=None,
     features_selection=None,
-    groups_observations=None,
+    observations_selection=None,
     sets_features=None,
     sets_features_cluster=None,
-    names_groups_observations_sequence=None,
+    groups_observations=None,
     names_sets_features_sequence=None,
     names_sets_features_sequence_cluster=None,
-    translations_observations=None,
+    names_groups_observations_sequence=None,
     translations_features=None,
+    translations_observations=None,
     transpose_source_table=None,
     allow_replicate_observations=None,
     report=None,
@@ -1620,34 +1188,34 @@ def prepare_tables_signals_groups_observations_sets_features(
         table (object): Pandas data-frame table for values of signal intensity
             corresponding to features across columns and observations across
             rows (whether before or after any necessary transposition)
-        index_observations (str): name for index corresponding to observations
-            across rows in the original source table
         index_features (str): name for index corresponding to features across
             columns in the original source table
+        index_observations (str): name for index corresponding to observations
+            across rows in the original source table
+        features_selection (list<str>): identifiers of features for which to
+            include and describe values of signal intensity across observations
         observations_selection (list<str>): identifiers of observations for
             which to include and describe values of signal intensity across
             features
-        features_selection (list<str>): identifiers of features for which to
-            include and describe values of signal intensity across observations
-        groups_observations (dict<list<str>>): names of groups and identifiers
-            of observations that belong to each of these groups; clustering of
-            observations will have constraint within these groups
         sets_features (dict<list<str>>): names of sets and identifiers
             of features that belong to each of these sets
         sets_features_cluster (dict<list<str>>): names of sets and identifiers
             of features that belong to each of these sets; alternative option
             since cluster operation cannot accommodate overlapping sets
-        names_groups_observations_sequence (list<str>): names of groups for
-            observations in specific sequence
+        groups_observations (dict<list<str>>): names of groups and identifiers
+            of observations that belong to each of these groups; clustering of
+            observations will have constraint within these groups
         names_sets_features_sequence (list<str>): names of sets for features in
             specific sequence
         names_sets_features_sequence_cluster (list<str>): names of sets for
             features in specific sequence; alternative option since cluster
             operation cannot accommodate overlapping sets
-        translations_observations (dict<str>): translations for names or
-            identifiers of observations
+        names_groups_observations_sequence (list<str>): names of groups for
+            observations in specific sequence
         translations_features (dict<str>): translations for names or
             identifiers of features
+        translations_observations (dict<str>): translations for names or
+            identifiers of observations
         transpose_source_table (bool): whether to transpose the original source
             table before further transformation
         allow_replicate_observations (bool): whether to allow replicate
@@ -1672,21 +1240,14 @@ def prepare_tables_signals_groups_observations_sets_features(
     # Determine whether to apply optional transposition.
     if (transpose_source_table):
         # Organize indices in table.
-        table_source_format.reset_index(
-            level=None,
-            inplace=True,
-            drop=True, # remove index; do not move to regular columns
-        )
-        table_source_format.set_index(
-            index_features,
-            append=False,
-            drop=True,
-            inplace=True
-        )
-        table_source_format.columns.rename(
-            index_observations,
-            inplace=True,
-        ) # single-dimensional index
+        table_source_format = (
+            porg.explicate_table_indices_columns_rows_single_level(
+                table=table_source_format,
+                index_columns=index_observations,
+                index_rows=index_features,
+                explicate_indices=True,
+                report=report,
+        ))
         # Transpose table.
         table_source_format = table_source_format.transpose(copy=True)
         # Organize indices in table.
@@ -1735,7 +1296,7 @@ def prepare_tables_signals_groups_observations_sets_features(
 
     ##########
     # Prepare product table 1.
-    # Filter specific features and observations from table.
+    # Filter columns and rows in table for specific features and observations.
     table_selection = porg.filter_select_table_columns_rows_by_identifiers(
         table=table_source_format,
         index_rows=pail["index_observations"],
@@ -1763,6 +1324,10 @@ def prepare_tables_signals_groups_observations_sets_features(
     # categorical names corresponding to specific groups of observations.
     if (allow_replicate_observations):
         # Each observation has potential to belong to multiple groups.
+        # It will be necessary to update the translations for identifiers of
+        # observations.
+        # It will also be necessary to allow redundancy when translating the
+        # identifiers of observations.
         table_group = porg.determine_fill_table_groups_rows_with_replicates(
             table=table_selection,
             index_rows=pail["index_observations"],
@@ -1776,10 +1341,29 @@ def prepare_tables_signals_groups_observations_sets_features(
         )
         table_group[pail["index_observations"]] = table_group.apply(
             lambda row: str(
-                row["group"] + "_" + row["index_observations_old"]
+                row["group"] + "_-_" + row["index_observations_old"]
             ),
             axis="columns", # apply function to each row
         )
+        # It is now necessary to update the translations of the observations.
+        # Copy information.
+        translations_observations_old = copy.deepcopy(
+            pail["translations_observations"]
+        )
+        # Iterate on rows in table to determine translations of identifiers.
+        # Collect information
+        pail["translations_observations"] = dict()
+        for index, row in table_group.iterrows():
+            # Identifier group.
+            identifier_novel = row[pail["index_observations"]]
+            #identifier_original = identifier_novel.split("_-_")[1]
+            identifier_original = row["index_observations_old"]
+            # Determine translation.
+            pail["translations_observations"][identifier_novel] = (
+                translations_observations_old[identifier_original]
+            )
+            pass
+        # Drop the column for the original identifiers.
         table_group.drop(
             labels=["index_observations_old",],
             axis="columns",
@@ -1794,6 +1378,9 @@ def prepare_tables_signals_groups_observations_sets_features(
             groups_rows=pail["groups_observations"],
             report=False,
         )
+        #table_group["index_observations_old"] = (
+        #    table_group[pail["index_observations"]]
+        #)
         pass
     # Sort rows in table by groups.
     table_group = porg.sort_table_rows_by_single_column_reference(
@@ -1812,7 +1399,7 @@ def prepare_tables_signals_groups_observations_sets_features(
             index_rows=pail["index_observations"],
             translations_columns=pail["translations_features"],
             translations_rows=pail["translations_observations"],
-            remove_redundancy=True,
+            remove_redundancy=False,
             report=False,
     ))
 
@@ -1859,7 +1446,7 @@ def prepare_tables_signals_groups_observations_sets_features(
             index_rows=pail["index_observations"],
             translations_columns=pail["translations_features"],
             translations_rows=pail["translations_observations"],
-            remove_redundancy=True,
+            remove_redundancy=False,
             report=False,
     ))
 
@@ -1914,7 +1501,7 @@ def prepare_tables_signals_groups_observations_sets_features(
             index_rows=pail["index_observations"],
             translations_columns=pail["translations_features"],
             translations_rows=pail["translations_observations"],
-            remove_redundancy=True,
+            remove_redundancy=False,
             report=False,
     ))
 
@@ -1963,7 +1550,7 @@ def prepare_tables_signals_groups_observations_sets_features(
             index_rows=pail["index_observations"],
             translations_columns=pail["translations_features"],
             translations_rows=pail["translations_observations"],
-            remove_redundancy=True,
+            remove_redundancy=False,
             report=False,
     ))
 
@@ -2085,7 +1672,7 @@ def prepare_tables_signals_groups_observations_sets_features(
         putly.print_terminal_partition(level=3)
         print("package: partner")
         module = str(
-            "plot_chart_heatmap_groups_observations_sets_features.py"
+            "plot_chart_heatmap_sets_features_groups_observations.py"
         )
         print(str("module: " + module))
         function = str(
@@ -2311,7 +1898,7 @@ def sort_check_table_rows_sequence_custom(
         putly.print_terminal_partition(level=3)
         print("package: partner")
         module = str(
-            "plot_chart_heatmap_groups_observations_sets_features.py"
+            "plot_chart_heatmap_sets_features_groups_observations.py"
         )
         print(str("module: " + module))
         function = str(
@@ -2463,7 +2050,7 @@ def prepare_table_sets_features_allocation_match_table_signal(
         putly.print_terminal_partition(level=3)
         print("package: partner")
         module = str(
-            "plot_chart_heatmap_groups_observations_sets_features.py"
+            "plot_chart_heatmap_sets_features_groups_observations.py"
         )
         print(str("module: " + module))
         function = str(
@@ -2477,23 +2064,19 @@ def prepare_table_sets_features_allocation_match_table_signal(
 
 
 def manage_prepare_tables(
-    table_observations=None,
-    table_features=None,
     table_signals=None,
-    column_identifier_observation=None,
     column_identifier_feature=None,
     column_identifier_signal=None,
-    column_name_feature=None,
-    instances_groups_observations=None,
-    key_name=None,
-    names_groups_observations_sequence=None,
-    categories_groups=None,
     features_selection=None,
-    features_cluster_one=None,
-    features_cluster_two=None,
-    features_sets_union=None,
+    observations_selection=None,
     sets_features=None,
+    sets_features_cluster=None,
+    groups_observations=None,
     names_sets_features_sequence=None,
+    names_sets_features_sequence_cluster=None,
+    names_groups_observations_sequence=None,
+    translations_features=None,
+    translations_observations=None,
     transpose_table_signals=None,
     allow_replicate_observations=None,
     report=None,
@@ -2501,7 +2084,7 @@ def manage_prepare_tables(
     """
     Blank.
 
-    Review: TCW; 25 September 2025
+    Review: TCW; 30 September 2025
 
     arguments:
 
@@ -2516,94 +2099,44 @@ def manage_prepare_tables(
     """
 
     # Copy information.
-    table_observations = table_observations.copy(deep=True)
-    table_features = table_features.copy(deep=True)
     table_signals = table_signals.copy(deep=True)
-    instances_groups_observations = copy.deepcopy(
-        instances_groups_observations
+    features_selection = copy.deepcopy(features_selection)
+    observations_selection = copy.deepcopy(observations_selection)
+    sets_features = copy.deepcopy(sets_features)
+    sets_features_cluster = copy.deepcopy(sets_features_cluster)
+    groups_observations = copy.deepcopy(groups_observations)
+    names_sets_features_sequence = copy.deepcopy(names_sets_features_sequence)
+    names_sets_features_sequence_cluster = copy.deepcopy(
+        names_sets_features_sequence_cluster
     )
     names_groups_observations_sequence = copy.deepcopy(
         names_groups_observations_sequence
     )
-    categories_groups = copy.deepcopy(categories_groups)
-    features_selection = copy.deepcopy(features_selection)
-    features_cluster_one = copy.deepcopy(features_cluster_one)
-    features_cluster_two = copy.deepcopy(features_cluster_two)
-    features_sets_union = copy.deepcopy(features_sets_union)
-    sets_features = copy.deepcopy(sets_features)
-    names_sets_features_sequence = copy.deepcopy(names_sets_features_sequence)
-
-    # Organize parameters further for observations and features.
-
-    pail_observations = organize_parameters_further_groups_observations(
-        table_observations=table_observations,
-        column_identifier_observation=column_identifier_observation,
-        column_identifier_signal=column_identifier_signal,
-        instances_groups_observations=instances_groups_observations,
-        key_name=key_name,
-        names_groups_observations_sequence=names_groups_observations_sequence,
-        report=report,
-    )
-    #pail_observations["table_observations_selection"]
-    #pail_observations["observations_selection"]
-    #pail_observations["translations_observations"]
-    #pail_observations["names_groups_observations_sequence"]
-    #pail_observations["groups_observations"]
-
-    pail_features = organize_parameters_further_sets_features(
-        table_features=table_features,
-        column_identifier_feature=column_identifier_feature,
-        column_name_feature=column_name_feature,
-        features_selection=features_selection,
-        features_cluster_one=features_cluster_one,
-        features_cluster_two=features_cluster_two,
-        features_sets_union=features_sets_union,
-        sets_features=sets_features,
-        names_sets_features_sequence=names_sets_features_sequence,
-        prefix_name_feature="",
-        report=report,
-    )
-    #pail_features["table_features_selection"]
-    #pail_features["features_selection"]
-    #pail_features["features_selection_translation"]
-    #pail_features["features_selection_prefix"]
-    #pail_features["translations_features"]
-    #pail_features["translations_features_prefix"]
-    #pail_features["names_sets_features_sequence"]
-    #pail_features["sets_features"]
-
-    # Note: TCW; 25 September 2025
-    # The identifiers extracted for observations in the two functions below
-    # must match.
-    # organize_parameters_further_groups_observations()
-    # prepare_tables_signals_groups_observations_sets_features()
+    translations_features = copy.deepcopy(translations_features)
+    translations_observations = copy.deepcopy(translations_observations)
 
     ##########
     # Prepare basic tables.
     # Prepare tables for signals.
     pail_tables_signal = (
-        prepare_tables_signals_groups_observations_sets_features(
+        prepare_tables_signals_sets_features_groups_observations(
             table=table_signals,
-            index_observations=column_identifier_signal,
             index_features=column_identifier_feature,
-            observations_selection=pail_observations["observations_selection"],
-            features_selection=pail_features["features_selection"],
-            groups_observations=pail_observations["groups_observations"],
-            sets_features=pail_features["sets_features"],
-            sets_features_cluster=pail_features["sets_features_cluster"],
-            names_groups_observations_sequence=(
-                pail_observations["names_groups_observations_sequence"]
-            ),
-            names_sets_features_sequence=(
-                pail_features["names_sets_features_sequence"]
-            ),
+            index_observations=column_identifier_signal,
+            features_selection=features_selection,
+            observations_selection=observations_selection,
+            sets_features=sets_features,
+            sets_features_cluster=sets_features_cluster,
+            groups_observations=groups_observations,
+            names_sets_features_sequence=names_sets_features_sequence,
             names_sets_features_sequence_cluster=(
-                pail_features["names_sets_features_sequence_cluster"]
+                names_sets_features_sequence_cluster
             ),
-            translations_observations=(
-                pail_observations["translations_observations"]
+            names_groups_observations_sequence=(
+                names_groups_observations_sequence
             ),
-            translations_features=pail_features["translations_features"],
+            translations_features=translations_features,
+            translations_observations=translations_observations,
             transpose_source_table=transpose_table_signals,
             allow_replicate_observations=allow_replicate_observations,
             report=False,
@@ -2625,10 +2158,8 @@ def manage_prepare_tables(
             table_signal=pail_tables_signal["table_3"],
             index_features=column_identifier_feature,
             indices_observations=[column_identifier_signal, "group",],
-            sets_features=pail_features["sets_features"],
-            names_sets_features_sequence=(
-                pail_features["names_sets_features_sequence"]
-            ),
+            sets_features=sets_features,
+            names_sets_features_sequence=names_sets_features_sequence,
             translations_features=None,
             report=report,
         )
@@ -2638,10 +2169,8 @@ def manage_prepare_tables(
             table_signal=pail_tables_signal["table_4"],
             index_features=column_identifier_feature,
             indices_observations=[column_identifier_signal, "group",],
-            sets_features=pail_features["sets_features"],
-            names_sets_features_sequence=(
-                pail_features["names_sets_features_sequence"]
-            ),
+            sets_features=sets_features,
+            names_sets_features_sequence=names_sets_features_sequence,
             translations_features=None,
             report=report,
         )
@@ -2651,10 +2180,8 @@ def manage_prepare_tables(
             table_signal=pail_tables_signal["table_5"],
             index_features=column_identifier_feature,
             indices_observations=[column_identifier_signal, "group",],
-            sets_features=pail_features["sets_features"],
-            names_sets_features_sequence=(
-                pail_features["names_sets_features_sequence"]
-            ),
+            sets_features=sets_features,
+            names_sets_features_sequence=names_sets_features_sequence,
             translations_features=None,
             report=report,
         )
@@ -2673,8 +2200,6 @@ def manage_prepare_tables(
 
     # Bundle information.
     pail = dict()
-    pail.update(pail_observations)
-    pail.update(pail_features)
     pail.update(pail_tables_signal)
     pail["table_allocation_3"] = table_allocation_3 # cluster with constraint by sets of features and by groups of observations
     pail["table_allocation_4"] = table_allocation_4 # cluster with constraint by groups of observations only
@@ -2688,7 +2213,7 @@ def manage_prepare_tables(
         putly.print_terminal_partition(level=3)
         print("package: partner")
         module = str(
-            "plot_chart_heatmap_groups_observations_sets_features.py"
+            "plot_chart_heatmap_sets_features_groups_observations.py"
         )
         print(str("module: " + module))
         print("function: manage_prepare_tables()")
@@ -4747,8 +4272,8 @@ def manage_create_write_plot_charts(
     table_heatmap_individual_1=None,
     table_heatmap_individual_2=None,
     table_heatmap_individual_3=None,
-    table_heatmap_mean_set=None,
-    table_heatmap_mean_label=None,
+    table_heatmap_group_set=None,
+    table_heatmap_group_label=None,
     table_allocation_1=None,
     table_allocation_2=None,
     table_allocation_3=None,
@@ -4774,17 +4299,17 @@ def manage_create_write_plot_charts(
         table_heatmap_individual_3 (object): Pandas data-frame table of values
             of signal intensity for features across columns and sample
             observations in groups across rows
-        table_heatmap_mean_set (object): Pandas data-frame table of
+        table_heatmap_group_set (object): Pandas data-frame table of
             descriptive statistics for values of signal intensity for features
             across rows and groups of sample observations across columns
-        table_heatmap_mean_label (object): Pandas data-frame table of
+        table_heatmap_group_label (object): Pandas data-frame table of
             descriptive statistics for values of signal intensity for features
             across rows and groups of sample observations across columns
         table_allocation_1 (object): Pandas data-frame table of indications of
             allocation of genes to sets in a sort sequence that matches the
             sequence of genes across columns in table
             'table_heatmap_individual_1' and the sequence of genes across rows
-            in table 'table_heatmap_mean'
+            in table 'table_heatmap_group'
         table_allocation_2 (object): Pandas data-frame table of indications of
             allocation of genes to sets in a sort sequence that matches the
             sequence of genes across columns in table
@@ -4796,7 +4321,7 @@ def manage_create_write_plot_charts(
         table_allocation_4 (object): Pandas data-frame table of indications of
             allocation of genes to sets in a sort sequence that matches the
             sequence of genes across columns in table
-            'table_heatmap_mean_set'
+            'table_heatmap_group_set'
         index_features (str): name for index corresponding to features
         index_observations (str): name for index corresponding to observations
         heatmap_individual (bool): whether to create heatmap chart for
@@ -4818,8 +4343,8 @@ def manage_create_write_plot_charts(
     table_heatmap_individual_1 = table_heatmap_individual_1.copy(deep=True)
     table_heatmap_individual_2 = table_heatmap_individual_2.copy(deep=True)
     table_heatmap_individual_3 = table_heatmap_individual_3.copy(deep=True)
-    table_heatmap_mean_set = table_heatmap_mean_set.copy(deep=True)
-    table_heatmap_mean_label = table_heatmap_mean_label.copy(deep=True)
+    table_heatmap_group_set = table_heatmap_group_set.copy(deep=True)
+    table_heatmap_group_label = table_heatmap_group_label.copy(deep=True)
     table_allocation_1 = table_allocation_1.copy(deep=True)
     table_allocation_2 = table_allocation_2.copy(deep=True)
     table_allocation_3 = table_allocation_3.copy(deep=True)
@@ -4867,7 +4392,7 @@ def manage_create_write_plot_charts(
         # Create heatmaps.
         figure_heatmap_mean_set = (
             plot_heatmap_features_sets_observations_labels(
-                table_signal=table_heatmap_mean_set,
+                table_signal=table_heatmap_group_set,
                 table_feature=table_allocation_4,
                 index_columns="group_observations",
                 index_rows=index_features,
@@ -4875,7 +4400,7 @@ def manage_create_write_plot_charts(
         ))
         figure_heatmap_mean_label = (
             plot_heatmap_features_observations_labels(
-                table=table_heatmap_mean_label,
+                table=table_heatmap_group_label,
                 index_columns="group_observations",
                 index_rows=index_features,
                 report=False,
@@ -4932,7 +4457,7 @@ def manage_create_write_plot_charts(
         putly.print_terminal_partition(level=3)
         print("package: partner")
         module = str(
-            "plot_chart_heatmap_groups_observations_sets_features.py"
+            "plot_chart_heatmap_sets_features_groups_observations.py"
         )
         print(str("module: " + module))
         print("function: manage_create_write_plot_charts()")
@@ -4957,18 +4482,18 @@ def execute_procedure(
     path_directory_source=None,
     path_directory_product=None,
     path_directory_dock=None,
-    path_file_source_table_observations=None,
     path_file_source_table_features=None,
+    path_file_source_table_observations=None,
     path_file_source_table_signals=None,
-    path_file_source_table_groups_observations=None,
     path_file_source_table_sets_features=None,
     path_file_source_list_features_selection=None,
     path_file_source_list_features_cluster_one=None,
     path_file_source_list_features_cluster_two=None,
-    column_identifier_observation=None,
+    path_file_source_table_groups_observations=None,
     column_identifier_feature=None,
-    column_identifier_signal=None,
     column_name_feature=None,
+    column_identifier_observation=None,
+    column_identifier_signal=None,
     transpose_table_signals=None,
     allow_replicate_observations=None,
     report=None,
@@ -4976,7 +4501,7 @@ def execute_procedure(
     """
     Function to execute module's main behavior.
 
-    Review: TCW; 24 September 2025
+    Review: TCW; 26 September 2025
 
     arguments:
         path_directory_source (str): path to directory for procedure's source
@@ -4985,20 +4510,21 @@ def execute_procedure(
             directories and files
         path_directory_dock (str): path to dock directory for procedure's
             source and product directories and files
-        path_file_source_table_observations (str): path to source file
         path_file_source_table_features (str): path to source file
+        path_file_source_table_observations (str): path to source file
         path_file_source_table_signals (str): path to source file
-        path_file_source_table_groups_observations (str): path to source file
         path_file_source_table_sets_features (str): path to source file
         path_file_source_list_features_selection (str): path to source file
         path_file_source_list_features_cluster_one (str): path to source file
         path_file_source_list_features_cluster_two (str): path to source file
-        column_identifier_observation (str): name of column in source table
+        path_file_source_table_groups_observations (str): path to source file
         column_identifier_feature (str): name of column in source table
-        column_identifier_signal (str): name of column in source table
         column_name_feature (str): name of column in source table
+        column_identifier_observation (str): name of column in source table
+        column_identifier_signal (str): name of column in source table
         transpose_table_signals (bool): whether to transpose the table of
-            signals
+            signals to match orientation in table of observations (columns:
+            features; rows: observations)
         allow_replicate_observations (bool): whether to allow replicate
             observations or to require groups to be mutually exclusive, such
             that any individual observation can only belong to one group
@@ -5016,14 +4542,11 @@ def execute_procedure(
         path_directory_source=path_directory_source,
         path_directory_product=path_directory_product,
         path_directory_dock=path_directory_dock,
+        path_file_source_table_features=path_file_source_table_features,
         path_file_source_table_observations=(
             path_file_source_table_observations
         ),
-        path_file_source_table_features=path_file_source_table_features,
         path_file_source_table_signals=path_file_source_table_signals,
-        path_file_source_table_groups_observations=(
-            path_file_source_table_groups_observations
-        ),
         path_file_source_table_sets_features=(
             path_file_source_table_sets_features
         ),
@@ -5036,10 +4559,13 @@ def execute_procedure(
         path_file_source_list_features_cluster_two=(
             path_file_source_list_features_cluster_two
         ),
-        column_identifier_observation=column_identifier_observation,
+        path_file_source_table_groups_observations=(
+            path_file_source_table_groups_observations
+        ),
         column_identifier_feature=column_identifier_feature,
-        column_identifier_signal=column_identifier_signal,
         column_name_feature=column_name_feature,
+        column_identifier_observation=column_identifier_observation,
+        column_identifier_signal=column_identifier_signal,
         transpose_table_signals=transpose_table_signals,
         allow_replicate_observations=allow_replicate_observations,
         report=report,
@@ -5050,7 +4576,8 @@ def execute_procedure(
     if pail_parameters["report"]:
         putly.print_terminal_partition(level=3)
         print("package: partner")
-        print("module: plot_chart_volcano.py")
+        module = str("plot_chart_heatmap_sets_features_groups_observations.py")
+        print(str("module: " + module))
         print("function: execute_procedure()")
         print("system: local")
         putly.print_terminal_partition(level=5)
@@ -5062,17 +4589,14 @@ def execute_procedure(
         path_directory_source=pail_parameters["path_directory_source"],
         path_directory_product=pail_parameters["path_directory_product"],
         path_directory_dock=pail_parameters["path_directory_dock"],
-        path_file_source_table_observations=(
-            pail_parameters["path_file_source_table_observations"]
-        ),
         path_file_source_table_features=(
             pail_parameters["path_file_source_table_features"]
         ),
+        path_file_source_table_observations=(
+            pail_parameters["path_file_source_table_observations"]
+        ),
         path_file_source_table_signals=(
             pail_parameters["path_file_source_table_signals"]
-        ),
-        path_file_source_table_groups_observations=(
-            pail_parameters["path_file_source_table_groups_observations"]
         ),
         path_file_source_table_sets_features=(
             pail_parameters["path_file_source_table_sets_features"]
@@ -5087,25 +4611,33 @@ def execute_procedure(
         path_file_source_list_features_cluster_two=(
             pail_parameters["path_file_source_list_features_cluster_two"]
         ),
+        path_file_source_table_groups_observations=(
+            pail_parameters["path_file_source_table_groups_observations"]
+        ),
         report=pail_parameters["report"],
     )
 
     # Parameters.
-    pail_groups = organize_parameters_groups_observations(
-        table=pail_source["table_groups"],
-        column_name="abbreviation",
+
+    features_available = sutly.determine_features_available(
+        table_features=pail_source["table_features"],
+        table_observations=pail_source["table_observations"],
+        table_signals=pail_source["table_signals"],
+        column_identifier_feature=pail_parameters["column_identifier_feature"],
+        column_name_feature=pail_parameters["column_name_feature"],
+        column_identifier_observation=(
+            pail_parameters["column_identifier_observation"]
+        ),
+        column_identifier_signal=pail_parameters["column_identifier_signal"],
+        transpose_table_signals=pail_parameters["transpose_table_signals"],
         report=pail_parameters["report"],
     )
-    #pail_groups["table"]
-    #pail_groups["names_groups_observations_sequence"]
-    #pail_groups["categories_groups"]
-    #pail_groups["records"]
 
-    table_features = pail_source["table_features"]
-    column_identifier_feature = pail_parameters["column_identifier_feature"]
-    features_available = copy.deepcopy(
-        table_features[column_identifier_feature].unique().tolist()
-    )
+    #table_features = pail_source["table_features"]
+    #column_identifier_feature = pail_parameters["column_identifier_feature"]
+    #features_available = copy.deepcopy(
+    #    table_features[column_identifier_feature].unique().tolist()
+    #)
     pail_sets = read_organize_parameters_sets_features(
         path_directory_source=pail_parameters["path_directory_source"],
         path_directory_product=pail_parameters["path_directory_product"],
@@ -5128,35 +4660,98 @@ def execute_procedure(
     #pail_sets["features_sets_union"]
     #pail_sets["records"]
 
-    # Prepare tables.
-    pail_tables = manage_prepare_tables(
-        table_observations=pail_source["table_observations"],
+    pail_features = organize_parameters_further_sets_features(
         table_features=pail_source["table_features"],
-        table_signals=pail_source["table_signals"],
-        column_identifier_observation=(
-            pail_parameters["column_identifier_observation"]
-        ),
         column_identifier_feature=(
             pail_parameters["column_identifier_feature"]
-        ),
-        column_identifier_signal=(
-            pail_parameters["column_identifier_signal"]
         ),
         column_name_feature=(
             pail_parameters["column_name_feature"]
         ),
-        instances_groups_observations=pail_groups["records"],
-        key_name="abbreviation",
-        names_groups_observations_sequence=(
-            pail_groups["names_groups_observations_sequence"]
-        ),
-        categories_groups=pail_groups["categories_groups"],
         features_selection=pail_sets["features_selection"],
         features_cluster_one=pail_sets["features_cluster_one"],
         features_cluster_two=pail_sets["features_cluster_two"],
         features_sets_union=pail_sets["features_sets_union"],
         sets_features=pail_sets["sets_features"],
         names_sets_features_sequence=pail_sets["names_sets_features_sequence"],
+        prefix_name_feature="",
+        report=pail_parameters["report"],
+    )
+    #pail_features["table_features_selection"]
+    #pail_features["features_selection"]
+    #pail_features["features_selection_translation"]
+    #pail_features["features_selection_prefix"]
+    #pail_features["translations_features"]
+    #pail_features["translations_features_prefix"]
+    #pail_features["names_sets_features_sequence"]
+    #pail_features["names_sets_features_sequence_cluster"]
+    #pail_features["sets_features"]
+    #pail_features["sets_features_cluster"]
+
+    pail_groups = sutly.organize_parameters_groups_observations(
+        table=pail_source["table_groups"],
+        column_name="abbreviation",
+        report=pail_parameters["report"],
+    )
+    #pail_groups["table"]
+    #pail_groups["names_groups_observations_sequence"]
+    #pail_groups["categories_groups"]
+    #pail_groups["records"]
+
+    pail_observations = sutly.organize_parameters_further_groups_observations(
+        table_observations=pail_source["table_observations"],
+        column_identifier_observation=(
+            pail_parameters["column_identifier_observation"]
+        ),
+        column_identifier_signal=(
+            pail_parameters["column_identifier_signal"]
+        ),
+        instances_groups_observations=pail_groups["records"],
+        key_name="abbreviation",
+        names_groups_observations_sequence=(
+            pail_groups["names_groups_observations_sequence"]
+        ),
+        report=pail_parameters["report"],
+    )
+    #pail_observations["table_observations_selection"]
+    #pail_observations["observations_selection"]
+    #pail_observations["translations_observations"]
+    #pail_observations["names_groups_observations_sequence"]
+    #pail_observations["groups_observations"]
+
+    # Note: TCW; 25 September 2025
+    # The identifiers extracted for observations in the two functions below
+    # must match.
+    # organize_parameters_further_groups_observations()
+    # prepare_tables_signals_sets_features_groups_observations()
+
+    # Prepare tables.
+    pail_tables = manage_prepare_tables(
+        table_signals=pail_source["table_signals"],
+        column_identifier_feature=(
+            pail_parameters["column_identifier_feature"]
+        ),
+        column_identifier_signal=(
+            pail_parameters["column_identifier_signal"]
+        ),
+        features_selection=pail_features["features_selection"],
+        observations_selection=pail_observations["observations_selection"],
+        sets_features=pail_features["sets_features"],
+        sets_features_cluster=pail_features["sets_features_cluster"],
+        groups_observations=pail_observations["groups_observations"],
+        names_sets_features_sequence=(
+            pail_features["names_sets_features_sequence"]
+        ),
+        names_sets_features_sequence_cluster=(
+            pail_features["names_sets_features_sequence_cluster"]
+        ),
+        names_groups_observations_sequence=(
+            pail_observations["names_groups_observations_sequence"]
+        ),
+        translations_features=pail_features["translations_features"],
+        translations_observations=(
+            pail_observations["translations_observations"]
+        ),
         transpose_table_signals=(
             pail_parameters["transpose_table_signals"]
         ),
@@ -5171,8 +4766,8 @@ def execute_procedure(
         table_heatmap_individual_1=pail_tables["table_3"], # cluster with constraint by sets of features and by groups of observations
         table_heatmap_individual_2=pail_tables["table_4"], # cluster with constraint by groups of observations only
         table_heatmap_individual_3=pail_tables["table_5"], # cluster without constraint
-        table_heatmap_mean_set=pail_tables["table_8"],
-        table_heatmap_mean_label=pail_tables["table_8_translation"],
+        table_heatmap_group_set=pail_tables["table_8"],
+        table_heatmap_group_label=pail_tables["table_8_translation"],
         table_allocation_1=pail_tables["table_allocation_3"],
         table_allocation_2=pail_tables["table_allocation_4"],
         table_allocation_3=pail_tables["table_allocation_5"],
@@ -5185,6 +4780,56 @@ def execute_procedure(
         report=report,
     )
 
+    ##########
+    # Bundle information.
+    pail_write_tables = dict()
+    pail_write_tables["table_heatmap_individual_1"] = (
+        pail_tables["table_3"]
+    )
+    pail_write_tables["table_heatmap_individual_2"] = (
+        pail_tables["table_4"]
+    )
+    pail_write_tables["table_heatmap_individual_3"] = (
+        pail_tables["table_5"]
+    )
+    pail_write_tables["table_heatmap_group_1"] = (
+        pail_tables["table_8"]
+    )
+
+    pail_write_tables["table_heatmap_individual_1_translation"] = (
+        pail_tables["table_3_translation"]
+    )
+    pail_write_tables["table_heatmap_individual_2_translation"] = (
+        pail_tables["table_4_translation"]
+    )
+    pail_write_tables["table_heatmap_individual_3_translation"] = (
+        pail_tables["table_5_translation"]
+    )
+    pail_write_tables["table_heatmap_group_1_translation"] = (
+        pail_tables["table_8_translation"]
+    )
+
+    ##########
+    # Write product information to file.
+
+    # Define paths to directories.
+    path_directory_tables = os.path.join(
+        pail_parameters["path_directory_product"], "tables",
+    )
+    # Create directories.
+    putly.create_directories(
+        path=path_directory_tables,
+    )
+    putly.write_tables_to_file(
+        pail_write=pail_write_tables,
+        path_directory=path_directory_tables,
+        reset_index_rows=False,
+        write_index_rows=False,
+        write_index_columns=True,
+        type="text",
+        delimiter="\t",
+        suffix=".tsv",
+    )
 
 
     pass
@@ -5196,18 +4841,18 @@ if (__name__ == "__main__"):
     path_directory_source = sys.argv[1]
     path_directory_product = sys.argv[2]
     path_directory_dock = sys.argv[3]
-    path_file_source_table_observations = sys.argv[4]
-    path_file_source_table_features = sys.argv[5]
+    path_file_source_table_features = sys.argv[4]
+    path_file_source_table_observations = sys.argv[5]
     path_file_source_table_signals = sys.argv[6]
-    path_file_source_table_groups_observations = sys.argv[7]
-    path_file_source_table_sets_features = sys.argv[8]
-    path_file_source_list_features_selection = sys.argv[9]
-    path_file_source_list_features_cluster_one = sys.argv[10]
-    path_file_source_list_features_cluster_two = sys.argv[11]
-    column_identifier_observation = sys.argv[12]
-    column_identifier_feature = sys.argv[13]
-    column_identifier_signal = sys.argv[14]
-    column_name_feature = sys.argv[15]
+    path_file_source_table_sets_features = sys.argv[7]
+    path_file_source_list_features_selection = sys.argv[8]
+    path_file_source_list_features_cluster_one = sys.argv[9]
+    path_file_source_list_features_cluster_two = sys.argv[10]
+    path_file_source_table_groups_observations = sys.argv[11]
+    column_identifier_feature = sys.argv[12]
+    column_name_feature = sys.argv[13]
+    column_identifier_observation = sys.argv[14]
+    column_identifier_signal = sys.argv[15]
     transpose_table_signals = sys.argv[16]
     allow_replicate_observations = sys.argv[17]
     report = sys.argv[18]
@@ -5217,14 +4862,11 @@ if (__name__ == "__main__"):
         path_directory_source=path_directory_source,
         path_directory_product=path_directory_product,
         path_directory_dock=path_directory_dock,
+        path_file_source_table_features=path_file_source_table_features,
         path_file_source_table_observations=(
             path_file_source_table_observations
         ),
-        path_file_source_table_features=path_file_source_table_features,
         path_file_source_table_signals=path_file_source_table_signals,
-        path_file_source_table_groups_observations=(
-            path_file_source_table_groups_observations
-        ),
         path_file_source_table_sets_features=(
             path_file_source_table_sets_features
         ),
@@ -5237,10 +4879,13 @@ if (__name__ == "__main__"):
         path_file_source_list_features_cluster_two=(
             path_file_source_list_features_cluster_two
         ),
-        column_identifier_observation=column_identifier_observation,
+        path_file_source_table_groups_observations=(
+            path_file_source_table_groups_observations
+        ),
         column_identifier_feature=column_identifier_feature,
-        column_identifier_signal=column_identifier_signal,
         column_name_feature=column_name_feature,
+        column_identifier_observation=column_identifier_observation,
+        column_identifier_signal=column_identifier_signal,
         transpose_table_signals=transpose_table_signals,
         allow_replicate_observations=allow_replicate_observations,
         report=report,

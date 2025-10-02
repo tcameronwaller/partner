@@ -383,7 +383,7 @@ def explicate_table_indices_columns_rows_single_level(
             append=False,
             drop=True,
             inplace=True,
-        )
+        ) # single-dimensional index
         table.columns.rename(
             index_columns,
             inplace=True,
@@ -1651,6 +1651,15 @@ def filter_sort_table_columns(
     #    inplace=True
     #)
 
+    # Organize parameters.
+    # Filter to selection of columns that exist in the table.
+    columns_sequence_available = list(filter(
+        lambda item: item in copy.deepcopy(
+            table_filter_sort.columns.to_list()
+        ),
+        columns_sequence
+    ))
+
     # Filter and sort table's columns.
     #table_filter_sort = table_filter_sort.loc[
     #    :, table_filter_sort.columns.isin(columns_sequence)
@@ -1659,7 +1668,7 @@ def filter_sort_table_columns(
         items=columns_sequence,
         axis="columns",
     )
-    table_filter_sort = table_filter_sort[[*columns_sequence]]
+    table_filter_sort = table_filter_sort[[*columns_sequence_available]]
 
     # Report.
     if report:
@@ -1718,7 +1727,9 @@ def filter_select_table_columns_rows_by_identifiers(
 
     # Filter and sort columns in table.
     columns_sequence = copy.deepcopy(identifiers_columns)
-    columns_sequence.insert(0, index_rows)
+    if (index_rows not in columns_sequence):
+        columns_sequence.insert(0, index_rows)
+        pass
     table_product = filter_sort_table_columns(
         table=table_source,
         columns_sequence=columns_sequence,
@@ -3954,7 +3965,7 @@ def merge_columns_two_tables(
     ]
 
     # Report.
-    if report:
+    if (report):
         putly.print_terminal_partition(level=2)
         print("report: ")
         print("merge_columns_two_tables()")
