@@ -1452,14 +1452,6 @@ def create_write_plot_charts_principal_component_scores(
             title_abscissa=title_abscissa,
             title_ordinate=title_ordinate,
             #identifiers_emphasis=list(),
-            identifiers_emphasis=[
-                "QCW-7445",
-                "BNI-8563",
-                "CWA-8409",
-                "PZA-6684",
-                "SMH-9005",
-                "DCH-0868",
-            ],
             report=report,
         )
         pass
