@@ -118,8 +118,11 @@ def parse_text_parameters(
     column_identifier_feature=None,
     column_name_feature=None,
     column_identifier_observation=None,
+    column_name_observation=None,
     column_identifier_signal=None,
-    count_components=None,
+    threshold_components=None,
+    identifiers_emphasis=None,
+    features_response_quantitative=None,
     transpose_table_signals=None,
     allow_replicate_observations=None,
     report=None,
@@ -174,12 +177,31 @@ def parse_text_parameters(
     pail["column_identifier_observation"] = str(
         column_identifier_observation
     ).strip()
+    pail["column_name_observation"] = str(
+        column_name_observation
+    ).strip()
     pail["column_identifier_signal"] = str(
         column_identifier_signal
     ).strip()
 
     # Number.
-    pail["count_components"] = int(count_components)
+    pail["threshold_components"] = float(threshold_components)
+
+    # List.
+    pail["identifiers_emphasis"] = putly.parse_text_list_values(
+        text=identifiers_emphasis,
+        delimiter=",",
+    )
+    pail["identifiers_emphasis"] = putly.collect_unique_items(
+        items=pail["identifiers_emphasis"],
+    )
+    pail["features_response_quantitative"] = putly.parse_text_list_values(
+        text=features_response_quantitative,
+        delimiter=",",
+    )
+    pail["features_response_quantitative"] = putly.collect_unique_items(
+        items=pail["features_response_quantitative"],
+    )
 
     # Boolean, true or false.
     if (
@@ -392,8 +414,11 @@ def filter_combine_features_observations(
     table_main=None,
     table_supplement=None,
     column_identifier_feature=None,
+    column_name_feature=None,
     column_identifier_observation=None,
+    column_name_observation=None,
     column_identifier_signal=None,
+    column_identifier_groups_observations=None,
     columns_categories=None,
     features_selection=None,
     observations_selection=None,
@@ -404,7 +429,7 @@ def filter_combine_features_observations(
     """
     Blank.
 
-    Review: TCW; 30 September 2025
+    Review: TCW; 2 October 2025
 
     arguments:
 
@@ -433,14 +458,18 @@ def filter_combine_features_observations(
         # Copy information.
         categories_features_selection = copy.deepcopy(columns_categories)
         # Prepare inclusive list of columns.
+        categories_features_selection.insert(0, column_identifier_signal)
+        categories_features_selection.insert(0, column_name_observation)
         categories_features_selection.insert(0, column_identifier_observation)
-        #categories_features_selection.insert(0, column_identifier_signal)
+        categories_features_selection.insert(
+            0, column_identifier_groups_observations
+        )
         categories_features_selection.extend(features_selection)
         # Filter columns and rows in table.
         table_main_selection = (
             porg.filter_select_table_columns_rows_by_identifiers(
                 table=table_main,
-                index_rows=column_identifier_signal,
+                index_rows=column_identifier_groups_observations,
                 identifiers_columns=categories_features_selection,
                 identifiers_rows=observations_selection,
                 report=False,
@@ -556,9 +585,10 @@ def plot_scatter_point_color_response_discrete_or_continuous(
     fonts=None,
     colors=None,
     set_axis_limits=None,
+    lines_origin=None,
+    line_diagonal=None,
     emphasis_marker=None,
     emphasis_label=None,
-    line_diagonal=None,
     show_legend_bar=None,
     report=None,
 ):
@@ -634,12 +664,14 @@ def plot_scatter_point_color_response_discrete_or_continuous(
         fonts (dict<object>): definitions of font properties
         colors (dict<tuple>): definitions of color properties
         set_axis_limits (bool): whether to set explicity limits on axes
+        lines_origin (bool): whether to draw vertical and horizontal lines to
+            represent origin (zero) on abscissa and ordinate axes, respectively
+        line_diagonal (bool): whether to draw diagonal line for equality
+            between abscissa and ordinate
         emphasis_marker (bool): whether to create special markers to emphasize
             a special selection of points
         emphasis_label (bool): whether to create text labels adjacent to
             the special selection of points for special emphasis
-        line_diagonal (bool): whether to draw diagonal line for equality
-            between abscissa and ordinate
         show_legend_bar (bool): whether to show legend or scale bar on chart
         report (bool): whether to print reports
 
@@ -723,16 +755,16 @@ def plot_scatter_point_color_response_discrete_or_continuous(
         copy=True,
     )
     if (minimum_abscissa is None):
-        minimum_abscissa = numpy.nanmin(values_abscissa_raw)
+        minimum_abscissa = (numpy.nanmin(values_abscissa_raw))
     if (maximum_abscissa is None):
-        maximum_abscissa = numpy.nanmax(values_abscissa_raw)
+        maximum_abscissa = (numpy.nanmax(values_abscissa_raw))
     if (minimum_ordinate is None):
-        minimum_ordinate = numpy.nanmin(values_ordinate_raw)
+        minimum_ordinate = (numpy.nanmin(values_ordinate_raw))
     if (maximum_ordinate is None):
-        maximum_ordinate = numpy.nanmax(values_ordinate_raw)
+        maximum_ordinate = (numpy.nanmax(values_ordinate_raw))
         pass
-    center_abscissa = ((maximum_abscissa - minimum_abscissa)/2)
-    center_ordinate = ((maximum_ordinate - minimum_ordinate)/2)
+    center_abscissa = ((maximum_abscissa + minimum_abscissa)/2)
+    center_ordinate = ((maximum_ordinate + minimum_ordinate)/2)
     # Extract information about range of third response feature for
     # representation as color.
     if (
@@ -888,7 +920,7 @@ def plot_scatter_point_color_response_discrete_or_continuous(
         right=False,
         labelright=False,
         length=7.5, # 5.0
-        width=5.0, # 3.0, 5.0
+        width=2.5, # 3.0, 5.0
         pad=10.0, # 5.0, 7.5
         color=colors["black"],
         labelcolor=colors["black"],
@@ -907,6 +939,28 @@ def plot_scatter_point_color_response_discrete_or_continuous(
     # ["left", "top", "right", "bottom",]
     for position in ["top", "right",]:
         matplotlib.pyplot.gca().spines[position].set_visible(False)
+
+    # Create lines to represent origins (zero) on axes.
+    if (lines_origin):
+        axes.axhline(
+            y=0.0,
+            #xmin=minimum_abscissa,
+            #xmax=maximum_abscissa,
+            alpha=1.0,
+            color=colors["black"],
+            linestyle="--",
+            linewidth=2.5,
+        )
+        axes.axvline(
+            x=0.0,
+            #ymin=minimum_ordinate,
+            #ymax=maximum_ordinate,
+            alpha=1.0,
+            color=colors["black"],
+            linestyle="--",
+            linewidth=2.5,
+        )
+        pass
 
     # Create diagonal line to represent equality between abscissa and ordinate.
     # Notice that the current definition does not actually correspond to a 1:1
@@ -966,7 +1020,7 @@ def plot_scatter_point_color_response_discrete_or_continuous(
         handle_standard = axes.scatter(
             table[column_abscissa].values,
             table[column_ordinate].values,
-            c=table_standard[column_response].values,
+            c=table[column_response].values,
             s=(size_marker**2), # scale with area (dimension squared)
             norm="linear",
             cmap="binary", # 'binary', 'plasma', 'viridis', 'civids'
@@ -1029,9 +1083,10 @@ def plot_scatter_point_color_response_discrete_or_continuous(
             table_special[column_ordinate].values,
             linestyle="",
             marker="o",
-            markersize=(size_marker*1.5),
-            markeredgecolor=colors["green_kelly"],
-            markerfacecolor=colors["green_kelly"]
+            markersize=(size_marker*2),
+            markeredgecolor=colors["gray_light"],
+            markeredgewidth=2.5,
+            markerfacecolor="None"
         )
     # For table of special selection of records, create text labels adjacent
     # to points.
@@ -1267,23 +1322,15 @@ def create_write_plot_chart_scatter_point_response(
             fonts=fonts,
             colors=colors,
             set_axis_limits=False,
+            lines_origin=True,
+            line_diagonal=False, # diagonal is not proportional to respective ranges of axes
             emphasis_marker=True,
             emphasis_label=True,
-            line_diagonal=False, # diagonal is not proportional to respective ranges of axes
             show_legend_bar=True,
             report=None,
         )
 
     # Write product information to file.
-
-    # Define paths to directories.
-    path_directory_chart = os.path.join(
-        path_directory_parent, "scatter_categories",
-    )
-    # Create directories.
-    putly.create_directories(
-        path=path_directory_chart,
-    )
 
     # Bundle information.
     pail_write_plot = dict()
@@ -1294,7 +1341,7 @@ def create_write_plot_chart_scatter_point_response(
         pail_write=pail_write_plot,
         format="jpg", # jpg, png, svg
         resolution=150,
-        path_directory=path_directory_chart,
+        path_directory=path_directory_parent,
     )
 
     # Return information.
@@ -1306,7 +1353,7 @@ def create_write_plot_charts_principal_component_scores(
     table_features_observations=None,
     table_scores=None,
     column_identifier_observation=None,
-    column_identifier_signal=None,
+    column_name_observation=None,
     columns_categories=None,
     columns_components=None,
     name_set_features=None,
@@ -1315,6 +1362,7 @@ def create_write_plot_charts_principal_component_scores(
     groups_observations=None,
     names_groups_observations_sequence=None,
     translations_observations=None,
+    identifiers_emphasis=None,
     write_charts=None,
     report=None,
 ):
@@ -1347,6 +1395,7 @@ def create_write_plot_charts_principal_component_scores(
         names_groups_observations_sequence
     )
     translations_observations = copy.deepcopy(translations_observations)
+    identifiers_emphasis = copy.deepcopy(identifiers_emphasis)
 
     # Determine translations for names of principal components.
     translations_components = dict()
@@ -1367,15 +1416,14 @@ def create_write_plot_charts_principal_component_scores(
     # Filter columns and rows in table.
     columns_sequence = [
         column_identifier_observation,
-        column_identifier_signal,
+        column_name_observation,
     ]
     columns_sequence.extend(columns_categories)
     columns_sequence.extend(columns_components)
     columns_sequence.extend(features_response_quantitative)
-
     table_selection = porg.filter_select_table_columns_rows_by_identifiers(
         table=table_features_observations,
-        index_rows=column_identifier_signal,
+        index_rows=column_identifier_observation,
         identifiers_columns=columns_sequence,
         identifiers_rows=observations_selection,
         report=False,
@@ -1395,7 +1443,7 @@ def create_write_plot_charts_principal_component_scores(
     # Each observation can only belong to a single group.
     table_group = porg.determine_fill_table_groups_rows(
         table=table_selection,
-        index_rows=column_identifier_signal,
+        index_rows=column_identifier_observation,
         column_group="group",
         groups_rows=groups_observations,
         report=False,
@@ -1403,7 +1451,7 @@ def create_write_plot_charts_principal_component_scores(
     # Sort rows in table by groups.
     table_group = porg.sort_table_rows_by_single_column_reference(
         table=table_group,
-        index_rows=column_identifier_signal,
+        index_rows=column_identifier_observation,
         column_reference="group",
         column_sort_temporary="sort_temporary",
         reference_sort=sequence_groups_observations,
@@ -1436,13 +1484,24 @@ def create_write_plot_charts_principal_component_scores(
         title_abscissa = str("PC-" + comparison[0])
         title_ordinate = str("PC-" + comparison[1])
 
+        ##########
+        # Plot chart: scatter with colors for categorical groups of
+        # observations.
+        # Define paths to directories.
+        path_directory_chart = os.path.join(
+            path_directory_parent, "scatter_categories",
+        )
+        # Create directories.
+        putly.create_directories(
+            path=path_directory_chart,
+        )
         # Create plot chart and write to file.
         create_write_plot_chart_scatter_point_response(
-            path_directory_parent=path_directory_parent,
+            path_directory_parent=path_directory_chart,
             name_chart=name_chart,
             table=table_group,
-            column_identifier=column_identifier_signal,
-            column_name=column_identifier_observation,
+            column_identifier=column_identifier_observation,
+            column_name=column_name_observation,
             column_response="group",
             column_abscissa=column_abscissa,
             column_ordinate=column_ordinate,
@@ -1452,24 +1511,42 @@ def create_write_plot_charts_principal_component_scores(
             title_abscissa=title_abscissa,
             title_ordinate=title_ordinate,
             #identifiers_emphasis=list(),
+            identifiers_emphasis=identifiers_emphasis,
             report=report,
         )
+
+        ##########
+        # Plot chart: scatter with color gradient for response feature on a
+        # quantitative scale.
+        for feature in features_response_quantitative:
+            # Define paths to directories.
+            path_directory_chart = os.path.join(
+                path_directory_parent, "scatter_response", feature,
+            )
+            # Create directories.
+            putly.create_directories(
+                path=path_directory_chart,
+            )
+            # Create plot chart and write to file.
+            create_write_plot_chart_scatter_point_response(
+                path_directory_parent=path_directory_chart,
+                name_chart=name_chart,
+                table=table_group,
+                column_identifier=column_identifier_observation,
+                column_name=column_name_observation,
+                column_response=feature,
+                column_abscissa=column_abscissa,
+                column_ordinate=column_ordinate,
+                type_response="continuity",
+                title_chart="",
+                title_response=feature,
+                title_abscissa=title_abscissa,
+                title_ordinate=title_ordinate,
+                #identifiers_emphasis=list(),
+                identifiers_emphasis=identifiers_emphasis,
+                report=report,
+            )
         pass
-
-
-
-
-    ##########
-    # Plot chart: scatter with colors for categorical groups of observations
-
-
-    ##########
-    # Plot chart: scatter with color gradient for response feature on a
-    # quantitative scale.
-
-
-
-
 
     # Report.
     if report:
@@ -1498,7 +1575,7 @@ def manage_create_write_plot_charts(
     table_variances=None,
     table_scores=None,
     column_identifier_observation=None,
-    column_identifier_signal=None,
+    column_name_observation=None,
     columns_categories=None,
     columns_components=None,
     name_set_features=None,
@@ -1509,6 +1586,7 @@ def manage_create_write_plot_charts(
     names_groups_observations_sequence=None,
     translations_features=None,
     translations_observations=None,
+    identifiers_emphasis=None,
     write_charts=None,
     report=None,
 ):
@@ -1535,6 +1613,9 @@ def manage_create_write_plot_charts(
     columns_categories = copy.deepcopy(columns_categories)
     columns_components = copy.deepcopy(columns_components)
     features_selection = copy.deepcopy(features_selection)
+    features_response_quantitative = copy.deepcopy(
+        features_response_quantitative
+    )
     observations_selection = copy.deepcopy(observations_selection)
     groups_observations = copy.deepcopy(groups_observations)
     names_groups_observations_sequence = copy.deepcopy(
@@ -1542,6 +1623,7 @@ def manage_create_write_plot_charts(
     )
     translations_features = copy.deepcopy(translations_features)
     translations_observations = copy.deepcopy(translations_observations)
+    identifiers_emphasis = copy.deepcopy(identifiers_emphasis)
 
     ##########
     # Write product information to file.
@@ -1564,7 +1646,7 @@ def manage_create_write_plot_charts(
         table_features_observations=table_features_observations,
         table_scores=table_scores,
         column_identifier_observation=column_identifier_observation,
-        column_identifier_signal=column_identifier_signal,
+        column_name_observation=column_name_observation,
         columns_categories=columns_categories,
         columns_components=columns_components,
         name_set_features=name_set_features,
@@ -1573,6 +1655,7 @@ def manage_create_write_plot_charts(
         groups_observations=groups_observations,
         names_groups_observations_sequence=names_groups_observations_sequence,
         translations_observations=translations_observations,
+        identifiers_emphasis=identifiers_emphasis,
         write_charts=write_charts,
         report=report,
     )
@@ -1610,13 +1693,19 @@ def manage_create_write_plot_charts(
     pass
 
 
+# TODO: TCW; 2 October 2025
+# translate identifiers, especially those of original features and
+# from signal identifiers to "subject_visit".
+
+
+
 def manage_components_set_features_groups_observations(
     path_directory_source=None,
     path_directory_product=None,
     path_directory_dock=None,
     table=None,
     column_identifier_observation=None,
-    column_identifier_signal=None,
+    column_name_observation=None,
     columns_categories=None,
     name_set_features=None,
     features_selection=None,
@@ -1625,6 +1714,9 @@ def manage_components_set_features_groups_observations(
     names_groups_observations_sequence=None,
     translations_features=None,
     translations_observations=None,
+    threshold_components=None,
+    identifiers_emphasis=None,
+    features_response_quantitative=None,
     allow_replicate_observations=None,
     write_lists=None,
     write_tables=None,
@@ -1669,13 +1761,13 @@ def manage_components_set_features_groups_observations(
         pdcmp.calculate_principal_components_table_features_observations(
             table=table,
             name_index_columns="features",
-            name_index_rows=column_identifier_signal,
+            name_index_rows=column_identifier_observation,
             columns_selection=features_selection,
             rows_selection=observations_selection,
             prefix=prefix_name_components,
             separator="_",
             #threshold_proportion=None,
-            threshold_proportion=0.70, # cumulative proportion of variance; float or None to keep all
+            threshold_proportion=threshold_components, # cumulative proportion of variance; float or None to keep all
             explicate_indices=False,
             report=report,
     ))
@@ -1693,11 +1785,45 @@ def manage_components_set_features_groups_observations(
         lambda item: item not in features_selection, columns_all
     ))
     # Filter and sort columns in table.
-    table_features_observations = porg.filter_sort_table_columns(
-        table=pail_components["table_merge"],
-        columns_sequence=columns_sequence,
-        report=report,
-    )
+    if False:
+        table_features_observations = porg.filter_sort_table_columns(
+            table=pail_components["table_merge"],
+            columns_sequence=columns_sequence,
+            report=report,
+        )
+    else:
+        table_features_observations = pail_components["table_merge"].copy(
+            deep=True,
+        )
+        pass
+
+
+
+    # TODO: TCW; 2 October 2025
+    # translate identifiers, especially those of original features and
+    # from signal identifiers to "subject_visit".
+
+    # Translate names of features and observations.
+    table_scores_translation = (
+        porg.translate_identifiers_table_indices_columns_rows(
+            table=pail_components["table_scores"],
+            index_rows=column_identifier_observation,
+            translations_columns=None,
+            translations_rows=translations_observations,
+            remove_redundancy=False,
+            report=False,
+    ))
+    table_loadings_translation = (
+        porg.translate_identifiers_table_indices_columns_rows(
+            table=pail_components["table_loadings"],
+            index_rows="features",
+            translations_columns=None,
+            translations_rows=translations_features,
+            remove_redundancy=False,
+            report=False,
+    ))
+
+
 
     ##########
     # Bundle information.
@@ -1709,13 +1835,11 @@ def manage_components_set_features_groups_observations(
     )
     # Tables.
     pail_write_tables = dict()
-    pail_write_tables["table_loadings"] = (
-        pail_components["table_loadings"]
-    )
+    pail_write_tables["table_loadings"] = table_loadings_translation
     pail_write_tables["table_variances"] = (
         pail_components["table_variances"]
     )
-    pail_write_tables["table_scores"] = pail_components["table_scores"]
+    pail_write_tables["table_scores"] = table_scores_translation
 
     ##########
     # Write product information to file.
@@ -1776,17 +1900,18 @@ def manage_components_set_features_groups_observations(
         table_variances=pail_components["table_variances"],
         table_scores=pail_components["table_scores"],
         column_identifier_observation=column_identifier_observation,
-        column_identifier_signal=column_identifier_signal,
+        column_name_observation=column_name_observation,
         columns_categories=columns_categories,
         columns_components=pail_components["columns_scores"],
         name_set_features=name_set_features,
         features_selection=features_selection,
-        features_response_quantitative=list(), # place holder (TCW; 1 October 2025)
+        features_response_quantitative=features_response_quantitative,
         observations_selection=observations_selection,
         groups_observations=groups_observations,
         names_groups_observations_sequence=names_groups_observations_sequence,
         translations_features=translations_features,
         translations_observations=translations_observations,
+        identifiers_emphasis=identifiers_emphasis,
         write_charts=write_charts,
         report=report,
     )
@@ -1820,8 +1945,6 @@ def manage_components_set_features_groups_observations(
 # Procedure
 
 
-
-
 ##########
 # Call main procedure.
 
@@ -1838,8 +1961,11 @@ def execute_procedure(
     column_identifier_feature=None,
     column_name_feature=None,
     column_identifier_observation=None,
+    column_name_observation=None,
     column_identifier_signal=None,
-    count_components=None,
+    threshold_components=None,
+    identifiers_emphasis=None,
+    features_response_quantitative=None,
     transpose_table_signals=None,
     allow_replicate_observations=None,
     report=None,
@@ -1847,7 +1973,7 @@ def execute_procedure(
     """
     Function to execute module's main behavior.
 
-    Review: TCW; 30 September 2025
+    Review: TCW; 2 October 2025
 
     arguments:
         path_directory_source (str): path to directory for procedure's source
@@ -1901,8 +2027,11 @@ def execute_procedure(
         column_identifier_feature=column_identifier_feature,
         column_name_feature=column_name_feature,
         column_identifier_observation=column_identifier_observation,
+        column_name_observation=column_name_observation,
         column_identifier_signal=column_identifier_signal,
-        count_components=count_components,
+        threshold_components=threshold_components,
+        identifiers_emphasis=identifiers_emphasis,
+        features_response_quantitative=features_response_quantitative,
         transpose_table_signals=transpose_table_signals,
         allow_replicate_observations=allow_replicate_observations,
         report=report,
@@ -1958,6 +2087,7 @@ def execute_procedure(
         column_identifier_observation=(
             pail_parameters["column_identifier_observation"]
         ),
+        column_name_observation=pail_parameters["column_name_observation"],
         column_identifier_signal=pail_parameters["column_identifier_signal"],
         transpose_table_signals=pail_parameters["transpose_table_signals"],
         report=pail_parameters["report"],
@@ -2017,8 +2147,12 @@ def execute_procedure(
         column_identifier_observation=(
             pail_parameters["column_identifier_observation"]
         ),
+        column_name_observation=pail_parameters["column_name_observation"],
         column_identifier_signal=(
             pail_parameters["column_identifier_signal"]
+        ),
+        column_identifier_groups_observations=(
+            pail_parameters["column_identifier_observation"]
         ),
         instances_groups_observations=pail_groups["records"],
         key_name="abbreviation",
@@ -2033,6 +2167,13 @@ def execute_procedure(
     #pail_observations["names_groups_observations_sequence"]
     #pail_observations["groups_observations"]
 
+    # TODO: TCW; 2 October 2025
+    # In order to collect principal components for multiple sets of features,
+    # I'll need to handle the filters on observations and features a bit
+    # differently. Either I need to introduce all features at first and then
+    # keep them from iteration to iteration, or I need to reintroduce them at
+    # each iteration.
+
     # Filter features and observations anc combine those from "table_signals"
     # to those in "table_observations".
     table_features_observations = filter_combine_features_observations(
@@ -2041,12 +2182,20 @@ def execute_procedure(
         column_identifier_feature=(
             pail_parameters["column_identifier_feature"]
         ),
+        column_name_feature=(
+            pail_parameters["column_name_feature"]
+        ),
         column_identifier_observation=(
             pail_parameters["column_identifier_observation"]
         ),
+        column_name_observation=pail_parameters["column_name_observation"],
         column_identifier_signal=pail_parameters["column_identifier_signal"],
+        column_identifier_groups_observations=(
+            pail_parameters["column_identifier_observation"]
+        ),
         columns_categories=pail_groups["categories_groups"],
         features_selection=pail_features["features_selection"],
+        #features_selection=features_set,
         observations_selection=pail_observations["observations_selection"],
         filter_table_main=False,
         transpose_table_supplement=(
@@ -2058,17 +2207,9 @@ def execute_procedure(
     # Iterate on sets of features.
     for name_set_features in pail_features["names_sets_features_sequence"]:
 
-        # Use "name_set_features":
-        # 1. to access features in set
-        # 2. to name the PCs
-        # 3. to name the files (tables, charts)
-
-        # select relevant features
-        # need to select relevant observations from table
-
-
         # Access set of features for current instance.
         features_set = pail_features["sets_features"][name_set_features]
+
         # Calculate principal components.
         pail_instance = manage_components_set_features_groups_observations(
             path_directory_source=pail_parameters["path_directory_source"],
@@ -2078,8 +2219,8 @@ def execute_procedure(
             column_identifier_observation=(
                 pail_parameters["column_identifier_observation"]
             ),
-            column_identifier_signal=(
-                pail_parameters["column_identifier_signal"]
+            column_name_observation=(
+                pail_parameters["column_name_observation"]
             ),
             columns_categories=pail_groups["categories_groups"],
             name_set_features=name_set_features,
@@ -2090,10 +2231,19 @@ def execute_procedure(
                 pail_observations["names_groups_observations_sequence"]
             ),
             translations_features=(
-                pail_features["translations_features_prefix"]
+                pail_features["translations_features"]
             ),
             translations_observations=(
                 pail_observations["translations_observations"]
+            ),
+            threshold_components=(
+                pail_parameters["threshold_components"]
+            ),
+            identifiers_emphasis=(
+                pail_parameters["identifiers_emphasis"]
+            ),
+            features_response_quantitative=(
+                pail_parameters["features_response_quantitative"]
             ),
             allow_replicate_observations=(
                 pail_parameters["allow_replicate_observations"]
@@ -2128,11 +2278,14 @@ if (__name__ == "__main__"):
     column_identifier_feature = sys.argv[9]
     column_name_feature = sys.argv[10]
     column_identifier_observation = sys.argv[11]
-    column_identifier_signal = sys.argv[12]
-    count_components = sys.argv[13]
-    transpose_table_signals = sys.argv[14]
-    allow_replicate_observations = sys.argv[15]
-    report = sys.argv[16]
+    column_name_observation = sys.argv[12]
+    column_identifier_signal = sys.argv[13]
+    threshold_components = sys.argv[14]
+    identifiers_emphasis = sys.argv[15]
+    features_response_quantitative = sys.argv[16]
+    transpose_table_signals = sys.argv[17]
+    allow_replicate_observations = sys.argv[18]
+    report = sys.argv[19]
 
     # Call function for procedure.
     execute_procedure(
@@ -2153,8 +2306,11 @@ if (__name__ == "__main__"):
         column_identifier_feature=column_identifier_feature,
         column_name_feature=column_name_feature,
         column_identifier_observation=column_identifier_observation,
+        column_name_observation=column_name_observation,
         column_identifier_signal=column_identifier_signal,
-        count_components=count_components,
+        threshold_components=threshold_components,
+        identifiers_emphasis=identifiers_emphasis,
+        features_response_quantitative=features_response_quantitative,
         transpose_table_signals=transpose_table_signals,
         allow_replicate_observations=allow_replicate_observations,
         report=report,

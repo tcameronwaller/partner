@@ -1730,6 +1730,9 @@ def filter_select_table_columns_rows_by_identifiers(
     if (index_rows not in columns_sequence):
         columns_sequence.insert(0, index_rows)
         pass
+    columns_sequence = putly.collect_unique_items(
+        items=columns_sequence,
+    )
     table_product = filter_sort_table_columns(
         table=table_source,
         columns_sequence=columns_sequence,

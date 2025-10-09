@@ -199,6 +199,7 @@ def transform_logarithm_by_table_columns(
     This function preserves the names and sequence of columns from the original
     source table.
 
+    Review: TCW; 3 October 2025
     Review: TCW; 13 December 2024
 
     arguments:

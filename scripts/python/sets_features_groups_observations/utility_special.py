@@ -80,6 +80,10 @@ import partner.description as pdesc
 ###############################################################################
 # Functionality
 
+#column_name_observation=None,
+#column_name_observation (str): name of column in source table
+
+
 
 def determine_features_available(
     table_features=None,
@@ -88,6 +92,7 @@ def determine_features_available(
     column_identifier_feature=None,
     column_name_feature=None,
     column_identifier_observation=None,
+    column_name_observation=None,
     column_identifier_signal=None,
     transpose_table_signals=None,
     report=None,
@@ -96,10 +101,9 @@ def determine_features_available(
     Determine list of features with available information in source tables.
 
     Available features are the union of features from "table_observations"
-    and "table_signals" (dependent on orientation and transposition), but they
-    must also be the intersection with features from "table_features".
+    and "table_signals" (dependent on orientation and transposition).
 
-    Review: TCW; 30 September 2025
+    Review: TCW; 2 October 2025
 
     arguments:
         table_features (object): Pandas data-frame table
@@ -108,6 +112,7 @@ def determine_features_available(
         column_identifier_feature (str): name of column in source table
         column_name_feature (str): name of column in source table
         column_identifier_observation (str): name of column in source table
+        column_name_observation (str): name of column in source table
         column_identifier_signal (str): name of column in source table
         transpose_table_signals (bool): whether to transpose the table of
             signals to match orientation in table of observations (columns:
@@ -123,14 +128,16 @@ def determine_features_available(
     # Copy information.
     table_features = table_features.copy(deep=True)
     table_observations = table_observations.copy(deep=True)
-    table_signals = table_signals.copy(deep=True)
+    if (table_signals is not None):
+        table_signals = table_signals.copy(deep=True)
+        pass
 
     # Extract identifiers of features.
     features_features = copy.deepcopy(
         table_features[column_identifier_feature].unique().tolist()
     )
     features_observations = copy.deepcopy(
-        table_features[column_identifier_feature].unique().tolist()
+        table_observations.columns.unique().tolist()
     )
     if (
         (table_signals is not None) and
@@ -159,17 +166,17 @@ def determine_features_available(
             report=None,
         )
     )
-    features_intersection = (
-        putly.combine_sets_items_intersection_unique(
-            items_first=features_union,
-            items_second=features_features,
-            report=None,
-    ))
+    #features_intersection = (
+    #    putly.combine_sets_items_intersection_unique(
+    #        items_first=features_union,
+    #        items_second=features_features,
+    #        report=None,
+    #))
 
     # Report.
     if report:
         # Organize information.
-        count_features = len(features_intersection)
+        count_features = len(features_union)
         # Print information.
         putly.print_terminal_partition(level=3)
         print("package: partner")
@@ -186,7 +193,7 @@ def determine_features_available(
         putly.print_terminal_partition(level=5)
         pass
     # Return information.
-    return features_intersection
+    return features_union
 
 
 def read_organize_parameters_sets_features(
@@ -428,12 +435,15 @@ def organize_parameters_further_sets_features(
                 features_selection
             ), :
         ].copy(deep=True)
+    else:
+        table_features_selection = table_features
         pass
-    table_features_selection = table_features_selection.loc[
-        (table_features_selection[column_name_feature].str.len() > 0), :
-    ].copy(deep=True)
-    table_features_selection = table_features_selection.loc[
-        (table_features_selection[column_identifier_feature].str.len() > 0), :
+    table_alias = table_features_selection
+    table_features_selection = table_alias.loc[
+        (
+            (table_alias[column_identifier_feature].str.len() > 0) &
+            (table_alias[column_name_feature].str.len() > 0)
+        ), :
     ].copy(deep=True)
     # Extract information for translation of names of columns.
     table_translations = table_features_selection.filter(
@@ -447,34 +457,38 @@ def organize_parameters_further_sets_features(
     translations_features = series_translations.to_dict()
 
     # Translate names of genes in set for selection.
-    if (translations_features is not None):
-        features_selection_translation = list(map(
-            lambda feature: (translations_features[feature]),
-            features_selection_translation
-        ))
+    if False:
+        if (translations_features is not None):
+            features_selection_translation = list(map(
+                lambda feature: (translations_features[feature]),
+                features_selection_translation
+            ))
+            pass
         pass
 
     # Append prefix to names of columns in table for genes.
-    features_selection_prefix = list()
-    for name in features_selection_translation:
-        name_prefix = str(prefix_name_feature + name)
-        features_selection_prefix.append(name_prefix)
-        pass
-    translations_features_prefix = copy.deepcopy(translations_features)
-    for key in translations_features_prefix.keys():
-        name = str(translations_features_prefix[key])
-        name_prefix = str(prefix_name_feature + name)
-        translations_features_prefix[key] = name_prefix
+    if False:
+        features_selection_prefix = list()
+        for name in features_selection_translation:
+            name_prefix = str(prefix_name_feature + name)
+            features_selection_prefix.append(name_prefix)
+            pass
+        translations_features_prefix = copy.deepcopy(translations_features)
+        for key in translations_features_prefix.keys():
+            name = str(translations_features_prefix[key])
+            name_prefix = str(prefix_name_feature + name)
+            translations_features_prefix[key] = name_prefix
+            pass
         pass
 
     # Bundle information.
     pail = dict()
     pail["table_features_selection"] = table_features_selection
     pail["features_selection"] = features_selection
-    pail["features_selection_translation"] = features_selection_translation
-    pail["features_selection_prefix"] = features_selection_prefix
+    #pail["features_selection_translation"] = features_selection_translation
+    #pail["features_selection_prefix"] = features_selection_prefix
     pail["translations_features"] = translations_features
-    pail["translations_features_prefix"] = translations_features_prefix
+    #pail["translations_features_prefix"] = translations_features_prefix
     pail["names_sets_features_sequence"] = names_sets_features_sequence
     pail["sets_features"] = sets_features
 
@@ -640,7 +654,9 @@ def organize_parameters_groups_observations(
 def organize_parameters_further_groups_observations(
     table_observations=None,
     column_identifier_observation=None,
+    column_name_observation=None,
     column_identifier_signal=None,
+    column_identifier_groups_observations=None,
     instances_groups_observations=None,
     key_name=None,
     names_groups_observations_sequence=None,
@@ -649,12 +665,16 @@ def organize_parameters_further_groups_observations(
     """
     Organize parameters and information about observations.
 
+    Review: TCW; 2 October 2025
     Review: TCW; 29 September 2025
 
     arguments:
         table_observations (object): Pandas data-frame table
         column_identifier_observation (str): name of column in source table
+        column_name_observation (str): name of column in source table
         column_identifier_signal (str): name of column in source table
+        column_identifier_groups_observations (str): name of column in source
+            table
         instances_groups_observations (list<dict>): multiple instances, each
             with parameters for the name and selection of a group of
             observations
@@ -729,7 +749,7 @@ def organize_parameters_further_groups_observations(
             observations = (
                 alias_filter_extract(
                     table=table_observations,
-                    column_identifier=column_identifier_signal,
+                    column_identifier=column_identifier_groups_observations,
                     name=instance[key_name],
                     columns_categories=instance["selection_observations"],
                     report=report,
@@ -746,27 +766,26 @@ def organize_parameters_further_groups_observations(
     # Filter rows in table for selection of observations.
     if (len(observations_selection) > 0):
         table_observations_selection = table_observations.loc[
-            table_observations[column_identifier_signal].isin(
+            table_observations[column_identifier_groups_observations].isin(
                 observations_selection
             ), :
         ].copy(deep=True)
         pass
     table_alias = table_observations_selection
     table_observations_selection = table_alias.loc[
-        (table_alias[column_identifier_observation].str.len() > 0), :
-    ].copy(deep=True)
-    table_alias = table_observations_selection
-    table_observations_selection = table_alias.loc[
-        (table_alias[column_identifier_signal].str.len() > 0), :
+        (
+            (table_alias[column_identifier_observation].str.len() > 0) &
+            (table_alias[column_name_observation].str.len() > 0)
+        ), :
     ].copy(deep=True)
     # Extract information for translation of names of columns.
     table_translations = table_observations_selection.filter(
-        items=[column_identifier_signal, column_identifier_observation,],
+        items=[column_identifier_observation, column_name_observation,],
         axis="columns",
     )
     series_translations = pandas.Series(
-        table_translations[column_identifier_observation].to_list(),
-        index=table_translations[column_identifier_signal],
+        table_translations[column_name_observation].to_list(),
+        index=table_translations[column_identifier_observation],
     )
     translations_observations = series_translations.to_dict()
 

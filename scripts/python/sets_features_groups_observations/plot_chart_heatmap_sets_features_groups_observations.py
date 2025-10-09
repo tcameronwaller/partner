@@ -138,6 +138,7 @@ def parse_text_parameters(
     column_identifier_feature=None,
     column_name_feature=None,
     column_identifier_observation=None,
+    column_name_observation=None,
     column_identifier_signal=None,
     transpose_table_signals=None,
     allow_replicate_observations=None,
@@ -192,17 +193,20 @@ def parse_text_parameters(
         path_file_source_list_features_cluster_two
     ).strip()
     # Names of columns.
-    pail["column_identifier_observation"] = str(
-        column_identifier_observation
-    ).strip()
     pail["column_identifier_feature"] = str(
         column_identifier_feature
     ).strip()
-    pail["column_identifier_signal"] = str(
-        column_identifier_signal
-    ).strip()
     pail["column_name_feature"] = str(
         column_name_feature
+    ).strip()
+    pail["column_identifier_observation"] = str(
+        column_identifier_observation
+    ).strip()
+    pail["column_name_observation"] = str(
+        column_name_observation
+    ).strip()
+    pail["column_identifier_signal"] = str(
+        column_identifier_signal
     ).strip()
 
     # Boolean, true or false.
@@ -333,6 +337,10 @@ def read_source(
 
     """
 
+    # Determine whether paths point to a directory or file that exist.
+    #existence_directory = os.path.exists(path_directory)
+    existence_file_signals = os.path.exists(path_file_source_table_signals)
+
     # Bundle information.
     pail = dict()
 
@@ -357,16 +365,20 @@ def read_source(
         ],
         encoding="utf-8",
     )
-    pail["table_signals"] = pandas.read_csv(
-        path_file_source_table_signals,
-        sep="\t",
-        header=0,
-        #dtype=types_columns,
-        na_values=[
-            "nan", "na", "NAN", "NA", "<nan>", "<na>", "<NAN>", "<NA>",
-        ],
-        encoding="utf-8",
-    )
+    if (existence_file_signals):
+        pail["table_signals"] = pandas.read_csv(
+            path_file_source_table_signals,
+            sep="\t",
+            header=0,
+            #dtype=types_columns,
+            na_values=[
+                "nan", "na", "NAN", "NA", "<nan>", "<na>", "<NAN>", "<NA>",
+            ],
+            encoding="utf-8",
+        )
+    else:
+        pail["table_signals"] = None
+        pass
     pail["table_sets"] = pandas.read_csv(
         path_file_source_table_sets_features,
         sep="\t",
@@ -1304,6 +1316,15 @@ def prepare_tables_signals_sets_features_groups_observations(
         identifiers_rows=pail["observations_available"],
         report=False,
     )
+    # Remove rows from table for observations with missing values for any of
+    # the essential features.
+    table_selection.dropna(
+        axis="index",
+        how="any",
+        subset=pail["features_available"],
+        inplace=True,
+    )
+
     # Copy information.
     table_product_1 = table_selection.copy(deep=True)
     # Translate names of features and observations.
@@ -1405,19 +1426,29 @@ def prepare_tables_signals_sets_features_groups_observations(
 
     ##########
     # Prepare product table 3.
+    # Apply minimum, maximum scaling to force a range from zero to one.
+    table_scale = pscl.manage_transform_scale_feature_by_table_columns(
+        table=table_group,
+        features_continuity_scale=pail["features_available"],
+        adjust_scale=True,
+        method_scale="unit_range",
+        report=False,
+    )
     # Calculate z scores of values for each feature across observations to
     # standardize their scales and distributions.
     table_scale = pscl.transform_standard_z_score_by_table_columns(
-        table=table_group,
+        table=table_scale,
         columns=pail["features_available"],
         report=False,
     )
+
     # Cluster rows in table by groups of observations.
     table_product_3 = porg.cluster_table_rows_by_group(
         table=table_scale,
         index_rows=pail["index_observations"],
         column_group="group",
     )
+
     # Sort rows in table by groups.
     table_product_3 = porg.sort_table_rows_by_single_column_reference(
         table=table_product_3,
@@ -2615,25 +2646,25 @@ def determine_size_axis_labels_categories(
     # Determine appropriate size of font for text labels of explicit names of
     # features or categories along axis.
     if (150 <= count_labels and count_labels < 201):
-        size_label = "nineteen"
+        size_label = "twenty"
     elif (120 <= count_labels and count_labels < 150):
-        size_label = "eighteen"
+        size_label = "nineteen"
     elif (100 <= count_labels and count_labels < 120):
-        size_label = "seventeen"
+        size_label = "eighteen"
     elif (80 <= count_labels and count_labels < 100):
-        size_label = "sixteen"
+        size_label = "seventeen"
     elif (60 <= count_labels and count_labels < 80):
-        size_label = "fifteen"
+        size_label = "sixteen"
     elif (40 <= count_labels and count_labels < 60):
-        size_label = "fourteen"
+        size_label = "fifteen"
     elif (30 <= count_labels and count_labels < 40):
-        size_label = "thirteen"
+        size_label = "fourteen"
     elif (20 <= count_labels and count_labels < 30):
-        size_label = "twelve"
+        size_label = "thirteen"
     elif (10 <= count_labels and count_labels < 20):
-        size_label = "eleven"
+        size_label = "twelve"
     elif (1 <= count_labels and count_labels < 10):
-        size_label = "ten"
+        size_label = "eleven"
     else:
         size_label = None
         pass
@@ -3448,6 +3479,470 @@ def plot_heatmap_signal_features_sets_observations_labels(
     return figure
 
 
+def plot_heatmap_signal_features_labels_observations_groups(
+    table_signal=None,
+    format_table_signal=None,
+    index_columns=None,
+    index_rows=None,
+    column_group=None,
+    transpose_table=None,
+    fill_missing=None,
+    value_missing_fill=None,
+    constrain_signal_values=None,
+    value_minimum=None,
+    value_maximum=None,
+    title_ordinate=None,
+    title_abscissa=None,
+    title_bar=None,
+    labels_ordinate_categories=None,
+    size_title_ordinate=None,
+    size_title_abscissa=None,
+    size_title_bar=None,
+    size_label_ordinate=None,
+    size_label_legend_observation_group=None,
+    size_label_bar=None,
+    show_labels_ordinate=None,
+    show_scale_bar=None,
+    aspect=None,
+    fonts=None,
+    colors=None,
+    report=None,
+):
+    """
+    Heat map.
+
+    Notice that this chart design shows explicit categorical labels for
+    features on the vertical ordinate axis but not for observations or groups
+    of observations on the horizontal abscissa axis.
+
+    Format of source table of signals
+    Format of source table is in wide format with floating-point values of
+    signal intensities corresponding to features across columns and distinct
+    observations across rows. A special column gives identifiers corresponding
+    to each observation across rows. Another special column provides names
+    of categorical groups of observations.
+    ----------
+    observation     group   feature_1 feature_2 feature_3 feature_4 feature_5
+    observation_1   group_1 0.001     0.001     0.001     0.001     0.001
+    observation_2   group_1 0.001     0.001     0.001     0.001     0.001
+    observation_3   group_2 0.001     0.001     0.001     0.001     0.001
+    observation_4   group_2 0.001     0.001     0.001     0.001     0.001
+    observation_5   group_3 0.001     0.001     0.001     0.001     0.001
+    ----------
+
+    For versatility, the source tables do not have explicitly defined indices
+    across columns or rows.
+
+    This function preserves the original sequence of features. This function
+    also preserves the original sequence of groups and observations within
+    groups.
+
+    This function assumes that the table has many more observations than
+    features, and for this reason, the design orients features across the
+    vertical axis and observations across the horizontal axis. With a landscape
+    aspect ratio, this design allows more space for the horizontal axis.
+
+    ----------
+
+    Reference:
+    https://www.kaggle.com/code/sgalella/correlation-heatmaps-with-
+        hierarchical-clustering
+    https://www.kaggle.com/code/chinoysen/beginners-guide-to-heatmaps-cluster-
+        heatmap
+    https://seaborn.pydata.org/generated/seaborn.clustermap.html
+    https://scanpy.readthedocs.io/en/stable/generated/scanpy.pl.heatmap.html
+    https://gist.github.com/peterk87/5505691
+    https://matplotlib.org/stable/tutorials/colors/colormaps.html
+
+    Maybe useful for problem-solving:
+    https://matplotlib.org/stable/gallery/subplots_axes_and_figures/
+        subplots_demo.html
+        - subplots and gridspec
+    http://www.acgeospatial.co.uk/colour-bar-for-discrete-rasters-with-matplotlib/
+        - color maps for discrete values
+    https://matplotlib.org/stable/users/explain/colors/colorbar_only.html
+        #colorbar-with-arbitrary-colors
+        - color bar with custom dimensions of discrete, categorical intervals
+
+    https://matplotlib.org/stable/gallery/color/colormap_reference.html
+        - color maps in MatPlotLib
+
+    https://stackoverflow.com/questions/14777066/matplotlib-discrete-colorbar
+        - categorical color bars
+        - helpful reference for figuring out how to set the thresholds between
+          the discrete levels of the color bar to correspond properly to the
+          columns of the main heatmap...
+    https://stackoverflow.com/questions/9707676/defining-a-discrete-colormap-for-imshow
+    https://stackoverflow.com/questions/7229971/2d-grid-data-visualization-in-python
+    https://matplotlib.org/stable/users/explain/colors/colormapnorms.html
+        - normalization of information for color maps???
+
+    Review: 3 October 2025
+    Review: 30 December 2024
+
+    arguments:
+        table_signal (object): Pandas data-frame table of values of signal
+            intensity for features in columns across sample observations or
+            groups of sample observations in rows
+        format_table_signal (int): value 1 for features across rows and
+            observations or groups of observations across columns, value 2 for
+            features across columns and observations across rows with potential
+            special column for groups of observations
+        index_columns (str): name to define an index corresponding to
+            information across columns in source table
+        index_rows (str): name of a column in source table which defines an
+            index corresponding to information across rows
+        column_group (str): name of column in table to use for groups
+        transpose_table (bool): whether to transpose matrix from table
+        fill_missing (bool): whether to fill any missing values in every
+            element of matrix
+        value_missing_fill (float): value with which to fill any missing values
+        constrain_signal_values (bool): whether to constrain all values in
+            matrix
+        value_minimum (float): minimal value for constraint on signals and
+            scale
+        value_maximum (float): maximal value for constraint on signals and
+            scale
+        title_ordinate (str): title for ordinate vertical axis
+        title_abscissa (str): title for abscissa horizontal axis
+        title_bar (str): title for scale bar
+        labels_ordinate_categories (list<str>): optional, explicit labels for
+            ordinate or vertical axis
+        size_title_ordinate (str): font size
+        size_title_abscissa (str): font size
+        size_title_bar (str): font size
+        size_label_ordinate (str): font size
+        size_label_legend_observation_group (str): font size
+        size_label_bar (str): font size
+        show_labels_ordinate (bool): whether to show on vertical ordinate axis
+            of plot chart explicit text labels for individual categories
+        show_scale_bar (bool): whether to create scale bar
+        aspect (str): aspect ratio for MatPlotLib chart figure
+        fonts (dict<object>): references to definitions of font properties
+        colors (dict<tuple>): references to definitions of color properties
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): MatPlotLib figure object
+
+    """
+
+    ##########
+    # Prepare information for figure.
+    pail = extract_prepare_table_signals_categories_for_heatmap(
+        table=table_signal,
+        format_table=format_table_signal, # 1: features in rows, observations in columns
+        index_columns=index_columns,
+        index_rows=index_rows,
+        column_group=column_group,
+        transpose_table=transpose_table,
+        fill_missing=fill_missing,
+        value_missing_fill=value_missing_fill,
+        constrain_signal_values=constrain_signal_values,
+        value_minimum=value_minimum,
+        value_maximum=value_maximum,
+        labels_ordinate_categories=None,
+        labels_abscissa_categories=None,
+        report=report,
+    )
+
+    ##########
+    # Create figure.
+
+    ##########
+    # Initialize figure.
+    figure = pplot.initialize_matplotlib_figure_aspect(
+        aspect=aspect,
+    )
+    # Initialize grid within figure.
+    #matplotlib.gridspec.GridSpec()
+    #figure.add_gridspec()
+    #sharey=True, # sharey="row"
+    #sharex=True, # sharex="col",
+    grid = matplotlib.gridspec.GridSpec(
+        nrows=4,
+        ncols=2,
+        wspace=0.005, # horizontal width space between grid blocks for subplots
+        hspace=0.005, # vertical height space between grid blocks for subplots
+        width_ratios=(20,80),
+        height_ratios=(90,3,5,2),
+    )
+    grid.update(
+        wspace=0.005, # horizontal width space between grid blocks for subplots
+        hspace=0.005, # vertical height space between grid blocks for subplots
+    )
+    # Initialize axes within grid within figure.
+    axes_space_1 = figure.add_subplot(grid[0,0]) # first row, first column
+    axes_main = figure.add_subplot(grid[0,1]) # first row, second column
+    axes_space_2 = figure.add_subplot(grid[1,0]) # second row, first column
+    axes_group = figure.add_subplot(grid[1,1]) # second row, second column
+    axes_space_3 = figure.add_subplot(grid[2,0]) # third row, first column
+    axes_space_4 = figure.add_subplot(grid[2,1]) # third row, second column
+    axes_space_5 = figure.add_subplot(grid[3,0]) # fourth row, first column
+    axes_bar = figure.add_subplot(grid[3,1]) # fourth row, second column
+    axes_main.clear()
+    axes_group.clear()
+    axes_bar.clear()
+    axes_space_1.clear()
+    axes_space_2.clear()
+    axes_space_3.clear()
+    axes_space_4.clear()
+    axes_space_5.clear()
+    # Set axes to empty as a space holder.
+    axes_space_1.axis("off")
+    axes_space_2.axis("off")
+    axes_space_3.axis("off")
+    axes_space_4.axis("off")
+    axes_space_5.axis("off")
+    #axes_set.axis("off")
+    #axes_group.axis("off")
+    #axes_bar.axis("off")
+    #axes_main.axis("off")
+    # Keep axes, ticks, and labels, but remove border.
+    for position in ['right', 'top', 'bottom', 'left']:
+        matplotlib.pyplot.gca().spines[position].set_visible(False)
+    # Adjust margins.
+    # Method "tight_layout()" does not function properly with object
+    # "GridSpec()".
+    #grid.tight_layout(
+    #    figure,
+    #    #pad=1.0,
+    #    #h_pad=1.0,
+    #    #w_pad=1.0,
+    #    rect=[0,0.05,1.0,1.0], # left, bottom, right, top
+    #)
+    #grid.update(
+    #    wspace=0.005, # horizontal width space between grid blocks for subplots
+    #    hspace=0.005, # vertical height space between grid blocks for subplots
+    #)
+    figure.subplots_adjust(
+        left=0.02,
+        right=0.98,
+        top=0.98,
+        bottom=0.05,
+    )
+
+    ##########
+    # axes: main
+    # Plot values as a grid of color on continuous scale.
+    # This function represents values acros matrix dimension 0 as vertical
+    # rows.
+    # This function represents values across matrix dimension 1 as horizontal
+    # columns.
+    # Diverging color maps: "PRGn", "PRGn_r", "PiYG", "PiYG_r",
+    # Diverging color maps: "PuOr", "PuOr_r",
+    # Diverging color maps: "PuOr", "PuOr_r", "RdBu", "RdBu_r", "BrBG",
+    # Sequential color maps: "Reds", "Reds_r", "Oranges", "Oranges_r",
+    # site: https://montoliu.naukas.com/2021/11/18/color-blindness-purple-and-
+    #     orange-are-the-solution/
+    image_main = axes_main.imshow(
+        pail["matrix_signal"],
+        cmap=matplotlib.colormaps["PuOr"], # binary, Reds, RdBu_r, PuOr, PuOr_r
+        vmin=pail["value_minimum"],
+        vmax=pail["value_maximum"],
+        aspect="auto", # "auto", "equal",
+        origin="lower",
+        # Extent: (left, right, bottom, top)
+        #extent=(-0.5, (matrix.shape[1] - 0.5), (matrix.shape[0] - 0.5), -0.5),
+    )
+    # Set titles for axes.
+    if (len(title_ordinate) > 0):
+        axes_main.set_ylabel(
+            ylabel=title_ordinate,
+            labelpad=30,
+            alpha=1.0,
+            backgroundcolor=colors["white"],
+            color=colors["black"],
+            fontproperties=fonts["properties"][size_title_ordinate]
+        )
+        pass
+    if (len(title_abscissa) > 0):
+        axes_main.set_xlabel(
+            xlabel=title_abscissa,
+            labelpad=30,
+            alpha=1.0,
+            backgroundcolor=colors["white"],
+            color=colors["black"],
+            fontproperties=fonts["properties"][size_title_abscissa]
+        )
+        pass
+    # Set tick parameters for axes.
+    axes_main.tick_params(
+        axis="both", # "y", "x", or "both"
+        which="both", # "major", "minor", or "both"
+        length=5.0, # 5.0
+        width=3.5, # 3.5
+        pad=10, # 7.5
+        direction="out",
+        color=colors["black"],
+        labelcolor=colors["black"],
+        top=False,
+        bottom=False,
+        left=False,
+        right=False,
+        labeltop=False,
+        labelbottom=False,
+        labelleft=False,
+        labelright=False,
+    )
+    # Manage labels for categories along the axes.
+    # Determine feasibility and appropriate font size for representing labels
+    # of individual categorical features or observations along the axes.
+    count_labels_ordinate = len(pail["labels_ordinate_categories"])
+    if (size_label_ordinate is None):
+        size_label_ordinate = determine_size_axis_labels_categories(
+            count_labels=count_labels_ordinate,
+        )
+        pass
+    # Determine whether to show labels for features or categories along the
+    # vertical ordinate axis.
+    if (
+        (show_labels_ordinate) and
+        (size_label_ordinate is not None) and
+        (pail["labels_ordinate_categories"] is not None) and
+        (count_labels_ordinate > 1)
+    ):
+        # Set tick positions and labels on vertical ordinate axis.
+        axes_main.set_yticks(
+            numpy.arange(pail["matrix_signal"].shape[0]),
+        )
+        axes_main.set_yticklabels(
+            pail["labels_ordinate_categories"],
+            #minor=False,
+            ha="right", # horizontal alignment
+            va="center", # vertical alignment
+            alpha=1.0,
+            rotation=0.0,
+            rotation_mode="anchor",
+            backgroundcolor=colors["white"],
+            color=colors["black"],
+            fontproperties=fonts["properties"][size_label_ordinate]
+        )
+        # Set tick parameters for vertical ordinate axis.
+        axes_main.tick_params(
+            axis="y", # "y", "x", or "both"
+            which="both", # "major", "minor", or "both"
+            length=5.0, # 5.0
+            width=3.5, # 3.5
+            pad=10, # 7.5
+            direction="out",
+            color=colors["black"],
+            labelcolor=colors["black"],
+            left=True,
+            right=False,
+            labelleft=True,
+            labelright=False,
+        )
+        pass
+
+    ##########
+    # axes: group
+    # Define color map for discrete, integer representation of categorical
+    # groups.
+    #discrete_minimum = 0
+    #discrete_maximum = len(pail["labels_group_unique"])
+    discrete_minimum = numpy.nanmin(pail["matrix_group_integers"])
+    discrete_maximum = numpy.nanmax(pail["matrix_group_integers"])
+    color_map_group = matplotlib.pyplot.get_cmap(
+        "tab10", # "Set1", "Set2", "Dark2", "tab10",
+        ((discrete_maximum - discrete_minimum) + 1)
+    )
+    # Plot values as a grid of color on discrete scale.
+    image_group = axes_group.imshow(
+        pail["matrix_group_integers"],
+        cmap=color_map_group,
+        vmin=discrete_minimum,
+        vmax=discrete_maximum,
+        aspect="auto", # "auto", "equal",
+        origin="lower",
+        # Extent: (left, right, bottom, top)
+        #extent=(
+        #    0.0,
+        #    (pail["matrix_group_integers"].shape[1]),
+        #    0.0,
+        #    (3*(pail["matrix_group_integers"].shape[0]))
+        #),
+    )
+    axes_group.tick_params(
+        top=False,
+        bottom=False,
+        left=False,
+        right=False,
+        labeltop=False,
+        labelbottom=False,
+        labelleft=False,
+        labelright=False,
+    )
+    # Create legend.
+    # See nested function "create_legend_elements()" within main function
+    # "plot_scatter_factor_groups()".
+    handles = [matplotlib.patches.Patch(
+        color=color_map_group(i),
+        label=pail["indices_groups"][i]
+    ) for i in pail["indices_groups"].keys()]
+    axes_group.legend(
+        handles=handles,
+        prop=fonts["properties"][size_label_legend_observation_group],
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.05),
+        ncol=4,
+    )
+
+    ##########
+    # axes: bar
+    # Create legend for scale of color grid.
+    # Notice that use of the "cax" argument causes to ignore the "shrink"
+    # argument.
+    if show_scale_bar:
+        # Set definitive scale to avoid conflicts with global objects.
+        #color_map_main = matplotlib.pyplot.cm.ScalarMappable(
+        #    cmap="PuOr",
+        #    norm=matplotlib.pyplot.Normalize(
+        #        vmin=pail["value_minimum"],
+        #        vmax=pail["value_maximum"],
+        #    ),
+        #)
+        #color_map_main.set_array(pail["matrix_signal"])
+        # Create scale bar.
+        bar_main = axes_bar.figure.colorbar(
+            image_main, # image_main, color_map_main
+            orientation="horizontal",
+            cax=axes_bar,
+            location="bottom",
+            #shrink=0.5, # 0.7; factor for dimensions of the Scale Bar.
+        )
+        if (len(title_bar) > 0):
+            bar_main.ax.set_xlabel(
+                title_bar,
+                rotation=0,
+                loc="center",
+                va="bottom",
+                labelpad=20, # 5
+                alpha=1.0,
+                backgroundcolor=colors["white"],
+                color=colors["black"],
+                fontproperties=fonts["properties"][size_title_bar],
+            )
+        bar_main.ax.tick_params(
+            axis="both",
+            which="both", # major, minor, or both
+            direction="out",
+            length=7.5, # 5.0, 7.5
+            width=3, # 2.5, 5.0
+            color=colors["black"],
+            pad=3, # 5, 7
+            labelsize=fonts["values"][size_label_bar]["size"],
+            labelcolor=colors["black"],
+        )
+        pass
+
+    ##########
+    # Return figure.
+    return figure
+
+
 def plot_heatmap_signal_features_sets_observations_groups(
     table_signal=None,
     table_feature_sets=None,
@@ -3682,21 +4177,29 @@ def plot_heatmap_signal_features_sets_observations_groups(
         hspace=0.005, # vertical height space between grid blocks for subplots
     )
     # Initialize axes within grid within figure.
+
+    # Initialize axes within grid within figure.
     axes_set = figure.add_subplot(grid[0,0]) # first row, first column
     axes_main = figure.add_subplot(grid[0,1]) # first row, second column
-    axes_space_first = figure.add_subplot(grid[1,0]) # second row, first column
+    axes_space_1 = figure.add_subplot(grid[1,0]) # second row, first column
     axes_group = figure.add_subplot(grid[1,1]) # second row, second column
-    axes_space_second = figure.add_subplot(grid[2,1]) # third row, second column
+    axes_space_2 = figure.add_subplot(grid[2,0]) # third row, first column
+    axes_space_3 = figure.add_subplot(grid[2,1]) # third row, second column
+    axes_space_4 = figure.add_subplot(grid[3,0]) # fourth row, first column
     axes_bar = figure.add_subplot(grid[3,1]) # fourth row, second column
     axes_set.clear()
     axes_main.clear()
-    axes_space_first.clear()
     axes_group.clear()
-    axes_space_second.clear()
     axes_bar.clear()
+    axes_space_1.clear()
+    axes_space_2.clear()
+    axes_space_3.clear()
+    axes_space_4.clear()
     # Set axes to empty as a space holder.
-    axes_space_first.axis("off")
-    axes_space_second.axis("off")
+    axes_space_1.axis("off")
+    axes_space_2.axis("off")
+    axes_space_3.axis("off")
+    axes_space_4.axis("off")
     #axes_set.axis("off")
     #axes_group.axis("off")
     #axes_bar.axis("off")
@@ -3947,9 +4450,109 @@ def plot_heatmap_signal_features_sets_observations_groups(
 
 # Manage and write plot charts.
 
-# TODO: TCW; 26 September 2025
-# Create a heatmap that has labeled features while having individual (not mean)
-# values for observations.
+
+def plot_heatmap_features_labels_observations_groups(
+    table_signal=None,
+    index_columns=None,
+    index_rows=None,
+    column_group=None,
+    report=None,
+):
+    """
+    Create and plot a chart of the heatmap type.
+
+    Original source table must not have an explicitly defined index across
+    rows.
+
+    Review: TCW; 2 October 2025
+
+    arguments:
+        table_signal (object): Pandas data-frame table of floating-point values
+            of a signal corresponding features in columns across observations
+            in rows
+        index_columns (str): name to define an index corresponding to
+            information across columns in source table
+        index_rows (str): name of a column in source table which defines an
+            index corresponding to information across rows
+        column_group (str): name of column in table to use for groups
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): figure object from MatPlotLib
+
+    """
+
+    ##########
+    # Organize information for plot.
+
+    # Copy information in table.
+    table_signal = table_signal.copy(deep=True)
+    table_signal_extract = table_signal.copy(deep=True)
+    # Organize indices in table.
+    table_signal_extract.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    table_signal_extract.columns.rename(
+        index_columns,
+        inplace=True,
+    ) # single-dimensional index
+    table_signal_extract.set_index(
+        [index_rows, column_group,],
+        append=False,
+        drop=True,
+        inplace=True
+    )
+    # Extract minimal and maximal values of signal intensity.
+    matrix = numpy.copy(table_signal_extract.to_numpy())
+    #value_minimum = round((numpy.nanmin(matrix) - 0.005), 2)
+    #value_maximum = round((numpy.nanmax(matrix) + 0.005), 2)
+    round_offset = abs(numpy.nanmin(matrix) * 0.01)
+    value_minimum = round((numpy.nanmin(matrix) - round_offset), 3)
+    value_maximum = round((numpy.nanmax(matrix) + round_offset), 3)
+
+    ##########
+    # Create plot chart.
+    # Define fonts.
+    fonts = pplot.define_font_properties()
+    # Define colors.
+    colors = pplot.define_color_properties()
+    # Create figure.
+    figure = plot_heatmap_signal_features_labels_observations_groups(
+        table_signal=table_signal,
+        format_table_signal=2, # 2: features in columns; observations, groups in rows
+        index_columns=index_columns,
+        index_rows=index_rows,
+        column_group=column_group,
+        transpose_table=True,
+        fill_missing=True,
+        value_missing_fill=0.0,
+        constrain_signal_values=True,
+        value_minimum=value_minimum,
+        value_maximum=value_maximum,
+        title_ordinate="",
+        title_abscissa="",
+        title_bar="individual signal (z-score)",
+        labels_ordinate_categories=None,
+        size_title_ordinate="ten",
+        size_title_abscissa="ten",
+        size_title_bar="thirteen",
+        size_label_ordinate=None, # determine automatically if "None"; "fifteen"
+        size_label_legend_observation_group="fourteen",
+        size_label_bar="fifteen",
+        show_labels_ordinate=True,
+        show_scale_bar=True,
+        aspect="portrait",
+        fonts=fonts,
+        colors=colors,
+        report=report,
+    )
+
+    # Return information.
+    return figure
 
 
 def plot_heatmap_features_sets_observations_groups(
@@ -4016,7 +4619,7 @@ def plot_heatmap_features_sets_observations_groups(
     matrix = numpy.copy(table_signal_extract.to_numpy())
     #value_minimum = round((numpy.nanmin(matrix) - 0.005), 2)
     #value_maximum = round((numpy.nanmax(matrix) + 0.005), 2)
-    round_offset = (numpy.nanmin(matrix) * 0.10)
+    round_offset = abs(numpy.nanmin(matrix) * 0.01)
     value_minimum = round((numpy.nanmin(matrix) - round_offset), 3)
     value_maximum = round((numpy.nanmax(matrix) + round_offset), 3)
 
@@ -4121,7 +4724,7 @@ def plot_heatmap_features_sets_observations_labels(
     matrix = numpy.copy(table_signal_extract.to_numpy())
     #value_minimum = round((numpy.nanmin(matrix) - 0.005), 2)
     #value_maximum = round((numpy.nanmax(matrix) + 0.005), 2)
-    round_offset = (numpy.nanmin(matrix) * 0.10)
+    round_offset = abs(numpy.nanmin(matrix) * 0.01)
     value_minimum = round((numpy.nanmin(matrix) - round_offset), 3)
     value_maximum = round((numpy.nanmax(matrix) + round_offset), 3)
 
@@ -4223,7 +4826,7 @@ def plot_heatmap_features_observations_labels(
     matrix = numpy.copy(table_extract.to_numpy())
     #value_minimum = round((numpy.nanmin(matrix) - 0.005), 2)
     #value_maximum = round((numpy.nanmax(matrix) + 0.005), 2)
-    round_offset = (numpy.nanmin(matrix) * 0.10)
+    round_offset = abs(numpy.nanmin(matrix) * 0.01)
     value_minimum = round((numpy.nanmin(matrix) - round_offset), 3)
     value_maximum = round((numpy.nanmax(matrix) + round_offset), 3)
 
@@ -4253,7 +4856,7 @@ def plot_heatmap_features_observations_labels(
         size_title_ordinate="eight",
         size_title_abscissa="eight",
         size_title_bar="ten",
-        size_label_ordinate="eighteen", # determine automatically if "None"; "fifteen"
+        size_label_ordinate=None, # determine automatically if "None"; "fifteen"
         size_label_abscissa="eleven", # determine automatically if "None"
         size_label_bar="twelve",
         show_labels_ordinate=True,
@@ -4272,12 +4875,13 @@ def manage_create_write_plot_charts(
     table_heatmap_individual_1=None,
     table_heatmap_individual_2=None,
     table_heatmap_individual_3=None,
+    table_heatmap_individual_4=None,
     table_heatmap_group_set=None,
     table_heatmap_group_label=None,
     table_allocation_1=None,
     table_allocation_2=None,
-    table_allocation_3=None,
     table_allocation_4=None,
+    table_allocation_5=None,
     index_features=None,
     index_observations=None,
     heatmap_individual=None,
@@ -4343,12 +4947,13 @@ def manage_create_write_plot_charts(
     table_heatmap_individual_1 = table_heatmap_individual_1.copy(deep=True)
     table_heatmap_individual_2 = table_heatmap_individual_2.copy(deep=True)
     table_heatmap_individual_3 = table_heatmap_individual_3.copy(deep=True)
+    table_heatmap_individual_4 = table_heatmap_individual_4.copy(deep=True)
     table_heatmap_group_set = table_heatmap_group_set.copy(deep=True)
     table_heatmap_group_label = table_heatmap_group_label.copy(deep=True)
     table_allocation_1 = table_allocation_1.copy(deep=True)
     table_allocation_2 = table_allocation_2.copy(deep=True)
-    table_allocation_3 = table_allocation_3.copy(deep=True)
     table_allocation_4 = table_allocation_4.copy(deep=True)
+    table_allocation_5 = table_allocation_5.copy(deep=True)
 
     ##########
     # Heatmap Individual
@@ -4372,9 +4977,17 @@ def manage_create_write_plot_charts(
                 report=report,
         ))
         figure_heatmap_individual_3 = (
-            plot_heatmap_features_sets_observations_groups(
+            plot_heatmap_features_labels_observations_groups(
                 table_signal=table_heatmap_individual_3,
-                table_feature=table_allocation_3,
+                index_columns=index_features,
+                index_rows=index_observations,
+                column_group="group",
+                report=report,
+        ))
+        figure_heatmap_individual_4 = (
+            plot_heatmap_features_sets_observations_groups(
+                table_signal=table_heatmap_individual_4,
+                table_feature=table_allocation_4,
                 index_columns=index_features,
                 index_rows=index_observations,
                 column_group="group",
@@ -4384,6 +4997,7 @@ def manage_create_write_plot_charts(
         figure_heatmap_individual_1 = None
         figure_heatmap_individual_2 = None
         figure_heatmap_individual_3 = None
+        figure_heatmap_individual_4 = None
         pass
 
     ##########
@@ -4393,7 +5007,7 @@ def manage_create_write_plot_charts(
         figure_heatmap_mean_set = (
             plot_heatmap_features_sets_observations_labels(
                 table_signal=table_heatmap_group_set,
-                table_feature=table_allocation_4,
+                table_feature=table_allocation_5,
                 index_columns="group_observations",
                 index_rows=index_features,
                 report=False,
@@ -4421,6 +5035,9 @@ def manage_create_write_plot_charts(
     )
     pail_write_plot_heatmap["heatmap_individual_3"] = (
         figure_heatmap_individual_3
+    )
+    pail_write_plot_heatmap["heatmap_individual_4"] = (
+        figure_heatmap_individual_4
     )
     pail_write_plot_heatmap["heatmap_mean_set"] = (
         figure_heatmap_mean_set
@@ -4493,6 +5110,7 @@ def execute_procedure(
     column_identifier_feature=None,
     column_name_feature=None,
     column_identifier_observation=None,
+    column_name_observation=None,
     column_identifier_signal=None,
     transpose_table_signals=None,
     allow_replicate_observations=None,
@@ -4565,6 +5183,7 @@ def execute_procedure(
         column_identifier_feature=column_identifier_feature,
         column_name_feature=column_name_feature,
         column_identifier_observation=column_identifier_observation,
+        column_name_observation=column_name_observation,
         column_identifier_signal=column_identifier_signal,
         transpose_table_signals=transpose_table_signals,
         allow_replicate_observations=allow_replicate_observations,
@@ -4628,11 +5247,11 @@ def execute_procedure(
         column_identifier_observation=(
             pail_parameters["column_identifier_observation"]
         ),
+        column_name_observation=pail_parameters["column_name_observation"],
         column_identifier_signal=pail_parameters["column_identifier_signal"],
         transpose_table_signals=pail_parameters["transpose_table_signals"],
         report=pail_parameters["report"],
     )
-
     #table_features = pail_source["table_features"]
     #column_identifier_feature = pail_parameters["column_identifier_feature"]
     #features_available = copy.deepcopy(
@@ -4703,7 +5322,11 @@ def execute_procedure(
         column_identifier_observation=(
             pail_parameters["column_identifier_observation"]
         ),
+        column_name_observation=pail_parameters["column_name_observation"],
         column_identifier_signal=(
+            pail_parameters["column_identifier_signal"]
+        ),
+        column_identifier_groups_observations=(
             pail_parameters["column_identifier_signal"]
         ),
         instances_groups_observations=pail_groups["records"],
@@ -4711,7 +5334,7 @@ def execute_procedure(
         names_groups_observations_sequence=(
             pail_groups["names_groups_observations_sequence"]
         ),
-        report=pail_parameters["report"],
+        report=report,
     )
     #pail_observations["table_observations_selection"]
     #pail_observations["observations_selection"]
@@ -4725,9 +5348,20 @@ def execute_procedure(
     # organize_parameters_further_groups_observations()
     # prepare_tables_signals_sets_features_groups_observations()
 
+    # Determine whether to use features in observations from
+    # "table_observations" or from "table_signals".
+    if (
+        (pail_source["table_signals"] is not None) and
+        (pail_parameters["transpose_table_signals"] is not None)
+    ):
+        table_main = pail_source["table_signals"]
+    else:
+        table_main = pail_source["table_observations"]
+        pass
+
     # Prepare tables.
     pail_tables = manage_prepare_tables(
-        table_signals=pail_source["table_signals"],
+        table_signals=table_main,
         column_identifier_feature=(
             pail_parameters["column_identifier_feature"]
         ),
@@ -4765,13 +5399,14 @@ def execute_procedure(
     manage_create_write_plot_charts(
         table_heatmap_individual_1=pail_tables["table_3"], # cluster with constraint by sets of features and by groups of observations
         table_heatmap_individual_2=pail_tables["table_4"], # cluster with constraint by groups of observations only
-        table_heatmap_individual_3=pail_tables["table_5"], # cluster without constraint
+        table_heatmap_individual_3=pail_tables["table_4_translation"], # cluster with constraint by groups of observations only
+        table_heatmap_individual_4=pail_tables["table_5"], # cluster without constraint
         table_heatmap_group_set=pail_tables["table_8"],
         table_heatmap_group_label=pail_tables["table_8_translation"],
         table_allocation_1=pail_tables["table_allocation_3"],
         table_allocation_2=pail_tables["table_allocation_4"],
-        table_allocation_3=pail_tables["table_allocation_5"],
-        table_allocation_4=pail_tables["table_allocation_8"],
+        table_allocation_4=pail_tables["table_allocation_5"],
+        table_allocation_5=pail_tables["table_allocation_8"],
         index_features=pail_parameters["column_identifier_feature"],
         index_observations=pail_parameters["column_identifier_signal"],
         heatmap_individual=True,
@@ -4790,6 +5425,9 @@ def execute_procedure(
         pail_tables["table_4"]
     )
     pail_write_tables["table_heatmap_individual_3"] = (
+        pail_tables["table_4"]
+    )
+    pail_write_tables["table_heatmap_individual_4"] = (
         pail_tables["table_5"]
     )
     pail_write_tables["table_heatmap_group_1"] = (
@@ -4803,6 +5441,9 @@ def execute_procedure(
         pail_tables["table_4_translation"]
     )
     pail_write_tables["table_heatmap_individual_3_translation"] = (
+        pail_tables["table_4_translation"]
+    )
+    pail_write_tables["table_heatmap_individual_4_translation"] = (
         pail_tables["table_5_translation"]
     )
     pail_write_tables["table_heatmap_group_1_translation"] = (
@@ -4852,10 +5493,11 @@ if (__name__ == "__main__"):
     column_identifier_feature = sys.argv[12]
     column_name_feature = sys.argv[13]
     column_identifier_observation = sys.argv[14]
-    column_identifier_signal = sys.argv[15]
-    transpose_table_signals = sys.argv[16]
-    allow_replicate_observations = sys.argv[17]
-    report = sys.argv[18]
+    column_name_observation = sys.argv[15]
+    column_identifier_signal = sys.argv[16]
+    transpose_table_signals = sys.argv[17]
+    allow_replicate_observations = sys.argv[18]
+    report = sys.argv[19]
 
     # Call function for procedure.
     execute_procedure(
@@ -4885,6 +5527,7 @@ if (__name__ == "__main__"):
         column_identifier_feature=column_identifier_feature,
         column_name_feature=column_name_feature,
         column_identifier_observation=column_identifier_observation,
+        column_name_observation=column_name_observation,
         column_identifier_signal=column_identifier_signal,
         transpose_table_signals=transpose_table_signals,
         allow_replicate_observations=allow_replicate_observations,
