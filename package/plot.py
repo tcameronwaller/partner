@@ -255,6 +255,22 @@ def define_font_properties():
         "weight": 100,
         "size": 3,
     }
+    values_20 = {
+        "family": "sans-serif",
+        "style": "normal",
+        "variant": "normal",
+        "stretch": 75,
+        "weight": 75,
+        "size": 2,
+    }
+    values_21 = {
+        "family": "sans-serif",
+        "style": "normal",
+        "variant": "normal",
+        "stretch": 50,
+        "weight": 50,
+        "size": 1,
+    }
     # Define font properties.
     properties_1 = matplotlib.font_manager.FontProperties(
         family=values_1["family"],
@@ -408,6 +424,22 @@ def define_font_properties():
         weight=values_19["weight"],
         size=values_19["size"]
     )
+    properties_20 = matplotlib.font_manager.FontProperties(
+        family=values_20["family"],
+        style=values_20["style"],
+        variant=values_20["variant"],
+        stretch=values_20["stretch"],
+        weight=values_20["weight"],
+        size=values_20["size"]
+    )
+    properties_21 = matplotlib.font_manager.FontProperties(
+        family=values_21["family"],
+        style=values_21["style"],
+        variant=values_21["variant"],
+        stretch=values_21["stretch"],
+        weight=values_21["weight"],
+        size=values_21["size"]
+    )
     # Compile and return references.
     return {
         "values": {
@@ -430,6 +462,8 @@ def define_font_properties():
             "seventeen": values_17,
             "eighteen": values_18,
             "nineteen": values_19,
+            "twenty": values_20,
+            "twenty-one": values_21,
         },
         "properties": {
             "one": properties_1,
@@ -451,6 +485,8 @@ def define_font_properties():
             "seventeen": properties_17,
             "eighteen": properties_18,
             "nineteen": properties_19,
+            "twenty": properties_20,
+            "twenty-one": properties_21,
         }
     }
 

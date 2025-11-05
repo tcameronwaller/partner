@@ -93,6 +93,72 @@ import partner.description as pdesc
 # Indices.
 
 
+def extract_translation_keys_values_from_table_columns(
+    table=None,
+    column_keys=None,
+    column_values=None,
+    report=None,
+):
+    """
+    Extract from columns in a reference table the keys and values for use in
+    translation of information in another table or other object.
+
+    Review: TCW; 23 October 2025
+
+    arguments:
+        table (object): Pandas data-frame table
+        column_keys (str): name of column
+        column_values (str): name of column
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict): dictionary of keys and values for translation in a separate,
+            external operation
+
+    """
+
+    # Copy information in table.
+    table_translation = table.copy(deep=True)
+
+    # Extract information within pairs of keys and values.
+    table_specific = table_translation.filter(
+        items=[column_keys, column_values,],
+        axis="columns",
+    )
+    table_specific.dropna(
+        how="any",
+        axis="index",
+    )
+    table_specific = table_specific.loc[
+        (
+            (table_specific[column_keys].str.len() > 0) &
+            (table_specific[column_values].str.len() > 0)
+        ), :
+    ].copy(deep=True)
+    series_translation = pandas.Series(
+        table_specific[column_values].to_list(),
+        index=table_specific[column_keys],
+    )
+    translations = copy.deepcopy(series_translation.to_dict())
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("Report:")
+        print("partner")
+        print("organization")
+        print("extract_translation_keys_values_from_table_columns()")
+        putly.print_terminal_partition(level=5)
+        count_pairs = len(list(translations.keys()))
+        print("Count of pairs: " + str(count_pairs))
+        putly.print_terminal_partition(level=5)
+        pass
+    # Return information.
+    return translations
+
+
 def translate_names_table_indices_columns_rows(
     table=None,
     index_columns_product=None,
@@ -404,6 +470,9 @@ def explicate_table_indices_columns_rows_single_level(
         pass
     # Return information.
     return table
+
+
+
 
 
 ##########
@@ -1689,6 +1758,150 @@ def filter_sort_table_columns(
         putly.print_terminal_partition(level=5)
     # Return information.
     return table_filter_sort
+
+
+def filter_sort_table_columns_rows_by_selections_names(
+    table=None,
+    columns_necessary=None,
+    columns_sequence_priority=None,
+    columns_sort_rows=None,
+    columns_keep=None,
+    report=None,
+):
+    """
+    Filter and sort the columns and rows in a table by simple selections of
+    names of columns.
+
+    Date, review or revision: TCW; 24 October 2025
+
+    arguments:
+        table (object): Pandas data-frame table
+        columns_necessary (list<str>): names of columns that are necessary, by
+            which to filter rows in table for non-missing, non-empty values
+        columns_sequence_priority (list<str>): sequence of columns in table for
+            a selection of priority features, by which to sort columns
+        columns_sort_rows (list<str>): columns in table by which to sort the
+            sequence of rows in table, by alphabetical categories
+        columns_keep (list<str>): names of columns to keep in table
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict<object>): collection of information
+
+    """
+
+    # Copy information.
+    table = table.copy(deep=True)
+    columns_necessary = copy.deepcopy(columns_necessary)
+    columns_sequence_priority = copy.deepcopy(columns_sequence_priority)
+    columns_sort_rows = copy.deepcopy(columns_sort_rows)
+    columns_keep = copy.deepcopy(columns_keep)
+
+    # Filter rows in table.
+    if (
+        (columns_necessary is not None) and
+        (len(columns_necessary) > 0)
+    ):
+        for column in columns_necessary:
+            table = table.loc[
+                (
+                    (table[column].str.len() > 0)
+                ), :
+            ].copy(deep=True)
+            pass
+        pass
+    table.dropna(
+        how="all",
+        axis="index",
+    )
+
+    # Sort sequence of rows in table.
+    if (
+        (columns_sort_rows is not None) and
+        (len(columns_sort_rows) > 0)
+    ):
+        table.sort_values(
+            by=columns_sort_rows,
+            axis="index",
+            ascending=True,
+            na_position="last",
+            inplace=True,
+        )
+        pass
+
+    # Sort sequence of columns in table.
+    if (
+        (columns_sequence_priority is not None) and
+        (len(columns_sequence_priority) > 0)
+    ):
+        table = sort_table_columns_explicit_other(
+            table=table,
+            columns_sequence=columns_sequence_priority,
+            sort_other=False,
+            report=report,
+        )
+        pass
+
+    # Filter and sort sequence of columns in table.
+    #columns_sequence.insert(0, column_index)
+    columns_sequence = list()
+    if (
+        (columns_sequence_priority is not None) and
+        (len(columns_sequence_priority) > 0)
+    ):
+        columns_sequence.extend(
+            copy.deepcopy(columns_sequence_priority)
+        )
+    if (
+        (columns_necessary is not None) and
+        (len(columns_necessary) > 0)
+    ):
+        columns_sequence.extend(
+            copy.deepcopy(columns_necessary)
+        )
+    if (
+        (columns_sort_rows is not None) and
+        (len(columns_sort_rows) > 0)
+    ):
+        columns_sequence.extend(
+            copy.deepcopy(columns_sort_rows)
+        )
+    if (
+        (columns_keep is not None) and
+        (len(columns_keep) > 0)
+    ):
+        columns_sequence.extend(
+            copy.deepcopy(columns_keep)
+        )
+    if (
+        (columns_sequence is not None) and
+        (len(columns_sequence) > 0)
+    ):
+        columns_sequence_unique = putly.collect_unique_items(
+            items=columns_sequence,
+        )
+        table = filter_sort_table_columns(
+            table=table,
+            columns_sequence=columns_sequence_unique,
+            report=report,
+        )
+        pass
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        print("module: organization.py")
+        function = str(
+            "filter_sort_table_columns_rows_by_selections_names()"
+        )
+        print("function: " + str(function))
+        putly.print_terminal_partition(level=5)
+        pass
+    # Return information.
+    return table
 
 
 def filter_select_table_columns_rows_by_identifiers(

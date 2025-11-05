@@ -352,7 +352,7 @@ def transform_exponent_by_table_columns(
 
         """
 
-        # Calculate logarithm.
+        # Calculate exponent.
         if (math.isclose(float(base), math.e, rel_tol=1e-7)):
             exponents = numpy.exp(values)
         elif (math.isclose(float(base), 2.0, rel_tol=1e-7)):
@@ -360,6 +360,14 @@ def transform_exponent_by_table_columns(
         else:
             exponents = numpy.power(base, values)
             pass
+        # Handle missing values.
+        exponents = numpy.nan_to_num(
+            exponents,
+            nan=numpy.nan,
+            posinf=numpy.nan,
+            neginf=numpy.nan,
+            copy=True,
+        )
         return exponents
 
     # Copy information.

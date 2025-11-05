@@ -32,8 +32,10 @@ License:
 
 ################################################################################
 # Author: T. Cameron Waller, Ph.D.
-# Date, first execution: 30 September 2025
-# Date, last execution or modification: 30 September 2025
+# Date, initialization: 30 September 2025
+# Date, restoration (update, modification): 20 October 2025
+# Date, restoration (update, modification): 30 September 2025
+# Review: TCW; 20 October 2025
 # Review: TCW; 30 September 2025
 ################################################################################
 # Note
@@ -46,7 +48,9 @@ License:
 # TODO: TCW; 1 October 2025
 # Implement heatmap (filter to < 100 features and PCs) for PC loadings
 
-
+# TODO: TCW; 20 October 2025
+# For all distinct sets of features, collect principal components within the
+# main table.
 
 
 ##########
@@ -95,6 +99,7 @@ import partner.decomposition as pdcmp
 import partner.plot as pplot
 
 import utility_special as sutly
+import plot_special as splot
 
 #dir()
 #importlib.reload()
@@ -555,708 +560,27 @@ def filter_combine_features_observations(
     return table_features_observations
 
 
-def plot_scatter_point_color_response_discrete_or_continuous(
-    table=None,
-    column_identifier=None,
-    column_name=None,
-    column_response=None,
-    column_abscissa=None,
-    column_ordinate=None,
-    type_response=None,
-    minimum_abscissa=None,
-    maximum_abscissa=None,
-    minimum_ordinate=None,
-    maximum_ordinate=None,
-    title_chart=None,
-    title_response=None,
-    title_abscissa=None,
-    title_ordinate=None,
-    identifiers_emphasis=None,
-    size_title_chart=None,
-    size_title_abscissa=None,
-    size_title_ordinate=None,
-    size_title_legend_bar=None,
-    size_label_abscissa=None,
-    size_label_ordinate=None,
-    size_label_emphasis=None,
-    size_label_legend_bar=None,
-    size_marker=None,
-    aspect=None,
-    fonts=None,
-    colors=None,
-    set_axis_limits=None,
-    lines_origin=None,
-    line_diagonal=None,
-    emphasis_marker=None,
-    emphasis_label=None,
-    show_legend_bar=None,
-    report=None,
-):
-    """
-    Create a plot chart of type scatter point with color representation of a
-    third feature variable on either a discrete on continuous measurement
-    scale.
-
-    Scatter Plot with color representation of a third feature for points
-    chart type: scatter
-    response
-       - representation: color of points
-    abscissa
-       - representation: position along horizontal abscissa x axis
-    ordinate
-       - representation: position along vertical ordinate y axis
-
-    Review: TCW; 1 October 2025
-    Review: TCW; 2 December 2024
-
-    arguments:
-        table (object): Pandas data-frame table of features across columns and
-            values for observations across rows
-        column_identifier (str): name of column in table corresponding to the
-            unique identifier of records for each point
-        column_name (str): name of column in table corresponding to the name of
-            records for each point
-        column_response (str): name of column in table corresponding to values
-            for representation as color of individual points
-        column_abscissa (str): name of column in table corresponding to values
-            for representation on the abscissa horizontal axis
-        column_ordinate (str): name of column in table corresponding to values
-            for representation on the ordinate vertical axis
-        type_response (bool): type of the response feature, either 'continuity'
-            or 'category'
-        minimum_abscissa (float): value for minimal limit to represent on the
-            abscissa horizontal axis
-        maximum_abscissa (float): value for maximal limit to represent on the
-            abscissa horizontal axis
-        minimum_ordinate (float): value for minimal limit to represent on the
-            ordinate horizontal axis
-        maximum_ordinate (float): value for maximal limit to represent on the
-            ordinate horizontal axis
-        title_chart (str): title of the chart
-        title_response (str): title of the feature to represent as colors of
-            individual points
-        title_abscissa (str): title of the feature to represent on the abscissa
-            horizontal axis
-        title_ordinate (str): title of the feature to represent on the ordinate
-            vertical axis
-        identifiers_emphasis (list<str>): identifiers corresponding to a
-            special selection of records for which to emphasize points on
-            chart and for which to create individual text labels adjacent to
-            the points on the chart
-        size_title_chart (str): font size for title of chart
-        size_title_abscissa (str): font size for title on abscissa horizontal
-            axis
-        size_title_ordinate (str): font size for title on ordinate vertical
-            axis
-        size_title_legend_bar (str): font size for title on the legend for
-            discrete categorical values or on the scale bar for continuous
-            values
-        size_label_abscissa (str): font size for labels on abscissa horizontal
-            axis
-        size_label_ordinate (str): font size for labels on ordinate vertical
-            axis
-        size_label_emphasis (str): font size for labels adjacent to points for
-            special emphasis
-        size_label_legend_bar (str): font size for labels on the legend or on
-            the scale bar
-        size_marker (int): size of markers for points representing values
-        aspect (str): aspect ratio for MatPlotLib chart figure
-        fonts (dict<object>): definitions of font properties
-        colors (dict<tuple>): definitions of color properties
-        set_axis_limits (bool): whether to set explicity limits on axes
-        lines_origin (bool): whether to draw vertical and horizontal lines to
-            represent origin (zero) on abscissa and ordinate axes, respectively
-        line_diagonal (bool): whether to draw diagonal line for equality
-            between abscissa and ordinate
-        emphasis_marker (bool): whether to create special markers to emphasize
-            a special selection of points
-        emphasis_label (bool): whether to create text labels adjacent to
-            the special selection of points for special emphasis
-        show_legend_bar (bool): whether to show legend or scale bar on chart
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (object): chart figure object
-
-    """
-
-    ##########
-    # Organize information for chart.
-
-    # Copy information in table.
-    table = table.copy(deep=True)
-    # Filter columns in table.
-    #table = table.loc[
-    #    :, table.columns.isin(columns_sequence)
-    #]
-    table = table.filter(
-        items=[
-            column_identifier,
-            column_name,
-            column_response,
-            column_abscissa,
-            column_ordinate,
-        ],
-        axis="columns",
-    )
-    # Organize information in table.
-    table.dropna(
-        axis="index",
-        how="any",
-        inplace=True,
-    )
-    limits = [
-        {
-            "type": "low",
-            "value": minimum_abscissa,
-            "column": column_abscissa,
-        },
-        {
-            "type": "high",
-            "value": maximum_abscissa,
-            "column": column_abscissa,
-        },
-        {
-            "type": "low",
-            "value": minimum_ordinate,
-            "column": column_ordinate,
-        },
-        {
-            "type": "high",
-            "value": maximum_ordinate,
-            "column": column_ordinate,
-        },
-    ]
-    for limit in limits:
-        if (limit["value"] is not None):
-            if (limit["type"] == "low"):
-                table = table.loc[
-                    (table[limit["column"]] >= limit["value"]), :
-                ].copy(deep=True)
-            elif (limit["type"] == "high"):
-                table = table.loc[
-                    (table[limit["column"]] <= limit["value"]), :
-                ].copy(deep=True)
-                pass
-            pass
-        pass
-    # Extract information about ranges of first and second features for
-    # representation as position.
-    values_abscissa_raw = table[column_abscissa].to_numpy(
-        dtype="float64",
-        na_value=numpy.nan,
-        copy=True,
-    )
-    values_ordinate_raw = table[column_ordinate].to_numpy(
-        dtype="float64",
-        na_value=numpy.nan,
-        copy=True,
-    )
-    if (minimum_abscissa is None):
-        minimum_abscissa = (numpy.nanmin(values_abscissa_raw))
-    if (maximum_abscissa is None):
-        maximum_abscissa = (numpy.nanmax(values_abscissa_raw))
-    if (minimum_ordinate is None):
-        minimum_ordinate = (numpy.nanmin(values_ordinate_raw))
-    if (maximum_ordinate is None):
-        maximum_ordinate = (numpy.nanmax(values_ordinate_raw))
-        pass
-    center_abscissa = ((maximum_abscissa + minimum_abscissa)/2)
-    center_ordinate = ((maximum_ordinate + minimum_ordinate)/2)
-    # Extract information about range of third response feature for
-    # representation as color.
-    if (
-        (column_response is not None) and
-        (column_response != "") and
-        (type_response is not None) and
-        (type_response == "continuity")
-    ):
-        values_response_raw = table[column_response].to_numpy(
-            dtype="float64",
-            na_value=numpy.nan,
-            copy=True,
-        )
-        minimum_response = numpy.nanmin(values_response_raw)
-        maximum_response = numpy.nanmax(values_response_raw)
-        pass
-
-    # Extract information about selection of records for special emphasis.
-    if (
-        (identifiers_emphasis is not None) and
-        (len(identifiers_emphasis) > 0)
-    ):
-        table_standard = table.loc[
-            ~table[column_identifier].isin(identifiers_emphasis), :
-        ].copy(deep=True)
-        table_special = table.loc[
-            table[column_identifier].isin(identifiers_emphasis), :
-        ].copy(deep=True)
-        pass
-    else:
-        table_standard = table.copy(deep=True)
-        table_special = pandas.DataFrame()
-
-    # Stratify groups of records by categorical factor response feature.
-    if (
-        (column_response is not None) and
-        (column_response != "") and
-        (type_response is not None) and
-        (type_response == "category")
-    ):
-        # Copy information in table.
-        table_group = table.copy(deep=True)
-
-        # Count unique categorical values.
-        #categories = copy.deepcopy(
-        #    table[column_category].unique().tolist()
-        #)
-        #count_category_response = len(categories)
-        count_category_response = (
-            table[column_response].nunique(dropna=True)
-        )
-        # Organize indices in table.
-        table.reset_index(
-            level=None,
-            inplace=True,
-            drop=True, # remove index; do not move to regular columns
-        )
-        table.set_index(
-            [column_identifier, column_response],
-            append=False,
-            drop=True,
-            inplace=True
-        )
-        # Split rows within table by factor columns.
-        groups_response = table.groupby(
-            level=column_response,
-        )
-        pass
-
-    # Report.
-    if report:
-        putly.print_terminal_partition(level=3)
-        print("package: partner")
-        module = str(
-            "calculate_principal_components_sets_features_groups_" +
-            "observations.py"
-        )
-        print(str("module: " + module))
-        function = "plot_scatter_point_color_response_discrete_or_continuous()"
-        print("function: " + function)
-        putly.print_terminal_partition(level=5)
-        pass
-
-    ##########
-    # Create and initialize figure chart object.
-
-    # Create figure.
-    figure = pplot.initialize_matplotlib_figure_aspect(
-        aspect=aspect,
-    )
-    # Create axes.
-    #axes = matplotlib.pyplot.axes()
-    axes = figure.add_subplot(111)
-    #axes.margins(
-    #    x=1,
-    #    y=1,
-    #    tight=True,
-    #)
-    # Define limits for axes.
-    if (set_axis_limits):
-        if (minimum_abscissa is not None):
-            axes.set_xlim(xmin=minimum_abscissa)
-        if (maximum_abscissa is not None):
-            axes.set_xlim(xmax=maximum_abscissa)
-        if (minimum_ordinate is not None):
-            axes.set_ylim(ymin=minimum_ordinate)
-        if (maximum_ordinate is not None):
-            axes.set_ylim(ymax=maximum_ordinate)
-            pass
-        pass
-    # Include title label on chart.
-    if len(title_chart) > 0:
-        axes.set_title(
-            title_chart,
-            fontproperties=fonts["properties"][size_title_chart],
-            loc="right",
-            horizontalalignment="right",
-            verticalalignment="top",
-            pad=5,
-        )
-        pass
-    # Set titles for axes.
-    if (len(title_abscissa) > 0):
-        axes.set_xlabel(
-            xlabel=title_abscissa,
-            labelpad=20,
-            alpha=1.0,
-            #loc="left",
-            backgroundcolor=colors["white"],
-            color=colors["black"],
-            fontproperties=fonts["properties"][size_title_abscissa]
-        )
-    if (len(title_ordinate) > 0):
-        axes.set_ylabel(
-            ylabel=title_ordinate,
-            labelpad=20,
-            alpha=1.0,
-            backgroundcolor=colors["white"],
-            color=colors["black"],
-            fontproperties=fonts["properties"][size_title_ordinate]
-        )
-    # Define parameters for tick labels on axes.
-    axes.tick_params(
-        axis="both", # "y", "x", or "both"
-        which="both", # "major", "minor", or "both"
-        direction="out",
-        top=False,
-        labeltop=False,
-        bottom=True,
-        labelbottom=True,
-        left=True,
-        labelleft=True,
-        right=False,
-        labelright=False,
-        length=7.5, # 5.0
-        width=2.5, # 3.0, 5.0
-        pad=10.0, # 5.0, 7.5
-        color=colors["black"],
-        labelcolor=colors["black"],
-    )
-    axes.tick_params(
-        axis="x",
-        which="both",
-        labelsize=fonts["values"][size_label_abscissa]["size"],
-    )
-    axes.tick_params(
-        axis="y",
-        which="both",
-        labelsize=fonts["values"][size_label_ordinate]["size"],
-    )
-    # Keep axes, ticks, and labels, but remove border.
-    # ["left", "top", "right", "bottom",]
-    for position in ["top", "right",]:
-        matplotlib.pyplot.gca().spines[position].set_visible(False)
-
-    # Create lines to represent origins (zero) on axes.
-    if (lines_origin):
-        axes.axhline(
-            y=0.0,
-            #xmin=minimum_abscissa,
-            #xmax=maximum_abscissa,
-            alpha=1.0,
-            color=colors["black"],
-            linestyle="--",
-            linewidth=2.5,
-        )
-        axes.axvline(
-            x=0.0,
-            #ymin=minimum_ordinate,
-            #ymax=maximum_ordinate,
-            alpha=1.0,
-            color=colors["black"],
-            linestyle="--",
-            linewidth=2.5,
-        )
-        pass
-
-    # Create diagonal line to represent equality between abscissa and ordinate.
-    # Notice that the current definition does not actually correspond to a 1:1
-    # relationship between abscissa and ordinate scales. Instead, it depends on
-    # the relative ranges of the abscissa and ordinate axes.
-    if (line_diagonal):
-        axes.plot(
-            [0, 1,],
-            [0, 1,],
-            transform=axes.transAxes,
-            alpha=1.0,
-            color=colors["black"],
-            linestyle="--",
-            linewidth=2,
-        )
-        axes.text(
-            0.02,
-            0.025,
-            str(
-                "diagonal line for visual reference only; " +
-                "not proportional to respective ranges of axes"
-            ),
-            transform=axes.transAxes, # positions in coordinates relative to scope of axes
-            transform_rotates_text=True, # match rotation to scope of axes
-            rotation_mode="anchor",
-            rotation=45,
-            backgroundcolor=colors["white_faint"],
-            color=colors["black"],
-            fontproperties=fonts["properties"]["seventeen"],
-        )
-        pass
-
-    ##########
-    # Represent information on the chart figure object.
-    # For table of standard selection of records, determine whether to set
-    # color of points to represent a third response feature.
-    if (
-        (column_response is None) or
-        (column_response == "") or
-        (type_response is None)
-    ):
-        handle_standard = axes.plot(
-            table[column_abscissa].values,
-            table[column_ordinate].values,
-            linestyle="",
-            marker="o",
-            markersize=size_marker,
-            markeredgecolor=colors["blue_navy"],
-            markerfacecolor=colors["blue_navy"],
-        )
-    elif (
-        (column_response is not None) and
-        (column_response != "") and
-        (type_response is not None) and
-        (type_response == "continuity")
-    ):
-        handle_standard = axes.scatter(
-            table[column_abscissa].values,
-            table[column_ordinate].values,
-            c=table[column_response].values,
-            s=(size_marker**2), # scale with area (dimension squared)
-            norm="linear",
-            cmap="binary", # 'binary', 'plasma', 'viridis', 'civids'
-            vmin=minimum_response,
-            vmax=maximum_response,
-            alpha=1,
-            marker="o",
-            linewidths=1,
-            edgecolors=colors["black"],
-            #linestyle="",
-        )
-    elif (
-        (column_response is not None) and
-        (column_response != "") and
-        (type_response is not None) and
-        (type_response == "category")
-    ):
-        # An alternative would be to map categorical values to discrete
-        # integers that respectively map to colors. Then create discrete color
-        # bar as a reference in place of a legend.
-        # Create discrete color map for categorical values.
-        # matplotlib.pyplot.get_cmap("tab10", count_categories)
-        color_map = matplotlib.cm.get_cmap("tab10") # "Set1", "Set2", "Dark2", "tab10",
-        colors_groups = [color_map(i) for i in range(count_category_response)]
-        # Collect information.
-        labels_groups = []
-        counter = 0
-        # Iterate on groups of records from table.
-        for name_group, table_group in groups_response:
-            # Copy information in table.
-            table_group = table_group.copy(deep=True)
-            # Collect information.
-            label_group = str(name_group)
-            labels_groups.append(label_group)
-            # Create points on plot chart.
-            handle_group = axes.plot(
-                table_group[column_abscissa].values,
-                table_group[column_ordinate].values,
-                linestyle="",
-                marker="o",
-                markersize=size_marker,
-                markeredgecolor=colors_groups[counter],
-                markerfacecolor=colors_groups[counter],
-            )
-            # Update index counter.
-            counter += 1
-            pass
-        pass
-
-    # For table of special selection of records, plot points with a special
-    # color for emphasis.
-    if (
-        (identifiers_emphasis is not None) and
-        (len(identifiers_emphasis) > 0) and
-        (not table_special.empty) and
-        (emphasis_marker)
-    ):
-        handle_special = axes.plot(
-            table_special[column_abscissa].values,
-            table_special[column_ordinate].values,
-            linestyle="",
-            marker="o",
-            markersize=(size_marker*2),
-            markeredgecolor=colors["gray_light"],
-            markeredgewidth=2.5,
-            markerfacecolor="None"
-        )
-    # For table of special selection of records, create text labels adjacent
-    # to points.
-    if (
-        (identifiers_emphasis is not None) and
-        (len(identifiers_emphasis) > 0) and
-        (not table_special.empty) and
-        (emphasis_label)
-    ):
-        for index, row in table_special.iterrows():
-            # Determine position coordinates of label.
-            abscissa_label_raw = row[column_abscissa]
-            if (abscissa_label_raw >= center_abscissa):
-                alignment_horizontal = "right"
-                abscissa_label = (
-                    abscissa_label_raw - (
-                        0.01 * (maximum_abscissa - minimum_abscissa)
-                    )
-                )
-            if (abscissa_label_raw < center_abscissa):
-                alignment_horizontal = "left"
-                abscissa_label = (
-                    abscissa_label_raw + (
-                        0.01 * (maximum_abscissa - minimum_abscissa)
-                    )
-                )
-            ordinate_label = row[column_ordinate]
-            # Create label on chart.
-            axes.text(
-                abscissa_label,
-                ordinate_label,
-                str(row[column_name]),
-                horizontalalignment=alignment_horizontal,
-                verticalalignment="center",
-                backgroundcolor=colors["white_faint"],
-                color=colors["black"],
-                fontproperties=fonts["properties"][size_label_emphasis],
-            )
-            pass
-        pass
-
-    # Create legend or reference bar for color map.
-    if (
-        (show_legend_bar) and
-        (column_response is not None) and
-        (column_response != "") and
-        (type_response is not None) and
-        (type_response == "continuity")
-    ):
-        bar = axes.figure.colorbar(
-            handle_standard,
-            orientation="vertical",
-            ax=axes,
-            location="right",
-            shrink=0.9, # 0.7; factor for dimensions of the Scale Bar.
-        )
-        if (len(title_response) > 0):
-            bar.ax.set_ylabel(
-                title_response,
-                rotation=-90,
-                va="bottom",
-                labelpad=5, # 5
-                alpha=1.0,
-                backgroundcolor=colors["white"],
-                color=colors["black"],
-                fontproperties=fonts["properties"][size_title_legend_bar],
-            )
-        else:
-            bar.ax.set_ylabel(
-                column_response,
-                rotation=-90,
-                va="bottom",
-                labelpad=5, # 5
-                alpha=1.0,
-                backgroundcolor=colors["white"],
-                color=colors["black"],
-                fontproperties=fonts["properties"][size_title_legend_bar],
-            )
-            pass
-        bar.ax.tick_params(
-            axis="both",
-            which="both", # major, minor, or both
-            direction="out",
-            length=7.5, # 5.0, 7.5
-            width=3, # 2.5, 5.0
-            color=colors["black"],
-            pad=5, # 5, 7
-            labelsize=fonts["values"][size_label_legend_bar]["size"],
-            labelcolor=colors["black"],
-        )
-    elif (
-        (show_legend_bar) and
-        (column_response is not None) and
-        (column_response != "") and
-        (type_response is not None) and
-        (type_response == "category")
-    ):
-        # Create legend.
-        handles_legend = [matplotlib.patches.Patch(
-            color=colors_groups[i],
-            label=labels_groups[i]#,
-            #size?
-        ) for i in range(count_category_response)]
-        figure.legend(
-            handles=handles_legend,
-            loc="upper right", # "upper right", "upper center", "lower right"
-            #bbox_to_anchor=(0.5, -0.05),
-            #ncol=4,
-            prop=fonts["properties"][size_label_legend_bar],
-            title=title_response,
-            title_fontsize=fonts["values"][size_label_legend_bar]["size"],
-        )
-        pass
-
-    ##########
-    # Return figure.
-    return figure
-
-
-def create_write_plot_chart_scatter_point_response(
+def create_write_plot_chart_heatmap_loadings(
     path_directory_parent=None,
     name_chart=None,
     table=None,
-    column_identifier=None,
-    column_name=None,
-    column_response=None,
-    column_abscissa=None,
-    column_ordinate=None,
-    type_response=None,
+    name_index_columns=None,
+    name_index_rows=None,
     title_chart=None,
-    title_response=None,
+    title_bar=None,
     title_abscissa=None,
     title_ordinate=None,
-    identifiers_emphasis=None,
     report=None,
 ):
     """
-    Create and plot a chart of the scatter point type.
+    Create and plot a chart of the heatmap type.
+
+    Original source table must not have an explicitly defined index across
+    rows.
+
+    Review: TCW; 21 October 2025
 
     arguments:
-        path_directory_parent (str): path to parent directory for procedure's
-            product directories and files
-        name_chart (str): name for writing figure object to file
-        table (object): Pandas data-frame table of features across columns and
-            observations across rows with values on quantitative, continuous
-            interval or ratio scales of measurement
-        column_identifier (str): name of column in table corresponding to the
-            unique identifier of records for each point
-        column_name (str): name of column in table corresponding to the name of
-            records for each point
-        column_response (str): name of column in table corresponding to values
-            for representation as color of individual points
-        column_abscissa (str): name of column in table corresponding to values
-            for representation on the abscissa horizontal axis
-        column_ordinate (str): name of column in table corresponding to values
-            for representation on the ordinate vertical axis
-        type_response (bool): type of the response feature, either 'continuity'
-            or 'category'
-        title_chart (str): title of the chart
-        title_response (str): title of the feature to represent as colors of
-            individual points
-        title_abscissa (str): title of the feature to represent on the abscissa
-            horizontal axis
-        title_ordinate (str): title of the feature to represent on the ordinate
-            vertical axis
-        identifiers_emphasis (list<str>): identifiers corresponding to a
-            special selection of records for which to emphasize points on
-            chart and for which to create individual text labels adjacent to
-            the points on the chart
-
         ...
         report (bool): whether to print reports
 
@@ -1272,6 +596,30 @@ def create_write_plot_chart_scatter_point_response(
 
     # Copy information in table.
     table = table.copy(deep=True)
+    table_extract = table.copy(deep=True)
+    # Organize indices in table.
+    table_extract.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    table_extract.columns.rename(
+        name_index_columns,
+        inplace=True,
+    ) # single-dimensional index
+    table_extract.set_index(
+        name_index_rows,
+        append=False,
+        drop=True,
+        inplace=True
+    )
+    # Extract minimal and maximal values of signal intensity.
+    matrix = numpy.copy(table_extract.to_numpy())
+    #value_minimum = round((numpy.nanmin(matrix) - 0.005), 2)
+    #value_maximum = round((numpy.nanmax(matrix) + 0.005), 2)
+    round_offset = abs(numpy.nanmin(matrix) * 0.01)
+    value_minimum = round((numpy.nanmin(matrix) - round_offset), 3)
+    value_maximum = round((numpy.nanmax(matrix) + round_offset), 3)
 
     ##########
     # Create plot chart.
@@ -1280,56 +628,36 @@ def create_write_plot_chart_scatter_point_response(
     # Define colors.
     colors = pplot.define_color_properties()
     # Create figure.
-    if False:
-        figure = pplot.plot_scatter(
-            data=table,
-            abscissa=column_abscissa,
-            ordinate=column_ordinate,
-            title_abscissa=title_abscissa,
-            title_ordinate=title_ordinate,
-            fonts=fonts,
-            colors=colors,
-            size=10,
-        )
-    if True:
-        figure = plot_scatter_point_color_response_discrete_or_continuous(
-            table=table,
-            column_identifier=column_identifier,
-            column_name=column_name,
-            column_response=column_response,
-            column_abscissa=column_abscissa,
-            column_ordinate=column_ordinate,
-            type_response=type_response,
-            minimum_abscissa=None,
-            maximum_abscissa=None,
-            minimum_ordinate=None,
-            maximum_ordinate=None,
-            title_chart=title_chart,
-            title_response=title_response,
-            title_abscissa=title_abscissa,
-            title_ordinate=title_ordinate,
-            identifiers_emphasis=identifiers_emphasis,
-            size_title_chart="nine",
-            size_title_abscissa="nine",
-            size_title_ordinate="nine",
-            size_title_legend_bar="thirteen",
-            size_label_abscissa="thirteen",
-            size_label_ordinate="thirteen",
-            size_label_emphasis="fifteen",
-            size_label_legend_bar="thirteen",
-            size_marker=15,
-            aspect="landscape",
-            fonts=fonts,
-            colors=colors,
-            set_axis_limits=False,
-            lines_origin=True,
-            line_diagonal=False, # diagonal is not proportional to respective ranges of axes
-            emphasis_marker=True,
-            emphasis_label=True,
-            show_legend_bar=True,
-            report=None,
-        )
-
+    figure = splot.plot_heatmap_signal_features_observations_labels(
+        table=table,
+        format_table=1, # 1: features in rows, observations or groups in columns
+        index_columns=name_index_columns,
+        index_rows=name_index_rows,
+        transpose_table=False,
+        fill_missing=True,
+        value_missing_fill=0.0,
+        constrain_signal_values=True,
+        value_minimum=value_minimum,
+        value_maximum=value_maximum,
+        title_ordinate="",
+        title_abscissa="",
+        title_bar=title_bar,
+        labels_ordinate_categories=None,
+        labels_abscissa_categories=None,
+        size_title_ordinate="eight",
+        size_title_abscissa="eight",
+        size_title_bar="ten",
+        size_label_ordinate=None, # determine automatically if "None"; "fifteen"
+        size_label_abscissa=None, # determine automatically if "None"
+        size_label_bar="twelve",
+        show_labels_ordinate=True,
+        show_labels_abscissa=True,
+        show_scale_bar=True,
+        aspect="portrait", # square, portrait, landscape, ...
+        fonts=fonts,
+        colors=colors,
+        report=report,
+    )
     # Write product information to file.
 
     # Bundle information.
@@ -1346,6 +674,139 @@ def create_write_plot_chart_scatter_point_response(
 
     # Return information.
     return figure
+
+
+def create_write_plot_charts_principal_component_loadings(
+    path_directory_parent=None,
+    table_loadings=None,
+    column_identifier_feature=None,
+    column_name_feature=None,
+    columns_components=None,
+    name_set_features=None,
+    cluster_features=None,
+    write_charts=None,
+    report=None,
+):
+    """
+    Blank.
+
+    Review: TCW; 20 October 2025
+
+    arguments:
+
+    TODO: update documentation
+
+    raises:
+
+    returns:
+        (dict<object>): bundle of information
+    """
+
+    # Copy information.
+    table_loadings = table_loadings.copy(deep=True)
+    columns_components = copy.deepcopy(columns_components)
+
+    # Define prefix for names of principal components.
+    prefix_name_components = str(
+        name_set_features + "_pc_"
+    )
+
+    # Determine translations for names of principal components.
+    translations_components = dict()
+    for column_component in columns_components:
+        count = str(column_component).replace(prefix_name_components, "")
+        translation = str("PC-" + str(count))
+        translations_components[column_component] = translation
+        pass
+
+    # Translate names of columns in table.
+    table_loadings_translation = (
+        porg.translate_identifiers_table_indices_columns_rows(
+            table=table_loadings,
+            index_rows=column_identifier_feature,
+            translations_columns=translations_components,
+            translations_rows=None,
+            remove_redundancy=False,
+            report=False,
+    ))
+
+    # Cluster rows in table.
+    if (cluster_features):
+        # Organize indices in table.
+        table_loadings_translation.reset_index(
+            level=None,
+            inplace=True,
+            drop=True, # remove index; do not move to regular columns
+        )
+        table_loadings_translation.set_index(
+            [column_identifier_feature],
+            append=False,
+            drop=True,
+            inplace=True,
+        )
+        # Cluster rows in table.
+        table_loadings_translation = porg.cluster_table_rows(
+            table=table_loadings_translation,
+        )
+        # Organize indices in table.
+        table_loadings_translation.reset_index(
+            level=None,
+            inplace=True,
+            drop=False, # remove index; do not move to regular columns
+        )
+        pass
+
+    # Determine name for chart.
+    name_chart = str("chart_" + name_set_features + "_loadings")
+
+    # Determine titles for abscissa and ordinate axes.
+    title_abscissa = str("Principal Components (" + name_set_features + ")")
+    title_ordinate = str("Features")
+
+    ##########
+    # Plot chart: scatter with colors for categorical groups of
+    # observations.
+    # Define paths to directories.
+    path_directory_chart = os.path.join(
+        path_directory_parent, "heatmap",
+    )
+    # Create directories.
+    putly.create_directories(
+        path=path_directory_chart,
+    )
+    # Create plot chart and write to file.
+    create_write_plot_chart_heatmap_loadings(
+        path_directory_parent=path_directory_chart,
+        name_chart=name_chart,
+        table=table_loadings_translation,
+        name_index_columns="components",
+        name_index_rows=column_identifier_feature,
+        title_chart="",
+        title_bar="Loading Weight",
+        title_abscissa=title_abscissa,
+        title_ordinate=title_ordinate,
+        report=report,
+    )
+
+    # Report.
+    if report:
+        # Organize information.
+        # Print information.
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        module = str(
+            "calculate_principal_components_sets_features_groups_" +
+            "observations.py"
+        )
+        print(str("module: " + module))
+        function = str(
+            "create_write_plot_charts_principal_component_loadings()"
+        )
+        print("function: " + function)
+        putly.print_terminal_partition(level=5)
+        pass
+
+    pass
 
 
 def create_write_plot_charts_principal_component_scores(
@@ -1496,7 +957,7 @@ def create_write_plot_charts_principal_component_scores(
             path=path_directory_chart,
         )
         # Create plot chart and write to file.
-        create_write_plot_chart_scatter_point_response(
+        splot.create_write_plot_chart_scatter_point_response(
             path_directory_parent=path_directory_chart,
             name_chart=name_chart,
             table=table_group,
@@ -1512,6 +973,15 @@ def create_write_plot_charts_principal_component_scores(
             title_ordinate=title_ordinate,
             #identifiers_emphasis=list(),
             identifiers_emphasis=identifiers_emphasis,
+            size_marker=15,
+            factor_confidence_ellipse=2.0,
+            #colors=["darkmagenta", "darkblue", "magenta", "blue",],
+            #colors=[(0.510, 0.039, 0.510, 1.0), (0.118, 0.118, 0.510, 1.0),],
+            colors=None,
+            show_confidence_ellipse=True,
+            show_emphasis_marker=True,
+            show_emphasis_label=True,
+            show_legend_bar=True,
             report=report,
         )
 
@@ -1528,7 +998,7 @@ def create_write_plot_charts_principal_component_scores(
                 path=path_directory_chart,
             )
             # Create plot chart and write to file.
-            create_write_plot_chart_scatter_point_response(
+            splot.create_write_plot_chart_scatter_point_response(
                 path_directory_parent=path_directory_chart,
                 name_chart=name_chart,
                 table=table_group,
@@ -1544,8 +1014,18 @@ def create_write_plot_charts_principal_component_scores(
                 title_ordinate=title_ordinate,
                 #identifiers_emphasis=list(),
                 identifiers_emphasis=identifiers_emphasis,
+                size_marker=15,
+                factor_confidence_ellipse=2.0,
+                #colors=["darkmagenta", "darkblue", "magenta", "blue",],
+                #colors=[(0.510, 0.039, 0.510, 1.0), (0.118, 0.118, 0.510, 1.0),],
+                colors=None,
+                show_confidence_ellipse=True,
+                show_emphasis_marker=True,
+                show_emphasis_label=True,
+                show_legend_bar=True,
                 report=report,
             )
+
         pass
 
     # Report.
@@ -1593,6 +1073,7 @@ def manage_create_write_plot_charts(
     """
     Blank.
 
+    Review: TCW; 20 October 2025
     Review: TCW; 1 October 2025
 
     arguments:
@@ -1662,18 +1143,17 @@ def manage_create_write_plot_charts(
 
     # Create and write plot charts for the table of principal component
     # loadings.
-    # TODO: TCW; 1 October 2025
-    # heatmap with labeled axes
-
-
-    ##########
-    # Plot chart: scatter with colors for categorical groups of observations
-
-
-    ##########
-    # Plot chart: scatter with color gradient for response feature on a
-    # quantitative scale.
-
+    create_write_plot_charts_principal_component_loadings(
+        path_directory_parent=path_directory_instance_charts,
+        table_loadings=table_loadings,
+        column_identifier_feature="features",
+        column_name_feature="features",
+        columns_components=columns_components,
+        name_set_features=name_set_features,
+        cluster_features=True,
+        write_charts=write_charts,
+        report=report,
+    )
 
     # Report.
     if report:
@@ -1686,17 +1166,11 @@ def manage_create_write_plot_charts(
             "observations.py"
         )
         print(str("module: " + module))
-        print("function: create_write_plot_charts()")
+        print("function: manage_create_write_plot_charts()")
         putly.print_terminal_partition(level=5)
         pass
 
     pass
-
-
-# TODO: TCW; 2 October 2025
-# translate identifiers, especially those of original features and
-# from signal identifiers to "subject_visit".
-
 
 
 def manage_components_set_features_groups_observations(
@@ -1726,7 +1200,7 @@ def manage_components_set_features_groups_observations(
     """
     Blank.
 
-    Review: TCW; 1 October 2025
+    Review: TCW; 20 October 2025
 
     arguments:
 
@@ -1797,12 +1271,6 @@ def manage_components_set_features_groups_observations(
         )
         pass
 
-
-
-    # TODO: TCW; 2 October 2025
-    # translate identifiers, especially those of original features and
-    # from signal identifiers to "subject_visit".
-
     # Translate names of features and observations.
     table_scores_translation = (
         porg.translate_identifiers_table_indices_columns_rows(
@@ -1822,8 +1290,6 @@ def manage_components_set_features_groups_observations(
             remove_redundancy=False,
             report=False,
     ))
-
-
 
     ##########
     # Bundle information.
@@ -1896,7 +1362,7 @@ def manage_components_set_features_groups_observations(
         path_directory_product=path_directory_product,
         path_directory_dock=path_directory_dock,
         table_features_observations=table_features_observations,
-        table_loadings=pail_components["table_loadings"],
+        table_loadings=table_loadings_translation,
         table_variances=pail_components["table_variances"],
         table_scores=pail_components["table_scores"],
         column_identifier_observation=column_identifier_observation,
@@ -1915,7 +1381,6 @@ def manage_components_set_features_groups_observations(
         write_charts=write_charts,
         report=report,
     )
-
 
     # Report.
     if report:
@@ -1938,7 +1403,6 @@ def manage_components_set_features_groups_observations(
     pail_return["table"] = table_features_observations
     # Return information.
     return pail_return
-
 
 
 ################################################################################
@@ -2167,13 +1631,6 @@ def execute_procedure(
     #pail_observations["names_groups_observations_sequence"]
     #pail_observations["groups_observations"]
 
-    # TODO: TCW; 2 October 2025
-    # In order to collect principal components for multiple sets of features,
-    # I'll need to handle the filters on observations and features a bit
-    # differently. Either I need to introduce all features at first and then
-    # keep them from iteration to iteration, or I need to reintroduce them at
-    # each iteration.
-
     # Filter features and observations anc combine those from "table_signals"
     # to those in "table_observations".
     table_features_observations = filter_combine_features_observations(
@@ -2260,6 +1717,41 @@ def execute_procedure(
         pass
 
     # Review and write the table after introduction of all relevant PCs.
+
+    ##########
+    # Bundle information.
+    # Bundles of information for files.
+    # Lists.
+    pail_write_lists = dict()
+    # Tables.
+    pail_write_tables = dict()
+    pail_write_tables["table_merge"] = table_features_observations
+
+    ##########
+    # Write product information to file.
+
+    # Define paths to directories.
+    path_directory_tables = os.path.join(
+        path_directory_product, "tables_combination",
+    )
+    # Create directories.
+    putly.create_directories(
+        path=path_directory_tables,
+    )
+    # Lists.
+    # Tables.
+    if (write_tables):
+        putly.write_tables_to_file(
+            pail_write=pail_write_tables,
+            path_directory=path_directory_tables,
+            reset_index_rows=False,
+            write_index_rows=False,
+            write_index_columns=True,
+            type="text",
+            delimiter="\t",
+            suffix=".tsv",
+        )
+        pass
 
     pass
 

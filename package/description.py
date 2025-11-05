@@ -710,6 +710,7 @@ def calculate_correlations_table_columns_pair(
     """
     Calculates correlations between a pair of columns in a table.
 
+    Review: 27 October 2025
     Review: 17 December 2024
 
     arguments:
@@ -735,6 +736,11 @@ def calculate_correlations_table_columns_pair(
 
     # Copy information in table.
     table = table.copy(deep=True)
+    # Handle the possibility that both columns are the same.
+    if (column_primary == column_secondary):
+        column_primary = str(column_primary + "_copy")
+        table[column_primary] = table[column_secondary]
+        pass
     # Remove table rows with missing values in relevant columns.
     table.dropna(
         axis="index",
@@ -748,11 +754,11 @@ def calculate_correlations_table_columns_pair(
     # Define names for values of statistical measures.
     measures = list()
     measures.append("correlation_pearson")
-    measures.append("probability_pearson")
+    measures.append("p_pearson")
     measures.append("confidence_95_low_pearson")
     measures.append("confidence_95_high_pearson")
     measures.append("correlation_spearman")
-    measures.append("probability_spearman")
+    measures.append("p_spearman")
     #measures.append("confidence_95_low_spearman")
     #measures.append("confidence_95_high_spearman")
     # Define sequence of values.
@@ -774,7 +780,7 @@ def calculate_correlations_table_columns_pair(
             alternative="two-sided",
         )
         pail["correlation_pearson"] = results_pearson.statistic
-        pail["probability_pearson"] = results_pearson.pvalue
+        pail["p_pearson"] = results_pearson.pvalue
         confidence_95_pearson = results_pearson.confidence_interval(
             confidence_level=0.95
         )
@@ -788,7 +794,7 @@ def calculate_correlations_table_columns_pair(
             alternative="two-sided",
         )
         pail["correlation_spearman"] = results_spearman.statistic
-        pail["probability_spearman"] = results_spearman.pvalue
+        pail["p_spearman"] = results_spearman.pvalue
         # Unfortunately the implementation of Spearman Correlation in SciPy
         # does not offer a convenient method to calculate the confidence
         # interval.

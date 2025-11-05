@@ -2234,6 +2234,15 @@ def calculate_principal_components_table_features_observations(
 
     # Filter and sort columns in table.
     columns_sequence = copy.deepcopy(components_keep)
+    columns_sequence.insert(0, name_index_columns) # unnecessary if index defined
+    table_loadings = porg.filter_sort_table_columns(
+        table=table_loadings,
+        columns_sequence=columns_sequence,
+        report=False,
+    )
+
+    # Filter and sort columns in table.
+    columns_sequence = copy.deepcopy(components_keep)
     columns_sequence.insert(0, name_index_rows) # unnecessary if index defined
     table_scores = porg.filter_sort_table_columns(
         table=table_scores,

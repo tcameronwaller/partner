@@ -1153,6 +1153,9 @@ def interpret_float_to_one_match_zero_any_other(
     return match
 
 
+# Parse and extract information from text.
+
+
 def parse_text_boolean(
     string=None,
 ):
@@ -1191,6 +1194,220 @@ def parse_text_boolean(
         value = False
     # Return.
     return value
+
+
+def parse_text_list_values(
+    text=None,
+    delimiter=None,
+):
+    """
+    Parse a textual representation of a list or array of values.
+
+    Format of source text (name: "text")
+    Format of source text is a character string with delimiters of characters
+    such as comma ",", semicolon ";", colon ":", period ".", or hyphen "-"
+    between items or elements.
+    ----------
+    "item_1,item_2,item_3,item_4,item_5"
+    ----------
+
+    Review: TCW; 31 March 2025
+
+    arguments:
+        text (str): textual string of values in a list or array
+        delimiter (str): delimiter between values
+
+    raises:
+
+    returns:
+        (list<str>): values
+
+    """
+
+    # if (delimiter in str(text)): # including could discard valid source
+
+    if (
+        (text is not None) and
+        (len(str(text)) > 0) and
+        (str(text) != "") and
+        (str(text).strip().lower() != "none")
+    ):
+        values_split = str(text).strip().split(delimiter)
+        #values = list()
+        #for value_raw in values_split:
+        #    value = str(value_raw).strip()
+        #    if (len(value) > 0):
+        #        values.append(str(value))
+        #    pass
+        values_strip = list(map(
+            lambda value: str(value).strip(), values_split
+        ))
+        values = list(filter(
+            lambda value: (len(str(value)) > 0), values_strip
+        ))
+    else:
+        values = list()
+    return values
+
+
+def parse_extract_text_keys_values_semicolon_colon_comma(
+    text=None,
+):
+    """
+    Extract information from a text string with specific syntax structure.
+
+    Format of source text (name: "text_source")
+    Format of source text is a character string with delimiter semicolon ";"
+    between features, delimiter colon ":" between features and their values,
+    and delimiter comma "," between values of each feature.
+    ----------
+    "feature_a:value_a1,value_a2,value_a3;feature_b:value_b1,value_b2,value_b3"
+    ----------
+
+    The list of features preserves the original sequence in which these keys
+    appeared within the string.
+
+    Review or revision: 31 October 2025
+    Review or revision: 31 March 2025
+
+    arguments:
+        text_source (str): flat text string with delimiters in specific format
+            for rules of parse
+
+    raises:
+
+    returns:
+        (dict<dict<list<str>>>): collection of features and their values
+
+    """
+
+    # Organize information.
+    # text = str(text).strip().lower()
+    text = str(text).strip()
+    # Determine whether there is adequate information to parse.
+    if (
+        (text.lower() != "none") and
+        (text.lower() != "null") and
+        (text.lower() != "nan") and
+        (text.lower() != "na") and
+        (text != "") and
+        (len(text) > 0)
+    ):
+        # Parse and extract information.
+        pail_parse = dict()
+        features = list()
+        for part in text.split(";"):
+            part_split = part.split(":")
+            part_feature = str(part_split[0])
+            part_values = str(part_split[1]).split(",")
+            pail_parse[part_feature] = part_values
+            features.append(part_feature)
+            pass
+        # Collect unique names of features.
+        features = collect_unique_elements(
+            elements=features,
+        )
+        pass
+    else:
+        pail_parse = None
+        features = None
+        pass
+    # Collect information.
+    pail_return = dict()
+    pail_return["features_values"] = pail_parse
+    pail_return["features"] = features
+    # Return information.
+    return pail_return
+
+
+def parse_extract_text_tuple(
+    text=None,
+    delimiter=None,
+    type_value=None,
+):
+    """
+    Extract information from a text string with specific syntax structure.
+
+    Format of source text (name: "text")
+    ----------
+    "(item_1,item_2,item_3)"
+    ----------
+
+    Notice that the operation removes any white space and parentheses from the
+    source text.
+
+    Review: 31 October 2025
+
+    arguments:
+        text_source (str): flat text string with delimiters in specific format
+            for rules of parse
+        delimiter (str): string character delimiter between individual items in
+            the tuple; ',', ';', ':', etc
+        type_value (str): name for the types of values in the individual items
+            of the tuple; 'string', 'integer', or 'float'
+
+    raises:
+
+    returns:
+        (dict<dict<list<str>>>): collection of features and their values
+
+    """
+
+    # The standard package "Abstract Syntax Trees" (ast) has a function to
+    # evaluate strings; however, this method has some security risks.
+    # novel_tuple = ast.literal_eval("(1,2,3)")
+    # print(novel_tuple) # (1,2,3)
+
+    # Split from a simple string format.
+    # The individual values will remain strings.
+    # text = str("red,blue,green,alpha")
+    # novel_tuple = tuple(text.split(","))
+    # print(novel_tuple) # ('red', 'blue', 'green', 'alpha')
+
+    # Organize information.
+    text = str(text).strip()
+
+    # Determine whether there is adequate information to parse.
+    if (
+        (text.lower() != "none") and
+        (text.lower() != "null") and
+        (text.lower() != "nan") and
+        (text.lower() != "na") and
+        (text != "") and
+        (len(text) > 0)
+    ):
+        # Parse and extract information.
+
+        # Separate individual string character items from the source text.
+        # Notice that the split operation returns a list object.
+        text_wrangle = (
+            str(text)
+            .strip()
+            .replace(" ","")
+            .replace("(","")
+            .replace(")", "")
+        )
+        text_split_items = text_wrangle.split(delimiter)
+
+        # Determine how to parse the individual items or values of the tuple.
+        if (str(type_value).strip().lower() == "string"):
+            tuple_novel = tuple(text_split_items)
+        elif (str(type_value).strip().lower() == "integer"):
+            tuple_novel = tuple(map(
+                lambda item: int(item), text_split_items
+            ))
+        elif (str(type_value).strip().lower() == "float"):
+            tuple_novel = tuple(map(
+                lambda item: float(item), text_split_items
+            ))
+            pass
+    else:
+        tuple_novel = None
+    # Return information.
+    return tuple_novel
+
+
+
 
 
 ##########
@@ -2970,56 +3187,6 @@ def print_file_lines(path_file=None, start=None, stop=None):
             count += 1
 
 
-def parse_text_list_values(
-    text=None,
-    delimiter=None,
-):
-    """
-    Parse a textual representation of a list or array of values.
-
-    Format of source text (name: "text")
-    Format of source text is a character string with delimiters of characters
-    such as comma ",", semicolon ";", colon ":", period ".", or hyphen "-"
-    between items or elements.
-    ----------
-    "item_1,item_2,item_3,item_4,item_5"
-    ----------
-
-    Review: TCW; 31 March 2025
-
-    arguments:
-        text (str): textual string of values in a list or array
-        delimiter (str): delimiter between values
-
-    raises:
-
-    returns:
-        (list<str>): values
-
-    """
-
-    # if (delimiter in str(text)): # including could discard valid source
-
-    if (
-        (text is not None) and
-        (len(str(text)) > 0) and
-        (str(text) != "") and
-        (str(text).strip().lower() != "none")
-    ):
-        values_split = str(text).strip().split(delimiter)
-        #values = list()
-        #for value_raw in values_split:
-        #    value = str(value_raw).strip()
-        #    if (len(value) > 0):
-        #        values.append(str(value))
-        #    pass
-        values_strip = list(map(lambda value: str(value).strip(), values_split))
-        values = list(filter(lambda value: (len(str(value)) > 0), values_strip))
-    else:
-        values = list()
-    return values
-
-
 def determine_any_actual_values_match_comparisons(
     values_actual=None,
     values_comparison=None,
@@ -3363,68 +3530,6 @@ def calculate_standard_scores(
         )
         values_standard.append(value_standard)
     return values_standard
-
-
-def parse_extract_text_keys_values_semicolon_colon_comma(
-    text=None,
-):
-    """
-    Extract information from a text string with specific syntax structure.
-
-    Format of source text (name: "text_source")
-    Format of source text is a character string with delimiter semicolon ";"
-    between features, delimiter colon ":" between features and their values,
-    and delimiter comma "," between values of each feature.
-    ----------
-    "feature_a:value_a1,value_a2,value_a3;feature_b:value_b1,value_b2,value_b3"
-    ----------
-
-    The list of features preserves the original sequence in which these keys
-    appeared within the string.
-
-    Review: 31 March 2025
-
-    arguments:
-        text_source (str): flat text string with delimiters in specific format
-            for rules of parse
-
-    raises:
-
-    returns:
-        (dict<dict<list<str>>>): collection of features and their values
-
-    """
-
-    # Organize information.
-    # text = str(text).strip().lower()
-    text = str(text).strip()
-    # Parse and extract information.
-    if ((text.lower() != "none") and (text != "") and (len(text) > 0)):
-        pail_parse = dict()
-        features = list()
-        for part in text.split(";"):
-            part_split = part.split(":")
-            part_feature = str(part_split[0])
-            part_values = str(part_split[1]).split(",")
-            pail_parse[part_feature] = part_values
-            features.append(part_feature)
-            pass
-        # Collect unique names of features.
-        features = collect_unique_elements(
-            elements=features,
-        )
-        pass
-    else:
-        pail_parse = None
-        features = None
-        pass
-    # Collect information.
-    pail_return = dict()
-    pail_return["features_values"] = pail_parse
-    pail_return["features"] = features
-    # Return information.
-    return pail_return
-
 
 
 
@@ -4207,96 +4312,6 @@ def drive_extract_search_strings_from_table_columns_main_strings(
         )
         print_terminal_partition(level=5)
     # Return.
-    return table
-
-
-# TODO: TCW; 16 December 2024
-# Obsolete?
-# Specialized design for former project.
-def drive_calculate_table_column_pair_correlations(
-    entries_cohorts=None,
-    name_one=None,
-    name_two=None,
-    records_comparisons=None,
-    report=None,
-):
-    """
-    Drives the calculation of Pearson, Spearman, and Kendall correlations
-    between pairs of variables (columns) within tables representing
-    stratification cohorts. Organizes information from these correlations within
-    a summary table.
-
-    ----------
-    Format of product table for correlations
-    ----------
-    cohort     feature_1 feature_2 pairs correlation_pearson probability_pea...
-
-    cohort_1   feature_1 feature_2 100   0.1                 0.1
-    cohort_1   feature_1 feature_2 100   0.1                 0.1
-    cohort_1   feature_1 feature_2 100   0.1                 0.1
-    cohort_2   feature_1 feature_2 100   0.1                 0.1
-    cohort_2   feature_1 feature_2 100   0.1                 0.1
-    ----------
-
-
-    arguments:
-        entries_cohorts (dict<dict<object>>): information about variables within
-            Pandas data frame tables that represent stratification cohorts
-        name_one (str): common name for the first variable in comparisons
-        name_two (str): common name for the second variable in comparisons
-        records_comparisons (list<dic<str>>): information for comparisons
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (object): Pandas data frame of information about correlations
-
-    """
-
-    # Collect records of information about correlations between variables within
-    # cohorts.
-    records_correlations = list()
-    # Calculate and report correlations between variables within cohorts.
-    for record_comparison in records_comparisons:
-        record = dict()
-        record["cohort"] = record_comparison["cohort"]
-        record[name_one] = record_comparison["one"]
-        record[name_two] = record_comparison["two"]
-        pail = calculate_table_column_pair_correlations(
-            column_one=record[name_one],
-            column_two=record[name_two],
-            table=entries_cohorts[record["cohort"]]["table"],
-            report=report,
-        )
-        record.update(pail)
-        records_correlations.append(record)
-        pass
-
-    # Organize table.
-    table = pandas.DataFrame(data=records_correlations)
-    # Select columns.
-    # columns.insert(0, dependence)
-    columns = [
-        "cohort",
-        name_one, name_two,
-        "pairs",
-        "correlation_pearson", "probability_pearson",
-        "correlation_spearman", "probability_spearman",
-        "correlation_kendall", "probability_kendall",
-    ]
-    table = table.loc[:, table.columns.isin(columns)]
-    # Sort columns.
-    table = table[[*columns]]
-    # Report.
-    if report:
-        print_terminal_partition(level=4)
-        print("report: ")
-        print("drive_calculate_table_column_pair_correlations()")
-        print_terminal_partition(level=5)
-        print(table)
-        pass
-    # Return information.
     return table
 
 
@@ -5211,7 +5226,9 @@ def organize_symmetric_adjacency_matrix(
     return data
 
 
-def cluster_adjacency_matrix(
+# Note: TCW; 27 October 2025
+# This function might offer a helpful example of determining the dendogram.
+def obsolete_reference_cluster_adjacency_matrix(
     data=None,
 ):
     """

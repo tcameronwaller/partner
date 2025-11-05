@@ -52,6 +52,13 @@
 # option, especially in our situation in which I do not know all details about
 # the origin of the data.
 
+# Note: TCW; 20 October 2025
+# https://www.biostars.org/p/9595020/
+# To the best of my knowledge, it should not be a problem to quantify reads
+# using a more recent minor update version to the same major human genome
+# assembly, such as GRCh38. The minor update patches tend to affect annotations
+# without changing the genomic coordinates.
+
 # Decompress file format of the genome annotation.
 #gzip -dcvf $path_file_compressed > $path_file_decompressed
 

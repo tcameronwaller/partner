@@ -44,7 +44,7 @@ path_directory_package="$path_directory_process/package"
 # Files.
 
 # Scripts.
-path_file_script_source="${path_directory_scripts}/partner/python/mygene_convert_gene_identifiers_names.py"
+path_file_script_source="${path_directory_scripts}/partner/python/entities_identifiers/mygene_convert_gene_identifiers_names.py"
 path_file_script_product="${path_directory_package}/mygene_convert_gene_identifiers_names.py"
 
 # Copy Python script to package directory.
