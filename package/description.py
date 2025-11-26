@@ -761,6 +761,8 @@ def calculate_correlations_table_columns_pair(
     measures.append("p_spearman")
     #measures.append("confidence_95_low_spearman")
     #measures.append("confidence_95_high_spearman")
+    measures.append("correlation_kendall")
+    measures.append("p_kendall")
     # Define sequence of values.
     names = copy.deepcopy(measures)
     names.insert(0, "count_observations")
@@ -799,11 +801,15 @@ def calculate_correlations_table_columns_pair(
         # does not offer a convenient method to calculate the confidence
         # interval.
         # Kendall.
-        #correlation_kendall, probability_kendall = scipy.stats.kendalltau(
-        #    table[column_one].to_numpy(),
-        #    table[column_two].to_numpy(),
-        #    alternative="two-sided",
-        #)
+        # For features with values on an ordinal scale of measurement.
+        results_kendall = scipy.stats.kendalltau(
+            table[column_primary].to_numpy(),
+            table[column_secondary].to_numpy(),
+            nan_policy="omit",
+            alternative="two-sided",
+        )
+        pail["correlation_kendall"] = results_kendall.statistic
+        pail["p_kendall"] = results_kendall.pvalue
     else:
         for measure in measures:
             pail[measure] = float("nan")

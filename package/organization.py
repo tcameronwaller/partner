@@ -1036,7 +1036,8 @@ def sort_table_rows_by_single_column_reference(
         )
     }
 
-    Review: TCW; 5 May 2025
+    Review or revision: TCW; 6 November 2025
+    Review or revision: TCW; 5 May 2025
 
     arguments:
         table (object): Pandas data-frame table
@@ -1190,6 +1191,7 @@ def test_extract_filter_array_values_from_series():
 
 def extract_filter_array_values_from_series(
     series=None,
+    absolute_value=None,
     threshold_low=None,
     threshold_high=None,
     report=None,
@@ -1208,11 +1210,22 @@ def extract_filter_array_values_from_series(
     threshold) while treating the upper threshold as exclusive (remove values
     >= threshold).
 
-    Review: TCW; 4 August 2025
-    Review: TCW; 27 March 2025
+    Keep
+    values >= threshold_low
+    values < threshold_high
+    threshold_low <= values < threshold_high
+
+    This logic is reasonable considering the examples of zero (0) or lower and
+    upper limits of detection.
+
+    Review or revision: TCW; 5 November 2025
+    Review or revision: TCW; 4 August 2025
+    Review or revision: TCW; 27 March 2025
 
     arguments:
         series (object): Pandas series of values of signal intensity
+        absolute_value (bool): whether to convert to absolute value before
+            applying thresholds
         threshold_low (float): threshold below which (value < threshold) all
             values are considered invalid and missing; or None
         threshold_high (float): threshold above which (value >= threshold) all
@@ -1236,6 +1249,10 @@ def extract_filter_array_values_from_series(
         na_value=numpy.nan,
         copy=True,
     )
+    # Determine whether to convert to absolute value.
+    if (absolute_value):
+        values_raw = numpy.absolute(values_raw)
+        pass
     # Values, nonmissing.
     values_nonmissing = numpy.copy(values_raw[~numpy.isnan(values_raw)])
     # Values, valid.
@@ -2055,6 +2072,7 @@ def filter_select_table_rows_by_columns_categories(
 def determine_series_signal_validity_threshold(
     series=None,
     keys_signal=None,
+    absolute_value=None,
     threshold_low=None,
     threshold_high=None,
     proportion=None,
@@ -2077,6 +2095,8 @@ def determine_series_signal_validity_threshold(
         series (object): Pandas series of values of signal intensity
         keys_signal (list<str>): names or identifiers of elements in the series
             that correspond to values of signal intensity
+        absolute_value (bool): whether to convert to absolute value before
+            applying thresholds
         threshold_low (float): threshold below which (value < threshold) all
             values are considered invalid and missing
         threshold_high (float): threshold above which (value >= threshold) all
@@ -2103,6 +2123,7 @@ def determine_series_signal_validity_threshold(
     if (len(keys_signal) > 0):
         pail_values = extract_filter_array_values_from_series(
             series=series.loc[keys_signal],
+            absolute_value=absolute_value,
             threshold_low=threshold_low,
             threshold_high=threshold_high,
             report=report,
@@ -2110,6 +2131,7 @@ def determine_series_signal_validity_threshold(
     else:
         pail_values = extract_filter_array_values_from_series(
             series=series,
+            absolute_value=absolute_value,
             threshold_low=threshold_low,
             threshold_high=threshold_high,
             report=report,
@@ -2215,6 +2237,7 @@ def filter_table_rows_by_proportion_nonmissing_threshold(
     index_rows=None,
     columns_selection=None,
     rows_selection=None,
+    absolute_value=None,
     threshold_low=None,
     threshold_high=None,
     proportion=None,
@@ -2242,6 +2265,8 @@ def filter_table_rows_by_proportion_nonmissing_threshold(
         rows_selection (list<str>): identifiers or names of rows which are
             candidates for filters and from which to consider values in filters
             on columns
+        absolute_value (bool): whether to convert to absolute value before
+            applying thresholds
         threshold_low (float): threshold below which (value < threshold) all
             values are considered invalid
         threshold_high (float): threshold above which (value >= threshold) all
@@ -2269,6 +2294,7 @@ def filter_table_rows_by_proportion_nonmissing_threshold(
         lambda series_row: determine_series_signal_validity_threshold(
             series=series_row,
             keys_signal=columns_selection,
+            absolute_value=absolute_value,
             threshold_low=threshold_low,
             threshold_high=threshold_high,
             proportion=proportion,
@@ -2319,6 +2345,7 @@ def filter_table_columns_by_proportion_nonmissing_threshold(
     index_rows=None,
     columns_selection=None,
     rows_selection=None,
+    absolute_value=None,
     threshold_low=None,
     threshold_high=None,
     proportion=None,
@@ -2352,6 +2379,8 @@ def filter_table_columns_by_proportion_nonmissing_threshold(
         rows_selection (list<str>): identifiers or names of rows which are
             candidates for filters and from which to consider values in filters
             on columns
+        absolute_value (bool): whether to convert to absolute value before
+            applying thresholds
         threshold_low (float): threshold below which (value < threshold) all
             values are considered invalid
         threshold_high (float): threshold above which (value >= threshold) all
@@ -2397,6 +2426,7 @@ def filter_table_columns_by_proportion_nonmissing_threshold(
         match_keep_column = determine_series_signal_validity_threshold(
             series=series_column,
             keys_signal=list(), # list()
+            absolute_value=absolute_value,
             threshold_low=threshold_low,
             threshold_high=threshold_high,
             proportion=proportion,
@@ -2446,6 +2476,7 @@ def filter_table_rows_columns_by_proportion_nonmissing_threshold(
     index_rows=None,
     columns_selection=None,
     rows_selection=None,
+    absolute_value=None,
     threshold_low=None,
     threshold_high=None,
     proportion_columns=None,
@@ -2484,6 +2515,8 @@ def filter_table_rows_columns_by_proportion_nonmissing_threshold(
         rows_selection (list<str>): identifiers or names of rows which are
             candidates for filters and from which to consider values in filters
             on columns
+        absolute_value (bool): whether to convert to absolute value before
+            applying thresholds
         threshold_low (float): threshold below which (value < threshold) all
             values are considered invalid
         threshold_high (float): threshold above which (value >= threshold) all
@@ -2531,6 +2564,7 @@ def filter_table_rows_columns_by_proportion_nonmissing_threshold(
             index_rows=index_rows,
             columns_selection=columns_available,
             rows_selection=rows_available,
+            absolute_value=absolute_value,
             threshold_low=threshold_low,
             threshold_high=threshold_high,
             proportion=proportion_columns,
@@ -2545,6 +2579,7 @@ def filter_table_rows_columns_by_proportion_nonmissing_threshold(
             index_rows=index_rows,
             columns_selection=columns_available,
             rows_selection=rows_available,
+            absolute_value=absolute_value,
             threshold_low=threshold_low,
             threshold_high=threshold_high,
             proportion=proportion_rows,

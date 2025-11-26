@@ -88,6 +88,64 @@ import partner.plot as pplot
 
 
 ##########
+# Colors.
+
+
+def create_divergent_color_map(
+    value_minimum=None,
+    value_center=None,
+    value_maximum=None,
+    color_minimum=None,
+    color_center=None,
+    color_maximum=None,
+):
+    """
+    Create a custom divergent color map.
+
+    References:
+    1. https://matplotlib.org/stable/users/explain/colors/
+       colormap-manipulation.html
+
+https://matplotlib.org/stable/users/explain/colors/colormap-manipulation.html
+
+    Review or revision: TCW; 13 November 2025
+
+    arguments:
+        ...
+    raises:
+
+    returns:
+        (object): MatPlotLib color map
+
+    """
+
+    # Organize anchors and colors for color map.
+    anchors = [0.0, 0.5, 1.0,]
+    colors = [color_minimum, color_center, color_maximum,]
+    # Create color map.
+    map = matplotlib.colors.LinearSegmentedColormap.from_list(
+        "map_tcw_custom",
+        list(zip(anchors, colors,)),
+        N=256,
+        gamma=1.0,
+    )
+    # Create normalization scale to fit the values to the color map.
+    scale = matplotlib.colors.TwoSlopeNorm(
+        vmin=value_minimum,
+        vcenter=value_center,
+        vmax=value_maximum,
+    )
+    # Bundle information.
+    pail = dict()
+    pail["map"] = map
+    pail["scale"] = scale
+    # Return object.
+    return pail
+
+
+
+
+##########
 # Heatmap.
 # 1.
 # function: plot_heatmap_signal_features_observations_labels()
@@ -122,6 +180,7 @@ def extract_prepare_table_signals_categories_for_heatmap(
     value_missing_fill=None,
     constrain_signal_values=None,
     value_minimum=None,
+    value_center=None,
     value_maximum=None,
     labels_ordinate_categories=None,
     labels_abscissa_categories=None,
@@ -190,10 +249,14 @@ def extract_prepare_table_signals_categories_for_heatmap(
         value_missing_fill (float): value with which to fill any missing values
         constrain_signal_values (bool): whether to constrain all values in
             matrix
-        value_minimum (float): minimal value for constraint on signals and
-            scale
-        value_maximum (float): maximal value for constraint on signals and
-            scale
+        value_minimum (float): minimal value for threshold constraint on
+            signals and for anchor on scale of projection to visual
+            representation in color
+        value_center (float): central value for anchor on scale of projection
+            to visual representation in color
+        value_maximum (float): maximal value for threshold constraint on
+            signals and for anchor on scale of projection to visual
+            representation in color
         labels_ordinate_categories (list<str>): optional, explicit labels for
             ordinate or vertical axis
         labels_abscissa_categories (list<str>): optional, explicit labels for
@@ -402,6 +465,7 @@ def extract_prepare_table_signals_categories_for_heatmap(
     pail["matrix_signal"] = matrix_signal
     pail["matrix_group_integers"] = matrix_group_integers
     pail["value_minimum"] = value_minimum
+    pail["value_center"] = value_center
     pail["value_maximum"] = value_maximum
     pail["labels_index_columns"] = labels_index_columns
     pail["labels_index_rows"] = labels_index_rows
@@ -516,6 +580,7 @@ def plot_heatmap_signal_features_observations_labels(
     value_missing_fill=None,
     constrain_signal_values=None,
     value_minimum=None,
+    value_center=None,
     value_maximum=None,
     title_ordinate=None,
     title_abscissa=None,
@@ -570,7 +635,9 @@ def plot_heatmap_signal_features_observations_labels(
     MatPlotLib color maps.
     https://matplotlib.org/stable/tutorials/colors/colormaps.html
 
-    Review: 30 December 2024
+
+    Review or revision: 13 November 2025
+    Review or revision: 30 December 2024
 
     arguments:
         table (object): Pandas data-frame table of values of signal intensity
@@ -590,10 +657,14 @@ def plot_heatmap_signal_features_observations_labels(
         value_missing_fill (float): value with which to fill any missing values
         constrain_signal_values (bool): whether to constrain all values in
             matrix
-        value_minimum (float): minimal value for constraint on signals and
-            scale
-        value_maximum (float): maximal value for constraint on signals and
-            scale
+        value_minimum (float): minimal value for threshold constraint on
+            signals and for anchor on scale of projection to visual
+            representation in color
+        value_center (float): central value for anchor on scale of projection
+            to visual representation in color
+        value_maximum (float): maximal value for threshold constraint on
+            signals and for anchor on scale of projection to visual
+            representation in color
         title_ordinate (str): title for ordinate vertical axis
         title_abscissa (str): title for abscissa horizontal axis
         title_bar (str): title for scale bar
@@ -637,6 +708,7 @@ def plot_heatmap_signal_features_observations_labels(
         value_missing_fill=value_missing_fill,
         constrain_signal_values=constrain_signal_values,
         value_minimum=value_minimum,
+        value_center=value_center,
         value_maximum=value_maximum,
         labels_ordinate_categories=labels_ordinate_categories,
         labels_abscissa_categories=labels_abscissa_categories,
@@ -673,11 +745,28 @@ def plot_heatmap_signal_features_observations_labels(
     # Sequential color maps: "Reds", "Reds_r", "Oranges", "Oranges_r",
     # site: https://montoliu.naukas.com/2021/11/18/color-blindness-purple-and-
     #     orange-are-the-solution/
+    #image_main = axes_main.imshow(
+    #    pail["matrix_signal"],
+    #    cmap=matplotlib.colormaps["PuOr"], # binary, Reds, RdBu_r, PuOr, PuOr_r
+    #    vmin=pail["value_minimum"],
+    #    vmax=pail["value_maximum"],
+    #    aspect="auto", # "auto", "equal",
+    #    origin="lower",
+    #    # Extent: (left, right, bottom, top)
+    #    #extent=(-0.5, (matrix.shape[1] - 0.5), (matrix.shape[0] - 0.5), -0.5),
+    #)
+    pail_color_map = create_divergent_color_map(
+        value_minimum=pail["value_minimum"],
+        value_center=pail["value_center"],
+        value_maximum=pail["value_maximum"],
+        color_minimum=(0.05,0.05,0.6,1.0,), # "navy blue";(red: 13; green: 13; blue: 153) # TCW; 13 November 2025
+        color_center=(1.0,1.0,1.0,1.0,), # "white"
+        color_maximum=(0.9,0.5,0.05,1.0,), # "orange"; (red: 230, green: 128, blue: 13) # TCW; 13 November 2025
+    )
     image_main = axes_main.imshow(
         pail["matrix_signal"],
-        cmap=matplotlib.colormaps["PuOr"], # binary, Reds, RdBu_r, PuOr, PuOr_r
-        vmin=pail["value_minimum"],
-        vmax=pail["value_maximum"],
+        cmap=pail_color_map["map"],
+        norm=pail_color_map["scale"],
         aspect="auto", # "auto", "equal",
         origin="lower",
         # Extent: (left, right, bottom, top)
@@ -2414,6 +2503,7 @@ def plot_scatter_point_color_response_discrete_or_continuous(
     colors_fill_ellipses=None,
     color_edge_markers=None,
     color_edge_ellipses=None,
+    color_emphasis=None,
     set_axis_limits=None,
     show_confidence_ellipse=None,
     show_lines_origin=None,
@@ -2506,8 +2596,9 @@ def plot_scatter_point_color_response_discrete_or_continuous(
         fonts (dict<object>): definitions of font properties
         colors_fill_markers (list<tuple>): definitions of color properties
         colors_fill_ellipses (list<tuple>): definitions of color properties
-        color_edge_markers (list<tuple>): definitions of color properties
-        color_edge_ellipses (list<tuple>): definitions of color properties
+        color_edge_markers (tuple): definition of color properties
+        color_edge_ellipses (tuple): definition of color properties
+        color_emphasis (tuple): definition of color properties
         set_axis_limits (bool): whether to set explicity limits on axes
         show_confidence_ellipse (bool): whether to show confidence ellipse;
             show empty ellipse edge for continuous response; show color-matched
@@ -2665,7 +2756,7 @@ def plot_scatter_point_color_response_discrete_or_continuous(
         #    table_response[column_category].unique().tolist()
         #)
         #count_category_response = len(categories)
-        count_categories_response = (
+        count_categories_response = int(
             table_response[column_response_markers].nunique(dropna=True)
         )
         # Organize indices in table.
@@ -2751,10 +2842,7 @@ def plot_scatter_point_color_response_discrete_or_continuous(
             # Define colors.
             # Create discrete color map for categorical values.
             # color_map = matplotlib.pyplot.get_cmap()
-            color_map_fill_markers = matplotlib.colormaps.get_cmap(
-                "tab10",
-                count_categories_response,
-            ) # "Set1", "Set2", "Dark2", "tab10",
+            color_map_fill_markers = matplotlib.colormaps.get_cmap("tab10") # "Set1", "Set2", "Dark2", "tab10",
         else:
             color_map_fill_markers = matplotlib.colors.ListedColormap(
                 colors_fill_markers
@@ -2803,6 +2891,19 @@ def plot_scatter_point_color_response_discrete_or_continuous(
         )
     else:
         color_set_edge_ellipses = color_edge_ellipses
+        pass
+
+    # Emphasis.
+    if (
+        (color_emphasis is None)
+    ):
+        color_set_emphasis = matplotlib.colors.to_rgba("orange", 1.0)
+    elif (not isinstance(color_emphasis, tuple)):
+        color_set_emphasis = matplotlib.colors.to_rgba(
+            color_emphasis, 1.0
+        )
+    else:
+        color_set_emphasis = color_emphasis
         pass
 
     ##########
@@ -2960,7 +3061,8 @@ def plot_scatter_point_color_response_discrete_or_continuous(
     if (
         (column_response_markers is None) or
         (column_response_markers == "") or
-        (type_response is None)
+        (type_response is None) or
+        (type_response == "")
     ):
         # Plot points to represent main observations.
         handle_standard = axes.plot(
@@ -3119,8 +3221,8 @@ def plot_scatter_point_color_response_discrete_or_continuous(
             linestyle="",
             marker="o",
             markersize=(size_marker*2),
-            markeredgecolor=matplotlib.colors.to_rgba("orange", 1.0),
-            markeredgewidth=2.5,
+            markeredgecolor=color_set_emphasis,
+            markeredgewidth=3.0,
             markerfacecolor="None"
         )
 
@@ -3226,6 +3328,7 @@ def create_write_plot_chart_scatter_point_response(
     colors_fill_ellipses=None,
     color_edge_markers=None,
     color_edge_ellipses=None,
+    color_emphasis=None,
     show_confidence_ellipse=None,
     show_emphasis_marker=None,
     show_emphasis_label=None,
@@ -3281,8 +3384,9 @@ def create_write_plot_chart_scatter_point_response(
             deviations in the confidence ellipses
         colors_fill_markers (list<tuple>): definitions of color properties
         colors_fill_ellipses (list<tuple>): definitions of color properties
-        color_edge_markers (list<tuple>): definitions of color properties
-        color_edge_ellipses (list<tuple>): definitions of color properties
+        color_edge_markers (tuple): definition of color properties
+        color_edge_ellipses (tuple): definition of color properties
+        color_emphasis (tuple): definition of color properties
         show_confidence_ellipse (bool): whether to show confidence ellipse;
             show empty ellipse edge for continuous response; show color-matched
             distinct ellipses for discrete categorical groups
@@ -3349,6 +3453,7 @@ def create_write_plot_chart_scatter_point_response(
         colors_fill_ellipses=colors_fill_ellipses,
         color_edge_markers=color_edge_markers,
         color_edge_ellipses=color_edge_ellipses,
+        color_emphasis=color_emphasis,
         set_axis_limits=False,
         show_confidence_ellipse=show_confidence_ellipse,
         show_lines_origin=True,
@@ -3366,17 +3471,30 @@ def create_write_plot_chart_scatter_point_response(
     pail_write_plot[name_chart] = figure
 
     # Write figure object to file.
-    pplot.write_product_plots_parent_directory(
-        pail_write=pail_write_plot,
-        format="jpg", # jpg, png, svg
-        resolution=150,
-        path_directory=path_directory_parent,
-    )
+    if True:
+        pplot.write_product_plots_parent_directory(
+            pail_write=pail_write_plot,
+            format="jpg", # jpg, png, svg
+            resolution=96, # 72, 96, 300
+            path_directory=path_directory_parent,
+        )
+    if False:
+        pplot.write_product_plots_parent_directory(
+            pail_write=pail_write_plot,
+            format="png", # jpg, png, svg
+            resolution=150,
+            path_directory=path_directory_parent,
+        )
+    if False:
+        pplot.write_product_plots_parent_directory(
+            pail_write=pail_write_plot,
+            format="svg", # jpg, png, svg
+            resolution=150,
+            path_directory=path_directory_parent,
+        )
 
     # Return information.
     return figure
-
-
 
 
 ################################################################################

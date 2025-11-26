@@ -123,7 +123,7 @@ for path_file_source in "${paths_files_source[@]}"; do
     #fi
     # Collect.
     items_source+=("${item}")
-  done < <(tail -n +0 "${input}"; echo) # append new line to tail to ensure read of last line
+    done < <(tail -n +0 "${input}"; echo) # append new line to tail to ensure read of last line
   fi
 
   ##########

@@ -126,19 +126,27 @@ def determine_features_available(
     """
 
     # Copy information.
-    table_features = table_features.copy(deep=True)
     table_observations = table_observations.copy(deep=True)
+    if (table_features is not None):
+        table_features = table_features.copy(deep=True)
+        pass
     if (table_signals is not None):
         table_signals = table_signals.copy(deep=True)
         pass
 
     # Extract identifiers of features.
-    features_features = copy.deepcopy(
-        table_features[column_identifier_feature].unique().tolist()
-    )
     features_observations = copy.deepcopy(
         table_observations.columns.unique().tolist()
     )
+    if (
+        (table_features is not None)
+    ):
+        features_features = copy.deepcopy(
+            table_features[column_identifier_feature].unique().tolist()
+        )
+    else:
+        features_features = list()
+        pass
     if (
         (table_signals is not None) and
         (transpose_table_signals is not None) and
@@ -158,6 +166,7 @@ def determine_features_available(
         )
     else:
         features_signals = list()
+        pass
 
     # Combine identifiers of features.
     features_union = (

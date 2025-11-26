@@ -33,6 +33,7 @@ License:
 ################################################################################
 # Author: T. Cameron Waller, Ph.D.
 # Date, initialization: 26 October 2025
+# Date, review or revision: 5 November 2025
 # Date, review or revision: 26 October 2025
 ################################################################################
 # Note
@@ -41,6 +42,9 @@ License:
 ##########
 # Note:
 
+# Note: TCW; 13 November 2025
+# It might become practical to implement separate thresholds for the first and
+# second sets of features, respectively.
 
 ##########
 # Review:
@@ -103,7 +107,21 @@ def parse_text_parameters(
     column_name_observation=None,
     proportion_nonmissing_observations=None,
     type_correlation=None,
-    cluster_features=None,
+    match_pairs=None,
+    prefix_match_first=None,
+    suffix_match_first=None,
+    prefix_match_second=None,
+    suffix_match_second=None,
+    intersect_features=None,
+    filter_threshold_first=None,
+    filter_threshold_second=None,
+    type_threshold=None,
+    threshold=None,
+    proportion_threshold=None,
+    sort_match_pairs_diagonal=None,
+    cluster_features_first=None,
+    cluster_features_second=None,
+    sort_other_features=None,
     plot_threshold_minimum=None,
     plot_threshold_maximum=None,
     report=None,
@@ -130,8 +148,11 @@ def parse_text_parameters(
             each pair
         type_correlation (str): type of correlation for calculation; either
             'pearson' or 'spearman'
-        cluster_features (bool): whether to cluster the sequence of features in
-            the tables and charts
+        ...
+        cluster_features (str): how to apply the cluster operation, either
+            'none', 'both', 'first', or 'second'
+        sort_other_features (bool): whether to sort the set of features to
+            which the cluster operation was not applied
         plot_threshold_minimum (float): minimal value to set as threshold for
             representation in the plot chart
         plot_threshold_maximum (float): maximal value to set as threshold for
@@ -180,6 +201,12 @@ def parse_text_parameters(
     pail["proportion_nonmissing_observations"] = float(
         str(proportion_nonmissing_observations).strip()
     )
+    pail["threshold"] = float(
+        str(threshold).strip()
+    )
+    pail["proportion_threshold"] = float(
+        str(proportion_threshold).strip()
+    )
     if (
         (len(str(plot_threshold_minimum)) > 0) and
         (str(plot_threshold_minimum) != "none")
@@ -200,29 +227,63 @@ def parse_text_parameters(
         plot_threshold_maximum = None
         pass
 
-    # Category.
-    pail["type_correlation"] = str(type_correlation).strip()
+    # Names and categories.
+    # It is problematic to pass any white space in parameters from a script in
+    # Bash. Designate the hash symbol "#" as a substitute for white space.
+    # It is also problematic to pass an empty string in parameters from a
+    # script in Bash. Designate the word "none" as a substitute for missing or
+    # empty.
+    # Iterate on individual names that could be empty or missing.
+    names_categories = {
+        "type_correlation": type_correlation,
+        "prefix_match_first": prefix_match_first,
+        "suffix_match_first": suffix_match_first,
+        "prefix_match_second": prefix_match_second,
+        "suffix_match_second": suffix_match_second,
+        "type_threshold": type_threshold,
+    }
+    for key_name in names_categories.keys():
+        # Determine whether parameter has a valid value that is not none.
+        if (
+            (str(names_categories[key_name]).strip().lower() != "none")
+        ):
+            # Parse value.
+            pail[key_name] = str(
+                names_categories[key_name]
+            ).strip().replace("#", " ")
+        else:
+            pail[key_name] = ""
+            pass
+        pass
 
     # Boolean, true or false.
-    if (
-        (cluster_features is not None) and
-        (str(cluster_features) != "") and
-        (str(cluster_features) != "none") and
-        (str(cluster_features) == "true")
-    ):
-        pail["cluster_features"] = True
-    else:
-        pail["cluster_features"] = False
-        pass
-    if (
-        (report is not None) and
-        (str(report) != "") and
-        (str(report) != "none") and
-        (str(report) == "true")
-    ):
-        pail["report"] = True
-    else:
-        pail["report"] = False
+    # Iterate on individual of Boolean designations.
+    designations = {
+        "match_pairs": match_pairs,
+        "intersect_features": intersect_features,
+        "filter_threshold_first": filter_threshold_first,
+        "filter_threshold_second": filter_threshold_second,
+        "sort_match_pairs_diagonal": sort_match_pairs_diagonal,
+        "cluster_features_first": cluster_features_first,
+        "cluster_features_second": cluster_features_second,
+        "sort_other_features": sort_other_features,
+        "report": report,
+    }
+    for key_designation in designations.keys():
+        # Determine whether parameter has a valid value.
+        if (
+            (designations[key_designation] is not None) and
+            (len(str(designations[key_designation])) > 0) and
+            (str(designations[key_designation]) != "") and
+            (str(designations[key_designation]).strip().lower() != "none") and
+            (str(designations[key_designation]) == "true")
+        ):
+            # Designation is true.
+            pail[key_designation] = True
+        else:
+            # Designation is false.
+            pail[key_designation] = False
+            pass
         pass
 
     # Report.
@@ -235,7 +296,10 @@ def parse_text_parameters(
             "calculate_tables_plot_charts_features_correlations.py"
         )
         print(str("module: " + module))
-        print("function: parse_text_parameters()")
+        function = str(
+            "parse_text_parameters()"
+        )
+        print("function: " + function)
         putly.print_terminal_partition(level=5)
         print("parameters:")
         print(pail)
@@ -615,6 +679,173 @@ def filter_features_by_available_observations(
     return pail
 
 
+def match_filter_features_pairs(
+    features_first=None,
+    features_second=None,
+    prefix_match_first=None,
+    suffix_match_first=None,
+    prefix_match_second=None,
+    suffix_match_second=None,
+    report=None,
+):
+    """
+    Blank.
+
+    Review: TCW; 11 November 2025
+
+    arguments:
+
+    TODO: update documentation
+
+    raises:
+
+    returns:
+        (dict<object>): bundle of information
+    """
+
+    ##########
+    # Copy information.
+    features_first = copy.deepcopy(features_first)
+    features_second = copy.deepcopy(features_second)
+
+    # Translate names of features to facilitate match.
+    translations_first = list(map(
+        lambda item: (
+            str(item)
+            .strip()
+            .replace(prefix_match_first, "")
+            .replace(suffix_match_first, "")
+        ), copy.deepcopy(features_first)
+    ))
+    translations_second = list(map(
+        lambda item: (
+            str(item)
+            .strip()
+            .replace(prefix_match_second, "")
+            .replace(suffix_match_second, "")
+        ), copy.deepcopy(features_second)
+    ))
+
+    # Take union of translations.
+    translations_union = putly.combine_sets_items_union_unique(
+        sets_items=[
+            translations_first,
+            translations_second,
+        ],
+        report=report,
+    )
+
+    # Take intersection of translations.
+    # This intersection will serve as a sort of consensus to filter both sets
+    # of features.
+    translations_intersection = putly.combine_sets_items_intersection_unique(
+        items_first=translations_first,
+        items_second=translations_second,
+        report=report,
+    )
+
+    # Assemble references for pairs of features.
+    # Base these references on the union of features in order to include all
+    # possible pairs.
+    # It will be necessary to check whether each pair actually exists.
+    pairs_first_second = dict()
+    pairs_second_first = dict()
+    records_pairs = list()
+    for item in translations_union:
+        feature_first = str(prefix_match_first + item + suffix_match_first)
+        feature_second = str(prefix_match_second + item + suffix_match_second)
+        pairs_first_second[feature_first] = feature_second
+        pairs_second_first[feature_second] = feature_first
+        record = dict()
+        record["first"] = feature_first
+        record["second"] = feature_second
+        records_pairs.append(record)
+        pass
+
+    #translations_first_second = list(map(
+    #    lambda item: pairs_first_second[item], features_first_sequence
+    #))
+    #translations_second_first = list(map(
+    #    lambda item: pairs_second_first[item], features_second_sequence
+    #))
+
+    # Filter identifiers of features by the intersection of matches between
+    # first and second sets of features.
+    features_first_intersection = list(filter(
+        lambda item: ((
+            str(item)
+            .strip()
+            .replace(prefix_match_first, "")
+            .replace(suffix_match_first, "")
+        ) in translations_intersection
+        ), features_first
+    ))
+    features_second_intersection = list(filter(
+        lambda item: ((
+            str(item)
+            .strip()
+            .replace(prefix_match_second, "")
+            .replace(suffix_match_second, "")
+        ) in translations_intersection
+        ), features_second
+    ))
+
+
+    # Bundle information.
+    pail = dict()
+    pail["features_first_intersection"] = features_first_intersection
+    pail["features_second_intersection"] = features_second_intersection
+    pail["translations_intersection"] = translations_intersection
+    pail["translations_union"] = translations_union
+    pail["pairs_first_second"] = pairs_first_second
+    pail["pairs_second_first"] = pairs_second_first
+    pail["records_pairs"] = records_pairs
+
+    # Report.
+    if report:
+        # Organize information.
+        count_first_original = len(features_first)
+        count_second_original = len(features_second)
+        count_first_novel = len(features_first_intersection)
+        count_second_novel = len(features_second_intersection)
+        count_intersection = len(translations_intersection)
+        count_union = len(translations_union)
+        # Print information.
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        module = str(
+            "calculate_tables_plot_charts_features_correlations.py"
+        )
+        print(str("module: " + module))
+        print("function: match_filter_features_pairs()")
+        putly.print_terminal_partition(level=5)
+        print("intersection of translations from first and second features:")
+        print(translations_intersection)
+        putly.print_terminal_partition(level=5)
+        print("count of intersection: " + str(count_intersection))
+        putly.print_terminal_partition(level=5)
+        print("count of union: " + str(count_union))
+        putly.print_terminal_partition(level=5)
+        print("original, before intersection filter...")
+        print(str(
+            "count of first features: " + str(count_first_original)
+        ))
+        print(str(
+            "count of second features: " + str(count_second_original)
+        ))
+        putly.print_terminal_partition(level=5)
+        print("novel, after intersection filter...")
+        print(str(
+            "count of first features: " + str(count_first_novel)
+        ))
+        print(str(
+            "count of second features: " + str(count_second_novel)
+        ))
+        pass
+    # Return information.
+    return pail
+
+
 # TODO: TCW; 27 October 2025
 # At some point, it might be convenient to reshape this table from long to wide
 # so as to preserve the q-values. Refer to established functions for "stack" or
@@ -714,6 +945,8 @@ def calculate_correlations_populate_table_long(
                 record["p_pearson"] = pail["p_pearson"]
                 record["correlation_spearman"] = pail["correlation_spearman"]
                 record["p_spearman"] = pail["p_spearman"]
+                record["correlation_kendall"] = pail["correlation_kendall"]
+                record["p_kendall"] = pail["p_kendall"]
             else:
                 # Introduce missing values.
                 measures = list()
@@ -723,6 +956,8 @@ def calculate_correlations_populate_table_long(
                 #measures.append("confidence_95_high_pearson")
                 measures.append("correlation_spearman")
                 measures.append("p_spearman")
+                measures.append("correlation_kendall")
+                measures.append("p_kendall")
                 for measure in measures:
                     record[measure] = float("nan")
                     pass
@@ -754,6 +989,13 @@ def calculate_correlations_populate_table_long(
         name_column_significance="significance_spearman",
         table=table_correlation,
     )
+    #table_correlation = pdesc.calculate_table_false_discovery_rate_q_values(
+    #    threshold=0.05, # alpha; family-wise error rate
+    #    name_column_p_value="p_kendall",
+    #    name_column_q_value="q_kendall",
+    #    name_column_significance="significance_kendall",
+    #    table=table_correlation,
+    #)
 
     # Filter and sort columns in table.
     columns_sequence = [
@@ -766,7 +1008,7 @@ def calculate_correlations_populate_table_long(
         "correlation_pearson", "p_pearson", "q_pearson",
         #"confidence_95_low_pearson", "confidence_95_high_pearson",
         "correlation_spearman", "p_spearman", "q_spearman",
-        #"correlation_kendall", "p_kendall", "q_kendall",
+        "correlation_kendall", "p_kendall", "q_kendall",
     ]
     table_correlation = porg.filter_sort_table_columns(
         table=table_correlation,
@@ -912,7 +1154,669 @@ def calculate_correlations_populate_table_wide(
     return table_correlation
 
 
-def calculate_correlations_organize_tables_wide(
+def filter_table_wide_correlations_by_threshold(
+    table_r=None,
+    table_p=None,
+    name_index_rows=None,
+    name_index_columns=None,
+    filter_threshold_rows=None,
+    filter_threshold_columns=None,
+    type_threshold=None,
+    threshold=None,
+    proportion_threshold=None,
+    report=None,
+):
+    """
+    Blank.
+
+    Review: TCW; 5 November 2025
+
+    arguments:
+
+    TODO: update documentation
+
+    raises:
+
+    returns:
+        (dict<object>): bundle of information
+    """
+
+    # Copy information.
+    table_r = table_r.copy(deep=True)
+    table_r_filter = table_r.copy(deep=True)
+    table_p = table_p.copy(deep=True)
+
+    # Extract identifiers of columns and rows in table.
+    columns_selection = copy.deepcopy(
+        table_r.columns.unique().tolist()
+    )
+    columns_selection.remove(name_index_rows)
+    rows_selection = copy.deepcopy(
+        table_r[name_index_rows].to_list()
+    )
+
+    # Determine type of threshold and values.
+    if (type_threshold == "correlation"):
+        threshold_low = threshold
+        threshold_high = None
+    elif (type_threshold == "p_value"):
+        threshold_low = None
+        threshold_high = threshold
+        pass
+
+    # Filter columns and rows in table by their proportions of values that pass
+    # thresholds.
+
+    if (
+        (filter_threshold_rows) and
+        (type_threshold == "correlation")
+    ):
+        table_r_filter = (
+            porg.filter_table_rows_by_proportion_nonmissing_threshold(
+                table=table_r_filter,
+                index_columns=name_index_columns,
+                index_rows=name_index_rows,
+                columns_selection=columns_selection,
+                rows_selection=rows_selection,
+                absolute_value=True,
+                threshold_low=threshold_low,
+                threshold_high=threshold_high,
+                proportion=proportion_threshold,
+                report=report,
+        ))
+        pass
+
+    if (
+        (filter_threshold_columns) and
+        (type_threshold == "correlation")
+    ):
+        table_r_filter = (
+            porg.filter_table_columns_by_proportion_nonmissing_threshold(
+                table=table_r_filter,
+                index_columns=name_index_columns,
+                index_rows=name_index_rows,
+                columns_selection=columns_selection,
+                rows_selection=rows_selection,
+                absolute_value=True,
+                threshold_low=threshold_low,
+                threshold_high=threshold_high,
+                proportion=proportion_threshold,
+                report=report,
+        ))
+        pass
+
+    # Bundle information.
+    pail = dict()
+    pail["table_r_filter"] = table_r_filter
+
+    # Report.
+    if report:
+        # Organize information.
+        count_columns = table_r_filter.shape[1]
+        count_rows = table_r_filter.shape[0]
+        # Print information.
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        module = str(
+            "calculate_tables_plot_charts_features_correlations.py"
+        )
+        print(str("module: " + module))
+        print("function: filter_table_wide_correlations_by_threshold()")
+        putly.print_terminal_partition(level=5)
+        print("table after filters by threshold")
+        print(table_r_filter)
+        print("count columns: " + str(count_columns))
+        print("count rows: " + str(count_rows))
+        putly.print_terminal_partition(level=5)
+        pass
+    # Return information.
+    return pail
+
+
+def sort_table_columns_rows_diagonal_match_pairs(
+    table=None,
+    name_index_rows=None,
+    name_index_columns=None,
+    column_sort_temporary=None,
+    pairs_row_column=None,
+    report=None,
+):
+    """
+    Blank.
+
+    Table orients first set of features across rows.
+    Table orients second set of features across columns.
+
+    By design this function should not filter or remove any columns or rows
+    from the table.
+
+    Review or revision: TCW; 12 November 2025
+
+    arguments:
+
+    TODO: update documentation
+
+    raises:
+
+    returns:
+        (dict<object>): bundle of information
+    """
+
+    # Copy information.
+    table = table.copy(deep=True)
+    pairs_row_column = copy.deepcopy(pairs_row_column)
+
+    # Extract identifiers of columns and rows in table.
+    columns_available = copy.deepcopy(
+        table.columns.unique().tolist()
+    )
+    columns_available.remove(name_index_rows)
+    rows_available = copy.deepcopy(
+        table[name_index_rows].to_list()
+    )
+
+    # Organize indices in table.
+    table.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    table.set_index(
+        [name_index_rows,],
+        append=False,
+        drop=True,
+        inplace=True,
+    )
+
+    # Collect information.
+    values_pairs = list()
+    # Iterate on rows in table.
+    for row in rows_available:
+        column = pairs_row_column[row]
+        if (column in columns_available):
+            value_pair = table.at[row, column]
+        else:
+            value_pair = float("nan")
+            pass
+        # Collect information
+        values_pairs.append(value_pair)
+        pass
+
+    # Organize indices in table.
+    table.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
+
+    # Create new column in table.
+    table[column_sort_temporary] = values_pairs
+
+    # Sort rows in table.
+    table.sort_values(
+        by=[column_sort_temporary,],
+        axis="index",
+        ascending=True,
+        na_position="last",
+        inplace=True,
+    )
+    # Remove unnecessary columns.
+    table.drop(
+        labels=[column_sort_temporary,],
+        axis="columns",
+        inplace=True
+    )
+    # Organize indices in table.
+    table.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+
+    # Sort sequence of columns in table to match sequence of rows in table,
+    # using a prior reference of matching pairs.
+    table = sort_table_columns_match_rows(
+        table=table,
+        name_index_rows=name_index_rows,
+        name_index_columns=name_index_columns,
+        pairs_row_column=pairs_row_column,
+        report=report,
+    )
+
+    # Report.
+    if report:
+        # Organize information.
+        # Print information.
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        module = str(
+            "calculate_tables_plot_charts_features_correlations.py"
+        )
+        print(str("module: " + module))
+        print("function: sort_table_columns_rows_diagonal_match_pairs()")
+        putly.print_terminal_partition(level=5)
+        pass
+
+    # Return information.
+    return table
+
+
+def sort_table_columns_match_rows(
+    table=None,
+    name_index_rows=None,
+    name_index_columns=None,
+    pairs_row_column=None,
+    report=None,
+):
+    """
+    Blank.
+
+    Table orients first set of features across rows.
+    Table orients second set of features across columns.
+
+    By design this function should not filter or remove any columns or rows
+    from the table.
+
+    Review or revision: TCW; 12 November 2025
+
+    arguments:
+
+    TODO: update documentation
+
+    raises:
+
+    returns:
+        (dict<object>): bundle of information
+    """
+
+    # Copy information.
+    table = table.copy(deep=True)
+    pairs_row_column = copy.deepcopy(pairs_row_column)
+
+    # Sort sequence of columns in table to match sequence of rows in table,
+    # using a prior reference of matching pairs.
+
+    # Extract identifiers of columns and rows in table.
+    columns_sequence_original = copy.deepcopy(
+        table.columns.unique().tolist()
+    )
+    columns_sequence_original.remove(name_index_rows)
+    rows_sequence = copy.deepcopy(
+        table[name_index_rows].to_list()
+    )
+
+    # Determine sequence of columns to match rows.
+    # Notice that reference must include all possible pairs.
+    columns_sequence_novel = list(map(
+        lambda item: pairs_row_column[item], rows_sequence
+    ))
+    # Filter columns by their availability in the table.
+    columns_sequence_novel_available = list(filter(
+        lambda item: (item in columns_sequence_original),
+        columns_sequence_novel
+    ))
+    columns_sequence_novel_available.insert(0, name_index_rows,)
+    # Sort sequence of columns in table.
+    # Do not remove any extra columns that do not match the rows, but sort
+    # these extra columns at the end.
+    table = porg.sort_table_columns_explicit_other(
+        table=table,
+        columns_sequence=columns_sequence_novel_available,
+        sort_other=True,
+        report=report,
+    )
+
+    # Report.
+    if report:
+        # Organize information.
+        # Print information.
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        module = str(
+            "calculate_tables_plot_charts_features_correlations.py"
+        )
+        print(str("module: " + module))
+        print("function: sort_table_columns_match_rows()")
+        putly.print_terminal_partition(level=5)
+        pass
+
+    # Return information.
+    return table
+
+
+def sort_table_rows_match_columns(
+    table=None,
+    name_index_rows=None,
+    name_index_columns=None,
+    pairs_column_row=None,
+    report=None,
+):
+    """
+    Blank.
+
+    Table orients first set of features across rows.
+    Table orients second set of features across columns.
+
+    By design this function should not filter or remove any columns or rows
+    from the table.
+
+    Review or revision: TCW; 12 November 2025
+
+    arguments:
+
+    TODO: update documentation
+
+    raises:
+
+    returns:
+        (dict<object>): bundle of information
+    """
+
+    # Copy information.
+    table = table.copy(deep=True)
+    pairs_column_row = copy.deepcopy(pairs_column_row)
+
+    # Sort sequence of rows in table to match sequence of columns in table,
+    # using a prior reference of matching pairs.
+
+    # Extract identifiers of columns and rows in table.
+    columns_sequence = copy.deepcopy(
+        table.columns.unique().tolist()
+    )
+    columns_sequence.remove(name_index_rows)
+    rows_sequence_original = copy.deepcopy(
+        table[name_index_rows].to_list()
+    )
+
+    # Determine sequence of rows to match columns.
+    # Notice that reference must include all possible pairs.
+    rows_sequence_novel = list(map(
+        lambda item: pairs_column_row[item], columns_sequence
+    ))
+    # Filter rows by their availability in the table.
+    rows_sequence_novel_available = list(filter(
+        lambda item: (item in rows_sequence_original),
+        rows_sequence_novel
+    ))
+    # Filter any rows without matching columns.
+    rows_other = list(filter(
+        lambda item: (item not in rows_sequence_novel_available),
+        rows_sequence_original
+    ))
+    rows_other_sort = sorted(rows_other)
+    # Organize sequence of rows.
+    rows_sequence_all = list()
+    rows_sequence_all.extend(rows_sequence_novel_available)
+    rows_sequence_all.extend(rows_other_sort)
+    rows_sequence_all = putly.collect_unique_elements(
+        elements=rows_sequence_all,
+    )
+    # Define reference for sort.
+    sequence_rows_novel = dict()
+    index = 0
+    for name in rows_sequence_all:
+        sequence_rows_novel[name] = index
+        index += 1
+        pass
+    # Sort rows in table.
+    table = porg.sort_table_rows_by_single_column_reference(
+        table=table,
+        index_rows=name_index_rows,
+        column_reference=name_index_rows,
+        column_sort_temporary="sort_temporary",
+        reference_sort=sequence_rows_novel,
+    )
+
+    # Report.
+    if report:
+        # Organize information.
+        # Print information.
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        module = str(
+            "calculate_tables_plot_charts_features_correlations.py"
+        )
+        print(str("module: " + module))
+        print("function: sort_table_rows_match_columns()")
+        putly.print_terminal_partition(level=5)
+        pass
+
+    # Return information.
+    return table
+
+
+def cluster_sort_sequence_features_correlations(
+    table=None,
+    name_index_rows=None,
+    name_index_columns=None,
+    match_pairs=None,
+    pairs_first_second=None,
+    pairs_second_first=None,
+    sort_match_pairs_diagonal=None,
+    cluster_features_first=None,
+    cluster_features_second=None,
+    sort_other_features=None,
+    report=None,
+):
+    """
+    Blank.
+
+    Table orients first set of features across rows.
+    Table orients second set of features across columns.
+
+    By design this function should not filter or remove any columns or rows
+    from the table.
+
+    Review or revision: TCW; 12 November 2025
+
+    arguments:
+
+    TODO: update documentation
+
+    raises:
+
+    returns:
+        (dict<object>): bundle of information
+    """
+
+    # Copy information.
+    table = table.copy(deep=True)
+
+    ##########
+    # Sort by self pairs along diagonal.
+    # Determine whether to sort rows and columns by magnitude of correlations
+    # for self pairs.
+    if (
+        (match_pairs) and
+        (sort_match_pairs_diagonal)
+    ):
+        # Sort rows and columns in table by magnitude of self pairs.
+        table = sort_table_columns_rows_diagonal_match_pairs(
+            table=table,
+            name_index_rows=name_index_rows,
+            name_index_columns=name_index_columns,
+            column_sort_temporary="temporary_sort_pairs_magnitude",
+            pairs_row_column=pairs_first_second,
+            report=report,
+        )
+        pass
+
+    ##########
+    # Cluster.
+
+    # Determine whether to apply clustering to sequence of columns and rows in
+    # table.
+    if (
+        (not sort_match_pairs_diagonal) and
+        (
+            (cluster_features_first) or
+            (cluster_features_second)
+        )
+    ):
+        # Organize indices in table.
+        table.reset_index(
+            level=None,
+            inplace=True,
+            drop=True, # remove index; do not move to regular columns
+        )
+        table.set_index(
+            [name_index_rows,],
+            append=False,
+            drop=True,
+            inplace=True,
+        )
+        if (cluster_features_first):
+            # Cluster sequence of first set of features.
+            # Cluster rows in table.
+            table = porg.cluster_table_rows(
+                table=table,
+            )
+        if (cluster_features_second):
+            # Cluster sequence of second set of features.
+            # Cluster columns in table.
+            table = porg.cluster_table_columns(
+                table=table,
+            )
+            pass
+        # Organize indices in table.
+        table.reset_index(
+            level=None,
+            inplace=True,
+            drop=False, # remove index; do not move to regular columns
+        )
+        pass
+
+    ##########
+    # Sort.
+
+    # Determine whether to apply sorting to sequence of columns and rows in
+    # table.
+    if (
+        (not sort_match_pairs_diagonal) and
+        (cluster_features_first) and
+        (not cluster_features_second) and
+        (match_pairs) and
+        (sort_other_features)
+    ):
+        # Sort sequence of second set of features to match sequence of first
+        # set of features.
+        # Sort sequence of columns in table to match sequence of rows in table,
+        # using a prior reference of matching pairs.
+        table = sort_table_columns_match_rows(
+            table=table,
+            name_index_rows=name_index_rows,
+            name_index_columns=name_index_columns,
+            pairs_row_column=pairs_first_second,
+            report=report,
+        )
+    elif (
+        (not sort_match_pairs_diagonal) and
+        (cluster_features_second) and
+        (not cluster_features_first) and
+        (match_pairs) and
+        (sort_other_features)
+    ):
+        # Sort sequence of first set of features to match sequence of second
+        # set of features.
+        # Sort sequence of rows in table to match sequence of columns in table,
+        # using a prior reference of matching pairs.
+        table = sort_table_rows_match_columns(
+            table=table,
+            name_index_rows=name_index_rows,
+            name_index_columns=name_index_columns,
+            pairs_column_row=pairs_second_first,
+            report=report,
+        )
+    elif (
+        (not sort_match_pairs_diagonal) and
+        (not cluster_features_first) and
+        (not cluster_features_second) and
+        (sort_other_features)
+    ):
+        # Extract identifiers of rows in table.
+        rows_sequence_original = copy.deepcopy(
+            table[name_index_rows].to_list()
+        )
+        # Extract identifiers of columns in table.
+        columns_sequence_original = copy.deepcopy(
+            table.columns.unique().tolist()
+        )
+        columns_sequence_original.remove(name_index_rows)
+        # Sort sequences of features from columns and rows in table.
+        rows_sequence_novel = sorted(rows_sequence_original)
+        columns_sequence_novel = sorted(columns_sequence_original)
+        # Sort rows in table.
+        table.sort_values(
+            by=[name_index_rows,],
+            axis="index",
+            ascending=True,
+            inplace=True,
+        )
+        # Copy information.
+        columns_sequence_novel.insert(0, name_index_rows,)
+        # Filter and sort columns in table.
+        table = porg.filter_sort_table_columns(
+            table=table,
+            columns_sequence=columns_sequence_novel,
+            report=report,
+        )
+        pass
+
+    # Extract identifiers of rows in table.
+    rows_sequence = copy.deepcopy(
+        table[name_index_rows].to_list()
+    )
+    # Extract identifiers of columns in table.
+    columns_sequence = copy.deepcopy(
+        table.columns.unique().tolist()
+    )
+
+    # Bundle information.
+    pail = dict()
+    pail["table"] = table
+    pail["rows_sequence"] = rows_sequence
+    pail["columns_sequence"] = columns_sequence
+
+    # Report.
+    if report:
+        # Organize information.
+        count_columns = len(columns_sequence)
+        count_rows = len(rows_sequence)
+        # Print information.
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        module = str(
+            "calculate_tables_plot_charts_features_correlations.py"
+        )
+        print(str("module: " + module))
+        print("function: cluster_sort_sequence_features_correlations()")
+        putly.print_terminal_partition(level=5)
+        print("check parameters for cluster and sort...")
+        print("match_pairs: " + str(match_pairs))
+        print("sort_match_pairs_diagonal: " + str(sort_match_pairs_diagonal))
+        print("cluster_features_first: " + str(cluster_features_first))
+        print("cluster_features_second: " + str(cluster_features_second))
+        print("sort_other_features: " + str(sort_other_features))
+        putly.print_terminal_partition(level=5)
+        print("table after cluster and sort operations:")
+        print(table)
+        putly.print_terminal_partition(level=5)
+        print("columns:")
+        print(columns_sequence)
+        putly.print_terminal_partition(level=5)
+        print("rows:")
+        print(rows_sequence)
+        putly.print_terminal_partition(level=5)
+        print("count of columns: " + str(count_columns))
+        print("count of rows: " + str(count_rows))
+        putly.print_terminal_partition(level=5)
+        pass
+
+    # Return information.
+    return pail
+
+
+def manage_calculate_correlations_organize_tables_wide(
     table=None,
     column_identifier_observation=None,
     features_first=None,
@@ -920,13 +1824,25 @@ def calculate_correlations_organize_tables_wide(
     proportion_nonmissing_observations=None,
     z_score=None,
     type_correlation=None,
-    cluster_features=None,
+    match_pairs=None,
+    pairs_first_second=None,
+    pairs_second_first=None,
+    filter_threshold_first=None,
+    filter_threshold_second=None,
+    type_threshold=None,
+    threshold=None,
+    proportion_threshold=None,
+    sort_match_pairs_diagonal=None,
+    cluster_features_first=None,
+    cluster_features_second=None,
+    sort_other_features=None,
     report=None,
 ):
     """
     Blank.
 
-    Review: TCW; 26 October 2025
+    Review or revision: TCW; 13 November 2025
+    Review or revision: TCW; 6 November 2025
 
     arguments:
 
@@ -945,6 +1861,9 @@ def calculate_correlations_organize_tables_wide(
     elif (type_correlation == "spearman"):
         type_value_r = "correlation_spearman"
         type_value_p = "p_spearman"
+    elif (type_correlation == "kendall"):
+        type_value_r = "correlation_kendall"
+        type_value_p = "p_kendall"
         pass
 
     # Calculate correlations.
@@ -958,62 +1877,72 @@ def calculate_correlations_organize_tables_wide(
         ),
         z_score=z_score,
         type_value=type_value_r,
-        report=True,
+        report=report,
     )
-    table_correlation_p = calculate_correlations_populate_table_wide(
-        table=table,
-        column_identifier_observation=column_identifier_observation,
-        features_first=features_first,
-        features_second=features_second,
-        proportion_nonmissing_observations=(
-            proportion_nonmissing_observations
-        ),
-        z_score=z_score,
-        type_value=type_value_p,
-        report=True,
+    if False:
+        table_correlation_p = calculate_correlations_populate_table_wide(
+            table=table,
+            column_identifier_observation=column_identifier_observation,
+            features_first=features_first,
+            features_second=features_second,
+            proportion_nonmissing_observations=(
+                proportion_nonmissing_observations
+            ),
+            z_score=z_score,
+            type_value=type_value_p,
+            report=report,
+        )
+    else:
+        table_correlation_p = pandas.DataFrame()
+        pass
+
+    # Filter columns and rows in table by threshold.
+    pail_threshold = filter_table_wide_correlations_by_threshold(
+        table_r=table_correlation_r,
+        table_p=table_correlation_p,
+        name_index_rows="feature_first",
+        name_index_columns="feature_second",
+        filter_threshold_rows=filter_threshold_first,
+        filter_threshold_columns=filter_threshold_second,
+        type_threshold=type_threshold,
+        threshold=threshold,
+        proportion_threshold=proportion_threshold,
+        report=report,
     )
 
-    # Cluster sequence of features by their correlations.
-    # Copy information.
-    table_correlation_r_cluster = table_correlation_r.copy(deep=True)
-    table_correlation_p_cluster = table_correlation_p.copy(deep=True)
-    # Organize indices in table.
-    table_correlation_r_cluster.reset_index(
-        level=None,
-        inplace=True,
-        drop=True, # remove index; do not move to regular columns
-    )
-    table_correlation_r_cluster.set_index(
-        ["feature_first"],
-        append=False,
-        drop=True,
-        inplace=True,
-    )
-    # Cluster columns in table.
-    table_correlation_r_cluster = porg.cluster_table_columns(
-        table=table_correlation_r_cluster,
-    )
-    # Cluster rows in table.
-    table_correlation_r_cluster = porg.cluster_table_rows(
-        table=table_correlation_r_cluster,
-    )
-    # Organize indices in table.
-    table_correlation_r_cluster.reset_index(
-        level=None,
-        inplace=True,
-        drop=False, # remove index; do not move to regular columns
-    )
+    # Report.
+    # Report.
+    if report:
+        # Organize information.
+        # Print information.
+        putly.print_terminal_partition(level=5)
+        print("table of correlations after threshold")
+        print(pail_threshold["table_r_filter"])
+        pass
 
-    # Cluster columns and rows in table of p-values to match the sequence in
-    # the table of correlations.
-    # TODO: filter by indices of 'features_first' and 'features_second'
+    # Cluster and sort sequences of features.
+    pail_cluster_sort = cluster_sort_sequence_features_correlations(
+        table=pail_threshold["table_r_filter"],
+        name_index_rows="feature_first",
+        name_index_columns="feature_second",
+        match_pairs=match_pairs,
+        pairs_first_second=pairs_first_second,
+        pairs_second_first=pairs_second_first,
+        sort_match_pairs_diagonal=sort_match_pairs_diagonal,
+        cluster_features_first=cluster_features_first,
+        cluster_features_second=cluster_features_second,
+        sort_other_features=sort_other_features,
+        report=report,
+    )
+    #pail["table"]
+    #pail["rows_sequence"]
+    #pail["columns_sequence"]
 
     # Bundle information.
     pail = dict()
-    pail["table_correlation"] = table_correlation_r
+    pail["table_r"] = pail_threshold["table_r_filter"]
     pail["table_p_value"] = table_correlation_p
-    pail["table_correlation_cluster"] = table_correlation_r_cluster
-    #pail["table_p_value_cluster"] = table_p_value_cluster
+    pail["table_r_cluster_sort"] = pail_cluster_sort["table"]
 
     # Report.
     if report:
@@ -1036,7 +1965,7 @@ def calculate_correlations_organize_tables_wide(
         print(table_correlation_p)
         putly.print_terminal_partition(level=5)
         print("clustered table of correlations:")
-        print(table_correlation_r_cluster)
+        print(pail_cluster_sort["table"])
         putly.print_terminal_partition(level=5)
         pass
     # Return information.
@@ -1134,6 +2063,7 @@ def create_write_plot_chart_heatmap(
         value_missing_fill=0.0,
         constrain_signal_values=True,
         value_minimum=value_minimum,
+        value_center=0.0, # correlations, effects, fold changes, components etc
         value_maximum=value_maximum,
         title_ordinate="",
         title_abscissa="",
@@ -1154,6 +2084,7 @@ def create_write_plot_chart_heatmap(
         colors=colors,
         report=report,
     )
+
     # Write product information to file.
 
     # Bundle information.
@@ -1164,7 +2095,7 @@ def create_write_plot_chart_heatmap(
     pplot.write_product_plots_parent_directory(
         pail_write=pail_write_plot,
         format="jpg", # jpg, png, svg
-        resolution=150,
+        resolution=96, # low-resolution trial: 72 dpi; high-resolution print: 300 dpi
         path_directory=path_directory_parent,
     )
 
@@ -1226,7 +2157,7 @@ def manage_create_write_plot_charts(
     # Create and write plot charts for the table of correlations.
     create_write_plot_chart_heatmap(
         path_directory_parent=path_directory_charts,
-        name_chart="correlations_sort",
+        name_chart="correlations",
         table=table_correlation,
         name_index_columns="feature_second",
         name_index_rows="feature_first",
@@ -1240,7 +2171,7 @@ def manage_create_write_plot_charts(
     )
     create_write_plot_chart_heatmap(
         path_directory_parent=path_directory_charts,
-        name_chart="correlations_cluster",
+        name_chart="correlations_cluster_sort",
         table=table_correlation_cluster,
         name_index_columns="feature_second",
         name_index_rows="feature_first",
@@ -1291,7 +2222,21 @@ def execute_procedure(
     column_name_observation=None,
     proportion_nonmissing_observations=None,
     type_correlation=None,
-    cluster_features=None,
+    match_pairs=None,
+    prefix_match_first=None,
+    suffix_match_first=None,
+    prefix_match_second=None,
+    suffix_match_second=None,
+    intersect_features=None,
+    filter_threshold_first=None,
+    filter_threshold_second=None,
+    type_threshold=None,
+    threshold=None,
+    proportion_threshold=None,
+    sort_match_pairs_diagonal=None,
+    cluster_features_first=None,
+    cluster_features_second=None,
+    sort_other_features=None,
     plot_threshold_minimum=None,
     plot_threshold_maximum=None,
     report=None,
@@ -1299,6 +2244,8 @@ def execute_procedure(
     """
     Function to execute module's main behavior.
 
+    Review or revision: TCW; 10 November 2025
+    Review or revision: TCW; 6 November 2025
     Review or revision: TCW; 26 October 2025
 
     arguments:
@@ -1319,8 +2266,11 @@ def execute_procedure(
             each pair
         type_correlation (str): type of correlation for calculation; either
             'pearson' or 'spearman'
-        cluster_features (bool): whether to cluster the sequence of features in
-            the tables and charts
+        ...
+        cluster_features (str): how to apply the cluster operation, either
+            'none', 'both', 'first', or 'second'
+        sort_other_features (bool): whether to sort the set of features to
+            which the cluster operation was not applied
         plot_threshold_minimum (float): minimal value to set as threshold for
             representation in the plot chart
         plot_threshold_maximum (float): maximal value to set as threshold for
@@ -1355,7 +2305,21 @@ def execute_procedure(
         column_name_observation=column_name_observation,
         proportion_nonmissing_observations=proportion_nonmissing_observations,
         type_correlation=type_correlation,
-        cluster_features=cluster_features,
+        match_pairs=match_pairs,
+        prefix_match_first=prefix_match_first,
+        suffix_match_first=suffix_match_first,
+        prefix_match_second=prefix_match_second,
+        suffix_match_second=suffix_match_second,
+        intersect_features=intersect_features,
+        filter_threshold_first=filter_threshold_first,
+        filter_threshold_second=filter_threshold_second,
+        type_threshold=type_threshold,
+        threshold=threshold,
+        proportion_threshold=proportion_threshold,
+        sort_match_pairs_diagonal=sort_match_pairs_diagonal,
+        cluster_features_first=cluster_features_first,
+        cluster_features_second=cluster_features_second,
+        sort_other_features=sort_other_features,
         plot_threshold_minimum=plot_threshold_minimum,
         plot_threshold_maximum=plot_threshold_maximum,
         report=report,
@@ -1434,11 +2398,12 @@ def execute_procedure(
     )
 
     ##########
+    # Filter lists of features.
+
     # Filter lists of features corresponding to columns in table by their
     # availability of values across rows in table corresponding to
     # observations.
-
-    pail_features = filter_features_by_available_observations(
+    pail_features_availability = filter_features_by_available_observations(
         table=table_filter,
         column_identifier_observation=(
             pail_parameters["column_identifier_observation"]
@@ -1453,65 +2418,120 @@ def execute_procedure(
         ),
         report=pail_parameters["report"],
     )
-    #pail_features["features_first"]
-    #pail_features["features_second"]
+    #pail_features_availability["features_first"]
+    #pail_features_availability["features_second"]
+
+    # Determie match pairs of features in first and second sets.
+    if (pail_parameters["match_pairs"]):
+        pail_pairs = match_filter_features_pairs(
+            features_first=pail_features_availability["features_first"],
+            features_second=pail_features_availability["features_second"],
+            prefix_match_first=pail_parameters["prefix_match_first"],
+            suffix_match_first=pail_parameters["suffix_match_first"],
+            prefix_match_second=pail_parameters["prefix_match_second"],
+            suffix_match_second=pail_parameters["suffix_match_second"],
+            report=pail_parameters["report"],
+        )
+    else:
+        pail_pairs = dict() # need to specify appropriate missing values (None)
+        pail_pairs["features_first_intersection"] = None
+        pail_pairs["features_second_intersection"] = None
+        pail_pairs["translations_intersection"] = None
+        pail_pairs["translations_union"] = None
+        pail_pairs["pairs_first_second"] = None
+        pail_pairs["pairs_second_first"] = None
+        pass
+
+    # Determine whether to use features after filtering by intersection.
+    if (
+        (pail_parameters["match_pairs"]) and
+        (pail_parameters["intersect_features"])
+    ):
+        # Copy information.
+        features_first = copy.deepcopy(
+            pail_pairs["features_first_intersection"]
+        )
+        features_second = copy.deepcopy(
+            pail_pairs["features_second_intersection"]
+        )
+    else:
+        # Copy information.
+        features_first = pail_features_availability["features_first"]
+        features_second = pail_features_availability["features_second"]
+        pass
 
     ##########
     # Calculate correlations.
 
     # Calculate correlations between pairs of features and organize these
     # within a table in long format.
-    table_correlation_long = calculate_correlations_populate_table_long(
-        table=table_filter,
-        column_identifier_observation=(
-            pail_parameters["column_identifier_observation"]
-        ),
-        features_first=pail_features["features_first"],
-        features_second=pail_features["features_second"],
-        proportion_nonmissing_observations=(
-            pail_parameters["proportion_nonmissing_observations"]
-        ),
-        z_score=True,
-        report=pail_parameters["report"],
-    )
+    if True:
+        table_correlation_long = calculate_correlations_populate_table_long(
+            table=table_filter,
+            column_identifier_observation=(
+                pail_parameters["column_identifier_observation"]
+            ),
+            features_first=features_first,
+            features_second=features_second,
+            proportion_nonmissing_observations=(
+                pail_parameters["proportion_nonmissing_observations"]
+            ),
+            z_score=True,
+            report=pail_parameters["report"],
+        )
+    else:
+        table_correlation_long = pandas.DataFrame()
+        pass
 
     # Calculate correlations between pairs of features and organize these
     # within a table in wide format.
-    pail_correlation = calculate_correlations_organize_tables_wide(
+    pail_correlation = manage_calculate_correlations_organize_tables_wide(
         table=table_filter,
         column_identifier_observation=(
             pail_parameters["column_identifier_observation"]
         ),
-        features_first=pail_features["features_first"],
-        features_second=pail_features["features_second"],
+        features_first=features_first,
+        features_second=features_second,
         proportion_nonmissing_observations=(
             pail_parameters["proportion_nonmissing_observations"]
         ),
         z_score=True,
         type_correlation=pail_parameters["type_correlation"],
-        cluster_features=pail_parameters["cluster_features"],
+        match_pairs=pail_parameters["match_pairs"],
+        pairs_first_second=pail_pairs["pairs_first_second"],
+        pairs_second_first=pail_pairs["pairs_second_first"],
+        filter_threshold_first=pail_parameters["filter_threshold_first"],
+        filter_threshold_second=pail_parameters["filter_threshold_second"],
+        type_threshold=pail_parameters["type_threshold"],
+        threshold=pail_parameters["threshold"],
+        proportion_threshold=pail_parameters["proportion_threshold"],
+        sort_match_pairs_diagonal=pail_parameters["sort_match_pairs_diagonal"],
+        cluster_features_first=pail_parameters["cluster_features_first"],
+        cluster_features_second=pail_parameters["cluster_features_second"],
+        sort_other_features=pail_parameters["sort_other_features"],
         report=pail_parameters["report"],
     )
     #pail["table_correlation"]
     #pail["table_p_value"]
     #pail["table_correlation_cluster"]
 
+
     ##########
     # Bundle information.
     # Bundles of information for files.
     # Lists.
     pail_write_lists = dict()
-    pail_write_lists["features_first"] = pail_features["features_first"]
-    pail_write_lists["features_second"] = pail_features["features_second"]
+    pail_write_lists["features_first"] = features_first
+    pail_write_lists["features_second"] = features_second
     # Tables.
     pail_write_tables = dict()
     pail_write_tables["table_correlation_long"] = table_correlation_long
     pail_write_tables["table_correlation_wide"] = (
-        pail_correlation["table_correlation"]
+        pail_correlation["table_r"]
     )
     pail_write_tables["table_p_value_wide"] = pail_correlation["table_p_value"]
     pail_write_tables["table_correlation_wide_cluster"] = (
-        pail_correlation["table_correlation_cluster"]
+        pail_correlation["table_r_cluster_sort"]
     )
 
     ##########
@@ -1558,10 +2578,10 @@ def execute_procedure(
         path_directory_source=pail_parameters["path_directory_source"],
         path_directory_product=pail_parameters["path_directory_product"],
         path_directory_dock=pail_parameters["path_directory_dock"],
-        table_correlation=pail_correlation["table_correlation"],
+        table_correlation=pail_correlation["table_r"],
         table_p_value=pail_correlation["table_p_value"],
         table_correlation_cluster=(
-            pail_correlation["table_correlation_cluster"]
+            pail_correlation["table_r_cluster_sort"]
         ),
         column_name_feature="feature_first",
         name_correlations="blank",
@@ -1588,10 +2608,25 @@ if (__name__ == "__main__"):
     column_name_observation = sys.argv[9]
     proportion_nonmissing_observations = sys.argv[10]
     type_correlation = sys.argv[11]
-    cluster_features = sys.argv[12]
-    plot_threshold_minimum=sys.argv[13]
-    plot_threshold_maximum=sys.argv[14]
-    report = sys.argv[15]
+    match_pairs = sys.argv[12]
+    prefix_match_first = sys.argv[13]
+    suffix_match_first = sys.argv[14]
+    prefix_match_second = sys.argv[15]
+    suffix_match_second = sys.argv[16]
+    intersect_features = sys.argv[17]
+    filter_threshold_first = sys.argv[18]
+    filter_threshold_second = sys.argv[19]
+    type_threshold = sys.argv[20]
+    threshold = sys.argv[21]
+    proportion_threshold = sys.argv[22]
+    sort_match_pairs_diagonal = sys.argv[23]
+    cluster_features_first = sys.argv[24]
+    cluster_features_second = sys.argv[25]
+    sort_other_features = sys.argv[26]
+    plot_threshold_minimum = sys.argv[27]
+    plot_threshold_maximum = sys.argv[28]
+    report = sys.argv[29]
+
 
     # Call function for procedure.
     execute_procedure(
@@ -1614,7 +2649,21 @@ if (__name__ == "__main__"):
         column_name_observation=column_name_observation,
         proportion_nonmissing_observations=proportion_nonmissing_observations,
         type_correlation=type_correlation,
-        cluster_features=cluster_features,
+        match_pairs=match_pairs,
+        prefix_match_first=prefix_match_first,
+        suffix_match_first=suffix_match_first,
+        prefix_match_second=prefix_match_second,
+        suffix_match_second=suffix_match_second,
+        intersect_features=intersect_features,
+        filter_threshold_first=filter_threshold_first,
+        filter_threshold_second=filter_threshold_second,
+        type_threshold=type_threshold,
+        threshold=threshold,
+        proportion_threshold=proportion_threshold,
+        sort_match_pairs_diagonal=sort_match_pairs_diagonal,
+        cluster_features_first=cluster_features_first,
+        cluster_features_second=cluster_features_second,
+        sort_other_features=sort_other_features,
         plot_threshold_minimum=plot_threshold_minimum,
         plot_threshold_maximum=plot_threshold_maximum,
         report=report,

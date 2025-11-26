@@ -109,6 +109,7 @@ def parse_text_parameters(
     colors_fill_ellipses=None,
     color_edge_markers=None,
     color_edge_ellipses=None,
+    color_emphasis=None,
     show_confidence_ellipse=None,
     show_emphasis_marker=None,
     show_emphasis_label=None,
@@ -146,42 +147,37 @@ def parse_text_parameters(
     # Names and categories.
     # It is problematic to pass any white space in parameters from a script in
     # Bash. Designate the hash symbol "#" as a substitute for white space.
-    pail["column_identifier_observation"] = str(
-        column_identifier_observation
-    ).strip().replace("#", " ")
-    pail["column_name_observation"] = str(
-        column_name_observation
-    ).strip().replace("#", " ")
-    pail["column_response_markers"] = str(
-        column_response_markers
-    ).strip().replace("#", " ")
-    pail["column_group_ellipses"] = str(
-        column_group_ellipses
-    ).strip().replace("#", " ")
-    pail["column_abscissa"] = str(
-        column_abscissa
-    ).strip().replace("#", " ")
-    pail["column_ordinate"] = str(
-        column_ordinate
-    ).strip().replace("#", " ")
-    pail["name_chart"] = str(
-        name_chart
-    ).strip().replace("#", " ")
-    pail["title_chart"] = str(
-        title_chart
-    ).strip().replace("#", " ")
-    pail["title_response"] = str(
-        title_response
-    ).strip().replace("#", " ")
-    pail["title_abscissa"] = str(
-        title_abscissa
-    ).strip().replace("#", " ")
-    pail["title_ordinate"] = str(
-        title_ordinate
-    ).strip().replace("#", " ")
-    pail["type_response"] = str(
-        type_response
-    ).strip().replace("#", " ")
+    # It is also problematic to pass an empty string in parameters from a
+    # script in Bash. Designate the word "none" as a substitute for missing or
+    # empty.
+    # Iterate on individual names that could be empty or missing.
+    names_categories = {
+        "column_identifier_observation": column_identifier_observation,
+        "column_name_observation": column_name_observation,
+        "column_response_markers": column_response_markers,
+        "column_group_ellipses": column_group_ellipses,
+        "column_abscissa": column_abscissa,
+        "column_ordinate": column_ordinate,
+        "name_chart": name_chart,
+        "title_chart": title_chart,
+        "title_response": title_response,
+        "title_abscissa": title_abscissa,
+        "title_ordinate": title_ordinate,
+        "type_response": type_response,
+    }
+    for key_name in names_categories.keys():
+        # Determine whether parameter has a valid value that is not none.
+        if (
+            (str(names_categories[key_name]).strip().lower() != "none")
+        ):
+            # Parse value.
+            pail[key_name] = str(
+                names_categories[key_name]
+            ).strip().replace("#", " ")
+        else:
+            pail[key_name] = ""
+            pass
+        pass
 
     # Number.
     pail["size_marker"] = float(str(size_marker).strip())
@@ -241,6 +237,7 @@ def parse_text_parameters(
     colors = {
         "color_edge_markers": color_edge_markers,
         "color_edge_ellipses": color_edge_ellipses,
+        "color_emphasis": color_emphasis,
     }
     for key_color in colors.keys():
         # Determine whether parameter has a valid value.
@@ -266,58 +263,29 @@ def parse_text_parameters(
             pass
 
     # Boolean, true or false.
-    if (
-        (show_confidence_ellipse is not None) and
-        (str(show_confidence_ellipse) != "") and
-        (str(show_confidence_ellipse) != "none") and
-        (str(show_confidence_ellipse) == "true")
-    ):
-        pail["show_confidence_ellipse"] = True
-    else:
-        pail["show_confidence_ellipse"] = False
-        pass
-
-    if (
-        (show_emphasis_marker is not None) and
-        (str(show_emphasis_marker) != "") and
-        (str(show_emphasis_marker) != "none") and
-        (str(show_emphasis_marker) == "true")
-    ):
-        pail["show_emphasis_marker"] = True
-    else:
-        pail["show_emphasis_marker"] = False
-        pass
-
-    if (
-        (show_emphasis_label is not None) and
-        (str(show_emphasis_label) != "") and
-        (str(show_emphasis_label) != "none") and
-        (str(show_emphasis_label) == "true")
-    ):
-        pail["show_emphasis_label"] = True
-    else:
-        pail["show_emphasis_label"] = False
-        pass
-
-    if (
-        (show_legend_bar is not None) and
-        (str(show_legend_bar) != "") and
-        (str(show_legend_bar) != "none") and
-        (str(show_legend_bar) == "true")
-    ):
-        pail["show_legend_bar"] = True
-    else:
-        pail["show_legend_bar"] = False
-        pass
-    if (
-        (report is not None) and
-        (str(report) != "") and
-        (str(report) != "none") and
-        (str(report) == "true")
-    ):
-        pail["report"] = True
-    else:
-        pail["report"] = False
+    # Iterate on individual of Boolean designations.
+    designations = {
+        "show_confidence_ellipse": show_confidence_ellipse,
+        "show_emphasis_marker": show_emphasis_marker,
+        "show_emphasis_label": show_emphasis_label,
+        "show_legend_bar": show_legend_bar,
+        "report": report,
+    }
+    for key_designation in designations.keys():
+        # Determine whether parameter has a valid value.
+        if (
+            (designations[key_designation] is not None) and
+            (len(str(designations[key_designation])) > 0) and
+            (str(designations[key_designation]) != "") and
+            (str(designations[key_designation]).strip().lower() != "none") and
+            (str(designations[key_designation]) == "true")
+        ):
+            # Designation is true.
+            pail[key_designation] = True
+        else:
+            # Designation is false.
+            pail[key_designation] = False
+            pass
         pass
 
     # Report.
@@ -451,6 +419,7 @@ def execute_procedure(
     colors_fill_ellipses=None,
     color_edge_markers=None,
     color_edge_ellipses=None,
+    color_emphasis=None,
     show_confidence_ellipse=None,
     show_emphasis_marker=None,
     show_emphasis_label=None,
@@ -511,6 +480,7 @@ def execute_procedure(
         colors_fill_ellipses=colors_fill_ellipses,
         color_edge_markers=color_edge_markers,
         color_edge_ellipses=color_edge_ellipses,
+        color_emphasis=color_emphasis,
         show_confidence_ellipse=show_confidence_ellipse,
         show_emphasis_marker=show_emphasis_marker,
         show_emphasis_label=show_emphasis_label,
@@ -546,7 +516,7 @@ def execute_procedure(
 
     # Define paths to directories.
     path_directory_chart = os.path.join(
-        pail_parameters["path_directory_product"], "scatter_categories",
+        pail_parameters["path_directory_product"],
     )
     # Create directories.
     putly.create_directories(
@@ -578,6 +548,7 @@ def execute_procedure(
         colors_fill_ellipses=pail_parameters["colors_fill_ellipses"],
         color_edge_markers=pail_parameters["color_edge_markers"],
         color_edge_ellipses=pail_parameters["color_edge_ellipses"],
+        color_emphasis=pail_parameters["color_emphasis"],
         show_confidence_ellipse=pail_parameters["show_confidence_ellipse"],
         show_emphasis_marker=pail_parameters["show_emphasis_marker"],
         show_emphasis_label=pail_parameters["show_emphasis_label"],
@@ -617,11 +588,12 @@ if (__name__ == "__main__"):
     colors_fill_ellipses = sys.argv[23]
     color_edge_markers = sys.argv[24]
     color_edge_ellipses = sys.argv[25]
-    show_confidence_ellipse = sys.argv[26]
-    show_emphasis_marker = sys.argv[27]
-    show_emphasis_label = sys.argv[28]
-    show_legend_bar = sys.argv[29]
-    report = sys.argv[30]
+    color_emphasis = sys.argv[26]
+    show_confidence_ellipse = sys.argv[27]
+    show_emphasis_marker = sys.argv[28]
+    show_emphasis_label = sys.argv[29]
+    show_legend_bar = sys.argv[30]
+    report = sys.argv[31]
 
     # Call function for procedure.
     execute_procedure(
@@ -652,6 +624,7 @@ if (__name__ == "__main__"):
         colors_fill_ellipses=colors_fill_ellipses,
         color_edge_markers=color_edge_markers,
         color_edge_ellipses=color_edge_ellipses,
+        color_emphasis=color_emphasis,
         show_confidence_ellipse=show_confidence_ellipse,
         show_emphasis_marker=show_emphasis_marker,
         show_emphasis_label=show_emphasis_label,

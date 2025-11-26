@@ -53,6 +53,11 @@ License:
 # main table.
 
 
+# TODO: TCW; 14 November 2025
+# Make the "table_features" optional. It only exists to provide name translations
+# for the features, I think...
+
+
 ##########
 # Note:
 
@@ -537,6 +542,9 @@ def filter_combine_features_observations(
             preserve_index=False,
             report=report,
         )
+    else:
+        # Copy information.
+        table_features_observations = table_main_selection.copy(deep=True)
         pass
 
     # Report.
@@ -638,6 +646,7 @@ def create_write_plot_chart_heatmap_loadings(
         value_missing_fill=0.0,
         constrain_signal_values=True,
         value_minimum=value_minimum,
+        value_center=0.0, # correlations, effects, fold changes, components etc
         value_maximum=value_maximum,
         title_ordinate="",
         title_abscissa="",
@@ -963,7 +972,8 @@ def create_write_plot_charts_principal_component_scores(
             table=table_group,
             column_identifier=column_identifier_observation,
             column_name=column_name_observation,
-            column_response="group",
+            column_response_markers="group",
+            column_group_ellipses="group",
             column_abscissa=column_abscissa,
             column_ordinate=column_ordinate,
             type_response="category",
@@ -974,10 +984,14 @@ def create_write_plot_charts_principal_component_scores(
             #identifiers_emphasis=list(),
             identifiers_emphasis=identifiers_emphasis,
             size_marker=15,
+            size_edge_marker=1.0,
+            size_edge_ellipse=1.0,
             factor_confidence_ellipse=2.0,
-            #colors=["darkmagenta", "darkblue", "magenta", "blue",],
-            #colors=[(0.510, 0.039, 0.510, 1.0), (0.118, 0.118, 0.510, 1.0),],
-            colors=None,
+            colors_fill_markers=None,
+            colors_fill_ellipses=(0.500,0.500,0.500,1.0),
+            color_edge_markers="black",
+            color_edge_ellipses="black",
+            color_emphasis="orange",
             show_confidence_ellipse=True,
             show_emphasis_marker=True,
             show_emphasis_label=True,
@@ -1004,7 +1018,8 @@ def create_write_plot_charts_principal_component_scores(
                 table=table_group,
                 column_identifier=column_identifier_observation,
                 column_name=column_name_observation,
-                column_response=feature,
+                column_response_markers=feature,
+                column_group_ellipses="group",
                 column_abscissa=column_abscissa,
                 column_ordinate=column_ordinate,
                 type_response="continuity",
@@ -1015,10 +1030,14 @@ def create_write_plot_charts_principal_component_scores(
                 #identifiers_emphasis=list(),
                 identifiers_emphasis=identifiers_emphasis,
                 size_marker=15,
+                size_edge_marker=1.0,
+                size_edge_ellipse=1.0,
                 factor_confidence_ellipse=2.0,
-                #colors=["darkmagenta", "darkblue", "magenta", "blue",],
-                #colors=[(0.510, 0.039, 0.510, 1.0), (0.118, 0.118, 0.510, 1.0),],
-                colors=None,
+                colors_fill_markers=None,
+                colors_fill_ellipses=(0.500,0.500,0.500,1.0),
+                color_edge_markers="black",
+                color_edge_ellipses="black",
+                color_emphasis="orange",
                 show_confidence_ellipse=True,
                 show_emphasis_marker=True,
                 show_emphasis_label=True,
@@ -1740,19 +1759,16 @@ def execute_procedure(
     )
     # Lists.
     # Tables.
-    if (write_tables):
-        putly.write_tables_to_file(
-            pail_write=pail_write_tables,
-            path_directory=path_directory_tables,
-            reset_index_rows=False,
-            write_index_rows=False,
-            write_index_columns=True,
-            type="text",
-            delimiter="\t",
-            suffix=".tsv",
-        )
-        pass
-
+    putly.write_tables_to_file(
+        pail_write=pail_write_tables,
+        path_directory=path_directory_tables,
+        reset_index_rows=False,
+        write_index_rows=False,
+        write_index_columns=True,
+        type="text",
+        delimiter="\t",
+        suffix=".tsv",
+    )
     pass
 
 

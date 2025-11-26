@@ -2657,6 +2657,7 @@ def plot_heatmap_features_observations_labels(
         value_missing_fill=0.0,
         constrain_signal_values=True,
         value_minimum=value_minimum,
+        value_center=0.0, # correlations, effects, fold changes, components etc
         value_maximum=value_maximum,
         title_ordinate="",
         title_abscissa="",
