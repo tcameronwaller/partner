@@ -544,7 +544,6 @@ def check_parameters_table_data_regression(
     return pail
 
 
-
 def check_parameters_table_data_anova(
     table=None,
     name_combination=None,
@@ -3381,7 +3380,7 @@ def collect_organize_record_analysis_variance_anova(
         print("package: partner")
         print("module: regression.py")
         name_function = str(
-            "collect_organize_record_regression_analysis()"
+            "collect_organize_record_analysis_variance_anova()"
         )
         print("function: " + name_function)
         putly.print_terminal_partition(level=4)
@@ -3399,7 +3398,7 @@ def collect_organize_record_regression_analysis(
     index_columns=None,
     index_rows=None,
     sequence=None,
-    group=None,
+    category=None,
     name=None,
     name_combination=None,
     check_overall=None,
@@ -3452,7 +3451,7 @@ def collect_organize_record_regression_analysis(
         index_columns (str): name of single-level index across columns in table
         index_rows (str): name of single-level index across rows in table
         sequence (int): sequential index for instance's name and sort order
-        group (str): categorical group of instances
+        category (str): categorical group of instances
         name (str): name or designator for instance of parameters
         name_combination (str): compound name for instance of parameters
         check_overall (bool): whether to execute the regression or create
@@ -3504,7 +3503,7 @@ def collect_organize_record_regression_analysis(
     pail = dict()
     pail["entries_parameter_instance"] = [
         "sequence",
-        "group",
+        "category",
         "name",
         "name_combination",
         "check_overall",
@@ -3519,7 +3518,7 @@ def collect_organize_record_regression_analysis(
     pail["entries_parameter_instance"].extend(list(record_extra.keys()))
     pail["record"] = dict()
     pail["record"]["sequence"] = sequence
-    pail["record"]["group"] = group
+    pail["record"]["category"] = category
     pail["record"]["name"] = name
     pail["record"]["name_combination"] = name_combination
     pail["record"]["check_overall"] = check_overall

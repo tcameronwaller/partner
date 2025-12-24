@@ -857,7 +857,7 @@ def organize_principal_components_by_singular_value_decomposition(
 
 # TODO: TCW; 2 April 2025
 # This function needs substantial update.
-# It does not make sense to compare variance between features after than have
+# It does not make sense to compare variance between features after they have
 # been standardized by z-score (standard deviation 1).
 # Rather, use the "unit_range" method to adjust scale of features and then
 # select or filter features by "variance thresholding".
@@ -2079,7 +2079,8 @@ def calculate_principal_components_table_features_observations(
     rows_selection=None,
     prefix=None,
     separator=None,
-    threshold_proportion=None,
+    count_components=None,
+    variance_components=None,
     explicate_indices=None,
     report=None,
 ):
@@ -2106,9 +2107,9 @@ def calculate_principal_components_table_features_observations(
         prefix (str): prefix for names of new columns in table corresponding to
             scores or factors for principal components
         separator (str): separator for names of new columns
-        threshold_proportion (float): threshold on the cumulative proportion of
-            total variance in the values of the original features across
-            observations that each principal component must explain to keep
+        count_components (int): count of principal components to keep
+        variance_components (float): threshold on the cumulative proportion of
+            total variance to determine how many principal components to keep
         explicate_indices (bool): whether to explicate, define, or specify
             explicit indices across columns and rows in table
         report (bool): whether to print reports
@@ -2160,11 +2161,23 @@ def calculate_principal_components_table_features_observations(
         drop=True,
         inplace=True,
     )
-    # Filter rows in table for non-missing values across relevant columns.
+
+    # Replace any infinite values with missing values.
+    table_excerpt.replace(
+        value=pandas.NA,
+        to_replace=[numpy.inf, -numpy.inf],
+        inplace=True,
+    )
+    # Filter columns and rows in table by nonmissing values.
     table_excerpt.dropna(
         axis="index",
         how="any",
         subset=columns_selection,
+        inplace=True,
+    )
+    table_excerpt.dropna(
+        axis="columns",
+        how="any",
         inplace=True,
     )
 
@@ -2208,29 +2221,45 @@ def calculate_principal_components_table_features_observations(
         )
         pass
 
-    # Filter principal components by the proportion of variance that they
-    # explain in values of the original features across observations.
-    #table_proportions["variance_proportion"] = (
-    #    table_proportions["variance_proportion"].astype("float32")
-    #)
+    ##########
+    # Filter principal components.
+
+    # Determine total count of principal components.
     components_total = copy.deepcopy(
         table_variances["eigenvectors_components"].unique().tolist()
     )
-    if (threshold_proportion is not None):
+    count_components_total = len(components_total)
+
+    # Filter principal components.
+    if (
+        (count_components is not None) and
+        (not math.isnan(count_components)) and
+        (count_components > 0) and
+        (count_components < count_components_total)
+    ):
+        # Filter principal components by count.
+        count_components = int(count_components)
+        table_variances = table_variances.iloc[:count_components]
+    elif (
+        (variance_components is not None) and
+        (not math.isnan(variance_components)) and
+        (variance_components > 0.0) and
+        (variance_components < 1.0)
+    ):
+        # Filter principal components by the proportion of variance that they
+        # explain in values of the original features across observations.
         table_variances = table_variances.loc[
             (
                 table_variances["variance_proportion_cumulative"] <=
-                threshold_proportion
+                variance_components
             ), :
         ].copy(deep=True)
-        components_keep = copy.deepcopy(
-            table_variances["eigenvectors_components"].unique().tolist()
-        )
-    else:
-        components_keep = copy.deepcopy(
-            table_variances["eigenvectors_components"].unique().tolist()
-        )
         pass
+
+    # Determine principal components to keep.
+    components_keep = copy.deepcopy(
+        table_variances["eigenvectors_components"].unique().tolist()
+    )
 
     # Filter and sort columns in table.
     columns_sequence = copy.deepcopy(components_keep)
@@ -2323,7 +2352,7 @@ def calculate_principal_components_table_features_observations(
         ))
         print(str(
             "threshold on proportion of variance explained by components: " +
-            str(threshold_proportion)
+            str(variance_components)
         ))
         #print(str(
         #    "names of components that pass threshold filter: "

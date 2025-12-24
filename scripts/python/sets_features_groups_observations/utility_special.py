@@ -80,11 +80,11 @@ import partner.description as pdesc
 ###############################################################################
 # Functionality
 
-#column_name_observation=None,
-#column_name_observation (str): name of column in source table
 
 
-
+# TODO: TCW; 16 December 2025
+#    Eventually, phase out the use of "table_signals" in all modules with the
+#    exception of "merge_features_main_supplement.py".
 def determine_features_available(
     table_features=None,
     table_observations=None,
@@ -103,7 +103,15 @@ def determine_features_available(
     Available features are the union of features from "table_observations"
     and "table_signals" (dependent on orientation and transposition).
 
-    Review: TCW; 2 October 2025
+    This function is in use in the modules below.
+    plot_chart_heatmap_sets_features_groups_observations.py
+    calculate_principal_components_sets_features_groups_observations.py
+
+    Eventually, phase out the use of "table_signals" in all modules with the
+    exception of "merge_features_main_supplement.py".
+
+    Review or revision: TCW; 16 December 2025
+    Review or revision: TCW; 2 October 2025
 
     arguments:
         table_features (object): Pandas data-frame table
@@ -430,64 +438,50 @@ def organize_parameters_further_sets_features(
     """
 
     # Copy information.
-    table_features = table_features.copy(deep=True)
+    if (table_features is not None):
+        table_features = table_features.copy(deep=True)
+        pass
     features_selection = copy.deepcopy(features_selection)
     features_selection_translation = copy.deepcopy(features_selection)
     features_sets_union = copy.deepcopy(features_sets_union)
     sets_features = copy.deepcopy(sets_features)
     names_sets_features_sequence = copy.deepcopy(names_sets_features_sequence)
 
-    # Filter rows in table for selection of features.
-    if (len(features_selection) > 0):
-        table_features_selection = table_features.loc[
-            table_features[column_identifier_feature].isin(
-                features_selection
+    # Determine whether information is available for translation of the
+    # names of features.
+    if (
+        (table_features is not None)
+    ):
+        # Filter rows in table for selection of features.
+        if (len(features_selection) > 0):
+            table_features_selection = table_features.loc[
+                table_features[column_identifier_feature].isin(
+                    features_selection
+                ), :
+            ].copy(deep=True)
+        else:
+            table_features_selection = table_features
+            pass
+        table_alias = table_features_selection
+        table_features_selection = table_alias.loc[
+            (
+                (table_alias[column_identifier_feature].str.len() > 0) &
+                (table_alias[column_name_feature].str.len() > 0)
             ), :
         ].copy(deep=True)
+        # Extract information for translation of names of columns.
+        table_translations = table_features_selection.filter(
+            items=[column_identifier_feature, column_name_feature,],
+            axis="columns",
+        )
+        series_translations = pandas.Series(
+            table_translations[column_name_feature].to_list(),
+            index=table_translations[column_identifier_feature],
+        )
+        translations_features = series_translations.to_dict()
     else:
-        table_features_selection = table_features
-        pass
-    table_alias = table_features_selection
-    table_features_selection = table_alias.loc[
-        (
-            (table_alias[column_identifier_feature].str.len() > 0) &
-            (table_alias[column_name_feature].str.len() > 0)
-        ), :
-    ].copy(deep=True)
-    # Extract information for translation of names of columns.
-    table_translations = table_features_selection.filter(
-        items=[column_identifier_feature, column_name_feature,],
-        axis="columns",
-    )
-    series_translations = pandas.Series(
-        table_translations[column_name_feature].to_list(),
-        index=table_translations[column_identifier_feature],
-    )
-    translations_features = series_translations.to_dict()
-
-    # Translate names of genes in set for selection.
-    if False:
-        if (translations_features is not None):
-            features_selection_translation = list(map(
-                lambda feature: (translations_features[feature]),
-                features_selection_translation
-            ))
-            pass
-        pass
-
-    # Append prefix to names of columns in table for genes.
-    if False:
-        features_selection_prefix = list()
-        for name in features_selection_translation:
-            name_prefix = str(prefix_name_feature + name)
-            features_selection_prefix.append(name_prefix)
-            pass
-        translations_features_prefix = copy.deepcopy(translations_features)
-        for key in translations_features_prefix.keys():
-            name = str(translations_features_prefix[key])
-            name_prefix = str(prefix_name_feature + name)
-            translations_features_prefix[key] = name_prefix
-            pass
+        table_features_selection = None
+        translations_features = dict()
         pass
 
     # Bundle information.
@@ -664,7 +658,6 @@ def organize_parameters_further_groups_observations(
     table_observations=None,
     column_identifier_observation=None,
     column_name_observation=None,
-    column_identifier_signal=None,
     column_identifier_groups_observations=None,
     instances_groups_observations=None,
     key_name=None,
@@ -681,7 +674,6 @@ def organize_parameters_further_groups_observations(
         table_observations (object): Pandas data-frame table
         column_identifier_observation (str): name of column in source table
         column_name_observation (str): name of column in source table
-        column_identifier_signal (str): name of column in source table
         column_identifier_groups_observations (str): name of column in source
             table
         instances_groups_observations (list<dict>): multiple instances, each

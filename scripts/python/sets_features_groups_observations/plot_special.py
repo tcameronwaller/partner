@@ -543,24 +543,26 @@ def determine_size_axis_labels_categories(
 
     # Determine appropriate size of font for text labels of explicit names of
     # features or categories along axis.
-    if (150 <= count_labels and count_labels < 201):
+    if (170 <= count_labels and count_labels < 201):
         size_label = "twenty-one"
-    elif (120 <= count_labels and count_labels < 150):
+    elif (150 <= count_labels and count_labels < 170):
         size_label = "twenty"
+    elif (120 <= count_labels and count_labels < 150):
+        size_label = "nineteen" # check: TCW; 11 December 2025; labels clean but unreadable at 96 DPI resolution
     elif (100 <= count_labels and count_labels < 120):
-        size_label = "nineteen"
+        size_label = "eighteen" # check: TCW; 11 December 2025; labels clean and readable at 96 DPI resolution
     elif (80 <= count_labels and count_labels < 100):
-        size_label = "eighteen"
+        size_label = "seventeen" # check: TCW; 11 December 2025
     elif (60 <= count_labels and count_labels < 80):
-        size_label = "seventeen"
+        size_label = "sixteen" # check: TCW; 11 December 2025
     elif (40 <= count_labels and count_labels < 60):
-        size_label = "sixteen"
-    elif (30 <= count_labels and count_labels < 40):
         size_label = "fifteen"
+    elif (30 <= count_labels and count_labels < 40):
+        size_label = "fourteen" # check: TCW; 11 December 2025
     elif (20 <= count_labels and count_labels < 30):
-        size_label = "fourteen"
-    elif (10 <= count_labels and count_labels < 20):
         size_label = "thirteen"
+    elif (10 <= count_labels and count_labels < 20):
+        size_label = "twelve"
     elif (1 <= count_labels and count_labels < 10):
         size_label = "eleven"
     else:
@@ -759,9 +761,9 @@ def plot_heatmap_signal_features_observations_labels(
         value_minimum=pail["value_minimum"],
         value_center=pail["value_center"],
         value_maximum=pail["value_maximum"],
-        color_minimum=(0.05,0.05,0.6,1.0,), # "navy blue";(red: 13; green: 13; blue: 153) # TCW; 13 November 2025
+        color_minimum=(0.01,0.01,0.5,1.0,), # "blue, navy";(red: 3; green: 3; blue: 128) # TCW; 13 November 2025
         color_center=(1.0,1.0,1.0,1.0,), # "white"
-        color_maximum=(0.9,0.5,0.05,1.0,), # "orange"; (red: 230, green: 128, blue: 13) # TCW; 13 November 2025
+        color_maximum=(0.8,0.4,0.01,1.0,), # "orange, burnt"; (red: 230, green: 100, blue: 3) # TCW; 13 November 2025
     )
     image_main = axes_main.imshow(
         pail["matrix_signal"],

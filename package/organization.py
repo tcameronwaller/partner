@@ -2167,6 +2167,87 @@ def determine_series_signal_validity_threshold(
     return indicator
 
 
+def determine_series_signal_variance_threshold(
+    series=None,
+    keys_signal=None,
+    measure_variance=None,
+    threshold_variance=None,
+    report=None,
+):
+    """
+    Dependency:
+    This function is a dependency of the function below.
+    package: partner
+    module: organization
+    function: filter_table_rows_columns_by_variance_threshold()
+
+    Determine whether to keep a Pandas series on the basis of the variance
+    across values of signal intensity. The series can come from a single row or
+    column in a table.
+
+    Review or revision: TCW; 16 December 2025
+
+    arguments:
+        series (object): Pandas series of values of signal intensity
+        keys_signal (list<str>): names or identifiers of elements in the series
+            that correspond to values of signal intensity
+        measure_variance (str): name of measure to use for variance, either
+            'variance', 'standard_deviation', or 'coefficient_variation'
+        threshold_variance (float): threshold minimal variance for values of
+            features across observations
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (int): logical binary representation of whether to keep current series
+
+    """
+
+    # Copy information in series and other objects.
+    series = series.copy(deep=True)
+    keys_signal = copy.deepcopy(keys_signal)
+
+    # Extract and organize information from series.
+    if (len(keys_signal) > 0):
+        series = series.loc[keys_signal]
+        pass
+
+    # Evaluate variance across values in series.
+    values_raw = series.to_numpy(
+        dtype="float64",
+        na_value=numpy.nan,
+        copy=True,
+    )
+    pail = pdesc.calculate_variance_measures(
+        array=values_raw,
+    )
+    if (pail[measure_variance] >= threshold_variance):
+        indicator = 1
+    else:
+        indicator = 0
+        pass
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("module: partner.organization.py")
+        print("function: determine_series_signal_variance_threshold()")
+        putly.print_terminal_partition(level=5)
+        print("count of total values: " + str(count_raw))
+        print(
+            "count valid values, nonmissing and threshold: " + str(count_valid)
+        )
+        putly.print_terminal_partition(level=5)
+        print("variance, measure: " + str(measure_variance))
+        print("variance, actual: " + str(pail[measure_variance]))
+        print("variance, threshold: " + str(threshold_variance))
+        print("indicator: " + str(indicator))
+        putly.print_terminal_partition(level=5)
+    # Return information.
+    return indicator
+
+
 def filter_extract_table_row_identifiers_by_columns_categories(
     table=None,
     column_identifier=None,
@@ -2404,6 +2485,16 @@ def filter_table_columns_by_proportion_nonmissing_threshold(
     columns_selection = copy.deepcopy(columns_selection)
     rows_selection = copy.deepcopy(rows_selection)
 
+    # Extract identifiers of columns in table.
+    columns_available = copy.deepcopy(
+        table_filter.columns.unique().tolist()
+    )
+    # Filter selection of columns.
+    columns_selection_available = list(filter(
+        lambda column: (column in columns_available),
+        columns_selection
+    ))
+
     # Alternative approach.
     # Select subset of elements from each column's series using names of the
     # index across rows.
@@ -2421,7 +2512,7 @@ def filter_table_columns_by_proportion_nonmissing_threshold(
 
     # Iterate on columns.
     #columns_original = copy.deepcopy(table_filter.columns.to_list())
-    for name_column in columns_selection:
+    for name_column in columns_selection_available:
         series_column = table_check[name_column]
         match_keep_column = determine_series_signal_validity_threshold(
             series=series_column,
@@ -2595,6 +2686,136 @@ def filter_table_rows_columns_by_proportion_nonmissing_threshold(
             "filter_table_rows_columns_by_proportion_nonmissing_threshold()"
         )
         print("function: " + function)
+        putly.print_terminal_partition(level=5)
+    # Return information.
+    return table_filter
+
+
+def filter_table_columns_by_variance_threshold(
+    table=None,
+    index_columns=None,
+    index_rows=None,
+    columns_selection=None,
+    rows_selection=None,
+    measure_variance=None,
+    threshold_variance=None,
+    report=None,
+):
+    """
+    Filter columns in a Pandas data-frame table by considering the variance
+    across observation signals for each feature. Notice that this function
+    transforms the scale to unit range before measuring the variance.
+
+    Review or revision: TCW; 16 December 2024
+
+    arguments:
+        table (object): Pandas data-frame table
+        index_columns (str): name for index corresponding to columns in the
+            original source table
+        index_rows (str): name for index corresponding to rows in the original
+            source table
+        columns_selection (list<str>): identifiers or names of columns which
+            are candidates for filters and from which to consider values in
+            filters on rows
+        rows_selection (list<str>): identifiers or names of rows which are
+            candidates for filters and from which to consider values in filters
+            on columns
+        measure_variance (str): name of measure to use for variance, either
+            'variance', 'standard_deviation', or 'coefficient_variation'
+        threshold_variance (float): threshold minimal variance for values of
+            features across observations
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table
+
+    """
+
+    # Copy information in tables and other objects.
+    table_filter = table.copy(deep=True)
+    table_check = table.copy(deep=True)
+    columns_selection = copy.deepcopy(columns_selection)
+    rows_selection = copy.deepcopy(rows_selection)
+
+    # Extract identifiers of columns in table.
+    columns_available = copy.deepcopy(
+        table_check.columns.unique().tolist()
+    )
+    # Filter selection of columns.
+    columns_selection_available = list(filter(
+        lambda column: (column in columns_available),
+        columns_selection
+    ))
+
+    # Alternative approach.
+    # Select subset of elements from each column's series using names of the
+    # index across rows.
+    # This approach also does not seem to work for series extracted from the
+    # columns of a Pandas data-frame.
+    # series_selection = series_column.loc[rows_selection]
+
+    # Consider only specific rows from original source table.
+    table_check = table_check.loc[(
+        table_check[index_rows].isin(rows_selection)
+    ), :]
+    # Standardize scale of values for observations of features.
+    table_check = pscl.manage_transform_scale_feature_by_table_columns(
+        table=table_check,
+        features_continuity_scale=columns_selection_available,
+        adjust_scale=True,
+        method_scale="unit_range", # "z_score" or "unit_range"
+        report=report,
+    )
+
+    # Collect information.
+    columns_drop = list()
+
+    # Iterate on columns.
+    #columns_original = copy.deepcopy(table_filter.columns.to_list())
+    for name_column in columns_selection_available:
+        series_column = table_check[name_column]
+        match_keep_column = determine_series_signal_variance_threshold(
+            series=series_column,
+            keys_signal=list(), # list()
+            measure_variance=measure_variance,
+            threshold_variance=threshold_variance,
+            report=False,
+        )
+        if (match_keep_column != 1):
+            columns_drop.append(name_column)
+            pass
+        pass
+
+    # Remove unnecessary columns.
+    table_filter.drop(
+        labels=columns_drop,
+        axis="columns",
+        inplace=True
+    )
+
+    # Report.
+    if report:
+        count_columns_source = (table.shape[1])
+        count_columns_product = (table_filter.shape[1])
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        print("module: organization.py")
+        function = "filter_table_columns_by_variance_threshold()"
+        print("function: " + function)
+        putly.print_terminal_partition(level=5)
+        print(
+            "count of columns in source table: " +
+            str(count_columns_source)
+        )
+        print(
+            "count of columns in product table: " +
+            str(count_columns_product)
+        )
+        putly.print_terminal_partition(level=5)
+        print("product table:")
+        print(table_filter)
         putly.print_terminal_partition(level=5)
     # Return information.
     return table_filter

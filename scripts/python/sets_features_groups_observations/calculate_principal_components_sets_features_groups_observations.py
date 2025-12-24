@@ -67,6 +67,13 @@ License:
 # before merging with "table_observations".
 
 
+# Note: TCW; 11 December 2025
+# Consider simplifying this procedure by removing all accommodation for
+# supplemental features that are not already in the main table of features and
+# observations. Leave that job to the separate procedure,
+# "merge_features_main_supplement.py".
+
+
 ##########
 # Review:
 
@@ -120,21 +127,20 @@ def parse_text_parameters(
     path_directory_source=None,
     path_directory_product=None,
     path_directory_dock=None,
+    path_file_source_table_features_observations=None,
     path_file_source_table_features=None,
-    path_file_source_table_observations=None,
-    path_file_source_table_signals=None,
     path_file_source_table_sets_features=None,
     path_file_source_table_groups_observations=None,
-    column_identifier_feature=None,
-    column_name_feature=None,
     column_identifier_observation=None,
     column_name_observation=None,
-    column_identifier_signal=None,
-    threshold_components=None,
+    column_identifier_feature=None,
+    column_name_feature=None,
+    proportion_nonmissing_observations=None,
+    allow_replicate_observations=None,
+    count_components=None,
+    variance_components=None,
     identifiers_emphasis=None,
     features_response_quantitative=None,
-    transpose_table_signals=None,
-    allow_replicate_observations=None,
     report=None,
 ):
     """
@@ -161,14 +167,11 @@ def parse_text_parameters(
     pail["path_directory_dock"] = str(path_directory_dock).strip()
 
     # Paths to files.
+    pail["path_file_source_table_features_observations"] = str(
+        path_file_source_table_features_observations
+    ).strip()
     pail["path_file_source_table_features"] = str(
         path_file_source_table_features
-    ).strip()
-    pail["path_file_source_table_observations"] = str(
-        path_file_source_table_observations
-    ).strip()
-    pail["path_file_source_table_signals"] = str(
-        path_file_source_table_signals
     ).strip()
     pail["path_file_source_table_sets_features"] = str(
         path_file_source_table_sets_features
@@ -178,24 +181,47 @@ def parse_text_parameters(
     ).strip()
 
     # Names of columns.
-    pail["column_identifier_feature"] = str(
-        column_identifier_feature
-    ).strip()
-    pail["column_name_feature"] = str(
-        column_name_feature
-    ).strip()
     pail["column_identifier_observation"] = str(
         column_identifier_observation
     ).strip()
     pail["column_name_observation"] = str(
         column_name_observation
     ).strip()
-    pail["column_identifier_signal"] = str(
-        column_identifier_signal
+    pail["column_identifier_feature"] = str(
+        column_identifier_feature
+    ).strip()
+    pail["column_name_feature"] = str(
+        column_name_feature
     ).strip()
 
     # Number.
-    pail["threshold_components"] = float(threshold_components)
+    # Iterate on individual of numeric parameters.
+    numbers = {
+        "proportion_nonmissing_observations": (
+            proportion_nonmissing_observations
+        ),
+        "count_components": count_components,
+        "variance_components": variance_components,
+    }
+    nulls = [
+        "na", "nan", "NA", "NAN",
+    ]
+    for key_number in numbers.keys():
+        # Determine whether parameter has a valid value.
+        if (
+            (numbers[key_number] is not None) and
+            (len(str(numbers[key_number])) > 0) and
+            (str(numbers[key_number]) != "") and
+            (str(numbers[key_number]).strip().lower() != "none") and
+            (str(numbers[key_number]).strip().lower() not in nulls)
+        ):
+            # Number is valid.
+            pail[key_number] = float(str(numbers[key_number]).strip())
+        else:
+            # Number is missing or null.
+            pail[key_number] = None
+            pass
+        pass
 
     # List.
     pail["identifiers_emphasis"] = putly.parse_text_list_values(
@@ -214,35 +240,26 @@ def parse_text_parameters(
     )
 
     # Boolean, true or false.
-    if (
-        (transpose_table_signals is not None) and
-        (str(transpose_table_signals) != "") and
-        (str(transpose_table_signals) != "none") and
-        (str(transpose_table_signals) == "true")
-    ):
-        pail["transpose_table_signals"] = True
-    else:
-        pail["transpose_table_signals"] = False
-        pass
-    if (
-        (allow_replicate_observations is not None) and
-        (str(allow_replicate_observations) != "") and
-        (str(allow_replicate_observations) != "none") and
-        (str(allow_replicate_observations) == "true")
-    ):
-        pail["allow_replicate_observations"] = True
-    else:
-        pail["allow_replicate_observations"] = False
-        pass
-    if (
-        (report is not None) and
-        (str(report) != "") and
-        (str(report) != "none") and
-        (str(report) == "true")
-    ):
-        pail["report"] = True
-    else:
-        pail["report"] = False
+    # Iterate on individual of Boolean designations.
+    designations = {
+        "allow_replicate_observations": allow_replicate_observations,
+        "report": report,
+    }
+    for key_designation in designations.keys():
+        # Determine whether parameter has a valid value.
+        if (
+            (designations[key_designation] is not None) and
+            (len(str(designations[key_designation])) > 0) and
+            (str(designations[key_designation]) != "") and
+            (str(designations[key_designation]).strip().lower() != "none") and
+            (str(designations[key_designation]) == "true")
+        ):
+            # Designation is true.
+            pail[key_designation] = True
+        else:
+            # Designation is false.
+            pail[key_designation] = False
+            pass
         pass
 
     # Report.
@@ -305,9 +322,8 @@ def read_source(
     path_directory_source=None,
     path_directory_product=None,
     path_directory_dock=None,
+    path_file_source_table_features_observations=None,
     path_file_source_table_features=None,
-    path_file_source_table_observations=None,
-    path_file_source_table_signals=None,
     path_file_source_table_sets_features=None,
     path_file_source_table_groups_observations=None,
     report=None,
@@ -318,7 +334,8 @@ def read_source(
     Notice that Pandas does not accommodate missing values within series of
     integer variable types.
 
-    Review: TCW; 29 September 2025
+    Review or revision: TCW; 16 December 2025
+    Review or revision: TCW; 29 September 2025
 
     arguments:
         path_directory_source (str): path to directory for procedure's source
@@ -341,14 +358,14 @@ def read_source(
 
     # Determine whether paths point to a directory or file that exist.
     #existence_directory = os.path.exists(path_directory)
-    existence_file_signals = os.path.exists(path_file_source_table_signals)
+    existence_file_features = os.path.exists(path_file_source_table_features)
 
     # Bundle information.
     pail = dict()
 
     # Read information from file.
-    pail["table_features"] = pandas.read_csv(
-        path_file_source_table_features,
+    pail["table_features_observations"] = pandas.read_csv(
+        path_file_source_table_features_observations,
         sep="\t",
         header=0,
         #dtype=types_columns,
@@ -357,19 +374,9 @@ def read_source(
         ],
         encoding="utf-8",
     )
-    pail["table_observations"] = pandas.read_csv(
-        path_file_source_table_observations,
-        sep="\t",
-        header=0,
-        #dtype=types_columns,
-        na_values=[
-            "nan", "na", "NAN", "NA", "<nan>", "<na>", "<NAN>", "<NA>",
-        ],
-        encoding="utf-8",
-    )
-    if (existence_file_signals):
-        pail["table_signals"] = pandas.read_csv(
-            path_file_source_table_signals,
+    if (existence_file_features):
+        pail["table_features"] = pandas.read_csv(
+            path_file_source_table_features,
             sep="\t",
             header=0,
             #dtype=types_columns,
@@ -379,9 +386,9 @@ def read_source(
             encoding="utf-8",
         )
     else:
-        pail["table_signals"] = None
+        pail["table_features"] = None
         pass
-    pail["table_sets"] = pandas.read_csv(
+    pail["table_sets_features"] = pandas.read_csv(
         path_file_source_table_sets_features,
         sep="\t",
         header=0,
@@ -391,7 +398,7 @@ def read_source(
         ],
         encoding="utf-8",
     )
-    pail["table_groups"] = pandas.read_csv(
+    pail["table_groups_observations"] = pandas.read_csv(
         path_file_source_table_groups_observations,
         sep="\t",
         header=0,
@@ -420,26 +427,23 @@ def read_source(
     return pail
 
 
-def filter_combine_features_observations(
-    table_main=None,
-    table_supplement=None,
-    column_identifier_feature=None,
-    column_name_feature=None,
+def filter_organize_table_features_observations(
+    table=None,
     column_identifier_observation=None,
     column_name_observation=None,
-    column_identifier_signal=None,
     column_identifier_groups_observations=None,
     columns_categories=None,
     features_selection=None,
+    features_response_quantitative=None,
     observations_selection=None,
     filter_table_main=None,
-    transpose_table_supplement=None,
     report=None,
 ):
     """
     Blank.
 
-    Review: TCW; 2 October 2025
+    Review or revision: TCW; 16 December 2025
+    Review or revision: TCW; 2 October 2025
 
     arguments:
 
@@ -452,12 +456,12 @@ def filter_combine_features_observations(
     """
 
     # Copy information.
-    table_main = table_main.copy(deep=True)
-    if (table_supplement is not None):
-        table_supplement = table_supplement.copy(deep=True)
-        pass
+    table = table.copy(deep=True)
     columns_categories = copy.deepcopy(columns_categories)
     features_selection = copy.deepcopy(features_selection)
+    features_response_quantitative = copy.deepcopy(
+        features_response_quantitative
+    )
     observations_selection = copy.deepcopy(observations_selection)
 
     # Filter columns and rows in main table for specific features and
@@ -468,83 +472,32 @@ def filter_combine_features_observations(
         # Copy information.
         categories_features_selection = copy.deepcopy(columns_categories)
         # Prepare inclusive list of columns.
-        categories_features_selection.insert(0, column_identifier_signal)
         categories_features_selection.insert(0, column_name_observation)
         categories_features_selection.insert(0, column_identifier_observation)
         categories_features_selection.insert(
             0, column_identifier_groups_observations
         )
         categories_features_selection.extend(features_selection)
+        categories_features_selection.extend(features_response_quantitative)
         # Filter columns and rows in table.
-        table_main_selection = (
+        table_selection = (
             porg.filter_select_table_columns_rows_by_identifiers(
-                table=table_main,
+                table=table,
                 index_rows=column_identifier_groups_observations,
                 identifiers_columns=categories_features_selection,
                 identifiers_rows=observations_selection,
                 report=False,
         ))
-    else:
-        # Copy information.
-        table_main_selection = table_main.copy(deep=True)
-        pass
-
-    # Determine whether there is a table of supplemental features (signals) to
-    # merge into the main table of features and observations.
-    if (table_supplement is not None):
-        # Optional preliminary transposition.
-        # Copy information.
-        table_supplement_format = table_supplement.copy(deep=True)
-        # Determine whether to apply optional transposition.
-        if (transpose_table_supplement):
-            # Organize indices in table.
-            table_supplement_format = (
-                porg.explicate_table_indices_columns_rows_single_level(
-                    table=table_supplement_format,
-                    index_columns=column_identifier_signal,
-                    index_rows=column_identifier_feature,
-                    explicate_indices=True,
-                    report=report,
-            ))
-            # Transpose table.
-            table_supplement_format = table_supplement_format.transpose(
-                copy=True
-            )
-            # Organize indices in table.
-            table_supplement_format.reset_index(
-                level=None,
-                inplace=True,
-                drop=False, # remove index; do not move to regular columns
-            )
-            table_supplement_format.columns.rename(
-                None,
-                inplace=True,
-            ) # single-dimensional index
-
-        # Filter columns and rows in table for specific features and
-        # observations.
-        table_supplement_selection = (
-            porg.filter_select_table_columns_rows_by_identifiers(
-                table=table_supplement_format,
-                index_rows=column_identifier_signal,
-                identifiers_columns=features_selection,
-                identifiers_rows=observations_selection,
-                report=False,
-        ))
-
-        # Merge together features from table of supplemental signals to those
-        # in table of main observations.
-        table_features_observations = porg.merge_columns_two_tables(
-            identifier_first=column_identifier_signal,
-            identifier_second=column_identifier_signal,
-            table_first=table_main_selection,
-            table_second=table_supplement_selection,
-            preserve_index=False,
-            report=report,
+        # Filter rows in table for non-missing values across relevant columns.
+        table_filter.dropna(
+            axis="index",
+            how="all",
+            subset=features_selection,
+            inplace=True,
         )
     else:
         # Copy information.
-        table_features_observations = table_main_selection.copy(deep=True)
+        table_selection = table.copy(deep=True)
         pass
 
     # Report.
@@ -558,14 +511,144 @@ def filter_combine_features_observations(
             "observations.py"
         )
         print(str("module: " + module))
-        print("function: filter_combine_features_observations()")
+        print("function: filter_organize_table_features_observations()")
         putly.print_terminal_partition(level=5)
-        print("table of combined features and observations:")
-        print(table_features_observations)
+        print("table before filtering columns and rows")
+        print(table)
+        print("table after filtering columns and rows")
+        print(table_selection)
         putly.print_terminal_partition(level=5)
         pass
     # Return information.
-    return table_features_observations
+    return table_selection
+
+
+def filter_features_by_variance_available_observations(
+    table=None,
+    column_identifier_observation=None,
+    column_name_observation=None,
+    features_selection=None,
+    features_response_quantitative=None,
+    sets_features=None,
+    observations_selection=None,
+    proportion_nonmissing_observations=None,
+    report=None,
+):
+    """
+    Blank.
+
+    Review or revision: TCW; 16 December 2025
+
+    arguments:
+
+    TODO: update documentation
+
+    raises:
+
+    returns:
+        (dict<object>): bundle of information
+    """
+
+    ##########
+    # Copy information.
+    table = table.copy(deep=True)
+    features_selection = copy.deepcopy(features_selection)
+    features_response_quantitative = copy.deepcopy(
+        features_response_quantitative
+    )
+    sets_features = copy.deepcopy(sets_features)
+    observations_selection = copy.deepcopy(observations_selection)
+
+    # Assemble list of features.
+    features_selection_total = list()
+    features_selection_total.extend(features_selection)
+    features_selection_total.extend(features_response_quantitative)
+    features_selection_total = putly.collect_unique_items(
+        items=features_selection_total,
+    )
+
+    # Filter table's columns corresponding to features by the availability of
+    # observations across rows in the table.
+    table_filter = (
+        porg.filter_table_columns_by_proportion_nonmissing_threshold(
+            table=table,
+            index_columns="features",
+            index_rows=column_identifier_observation,
+            columns_selection=features_selection_total,
+            rows_selection=observations_selection,
+            threshold_low=None,
+            threshold_high=None,
+            proportion=proportion_nonmissing_observations,
+            report=report,
+    ))
+
+    # Filter table's columns corresponding to features by the corresponding
+    # variance across observations in rows of the table.
+    table_filter = (
+        porg.filter_table_columns_by_variance_threshold(
+            table=table_filter,
+            index_columns="features",
+            index_rows=column_identifier_observation,
+            columns_selection=features_selection_total,
+            rows_selection=observations_selection,
+            measure_variance="coefficient_variation",
+            threshold_variance=0.001,
+            report=report,
+    ))
+
+    # Extract identifiers of columns in table.
+    features_available = copy.deepcopy(
+        table_filter.columns.unique().tolist()
+    )
+
+    # Filter sets of features by the availability of nonmissing observations
+    # across rows for corresponding columns in table.
+    sets_features_filter = dict()
+    features_selection_filter = list()
+    for name_set in sets_features.keys():
+        features_set = copy.deepcopy(sets_features[name_set])
+        sets_features_filter[name_set] = list(filter(
+            lambda feature: (feature in features_available),
+            features_set
+        ))
+        features_selection_filter.extend(sets_features_filter[name_set])
+        pass
+    # Filter features for quantitative responses.
+    features_response_quantitative_filter = list(filter(
+        lambda feature: (feature in features_available),
+        features_response_quantitative
+    ))
+    # Collect unique features.
+    features_selection_filter = putly.collect_unique_items(
+        items=features_selection_filter,
+    )
+
+    # Bundle information.
+    pail = dict()
+    pail["features_selection"] = features_selection_filter
+    pail["features_response_quantitative"] = (
+        features_response_quantitative_filter
+    )
+    pail["sets_features"] = sets_features_filter
+
+    # Report.
+    if report:
+        # Organize information.
+        count = len(features_selection_filter)
+        # Print information.
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        module = str(
+            "calculate_tables_plot_charts_features_correlations.py"
+        )
+        print(str("module: " + module))
+        print("function: filter_features_by_available_observations()")
+        putly.print_terminal_partition(level=5)
+        print("count of selection features: " + str(count))
+        putly.print_terminal_partition(level=5)
+        pass
+    # Return information.
+    return pail
 
 
 def create_write_plot_chart_heatmap_loadings(
@@ -1207,7 +1290,8 @@ def manage_components_set_features_groups_observations(
     names_groups_observations_sequence=None,
     translations_features=None,
     translations_observations=None,
-    threshold_components=None,
+    count_components=None,
+    variance_components=None,
     identifiers_emphasis=None,
     features_response_quantitative=None,
     allow_replicate_observations=None,
@@ -1224,6 +1308,11 @@ def manage_components_set_features_groups_observations(
     arguments:
 
     TODO: update documentation
+
+        count_components (int): count of principal components to keep
+        variance_components (float): threshold on the cumulative proportion of
+            total variance to determine how many principal components to keep
+
 
     raises:
 
@@ -1259,8 +1348,8 @@ def manage_components_set_features_groups_observations(
             rows_selection=observations_selection,
             prefix=prefix_name_components,
             separator="_",
-            #threshold_proportion=None,
-            threshold_proportion=threshold_components, # cumulative proportion of variance; float or None to keep all
+            count_components=count_components,
+            variance_components=variance_components, # cumulative proportion of variance; float or None to keep all
             explicate_indices=False,
             report=report,
     ))
@@ -1436,27 +1525,27 @@ def execute_procedure(
     path_directory_source=None,
     path_directory_product=None,
     path_directory_dock=None,
+    path_file_source_table_features_observations=None,
     path_file_source_table_features=None,
-    path_file_source_table_observations=None,
-    path_file_source_table_signals=None,
     path_file_source_table_sets_features=None,
     path_file_source_table_groups_observations=None,
-    column_identifier_feature=None,
-    column_name_feature=None,
     column_identifier_observation=None,
     column_name_observation=None,
-    column_identifier_signal=None,
-    threshold_components=None,
+    column_identifier_feature=None,
+    column_name_feature=None,
+    proportion_nonmissing_observations=None,
+    allow_replicate_observations=None,
+    count_components=None,
+    variance_components=None,
     identifiers_emphasis=None,
     features_response_quantitative=None,
-    transpose_table_signals=None,
-    allow_replicate_observations=None,
     report=None,
 ):
     """
     Function to execute module's main behavior.
 
-    Review: TCW; 2 October 2025
+    Review or revision: TCW; 15 December 2025
+    Review or revision: TCW; 2 October 2025
 
     arguments:
         path_directory_source (str): path to directory for procedure's source
@@ -1465,23 +1554,25 @@ def execute_procedure(
             directories and files
         path_directory_dock (str): path to dock directory for procedure's
             source and product directories and files
+
+        path_file_source_table_features_observations (str): path to source file
         path_file_source_table_features (str): path to source file
-        path_file_source_table_observations (str): path to source file
-        path_file_source_table_signals (str): path to source file
         path_file_source_table_sets_features (str): path to source file
         path_file_source_table_groups_observations (str): path to source file
+        column_identifier_observation (str): name of column in source table
+        column_name_observation (str): name of column in source table
         column_identifier_feature (str): name of column in source table
         column_name_feature (str): name of column in source table
-        column_identifier_observation (str): name of column in source table
-        column_identifier_signal (str): name of column in source table
-        count_components (int): count of principal components to keep for each
-            set of features
-        transpose_table_signals (bool): whether to transpose the table of
-            signals to match orientation in table of observations (columns:
-            features; rows: observations)
+        proportion_nonmissing_observations (float): threshold by proportion of
+            observations that must have nonmissing values for each feature
         allow_replicate_observations (bool): whether to allow replicate
             observations or to require groups to be mutually exclusive, such
             that any individual observation can only belong to one group
+        count_components (int): count of principal components to keep for each
+            set of features
+        variance_components (float):
+        identifiers_emphasis (list<str>):
+        features_response_quantitative (list<str>):
         report (bool): whether to print reports
 
     raises:
@@ -1496,27 +1587,26 @@ def execute_procedure(
         path_directory_source=path_directory_source,
         path_directory_product=path_directory_product,
         path_directory_dock=path_directory_dock,
-        path_file_source_table_features=path_file_source_table_features,
-        path_file_source_table_observations=(
-            path_file_source_table_observations
+        path_file_source_table_features_observations=(
+            path_file_source_table_features_observations
         ),
-        path_file_source_table_signals=path_file_source_table_signals,
+        path_file_source_table_features=path_file_source_table_features,
         path_file_source_table_sets_features=(
             path_file_source_table_sets_features
         ),
         path_file_source_table_groups_observations=(
             path_file_source_table_groups_observations
         ),
-        column_identifier_feature=column_identifier_feature,
-        column_name_feature=column_name_feature,
         column_identifier_observation=column_identifier_observation,
         column_name_observation=column_name_observation,
-        column_identifier_signal=column_identifier_signal,
-        threshold_components=threshold_components,
+        column_identifier_feature=column_identifier_feature,
+        column_name_feature=column_name_feature,
+        proportion_nonmissing_observations=proportion_nonmissing_observations,
+        allow_replicate_observations=allow_replicate_observations,
+        count_components=count_components,
+        variance_components=variance_components,
         identifiers_emphasis=identifiers_emphasis,
         features_response_quantitative=features_response_quantitative,
-        transpose_table_signals=transpose_table_signals,
-        allow_replicate_observations=allow_replicate_observations,
         report=report,
     )
 
@@ -1541,14 +1631,11 @@ def execute_procedure(
         path_directory_source=pail_parameters["path_directory_source"],
         path_directory_product=pail_parameters["path_directory_product"],
         path_directory_dock=pail_parameters["path_directory_dock"],
+        path_file_source_table_features_observations=(
+            pail_parameters["path_file_source_table_features_observations"]
+        ),
         path_file_source_table_features=(
             pail_parameters["path_file_source_table_features"]
-        ),
-        path_file_source_table_observations=(
-            pail_parameters["path_file_source_table_observations"]
-        ),
-        path_file_source_table_signals=(
-            pail_parameters["path_file_source_table_signals"]
         ),
         path_file_source_table_sets_features=(
             pail_parameters["path_file_source_table_sets_features"]
@@ -1561,26 +1648,30 @@ def execute_procedure(
 
     # Parameters.
 
+    # Determine preliminary selection of features with available observations.
+    # This preliminary selection of features does not consider their respective
+    # proportions of observations with nonmissing values.
     features_available = sutly.determine_features_available(
         table_features=pail_source["table_features"],
-        table_observations=pail_source["table_observations"],
-        table_signals=pail_source["table_signals"],
+        table_observations=pail_source["table_features_observations"],
+        table_signals=None,
         column_identifier_feature=pail_parameters["column_identifier_feature"],
         column_name_feature=pail_parameters["column_name_feature"],
         column_identifier_observation=(
             pail_parameters["column_identifier_observation"]
         ),
         column_name_observation=pail_parameters["column_name_observation"],
-        column_identifier_signal=pail_parameters["column_identifier_signal"],
-        transpose_table_signals=pail_parameters["transpose_table_signals"],
+        column_identifier_signal=None,
+        transpose_table_signals=None,
         report=pail_parameters["report"],
     )
 
+    # Read and organize parameters about sets of features.
     pail_sets = sutly.read_organize_parameters_sets_features(
         path_directory_source=pail_parameters["path_directory_source"],
         path_directory_product=pail_parameters["path_directory_product"],
         path_directory_dock=pail_parameters["path_directory_dock"],
-        table=pail_source["table_sets"],
+        table=pail_source["table_sets_features"],
         column_name="abbreviation",
         features_available=features_available,
         report=pail_parameters["report"],
@@ -1590,7 +1681,6 @@ def execute_procedure(
     #pail_sets["sets_features"]
     #pail_sets["features_sets_union"]
     #pail_sets["records"]
-
     pail_features = sutly.organize_parameters_further_sets_features(
         table_features=pail_source["table_features"],
         column_identifier_feature=(
@@ -1611,12 +1701,12 @@ def execute_procedure(
     #pail_features["features_selection_translation"]
     #pail_features["features_selection_prefix"]
     #pail_features["translations_features"]
-    #pail_features["translations_features_prefix"]
     #pail_features["names_sets_features_sequence"]
     #pail_features["sets_features"]
 
+    # Organize parameters about groups of observations.
     pail_groups = sutly.organize_parameters_groups_observations(
-        table=pail_source["table_groups"],
+        table=pail_source["table_groups_observations"],
         column_name="abbreviation",
         report=pail_parameters["report"],
     )
@@ -1624,16 +1714,12 @@ def execute_procedure(
     #pail_groups["names_groups_observations_sequence"]
     #pail_groups["categories_groups"]
     #pail_groups["records"]
-
     pail_observations = sutly.organize_parameters_further_groups_observations(
-        table_observations=pail_source["table_observations"],
+        table_observations=pail_source["table_features_observations"],
         column_identifier_observation=(
             pail_parameters["column_identifier_observation"]
         ),
         column_name_observation=pail_parameters["column_name_observation"],
-        column_identifier_signal=(
-            pail_parameters["column_identifier_signal"]
-        ),
         column_identifier_groups_observations=(
             pail_parameters["column_identifier_observation"]
         ),
@@ -1650,33 +1736,46 @@ def execute_procedure(
     #pail_observations["names_groups_observations_sequence"]
     #pail_observations["groups_observations"]
 
-    # Filter features and observations anc combine those from "table_signals"
-    # to those in "table_observations".
-    table_features_observations = filter_combine_features_observations(
-        table_main=pail_source["table_observations"],
-        table_supplement=pail_source["table_signals"],
-        column_identifier_feature=(
-            pail_parameters["column_identifier_feature"]
-        ),
-        column_name_feature=(
-            pail_parameters["column_name_feature"]
-        ),
+    # Filter sets of features corresponding to columns in table by their
+    # availability of values across rows in table corresponding to
+    # observations.
+    pail_features_availability = (
+        filter_features_by_variance_available_observations(
+            table=pail_source["table_features_observations"],
+            column_identifier_observation=column_identifier_observation,
+            column_name_observation=column_name_observation,
+            features_selection=pail_features["features_selection"],
+            features_response_quantitative=(
+                pail_parameters["features_response_quantitative"]
+            ),
+            sets_features=pail_features["sets_features"],
+            observations_selection=pail_observations["observations_selection"],
+            proportion_nonmissing_observations=(
+                pail_parameters["proportion_nonmissing_observations"]
+            ),
+            report=report,
+    ))
+    #pail_features_availability["features_selection"]
+    #pail_features_availability["features_response_quantitative"]
+    #pail_features_availability["sets_features"]
+
+    # Filter features and observations in main table.
+    table_features_observations = filter_organize_table_features_observations(
+        table=pail_source["table_features_observations"],
         column_identifier_observation=(
             pail_parameters["column_identifier_observation"]
         ),
         column_name_observation=pail_parameters["column_name_observation"],
-        column_identifier_signal=pail_parameters["column_identifier_signal"],
         column_identifier_groups_observations=(
             pail_parameters["column_identifier_observation"]
         ),
         columns_categories=pail_groups["categories_groups"],
-        features_selection=pail_features["features_selection"],
-        #features_selection=features_set,
+        features_selection=pail_features_availability["features_selection"],
+        features_response_quantitative=(
+            pail_features_availability["features_response_quantitative"]
+        ),
         observations_selection=pail_observations["observations_selection"],
         filter_table_main=False,
-        transpose_table_supplement=(
-            pail_parameters["transpose_table_signals"]
-        ),
         report=pail_parameters["report"],
     )
 
@@ -1684,7 +1783,9 @@ def execute_procedure(
     for name_set_features in pail_features["names_sets_features_sequence"]:
 
         # Access set of features for current instance.
-        features_set = pail_features["sets_features"][name_set_features]
+        features_set = copy.deepcopy(
+            pail_features_availability["sets_features"][name_set_features]
+        )
 
         # Calculate principal components.
         pail_instance = manage_components_set_features_groups_observations(
@@ -1712,14 +1813,15 @@ def execute_procedure(
             translations_observations=(
                 pail_observations["translations_observations"]
             ),
-            threshold_components=(
-                pail_parameters["threshold_components"]
+            count_components=(pail_parameters["count_components"]),
+            variance_components=(
+                pail_parameters["variance_components"]
             ),
             identifiers_emphasis=(
                 pail_parameters["identifiers_emphasis"]
             ),
             features_response_quantitative=(
-                pail_parameters["features_response_quantitative"]
+                pail_features_availability["features_response_quantitative"]
             ),
             allow_replicate_observations=(
                 pail_parameters["allow_replicate_observations"]
@@ -1778,49 +1880,47 @@ if (__name__ == "__main__"):
     path_directory_source = sys.argv[1]
     path_directory_product = sys.argv[2]
     path_directory_dock = sys.argv[3]
-    path_file_source_table_features = sys.argv[4]
-    path_file_source_table_observations = sys.argv[5]
-    path_file_source_table_signals = sys.argv[6]
-    path_file_source_table_sets_features = sys.argv[7]
-    path_file_source_table_groups_observations = sys.argv[8]
-    column_identifier_feature = sys.argv[9]
-    column_name_feature = sys.argv[10]
-    column_identifier_observation = sys.argv[11]
-    column_name_observation = sys.argv[12]
-    column_identifier_signal = sys.argv[13]
-    threshold_components = sys.argv[14]
-    identifiers_emphasis = sys.argv[15]
-    features_response_quantitative = sys.argv[16]
-    transpose_table_signals = sys.argv[17]
-    allow_replicate_observations = sys.argv[18]
-    report = sys.argv[19]
+    path_file_source_table_features_observations = sys.argv[4]
+    path_file_source_table_features = sys.argv[5]
+    path_file_source_table_sets_features = sys.argv[6]
+    path_file_source_table_groups_observations = sys.argv[7]
+    column_identifier_observation = sys.argv[8]
+    column_name_observation = sys.argv[9]
+    column_identifier_feature = sys.argv[10]
+    column_name_feature = sys.argv[11]
+    proportion_nonmissing_observations = sys.argv[12]
+    allow_replicate_observations = sys.argv[13]
+    count_components = sys.argv[14]
+    variance_components = sys.argv[15]
+    identifiers_emphasis = sys.argv[16]
+    features_response_quantitative = sys.argv[17]
+    report = sys.argv[18]
 
     # Call function for procedure.
     execute_procedure(
         path_directory_source=path_directory_source,
         path_directory_product=path_directory_product,
         path_directory_dock=path_directory_dock,
-        path_file_source_table_features=path_file_source_table_features,
-        path_file_source_table_observations=(
-            path_file_source_table_observations
+        path_file_source_table_features_observations=(
+            path_file_source_table_features_observations
         ),
-        path_file_source_table_signals=path_file_source_table_signals,
+        path_file_source_table_features=path_file_source_table_features,
         path_file_source_table_sets_features=(
             path_file_source_table_sets_features
         ),
         path_file_source_table_groups_observations=(
             path_file_source_table_groups_observations
         ),
-        column_identifier_feature=column_identifier_feature,
-        column_name_feature=column_name_feature,
         column_identifier_observation=column_identifier_observation,
         column_name_observation=column_name_observation,
-        column_identifier_signal=column_identifier_signal,
-        threshold_components=threshold_components,
+        column_identifier_feature=column_identifier_feature,
+        column_name_feature=column_name_feature,
+        proportion_nonmissing_observations=proportion_nonmissing_observations,
+        allow_replicate_observations=allow_replicate_observations,
+        count_components=count_components,
+        variance_components=variance_components,
         identifiers_emphasis=identifiers_emphasis,
         features_response_quantitative=features_response_quantitative,
-        transpose_table_signals=transpose_table_signals,
-        allow_replicate_observations=allow_replicate_observations,
         report=report,
     )
 

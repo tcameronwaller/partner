@@ -148,7 +148,7 @@ def define_column_types_table_parameters():
     types_columns = dict()
     types_columns["execution"] = "string" # "int32"
     types_columns["sequence"] = "string" # "int32"
-    types_columns["group"] = "string"
+    types_columns["category"] = "string"
     types_columns["name"] = "string"
     #types_columns["name_combination"] = "string"
     types_columns["selection_observations"] = "string"
@@ -176,7 +176,7 @@ def define_column_types_table_parameters():
 
 
 def read_source_table_parameters(
-    groups_raw=None,
+    categories_batch=None,
     path_file_source_table_parameters=None,
     path_directory_dock=None,
     report=None,
@@ -190,8 +190,8 @@ def read_source_table_parameters(
     Review: TCW; 31 March 2025
 
     arguments:
-        groups_raw (str): names of groups of instances of parameters to include
-            in batch for execution
+        categories_batch (list<str>): names of categories that designate sets
+            or groups of instances of parameters in a batch for execution
         path_file_source_table_parameters (str): path to source file in text
             format as a table with tab delimiters between columns and newline
             delimiters between rows, with parameters for multiple regressions
@@ -232,15 +232,15 @@ def read_source_table_parameters(
         errors="coerce",
     )
 
-    # Extract names of groups.
-    groups = putly.parse_text_list_values(
-        text=groups_raw,
+    # Extract names of categories in batch.
+    categories_batch = putly.parse_text_list_values(
+        text=categories_batch,
         delimiter=",",
     )
 
     # Filter rows in table by names of groups.
     table = table.loc[(
-        table["group"].isin(groups)
+        table["category"].isin(categories_batch)
     ), :].copy(deep=True)
 
 
@@ -251,10 +251,10 @@ def read_source_table_parameters(
         record = dict()
         record["execution"] = int(row["execution"])
         record["sequence"] = row["sequence"]
-        record["group"] = str(row["group"]).strip()
+        record["category"] = str(row["category"]).strip()
         record["name"] = str(row["name"]).strip() # name for instance of parameters
         record["name_combination"] = "_".join([
-            str(row["group"]).strip(),
+            str(row["category"]).strip(),
             str(row["sequence"]).strip(),
             str(row["name"]).strip(),
         ])
@@ -792,7 +792,7 @@ def expand_plural_response_features(
                     instance_plurality["sequence"] = counter
                     # Specify name.
                     instance_plurality["name_combination"] = "_".join([
-                        str(instance_plurality["group"]).strip(),
+                        str(instance_plurality["category"]).strip(),
                         str(instance_plurality["sequence"]).strip(),
                         str(instance_plurality["name"]).strip(),
                     ])
@@ -869,11 +869,17 @@ def expand_plural_response_features(
 ##########
 # Control procedure within branch for parallelization.
 
+# TODO: TCW; 22 December 2025
+# It doesn't make much sense to check the variance of features after transforming
+# to z-score standard scale. Instead, transform to "unit_range".
+
+# TODO: TCW; 22 December 2025
+# For now, I turned off the checks on features before regression.
 
 def control_procedure_part_branch(
     execution=None,
     sequence=None,
-    group=None,
+    category=None,
     name=None,
     name_combination=None,
     selection_observations=None,
@@ -910,7 +916,7 @@ def control_procedure_part_branch(
         execution (int): logical binary indicator of whether to execute and
             handle the parameters for the current instance
         sequence (int): sequential index for instance's name and sort order
-        group (str): categorical group of instances
+        category (str): categorical group of instances
         name (str): name or designator for instance of parameters
         name_combination (str): compound name for instance of parameters
         selection_observations (dict<list<str>>): names of columns in data
@@ -1077,7 +1083,7 @@ def control_procedure_part_branch(
     # Check parameters and table of data for performing regression analysis.
     # It only makes sense to compare the variance of features if there has not
     # been scale standardization by z-score.
-    if True:
+    if False:
         pail_check = preg.check_parameters_table_data_regression(
             table=table,
             name_combination=name_combination,
@@ -1087,9 +1093,9 @@ def control_procedure_part_branch(
             features_predictor_fixed=features_predictor_fixed_no_intercept,
             features_predictor_random=features_predictor_random_no_intercept,
             groups_random=groups_random,
-            threshold_features_variance=0.01,
+            threshold_features_variance=0.001,
             threshold_observations_count=5,
-            measure_variance="variance",
+            measure_variance="coefficient_variation",
             report=report,
         )
     else:
@@ -1106,7 +1112,7 @@ def control_procedure_part_branch(
         index_columns="features",
         index_rows="observations",
         sequence=sequence,
-        group=group,
+        category=category,
         name=name,
         name_combination=name_combination,
         check_overall=pail_check["check_overall"],
@@ -1216,7 +1222,7 @@ def control_parallel_instance(
                 and handle the parameters for the current instance
             sequence (int): sequential index for instance's name and sort
                 order
-            group (str): categorical group of instances
+            category (str): categorical group of instances
             name (str): name or designator for instance of parameters
             name_combination (str): compound name for instance of parameters
             selection_observations (dict<list<str>>): names of columns in data
@@ -1303,7 +1309,7 @@ def control_parallel_instance(
     # Extract parameters specific to each instance.
     execution = instance_record["execution"]
     sequence = instance_record["sequence"]
-    group = instance_record["group"]
+    category = instance_record["category"]
     name = instance_record["name"]
     name_combination = instance_record["name_combination"]
     selection_observations = instance_record["selection_observations"]
@@ -1355,7 +1361,7 @@ def control_parallel_instance(
         control_procedure_part_branch(
             execution=execution,
             sequence=sequence,
-            group=group,
+            category=category,
             name=name,
             name_combination=name_combination,
             selection_observations=selection_observations,
@@ -1438,7 +1444,7 @@ def control_parallel_instances(
             ),
             instances=instances,
             parameters=parameters,
-            cores=5,
+            cores=7,
             report=True,
         )
     else:
@@ -1455,7 +1461,7 @@ def control_parallel_instances(
 
 
 def execute_procedure(
-    groups_raw=None,
+    categories_batch=None,
     path_file_source_table_parameters=None,
     path_file_product_table_regressions=None,
     path_directory_source=None,
@@ -1483,8 +1489,8 @@ def execute_procedure(
        write this information to file
 
     arguments:
-        groups_raw (str): names of groups of instances of parameters to include
-            in batch for execution
+        categories_batch (list<str>): names of categories that designate sets
+            or groups of instances of parameters in a batch for execution
         path_file_source_table_parameters (str): path to source file in text
             format as a table with tab delimiters between columns and newline
             delimiters between rows, with parameters for multiple regressions
@@ -1520,7 +1526,7 @@ def execute_procedure(
     ##########
     # Read source information from file.
     pail_source = read_source_table_parameters(
-        groups_raw=groups_raw,
+        categories_batch=categories_batch,
         path_file_source_table_parameters=path_file_source_table_parameters,
         path_directory_dock=path_directory_dock,
         report=report,
@@ -1651,7 +1657,7 @@ def execute_procedure(
 if (__name__ == "__main__"):
     # Parse arguments from terminal.
     path_file_script = sys.argv[0] # always the first argument
-    groups_raw = sys.argv[1]
+    categories_batch = sys.argv[1]
     path_file_source_table_parameters = sys.argv[2]
     path_file_product_table_regressions = sys.argv[3]
     path_directory_source = sys.argv[4]
@@ -1661,7 +1667,7 @@ if (__name__ == "__main__"):
 
     # Call function for procedure.
     execute_procedure(
-        groups_raw=groups_raw,
+        categories_batch=categories_batch,
         path_file_source_table_parameters=path_file_source_table_parameters,
         path_file_product_table_regressions=(
             path_file_product_table_regressions

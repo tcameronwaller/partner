@@ -588,6 +588,15 @@ def initialize_matplotlib_figure_aspect(
     avoid Pyplot to resolve an error of it drawing a rogue dendogram on an
     otherwise empty figure.
 
+    x = 12.5 cm
+
+    50.0 cm = 19.685 inches <-- 4.0 x
+    40.0 cm = 15.748 inches
+    37.5 cm = 14.764 inches <-- 3.0 x
+    30.0 cm = 11.811 inches
+    25.0 cm = 9.843 inches <-- 2.0 x
+    18.75 cm = 7.382 inches <-- 1.5 x
+
     arguments:
         aspect (str): aspect ratio for MatPlotLib figure
 
@@ -604,12 +613,12 @@ def initialize_matplotlib_figure_aspect(
     # matplotlib.figure.Figure()
     if aspect == "portrait":
         figure = matplotlib.figure.Figure(
-            figsize=(11.811, 15.748), # aspect 3 X 4; 15.748 inches = 39.999 cm
+            figsize=(14.764, 19.685), # aspect 3 X 4
             tight_layout=True
         )
     elif aspect == "portrait_half_width":
         figure = matplotlib.figure.Figure(
-            figsize=(5.906, 15.748), # aspect 1.5 X 4; 5.906 inches = 15.001 cm
+            figsize=(7.382, 19.685), # aspect 1.5 X 4
             tight_layout=True
         )
         # 80 cm = 31.496 inches
@@ -620,22 +629,22 @@ def initialize_matplotlib_figure_aspect(
         #)
     elif aspect == "landscape":
         figure = matplotlib.figure.Figure(
-            figsize=(15.748, 11.811), # aspect 4 X 3; 11.811 inches = 29.999 cm
+            figsize=(19.685, 14.764), # aspect 4 X 3
             tight_layout=True
         )
     elif aspect == "landscape_two_thirds_height":
         figure = matplotlib.figure.Figure(
-            figsize=(15.748, 7.874), # aspect 4 X 1.5; 5.906 inches = 15.001 cm
+            figsize=(19.685, 9.843), # aspect 4 X 2
             tight_layout=True
         )
     elif aspect == "landscape_half_height":
         figure = matplotlib.figure.Figure(
-            figsize=(15.748, 5.906), # aspect 4 X 1.5; 5.906 inches = 15.001 cm
+            figsize=(19.685, 7.382), # aspect 4 X 1.5; 5.906 inches = 15.001 cm
             tight_layout=True
         )
     elif aspect == "square":
         figure = matplotlib.figure.Figure(
-            figsize=(15.748, 15.748), # aspect 1 X 1; 15.748 inches = 39.999 cm
+            figsize=(19.685, 19.685), # aspect 1 X 1
             tight_layout=True
         )
     # Initialize.

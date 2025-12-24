@@ -3134,9 +3134,6 @@ def execute_procedure(
             pail_parameters["column_identifier_observation"]
         ),
         column_name_observation=pail_parameters["column_name_observation"],
-        column_identifier_signal=(
-            pail_parameters["column_identifier_signal"]
-        ),
         column_identifier_groups_observations=(
             pail_parameters["column_identifier_signal"]
         ),

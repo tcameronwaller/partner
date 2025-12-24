@@ -479,8 +479,8 @@ def calculate_variance_measures(
 
     Variance is mathematically never negative.
 
-    A synonymous common name for the 'coefficient of variation' is the 'relative
-    standard deviation (RSD)'.
+    A synonymous common name for the 'coefficient of variation' is the
+    'relative standard deviation (RSD)'.
 
     Review: TCW; 2 April 2025
 
