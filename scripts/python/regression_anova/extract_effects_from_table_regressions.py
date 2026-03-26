@@ -435,6 +435,13 @@ def organize_table_regression_effects(
     if (table_feature is not None):
         # Copy information.
         table_feature = table_feature.copy(deep=True) # might be None
+        # Organize information.
+        table_feature[column_feature_identifier] = (
+            table_feature[column_feature_identifier]
+        ).astype("string")
+        table_feature[column_feature_name] = (
+            table_feature[column_feature_name]
+        ).astype("string")
         # Extract names of columns.
         columns_feature_available = copy.deepcopy(
             table_feature.columns.to_list()
@@ -444,7 +451,11 @@ def organize_table_regression_effects(
             columns_feature_available
         ))
         columns_feature_keep.insert(0, column_feature_name)
+        columns_feature_keep.insert(0, column_feature_identifier)
         # Copy identifier before merge.
+        table_feature["identifier_merge"] = (
+            table_feature[column_feature_identifier]
+        )
         table_regressions["identifier_merge"] = (
             table_regressions[column_effect_identifier]
         )
@@ -455,7 +466,7 @@ def organize_table_regression_effects(
         # identifier in the second table.
         table_merge = porg.merge_columns_two_tables(
             identifier_first="identifier_merge",
-            identifier_second=column_feature_identifier,
+            identifier_second="identifier_merge",
             table_first=table_regressions,
             table_second=table_feature,
             preserve_index=False,
@@ -488,7 +499,6 @@ def organize_table_regression_effects(
 
     # Calculate confidence interval for effect's estimate.
 
-
     # Filter rows in table.
     table_merge = table_merge.loc[
         (
@@ -498,6 +508,27 @@ def organize_table_regression_effects(
             (table_merge["effect_p"] >= float(0))
         ), :
     ]
+    table_merge.dropna(
+        axis="index",
+        how="any",
+        subset=[
+            "effect_estimate",
+            "effect_error",
+            "effect_p",
+        ],
+        inplace=True,
+    )
+    # Restore or reset indices in table to generic default.
+    table_merge.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    table_merge.columns.rename(
+        None,
+        inplace=True,
+    ) # single-dimensional index
+
     # Fill values of zero for p-value.
     table_merge["effect_p_fill"] = table_merge.apply(
         lambda row:
@@ -1256,6 +1287,7 @@ def execute_procedure(
         print("path_directory_dock: " + str(path_directory_dock))
         putly.print_terminal_partition(level=5)
         pass
+
 
     ##########
     # Read source information from file.

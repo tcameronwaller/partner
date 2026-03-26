@@ -178,7 +178,8 @@ def extract_filter_child_file_names(
     Extracts the names of all child  files within a parent directory and then
     filters these file names by whether they include a specific string.
 
-    Review: TCW; 22 May 2024
+    Date, revision or review: 25 March 2026
+    Date, revision or review: 22 May 2024
 
     arguments:
         path_directory (str): path to parent directory
@@ -198,6 +199,12 @@ def extract_filter_child_file_names(
 
     # Extract names of child files within parent directory.
     names_files = extract_child_file_names(path_directory=path_directory)
+    # Filter to remove hidden files.
+    names_files = list(filter(
+        lambda name_file: (
+            (not str(name_file).startswith("."))
+        ), names_files
+    ))
     # Filter names of child files.
     # This filter could become more sophisticated by ensuring that the prefix
     # and suffix occurred at beginning or end of string, respectively.
@@ -255,7 +262,8 @@ def extract_filter_child_file_names_paths(
     Extract and filter the names of all child files within a parent
     directory, and then return complete paths to each relevant child file.
 
-    Review: TCW; 25 October 2024
+    Date, revision or review: 25 March 2026
+    Date, revision or review: 25 October 2024
 
     arguments:
         path_directory (str): path to parent directory
@@ -1151,6 +1159,51 @@ def interpret_float_to_one_match_zero_any_other(
         match = 0
     # Return.
     return match
+
+
+def divide_accommodate_zero_missing(
+    numerator=None,
+    denominator=None,
+):
+    """
+    Divide a quantitative numerator or dividend by a quantitative denominator
+    or divisor, with accommodation for values of zero or missing values.
+
+    Date, review or revision: 21 January 2026
+
+    arguments:
+        numerator (float): value for numerator or dividend
+        denominator (float): value for denominator or divisor
+
+    raises:
+
+    returns:
+        (float): value of quotient
+
+    """
+
+    # Manage types of values.
+    numerator = float(numerator)
+    denominator = float(denominator)
+
+    # Determine whether there is adequate information for division.
+    if (
+        (numerator is not None) and
+        (denominator is not None) and
+        (not math.isnan(numerator)) and
+        (not math.isnan(denominator)) and
+        ((denominator < 0.0) or (denominator > 0.0)) and
+        (denominator != 0.0)
+    ):
+        # There is adequate information for division.
+        quotient = (numerator / denominator)
+    else:
+        # There is inadequate information for division.
+        quotient = float("nan")
+        pass
+    # Return information.
+    return quotient
+
 
 
 # Parse and extract information from text.

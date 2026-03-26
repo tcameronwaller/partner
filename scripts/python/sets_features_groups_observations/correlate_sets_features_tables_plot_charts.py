@@ -43,6 +43,10 @@ License:
 ##########
 # Note:
 
+# Note: TCW; 7 January 2026
+# Write out lists of features for first and second dimensions both before
+# (source or query) and after (product or response) applying filters.
+
 # Note: TCW; 13 November 2025
 # It might become practical to implement separate thresholds for the first and
 # second sets of features, respectively.
@@ -441,6 +445,83 @@ def read_source(
         )
         print(str("module: " + module))
         print("function: read_source()")
+        putly.print_terminal_partition(level=5)
+        pass
+    # Return information.
+    return pail
+
+
+def read_source_example(
+    path_directory_parent=None,
+    report=None,
+):
+    """
+    Read and organize source information.
+
+    Notice that Pandas does not accommodate missing values within series of
+    integer variable types.
+
+    Review: TCW; 7 January 2026
+
+    arguments:
+        path_directory_parent (str): path to directory
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict): collection of source information about parameters
+
+    """
+
+    # Bundle information.
+    pail = dict()
+
+    # Define paths to parent directories.
+    # Define paths to child files.
+    # Tables.
+    path_file_source_table_correlation = os.path.join(
+        path_directory_parent,
+        "table_correlation_wide.tsv",
+    )
+    path_file_source_table_p_value = os.path.join(
+        path_directory_parent,
+        "table_p_value_wide.tsv",
+    )
+    # Read information from file.
+    # Tables.
+    pail["table_correlation"] = pandas.read_csv(
+        path_file_source_table_correlation,
+        sep="\t",
+        header=0,
+        #dtype=types_columns,
+        na_values=[
+            "nan", "na", "NAN", "NA", "<nan>", "<na>", "<NAN>", "<NA>",
+        ],
+        encoding="utf-8",
+    )
+    pail["table_p_value"] = pandas.read_csv(
+        path_file_source_table_p_value,
+        sep="\t",
+        header=0,
+        #dtype=types_columns,
+        na_values=[
+            "nan", "na", "NAN", "NA", "<nan>", "<na>", "<NAN>", "<NA>",
+        ],
+        encoding="utf-8",
+    )
+
+    # Report.
+    if report:
+        # Organize information.
+        # Print information.
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        module = str(
+            "calculate_tables_plot_charts_features_correlations.py"
+        )
+        print(str("module: " + module))
+        print("function: read_source_example()")
         putly.print_terminal_partition(level=5)
         pass
     # Return information.
@@ -1052,12 +1133,14 @@ def calculate_correlations_populate_table_wide(
     features_second=None,
     proportion_nonmissing_observations=None,
     z_score=None,
-    type_value=None,
+    type_value_r=None,
+    type_value_p=None,
     report=None,
 ):
     """
     Blank.
 
+    Review: TCW; 7 January 2026
     Review: TCW; 26 October 2025
 
     arguments:
@@ -1094,12 +1177,15 @@ def calculate_correlations_populate_table_wide(
         pass
 
     # Collect records for correlations across pairs of features.
-    records = list()
+    records_correlation = list()
+    records_p_value = list()
     # Iterate on first list of features.
     for feature_first in features_first:
         # Collect information.
-        record = dict()
-        record["feature_first"] = feature_first
+        record_correlation = dict()
+        record_p_value = dict()
+        record_correlation["feature_first"] = feature_first
+        record_p_value["feature_first"] = feature_first
         # Iterate on second list of features.
         for feature_second in features_second:
             # Copy information.
@@ -1121,7 +1207,7 @@ def calculate_correlations_populate_table_wide(
                 (proportion_actual >= proportion_nonmissing_observations)
             ):
                 # Calculate correlations.
-                pail = pdesc.calculate_correlations_table_columns_pair(
+                pail_calc = pdesc.calculate_correlations_table_columns_pair(
                     table=table,
                     column_primary=feature_first,
                     column_secondary=feature_second,
@@ -1130,18 +1216,27 @@ def calculate_correlations_populate_table_wide(
                 )
                 # Determine which value to collect.
                 # Collect information.
-                record[feature_second] = pail[type_value]
+                record_correlation[feature_second] = pail_calc[type_value_r]
+                record_p_value[feature_second] = pail_calc[type_value_p]
             else:
                 # Introduce missing values.
-                record[feature_second] = float("nan")
+                record_correlation[feature_second] = float("nan")
+                record_p_value[feature_second] = float("nan")
                 pass
             pass
         # Collect information.
-        records.append(record)
+        records_correlation.append(record_correlation)
+        records_p_value.append(record_p_value)
         pass
 
     # Organize table.
-    table_correlation = pandas.DataFrame(data=records)
+    table_correlation = pandas.DataFrame(data=records_correlation)
+    table_p_value = pandas.DataFrame(data=records_p_value)
+
+    # Bundle information.
+    pail = dict()
+    pail["table_correlation"] = table_correlation
+    pail["table_p_value"] = table_p_value
 
     # Report.
     if report:
@@ -1158,9 +1253,12 @@ def calculate_correlations_populate_table_wide(
         print("table of correlations:")
         print(table_correlation)
         putly.print_terminal_partition(level=5)
+        print("table of p-values:")
+        print(table_p_value)
+        putly.print_terminal_partition(level=5)
         pass
     # Return information.
-    return table_correlation
+    return pail
 
 
 def optimize_threshold_table_wide_correlations(
@@ -1179,7 +1277,7 @@ def optimize_threshold_table_wide_correlations(
     """
     Blank.
 
-    Review: TCW; 10 December 2025
+    Review or revision: TCW; 10 December 2025
 
     arguments:
 
@@ -1285,7 +1383,7 @@ def optimize_threshold_table_wide_correlations(
         )[::-1]
         # Determine threshold.
         threshold_selection = (
-            threshold_candidates_sort[threshold_optimization_count]
+            threshold_candidates_sort[(threshold_optimization_count - 1)]
         )
 
     elif (
@@ -1336,7 +1434,7 @@ def optimize_threshold_table_wide_correlations(
         )[::-1]
         # Determine threshold.
         threshold_selection = (
-            threshold_candidates_sort[threshold_optimization_count]
+            threshold_candidates_sort[(threshold_optimization_count - 1)]
         )
 
     else:
@@ -1647,9 +1745,26 @@ def filter_table_wide_correlations_by_threshold(
             pass
         pass
 
+
+    # Extract identifiers of columns and rows in table.
+    columns_filter = copy.deepcopy(
+        table_r_filter.columns.unique().tolist()
+    )
+    columns_filter.remove(name_index_rows)
+    #columns_filter = list(filter(
+    #    lambda item: item not in [name_index_rows,], columns_filter
+    #))
+    rows_filter = copy.deepcopy(
+        table_r_filter[name_index_rows].to_list()
+    )
+    # Sort sequence of features from columns and rows in table.
+    columns_filter = sorted(columns_filter)
+    rows_filter = sorted(rows_filter)
     # Bundle information.
     pail = dict()
     pail["table_r_filter"] = table_r_filter
+    pail["columns_filter"] = columns_filter
+    pail["rows_filter"] = rows_filter
 
     # Report.
     if report:
@@ -2304,6 +2419,7 @@ def manage_calculate_correlations_organize_tables_wide(
     """
     Blank.
 
+    Review or revision: TCW; 7 January 2026
     Review or revision: TCW; 11 December 2025
     Review or revision: TCW; 13 November 2025
     Review or revision: TCW; 6 November 2025
@@ -2331,20 +2447,9 @@ def manage_calculate_correlations_organize_tables_wide(
         pass
 
     # Calculate correlations.
-    table_correlation = calculate_correlations_populate_table_wide(
-        table=table,
-        column_identifier_observation=column_identifier_observation,
-        features_first=features_first,
-        features_second=features_second,
-        proportion_nonmissing_observations=(
-            proportion_nonmissing_observations
-        ),
-        z_score=z_score,
-        type_value=type_value_r,
-        report=report,
-    )
     if True:
-        table_p_value = calculate_correlations_populate_table_wide(
+        # Calculate correlations.
+        pail_correlation = calculate_correlations_populate_table_wide(
             table=table,
             column_identifier_observation=column_identifier_observation,
             features_first=features_first,
@@ -2353,12 +2458,30 @@ def manage_calculate_correlations_organize_tables_wide(
                 proportion_nonmissing_observations
             ),
             z_score=z_score,
-            type_value=type_value_p,
+            type_value_r=type_value_r,
+            type_value_p=type_value_p,
             report=report,
         )
     else:
-        table_p_value = pandas.DataFrame()
+        # Read information from file as an example.
+        # Define paths to parent directories.
+        path_directory_source_tables = os.path.join(
+            "/media", "tcameronwaller", "tertiary", "process_local", "dock",
+            "pail_2025-11-19_clinic_olink_rnaseq_gene_sets_pca_r_r2",
+            "6_correlate_sets_features", "elder",
+            "elder_27_rnaseq_muscle_oxidation_1", "tables",
+        )
+        pail_correlation = read_source_example(
+            path_directory_parent=path_directory_source_tables,
+            report=report,
+        )
+        #pail_example["table_correlation"]
+        #pail_example["table_p_value"]
+        #table_p_value = pandas.DataFrame()
         pass
+    # Extract information.
+    table_correlation = pail_correlation["table_correlation"]
+    table_p_value = pail_correlation["table_p_value"]
 
     # Replace any infinite values with missing values.
     table_correlation.replace(
@@ -2453,6 +2576,9 @@ def manage_calculate_correlations_organize_tables_wide(
         intersect_features=intersect_features,
         report=report,
     )
+    #pail_threshold["table_r_filter"]
+    #pail_threshold["columns_filter"]
+    #pail_threshold["rows_filter"]
 
     # Check that the table is not empty and otherwise suitable for cluster
     # and sort operations.
@@ -2477,13 +2603,52 @@ def manage_calculate_correlations_organize_tables_wide(
             sort_other_features=sort_other_features,
             report=report,
         )
-        #pail["table"]
-        #pail["rows_sequence"]
-        #pail["columns_sequence"]
+        #pail_cluster_sort["table"]
+        #pail_cluster_sort["rows_sequence"]
+        #pail_cluster_sort["columns_sequence"]
     else:
         pail_cluster_sort = dict()
         pail_cluster_sort["table"] = pail_threshold["table_r_filter"]
         pass
+
+    ##########
+    # Copy information.
+    table_p_value_filter_cluster_sort = table_p_value.copy(deep=True)
+    # Filter and sort columns and rows in the table of p-values to match the
+    # sequence of columns and rows in the table of correlations.
+    columns_sequence = copy.deepcopy(pail_cluster_sort["columns_sequence"])
+    rows_sequence = copy.deepcopy(pail_cluster_sort["rows_sequence"])
+    # Filter and sort columns in table.
+    table_p_value_filter_cluster_sort = porg.filter_sort_table_columns(
+        table=table_p_value_filter_cluster_sort,
+        columns_sequence=columns_sequence,
+        report=report,
+    )
+    # Filter rows in table.
+    table_p_value_filter_cluster_sort = table_p_value_filter_cluster_sort.loc[
+        (
+            table_p_value_filter_cluster_sort["feature_first"].isin(
+                rows_sequence
+            )
+        ), :
+    ].copy(deep=True)
+    # Sort rows in table.
+    # Define reference for sort.
+    sequence_rows_novel = dict()
+    index = 0
+    for name in rows_sequence:
+        sequence_rows_novel[name] = index
+        index += 1
+        pass
+    # Sort rows in table.
+    table_p_value_filter_cluster_sort = (
+        porg.sort_table_rows_by_single_column_reference(
+            table=table_p_value_filter_cluster_sort,
+            index_rows="feature_first",
+            column_reference="feature_first",
+            column_sort_temporary="sort_temporary",
+            reference_sort=sequence_rows_novel,
+    ))
 
     ##########
     # Copy information.
@@ -2502,7 +2667,12 @@ def manage_calculate_correlations_organize_tables_wide(
     pail["table_correlation_filter_cluster_sort"] = (
         table_correlation_filter_cluster_sort
     )
+    pail["table_p_value_filter_cluster_sort"] = (
+        table_p_value_filter_cluster_sort
+    )
     pail["threshold_value"] = pail_optimization["threshold_value"]
+    pail["features_first_filter"] = pail_threshold["rows_filter"]
+    pail["features_second_filter"] = pail_threshold["columns_filter"]
 
     # Report.
     if report:
@@ -2614,7 +2784,7 @@ def prepare_text_summary_optimization_threshold(
     return summary_text
 
 
-def create_write_plot_chart_heatmap(
+def create_write_plot_chart_heatmap_divergent_scale(
     path_directory_parent=None,
     name_chart=None,
     table=None,
@@ -2749,11 +2919,143 @@ def create_write_plot_chart_heatmap(
     return figure
 
 
+def create_write_plot_chart_heatmap_linear_scale(
+    path_directory_parent=None,
+    name_chart=None,
+    table=None,
+    name_index_columns=None,
+    name_index_rows=None,
+    plot_scale_minimum=None,
+    plot_scale_maximum=None,
+    title_chart=None,
+    title_bar=None,
+    title_abscissa=None,
+    title_ordinate=None,
+    report=None,
+):
+    """
+    Create and plot a chart of the heatmap type.
+
+    Original source table must not have an explicitly defined index across
+    rows.
+
+    Review or revision: TCW; 7 January 2026
+
+    arguments:
+        ...
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): figure object from MatPlotLib
+
+    """
+
+    ##########
+    # Organize information for plot.
+
+    # Copy information in table.
+    table = table.copy(deep=True)
+
+    # Determine whether to impose minimal and maximal thresholds on values for
+    # scale representation on chart.
+    if (
+        ((plot_scale_minimum is None) or (plot_scale_maximum is None)) or
+        (math.isnan(plot_scale_minimum) or math.isnan(plot_scale_maximum))
+    ):
+        table_extract = table.copy(deep=True)
+        # Organize indices in table.
+        table_extract.reset_index(
+            level=None,
+            inplace=True,
+            drop=True, # remove index; do not move to regular columns
+        )
+        table_extract.columns.rename(
+            name_index_columns,
+            inplace=True,
+        ) # single-dimensional index
+        table_extract.set_index(
+            name_index_rows,
+            append=False,
+            drop=True,
+            inplace=True
+        )
+        # Extract minimal and maximal values of signal intensity.
+        matrix = numpy.copy(table_extract.to_numpy())
+        #value_minimum = round((numpy.nanmin(matrix) - 0.005), 2)
+        #value_maximum = round((numpy.nanmax(matrix) + 0.005), 2)
+        round_offset = abs(numpy.nanmin(matrix) * 0.01)
+        value_minimum = round((numpy.nanmin(matrix) - round_offset), 3)
+        value_maximum = round((numpy.nanmax(matrix) + round_offset), 3)
+    else:
+        value_minimum = plot_scale_minimum
+        value_maximum = plot_scale_maximum
+        pass
+
+    ##########
+    # Create plot chart.
+    # Define fonts.
+    fonts = pplot.define_font_properties()
+    # Define colors.
+    colors = pplot.define_color_properties()
+    # Create figure.
+    figure = (
+        splot.plot_heatmap_features_observations_labels_scale_sequential(
+            table=table,
+            format_table=1, # 1: features in rows, observations or groups in columns
+            index_columns=name_index_columns,
+            index_rows=name_index_rows,
+            transpose_table=True,
+            fill_missing=True,
+            value_missing_fill=0.0,
+            constrain_signal_values=True,
+            value_minimum=value_minimum,
+            value_maximum=value_maximum,
+            title_ordinate="",
+            title_abscissa="",
+            title_bar=title_bar,
+            labels_ordinate_categories=None,
+            labels_abscissa_categories=None,
+            size_title_ordinate="eight",
+            size_title_abscissa="eight",
+            size_title_bar="twelve",
+            size_label_ordinate=None, # determine automatically if "None"; "fifteen"
+            size_label_abscissa=None, # determine automatically if "None"
+            size_label_bar="thirteen",
+            show_labels_ordinate=True,
+            show_labels_abscissa=True,
+            show_scale_bar=True,
+            aspect="square", # square, portrait, landscape, ...
+            fonts=fonts,
+            colors=colors,
+            report=report,
+    ))
+
+    # Write product information to file.
+
+    # Bundle information.
+    pail_write_plot = dict()
+    pail_write_plot[name_chart] = figure
+
+    # Write figure object to file.
+    pplot.write_product_plots_parent_directory(
+        pail_write=pail_write_plot,
+        format="jpg", # jpg, png, svg
+        resolution=150, # low-resolution trial: 96 DPI; medium-resolution: 150 DPI; high-resolution print: 300 DPI
+        path_directory=path_directory_parent,
+    )
+
+    # Return information.
+    return figure
+
+
 def manage_create_write_plot_charts(
     path_directory_source=None,
     path_directory_product=None,
     path_directory_dock=None,
-    table=None,
+    table_correlation=None,
+    table_p_value=None,
     name_index_columns=None,
     name_index_rows=None,
     name_correlations=None,
@@ -2780,13 +3082,16 @@ def manage_create_write_plot_charts(
     """
 
     # Copy information.
-    table = table.copy(deep=True)
+    table_correlation = table_correlation.copy(deep=True)
+    table_p_value = table_p_value.copy(deep=True)
 
     # Determine title for scale bar on chart.
     if (type_correlation == "pearson"):
-        title_bar = "Correlation Coefficient (Pearson)"
+        title_bar_correlation = "correlation coefficient (Pearson)"
+        title_bar_p_value = "-log10(p-value) of correlation (Pearson)"
     elif (type_correlation == "spearman"):
-        title_bar = "Correlation Coefficient (Spearman)"
+        title_bar_correlation = "correlation coefficient (Spearman)"
+        title_bar_p_value = "-log10(p-value) of correlation (Spearman)"
         pass
 
     ##########
@@ -2801,25 +3106,66 @@ def manage_create_write_plot_charts(
 
     # Check that the table is not empty and otherwise suitable for plot chart.
     check_table = check_table_wide_correlations(
-        table=table,
+        table=table_correlation,
         count_threshold_rows=3,
         count_threshold_columns=3,
         report=report,
     )
 
-    # Create and write plot charts for the table of correlations.
+    # Determine whether to create plot charts.
     if (check_table):
-        create_write_plot_chart_heatmap(
+        # Create and write plot charts for the table of correlations.
+        create_write_plot_chart_heatmap_divergent_scale(
             path_directory_parent=path_directory_charts,
-            name_chart="correlations",
-            table=table,
+            name_chart="chart_correlations",
+            table=table_correlation,
             name_index_columns=name_index_columns,
             name_index_rows=name_index_rows,
             plot_scale_minimum=plot_scale_minimum,
             plot_scale_center=plot_scale_center,
             plot_scale_maximum=plot_scale_maximum,
             title_chart="",
-            title_bar=title_bar,
+            title_bar=title_bar_correlation,
+            title_abscissa="Features First",
+            title_ordinate="Features Second",
+            report=report,
+        )
+        # Organize table of p-values.
+        # Extract identifiers of rows in table.
+        rows_sequence = copy.deepcopy(
+            table_p_value[name_index_rows].to_list()
+        )
+        # Extract identifiers of columns in table.
+        columns_sequence = copy.deepcopy(
+            table_p_value.columns.unique().tolist()
+        )
+        columns_sequence.remove(name_index_rows)
+        # Transform p-values to scale of negative base ten logarithm.
+        table_negative_logarithm = pscl.transform_logarithm_by_table_columns(
+            table=table_p_value,
+            columns=columns_sequence,
+            base=10.0,
+            report=report,
+        )
+        table_negative_logarithm = pscl.transform_product_by_table_columns(
+            table=table_negative_logarithm,
+            columns=columns_sequence,
+            factor=-1.0,
+            report=report,
+        )
+        # Copy information.
+        table_p_value_extract = table_negative_logarithm.copy(deep=True)
+        # Create and write plot charts for the table of p-values.
+        create_write_plot_chart_heatmap_linear_scale(
+            path_directory_parent=path_directory_charts,
+            name_chart="chart_p_values",
+            table=table_negative_logarithm,
+            name_index_columns=name_index_columns,
+            name_index_rows=name_index_rows,
+            plot_scale_minimum=None,
+            plot_scale_maximum=None,
+            title_chart="",
+            title_bar=title_bar_p_value,
             title_abscissa="Features First",
             title_ordinate="Features Second",
             report=report,
@@ -2961,11 +3307,6 @@ def control_procedure(
         print("count of first features: " + str(count_first))
         print("count of second features: " + str(count_second))
         putly.print_terminal_partition(level=5)
-        print("features first")
-        print(pail_source["features"]["first"])
-        putly.print_terminal_partition(level=5)
-        print("features second")
-        print(pail_source["features"]["second"])
         pass
 
     # Filter table's columns for features and rows for observations.
@@ -3090,7 +3431,10 @@ def control_procedure(
     #pail_correlation["table_p_value"]
     #pail_correlation["table_correlation_filter"]
     #pail_correlation["table_correlation_filter_cluster_sort"]
+    #pail_correlation["table_p_value_filter_cluster_sort"]
     #pail_correlation["threshold_value"]
+    #pail_correlation["features_first_filter"]
+    #pail_correlation["features_second_filter"]
 
     # Prepare text summary.
     summary_text = prepare_text_summary_optimization_threshold(
@@ -3115,20 +3459,30 @@ def control_procedure(
     pail_write_lists = dict()
     pail_write_lists["features_first"] = features_first
     pail_write_lists["features_second"] = features_second
+    pail_write_lists["features_first_filter"] = (
+        pail_correlation["features_first_filter"]
+    )
+    pail_write_lists["features_second_filter"] = (
+        pail_correlation["features_second_filter"]
+    )
+
     # Tables.
     pail_write_tables = dict()
-    pail_write_tables["table_correlation_long"] = table_correlation_long
-    pail_write_tables["table_correlation_wide"] = (
-        pail_correlation["table_correlation"]
-    )
-    pail_write_tables["table_p_value_wide"] = (
-        pail_correlation["table_p_value"]
-    )
-    pail_write_tables["table_correlation_wide_filter"] = (
-        pail_correlation["table_correlation_filter"]
-    )
-    pail_write_tables["table_correlation_wide_filter_cluster_sort"] = (
+    #pail_write_tables["table_correlation_long"] = table_correlation_long
+    #pail_write_tables["table_correlation_wide"] = (
+    #    pail_correlation["table_correlation"]
+    #)
+    #pail_write_tables["table_p_value_wide"] = (
+    #    pail_correlation["table_p_value"]
+    #)
+    #pail_write_tables["table_correlation_wide_filter"] = (
+    #    pail_correlation["table_correlation_filter"]
+    #)
+    pail_write_tables["table_correlations_wide"] = (
         pail_correlation["table_correlation_filter_cluster_sort"]
+    )
+    pail_write_tables["table_p_values_wide"] = (
+        pail_correlation["table_p_value_filter_cluster_sort"]
     )
 
     ##########
@@ -3180,7 +3534,12 @@ def control_procedure(
         path_directory_source=path_directory_source,
         path_directory_product=path_directory_product,
         path_directory_dock=path_directory_dock,
-        table=pail_correlation["table_correlation_filter_cluster_sort"],
+        table_correlation=(
+            pail_correlation["table_correlation_filter_cluster_sort"]
+        ),
+        table_p_value=(
+            pail_correlation["table_p_value_filter_cluster_sort"]
+        ),
         name_index_columns="feature_second",
         name_index_rows="feature_first",
         name_correlations="blank",

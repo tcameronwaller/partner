@@ -1518,6 +1518,7 @@ def perform_t_test(
 
     # Determine which type of T-test to perform.
     if (independent_groups):
+        # It is not necessary for the two arrays to have the same dimensions.
         (t, pvalue) = scipy.stats.ttest_ind(
             values_group_one,
             values_group_two,
@@ -1528,6 +1529,7 @@ def perform_t_test(
 
         )
     else:
+        # It is necessary for the two arrays to have the same dimensions.
         (t, pvalue) = scipy.stats.ttest_rel(
             values_group_one,
             values_group_two,
@@ -1830,8 +1832,11 @@ def describe_compare_quantitative_feature_by_observations_groups(
                 names_pvalue.append(name_ttest)
                 values_pvalue.append(pvalue_ttest)
             else:
-                #name_ttest = str("none")
-                #pvalue_ttest = float("nan")
+                name_ttest = str("none")
+                pvalue_ttest = float("nan")
+                # Collect information.
+                names_pvalue.append(name_ttest)
+                values_pvalue.append(pvalue_ttest)
                 pass
             pass
         pass

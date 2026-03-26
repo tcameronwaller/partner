@@ -73,6 +73,10 @@ set +x # disable print commands to standard error
 #set -v # enable print input to standard error
 set +v # disable print input to standard error
 
+# Set limit on memory usage.
+#ulimit -m 20000000
+#ulimit -v 20000000
+
 ################################################################################
 # Execute procedure.
 
@@ -117,7 +121,7 @@ do
   raw_name_group="${array_line[3]}"
   raw_name_set="${array_line[4]}"
   raw_size="${array_line[5]}"
-  raw_date_accession="${array_line[6]}"
+  raw_date_review="${array_line[6]}"
   raw_note="${array_line[7]}"
   # Report.
   if [ $raw_execution == "1" ] && [ "$report" == "true" ]; then
@@ -128,7 +132,7 @@ do
     echo "field 3, name_group: ${raw_name_group}"
     echo "field 4, name_set: ${raw_name_set}"
     echo "field 5, size: ${raw_size}"
-    echo "field 6, date_accession: ${raw_date_accession}"
+    echo "field 6, date_review: ${raw_date_review}"
     echo "field 7, note: ${raw_note}"
     echo "----------"
   fi
@@ -196,7 +200,7 @@ for name_group in "${names_groups_unique[@]}"; do
     raw_name_group="${array_line[3]}"
     raw_name_set="${array_line[4]}"
     raw_size="${array_line[5]}"
-    raw_date_accession="${array_line[6]}"
+    raw_date_review="${array_line[6]}"
     raw_note="${array_line[7]}"
     # Execute procedure for current record's parameters.
     if [ $raw_execution == "1" ] && [ "$raw_name_group" == "$name_group" ]; then
@@ -289,7 +293,7 @@ for name_group in "${names_groups_unique[@]}"; do
     echo "----------"
     echo -e "\n"
     echo "----------"
-    echo "count of unique items from all sets in group:"
+    echo "count of unique union items from all sets in group:"
     echo $count_items
     echo "----------"
     echo "first item: " ${items_sets_group_unique[0]} # notice base-zero indexing

@@ -45,19 +45,6 @@ License:
 
 
 
-# TODO: TCW; 1 October 2025
-# Implement heatmap (filter to < 100 features and PCs) for PC loadings
-
-# TODO: TCW; 20 October 2025
-# For all distinct sets of features, collect principal components within the
-# main table.
-
-
-# TODO: TCW; 14 November 2025
-# Make the "table_features" optional. It only exists to provide name translations
-# for the features, I think...
-
-
 ##########
 # Note:
 
@@ -141,6 +128,8 @@ def parse_text_parameters(
     variance_components=None,
     identifiers_emphasis=None,
     features_response_quantitative=None,
+    name_batch=None,
+    categories_batch=None,
     report=None,
 ):
     """
@@ -161,12 +150,10 @@ def parse_text_parameters(
 
     # Parse information.
 
-    # Paths to directories.
+    # Paths to directories and files.
     pail["path_directory_source"] = str(path_directory_source).strip()
     pail["path_directory_product"] = str(path_directory_product).strip()
     pail["path_directory_dock"] = str(path_directory_dock).strip()
-
-    # Paths to files.
     pail["path_file_source_table_features_observations"] = str(
         path_file_source_table_features_observations
     ).strip()
@@ -180,22 +167,36 @@ def parse_text_parameters(
         path_file_source_table_groups_observations
     ).strip()
 
-    # Names of columns.
-    pail["column_identifier_observation"] = str(
-        column_identifier_observation
-    ).strip()
-    pail["column_name_observation"] = str(
-        column_name_observation
-    ).strip()
-    pail["column_identifier_feature"] = str(
-        column_identifier_feature
-    ).strip()
-    pail["column_name_feature"] = str(
-        column_name_feature
-    ).strip()
+    # Names and categories.
+    # It is problematic to pass any white space in parameters from a script in
+    # Bash. Designate the hash symbol "#" as a substitute for white space.
+    # It is also problematic to pass an empty string in parameters from a
+    # script in Bash. Designate the word "none" as a substitute for missing or
+    # empty.
+    # Iterate on individual parameters for names and categories.
+    names = {
+        "column_identifier_observation": column_identifier_observation,
+        "column_name_observation": column_name_observation,
+        "column_identifier_feature": column_identifier_feature,
+        "column_name_feature": column_name_feature,
+        "name_batch": name_batch,
+    }
+    for key_name in names.keys():
+        # Determine whether parameter has a valid value that is not none.
+        if (
+            (str(names[key_name]).strip().lower() != "none")
+        ):
+            # Parse value.
+            pail[key_name] = str(
+                names[key_name]
+            ).strip().replace("#", " ")
+        else:
+            pail[key_name] = ""
+            pass
+        pass
 
-    # Number.
-    # Iterate on individual of numeric parameters.
+    # Numbers.
+    # Iterate on individual parameters for numbers.
     numbers = {
         "proportion_nonmissing_observations": (
             proportion_nonmissing_observations
@@ -223,23 +224,25 @@ def parse_text_parameters(
             pass
         pass
 
-    # List.
-    pail["identifiers_emphasis"] = putly.parse_text_list_values(
-        text=identifiers_emphasis,
-        delimiter=",",
-    )
-    pail["identifiers_emphasis"] = putly.collect_unique_items(
-        items=pail["identifiers_emphasis"],
-    )
-    pail["features_response_quantitative"] = putly.parse_text_list_values(
-        text=features_response_quantitative,
-        delimiter=",",
-    )
-    pail["features_response_quantitative"] = putly.collect_unique_items(
-        items=pail["features_response_quantitative"],
-    )
+    # Lists.
+    # Iterate on individual parameters for names and categories.
+    lists = {
+        "identifiers_emphasis": identifiers_emphasis,
+        "features_response_quantitative": features_response_quantitative,
+        "categories_batch": categories_batch,
+    }
+    for key_list in lists.keys():
+        # Parse information.
+        pail[key_list] = putly.parse_text_list_values(
+            text=lists[key_list],
+            delimiter=",",
+        )
+        pail[key_list] = putly.collect_unique_items(
+            items=pail[key_list],
+        )
+        pass
 
-    # Boolean, true or false.
+    # Booleans, true or false.
     # Iterate on individual of Boolean designations.
     designations = {
         "allow_replicate_observations": allow_replicate_observations,
@@ -425,102 +428,6 @@ def read_source(
         pass
     # Return information.
     return pail
-
-
-def filter_organize_table_features_observations(
-    table=None,
-    column_identifier_observation=None,
-    column_name_observation=None,
-    column_identifier_groups_observations=None,
-    columns_categories=None,
-    features_selection=None,
-    features_response_quantitative=None,
-    observations_selection=None,
-    filter_table_main=None,
-    report=None,
-):
-    """
-    Blank.
-
-    Review or revision: TCW; 16 December 2025
-    Review or revision: TCW; 2 October 2025
-
-    arguments:
-
-    TODO: update documentation
-
-    raises:
-
-    returns:
-        (dict<object>): bundle of information
-    """
-
-    # Copy information.
-    table = table.copy(deep=True)
-    columns_categories = copy.deepcopy(columns_categories)
-    features_selection = copy.deepcopy(features_selection)
-    features_response_quantitative = copy.deepcopy(
-        features_response_quantitative
-    )
-    observations_selection = copy.deepcopy(observations_selection)
-
-    # Filter columns and rows in main table for specific features and
-    # observations.
-    # Notice that the function below already includes the name of the column
-    # for the index across rows.
-    if (filter_table_main):
-        # Copy information.
-        categories_features_selection = copy.deepcopy(columns_categories)
-        # Prepare inclusive list of columns.
-        categories_features_selection.insert(0, column_name_observation)
-        categories_features_selection.insert(0, column_identifier_observation)
-        categories_features_selection.insert(
-            0, column_identifier_groups_observations
-        )
-        categories_features_selection.extend(features_selection)
-        categories_features_selection.extend(features_response_quantitative)
-        # Filter columns and rows in table.
-        table_selection = (
-            porg.filter_select_table_columns_rows_by_identifiers(
-                table=table,
-                index_rows=column_identifier_groups_observations,
-                identifiers_columns=categories_features_selection,
-                identifiers_rows=observations_selection,
-                report=False,
-        ))
-        # Filter rows in table for non-missing values across relevant columns.
-        table_filter.dropna(
-            axis="index",
-            how="all",
-            subset=features_selection,
-            inplace=True,
-        )
-    else:
-        # Copy information.
-        table_selection = table.copy(deep=True)
-        pass
-
-    # Report.
-    if report:
-        # Organize information.
-        # Print information.
-        putly.print_terminal_partition(level=3)
-        print("package: partner")
-        module = str(
-            "calculate_principal_components_sets_features_groups_" +
-            "observations.py"
-        )
-        print(str("module: " + module))
-        print("function: filter_organize_table_features_observations()")
-        putly.print_terminal_partition(level=5)
-        print("table before filtering columns and rows")
-        print(table)
-        print("table after filtering columns and rows")
-        print(table_selection)
-        putly.print_terminal_partition(level=5)
-        pass
-    # Return information.
-    return table_selection
 
 
 def filter_features_by_variance_available_observations(
@@ -1021,6 +928,7 @@ def create_write_plot_charts_principal_component_scores(
         ["2", "5",],
         ["3", "4",],
         ["3", "5",],
+        ["4", "5",],
     ]
     # Iterate on comparisons.
     for comparison in comparisons:
@@ -1071,7 +979,7 @@ def create_write_plot_charts_principal_component_scores(
             size_edge_ellipse=1.0,
             factor_confidence_ellipse=2.0,
             colors_fill_markers=None,
-            colors_fill_ellipses=(0.500,0.500,0.500,1.0),
+            colors_fill_ellipses=(0.700,0.700,0.700,1.0),
             color_edge_markers="black",
             color_edge_ellipses="black",
             color_emphasis="orange",
@@ -1117,7 +1025,7 @@ def create_write_plot_charts_principal_component_scores(
                 size_edge_ellipse=1.0,
                 factor_confidence_ellipse=2.0,
                 colors_fill_markers=None,
-                colors_fill_ellipses=(0.500,0.500,0.500,1.0),
+                colors_fill_ellipses=(0.900,0.900,0.900,1.0),
                 color_edge_markers="black",
                 color_edge_ellipses="black",
                 color_emphasis="orange",
@@ -1539,11 +1447,14 @@ def execute_procedure(
     variance_components=None,
     identifiers_emphasis=None,
     features_response_quantitative=None,
+    name_batch=None,
+    categories_batch=None,
     report=None,
 ):
     """
     Function to execute module's main behavior.
 
+    Review or revision: TCW; 31 December 2025
     Review or revision: TCW; 15 December 2025
     Review or revision: TCW; 2 October 2025
 
@@ -1607,6 +1518,8 @@ def execute_procedure(
         variance_components=variance_components,
         identifiers_emphasis=identifiers_emphasis,
         features_response_quantitative=features_response_quantitative,
+        name_batch=name_batch,
+        categories_batch=categories_batch,
         report=report,
     )
 
@@ -1648,6 +1561,15 @@ def execute_procedure(
 
     # Parameters.
 
+    # Organize and filter table of parameters by categories in current batch.
+    pail_batch = sutly.organize_filter_table_parameters(
+        table=pail_source["table_sets_features"],
+        name_batch=pail_parameters["name_batch"],
+        categories_batch=pail_parameters["categories_batch"],
+        filter_parameters=True,
+        report=pail_parameters["report"],
+    )
+
     # Determine preliminary selection of features with available observations.
     # This preliminary selection of features does not consider their respective
     # proportions of observations with nonmissing values.
@@ -1671,7 +1593,7 @@ def execute_procedure(
         path_directory_source=pail_parameters["path_directory_source"],
         path_directory_product=pail_parameters["path_directory_product"],
         path_directory_dock=pail_parameters["path_directory_dock"],
-        table=pail_source["table_sets_features"],
+        table=pail_batch["table"],
         column_name="abbreviation",
         features_available=features_available,
         report=pail_parameters["report"],
@@ -1742,8 +1664,10 @@ def execute_procedure(
     pail_features_availability = (
         filter_features_by_variance_available_observations(
             table=pail_source["table_features_observations"],
-            column_identifier_observation=column_identifier_observation,
-            column_name_observation=column_name_observation,
+            column_identifier_observation=(
+                pail_parameters["column_identifier_observation"]
+            ),
+            column_name_observation=pail_parameters["column_name_observation"],
             features_selection=pail_features["features_selection"],
             features_response_quantitative=(
                 pail_parameters["features_response_quantitative"]
@@ -1759,8 +1683,14 @@ def execute_procedure(
     #pail_features_availability["features_response_quantitative"]
     #pail_features_availability["sets_features"]
 
-    # Filter features and observations in main table.
-    table_features_observations = filter_organize_table_features_observations(
+    # Filter columns for features and rows for observations in main table.
+    features_selection = copy.deepcopy(
+        pail_features_availability["features_selection"]
+    )
+    features_selection.extend(copy.deepcopy(
+        pail_features_availability["features_response_quantitative"]
+    ))
+    table_main = sutly.filter_table_columns_features_rows_observations(
         table=pail_source["table_features_observations"],
         column_identifier_observation=(
             pail_parameters["column_identifier_observation"]
@@ -1770,10 +1700,7 @@ def execute_procedure(
             pail_parameters["column_identifier_observation"]
         ),
         columns_categories=pail_groups["categories_groups"],
-        features_selection=pail_features_availability["features_selection"],
-        features_response_quantitative=(
-            pail_features_availability["features_response_quantitative"]
-        ),
+        features_selection=features_selection,
         observations_selection=pail_observations["observations_selection"],
         filter_table_main=False,
         report=pail_parameters["report"],
@@ -1792,7 +1719,7 @@ def execute_procedure(
             path_directory_source=pail_parameters["path_directory_source"],
             path_directory_product=pail_parameters["path_directory_product"],
             path_directory_dock=pail_parameters["path_directory_dock"],
-            table=table_features_observations,
+            table=table_main,
             column_identifier_observation=(
                 pail_parameters["column_identifier_observation"]
             ),
@@ -1834,7 +1761,7 @@ def execute_procedure(
         # Update reference to table of features and observations.
         # Collect principal components for all sets of features.
         # Copy information.
-        table_features_observations = pail_instance["table"].copy(deep=True)
+        table_main = pail_instance["table"].copy(deep=True)
         pass
 
     # Review and write the table after introduction of all relevant PCs.
@@ -1846,7 +1773,7 @@ def execute_procedure(
     pail_write_lists = dict()
     # Tables.
     pail_write_tables = dict()
-    pail_write_tables["table_merge"] = table_features_observations
+    pail_write_tables["table_merge"] = table_main
 
     ##########
     # Write product information to file.
@@ -1894,7 +1821,9 @@ if (__name__ == "__main__"):
     variance_components = sys.argv[15]
     identifiers_emphasis = sys.argv[16]
     features_response_quantitative = sys.argv[17]
-    report = sys.argv[18]
+    name_batch = sys.argv[18]
+    categories_batch = sys.argv[19]
+    report = sys.argv[20]
 
     # Call function for procedure.
     execute_procedure(
@@ -1921,6 +1850,8 @@ if (__name__ == "__main__"):
         variance_components=variance_components,
         identifiers_emphasis=identifiers_emphasis,
         features_response_quantitative=features_response_quantitative,
+        name_batch=name_batch,
+        categories_batch=categories_batch,
         report=report,
     )
 

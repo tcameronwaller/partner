@@ -421,7 +421,7 @@ def read_source(
             encoding="utf-8",
         )
     else:
-        pail["table_reference_first"] = None
+        pail_tables["table_reference_first"] = None
         pass
     if (existence_file_table_reference_second):
         pail_tables["table_reference_second"] = pandas.read_csv(
@@ -435,7 +435,7 @@ def read_source(
             encoding="utf-8",
         )
     else:
-        pail["table_reference_second"] = None
+        pail_tables["table_reference_second"] = None
         pass
 
     if (existence_file_table_supplement_first):
@@ -450,7 +450,7 @@ def read_source(
             encoding="utf-8",
         )
     else:
-        pail["table_supplement_first"] = None
+        pail_tables["table_supplement_first"] = None
         pass
     if (existence_file_table_supplement_second):
         pail_tables["table_supplement_second"] = pandas.read_csv(
@@ -464,7 +464,7 @@ def read_source(
             encoding="utf-8",
         )
     else:
-        pail["table_supplement_second"] = None
+        pail_tables["table_supplement_second"] = None
         pass
 
     # Bundle information.
@@ -512,12 +512,11 @@ def organize_table_supplement_before(
 
     """
 
-    # Copy information.
-    table = table.copy(deep=True)
-
     # Determine whether there is a table of supplemental features (signals) to
     # merge into the main table of features and observations.
     if (table is not None):
+        # Copy information.
+        table = table.copy(deep=True)
         # Optional preliminary transposition.
         # Copy information.
         table_format = table.copy(deep=True)
@@ -608,6 +607,7 @@ def filter_features_by_available_supplemental_information(
     Review: TCW; 24 November 2025
 
     arguments:
+        sets_features (dict<list<str>>): collection of sets of features
 
     TODO: update documentation
 
@@ -689,12 +689,11 @@ def organize_table_reference_information(
 
     """
 
-    # Copy information.
-    table = table.copy(deep=True)
-
     # Determine whether there is a table of reference information about
     # features.
     if (table is not None):
+        # Copy information.
+        table = table.copy(deep=True)
         # Extract information for translation of names of features.
         table["feature_name_prefix"] = table.apply(
             lambda row: str(
@@ -1330,14 +1329,16 @@ def execute_procedure(
         preserve_index=False,
         report=pail_parameters["report"],
     )
-    table_merge = porg.merge_columns_two_tables(
-        identifier_first=pail_parameters["column_main_identifier_supplement"],
-        identifier_second=pail_parameters["column_supplement_observation"],
-        table_first=table_merge,
-        table_second=pail_supplement_second["table"],
-        preserve_index=False,
-        report=pail_parameters["report"],
-    )
+    if (pail_supplement_second["table"] is not None):
+        table_merge = porg.merge_columns_two_tables(
+            identifier_first=pail_parameters["column_main_identifier_supplement"],
+            identifier_second=pail_parameters["column_supplement_observation"],
+            table_first=table_merge,
+            table_second=pail_supplement_second["table"],
+            preserve_index=False,
+            report=pail_parameters["report"],
+        )
+        pass
 
     # Organize a table to summarize the counts of features in each set at each
     # step, including filters by availability and translation.

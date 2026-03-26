@@ -147,6 +147,24 @@ sudo apt upgrade
 #sudo apt remove zoom
 sudo apt remove --purge zoom
 
+# KDENLive
+# description: edit video
+# site: https://kdenlive.org/
+# in Ubuntu 'Software & Updates' settings,
+# enable 'Community-maintained free and open-source software (universe)'
+# enable repository 'universe'
+sudo add-apt-repository universe
+# update
+sudo apt update
+# install flatpak
+sudo apt install flatpak
+# include distribution repository
+flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+# installation
+flatpak install flathub org.kde.kdenlive
+# run
+flatpak run org.kde.kdenlive
+
 # darktable
 # description: edit digital photographs in raw format
 # site: https://www.darktable.org/

@@ -101,7 +101,7 @@ do
   raw_name_group="${array_line[3]}"
   raw_name_set="${array_line[4]}"
   raw_size="${array_line[5]}"
-  raw_date_accession="${array_line[6]}"
+  raw_date_review="${array_line[6]}"
   raw_note="${array_line[7]}"
   # Report.
   if [ $raw_execution == "1" ] && [ "$report" == "true" ]; then
@@ -112,7 +112,7 @@ do
     echo "field 3, name_group: ${raw_name_group}"
     echo "field 4, name_set: ${raw_name_set}"
     echo "field 5, size: ${raw_size}"
-    echo "field 6, date_accession: ${raw_date_accession}"
+    echo "field 6, date_review: ${raw_date_review}"
     echo "field 7, note: ${raw_note}"
     echo "----------"
   fi

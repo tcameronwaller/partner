@@ -56,6 +56,8 @@ License:
 # Installation and importation
 
 # Standard
+import sys
+# sys.exit() # End execution at this point.
 import os
 import csv
 import copy
@@ -102,6 +104,340 @@ import partner.description as pdesc
 
 
 # Prepare columns of features and rows of observations in table for analysis.
+
+
+def prepare_table_features_observations_for_analysis(
+    table=None,
+    selection_observations=None,
+    features_relevant=None,
+    features_essential=None,
+    features_continuity_scale=None,
+    index_columns_source=None,
+    index_columns_product=None,
+    index_rows_source=None,
+    index_rows_product=None,
+    remove_missing=None,
+    remove_redundancy=None,
+    adjust_scale=None,
+    method_scale=None,
+    explicate_indices=None,
+    report=None,
+):
+    """
+    Prepare columns of features and rows of observations in table for analysis
+    by descriptive statistics, T-test, Analysis of Variance (ANOVA),
+    regression, principal components, or other method.
+
+    1. filter rows in table for relevant observations
+    2. filter columns in table for relevant features
+    3. remove rows from table with missing values in specific columns
+    4. remove rows from table with redundant values in specific columns
+    5. transform scale of features with measurement values on quantitative,
+       continuous scales of measurement, ratio or interval
+    6. organize indices across columns and rows
+
+    Notice that this function does not currently support filtering features or
+    observations on the basis of their proportion of values that are
+    nonmissing and within thresholds.
+    Notice that this function does not currently support filling values for
+    features and observations by imputation.
+    These operations are highly sensitive and deserve attention that is more
+    custom and careful.
+
+    Here is a reference with recommendations to filter observations to avoid
+    errors in mixed effects linear regression.
+    https://edwards.flinders.edu.au/statsmodels-mixedlm-singular-matrix-error/
+
+    ----------
+    Format of source data table (name: "table")
+    ----------
+    Format of source data table is in wide format with features across columns
+    and values corresponding to their observations across rows. A special
+    header row gives identifiers or names corresponding to each feature across
+    columns, and a special column gives identifiers or names corresponding to
+    each observation across rows. For versatility, this table does not have
+    explicitly defined indices across rows or columns.
+    ----------
+    identifiers     feature_1 feature_2 feature_3 feature_4 feature_5 ...
+
+    observation_1   0.001     0.001     0.001     0.001     0.001     ...
+    observation_2   0.001     0.001     0.001     0.001     0.001     ...
+    observation_3   0.001     0.001     0.001     0.001     0.001     ...
+    observation_4   0.001     0.001     0.001     0.001     0.001     ...
+    observation_5   0.001     0.001     0.001     0.001     0.001     ...
+    ----------
+
+    ----------
+    Format of product data table (name: "table")
+    ----------
+    Format of source data table is in wide format with features across columns
+    and values corresponding to their observations across rows. A special
+    header row gives identifiers or names corresponding to each feature across
+    columns, and a special column gives identifiers or names corresponding to
+    each observation across rows. The table has explicitly named indices across
+    columns and rows.
+    ----------
+    features        feature_1 feature_2 feature_3 feature_4 feature_5 ...
+    observations
+    observation_1   0.001     0.001     0.001     0.001     0.001     ...
+    observation_2   0.001     0.001     0.001     0.001     0.001     ...
+    observation_3   0.001     0.001     0.001     0.001     0.001     ...
+    observation_4   0.001     0.001     0.001     0.001     0.001     ...
+    observation_5   0.001     0.001     0.001     0.001     0.001     ...
+    ----------
+
+    Date, revision or review: 5 March 2026
+    Date, revision or review: 20 February 2026
+    Date, revision or review: 22 April 2025
+    Date, revision or review: 10 April 2025
+
+    arguments:
+        table (object): Pandas data-frame table of data with features
+            and observations for analysis
+        selection_observations (dict<list<str>>): names of columns in data
+            table for feature variables and their categorical values by
+            which to filter rows for observations in data table
+        features_relevant (list<str>): names of columns in data table for
+            feature variables that are relevant, for which to keep columns and
+            to remove rows of observations with redundancy across all
+        features_essential (list<str>): names of columns in data table for
+            feature variables that are essential, for which to remove rows of
+            observations with any missing values
+        features_continuity_scale (list<str>): names of columns in data table
+            for feature variables with values on quantitative, continuous scale
+            of measurement, interval or ratio, for which to standardize the
+            scale by z score
+        index_columns_source (str): name of single-level index across columns
+            in table
+        index_columns_product (str): name of single-level index across columns
+            in table
+        index_rows_source (str): name of single-level index across rows in
+            table
+        index_rows_product (str): name of single-level index across rows in
+            table
+        remove_missing (bool): whether to remove rows in table for observations
+            with missing values in any columns corresponding to the essential
+            features, 'features_essential'
+        remove_redundancy (bool): whether to remove rows in table for
+            observations with redundant information across all columns
+            corresponding to the relevant features, 'features_relevant'
+        adjust_scale (bool): whether to adjust or standardize the scale of
+            values for features across observations
+        method_scale (str): name of method to use to adjust the scale of values
+            for features across observations, either 'z_score' or 'unit_range'
+        explicate_indices (bool): whether to explicate, define, or specify
+            explicit indices across columns and rows in table
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table of data with features and
+            observations for analysis
+
+    """
+
+    # Copy information.
+    table = table.copy(deep=True)
+    selection_observations = copy.deepcopy(selection_observations)
+    features_relevant = copy.deepcopy(features_relevant)
+    features_essential = copy.deepcopy(features_essential)
+    features_continuity_scale = copy.deepcopy(features_continuity_scale)
+
+    # Restore or reset indices to generic default.
+    table.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    table.columns.rename(
+        None,
+        inplace=True,
+    ) # single-dimensional index
+
+    # Filter rows in table for observations.
+    table = porg.filter_select_table_rows_by_columns_categories(
+        table=table,
+        columns_categories=selection_observations,
+        report=report,
+    )
+    # Filter columns in table for features.
+    table = porg.filter_sort_table_columns(
+        table=table,
+        columns_sequence=features_relevant,
+        report=report,
+    )
+
+    # Report names of columns and their types of values.
+    if report:
+        putly.print_terminal_partition(level=4)
+        print("package: partner")
+        print("module: organization.py")
+        name_function = str(
+            "prepare_table_features_observations_for_analysis()"
+        )
+        print("function: " + name_function)
+        putly.print_terminal_partition(level=5)
+        print("check variable types of features across table columns")
+        putly.print_terminal_partition(level=5)
+        print("table:")
+        print(table)
+        putly.print_terminal_partition(level=5)
+        print("names and types of columns:")
+        print(table.dtypes)
+        putly.print_terminal_partition(level=5)
+        pass
+
+    # Remove rows from table for observations with missing values for any of
+    # the essential features.
+    if (
+        (remove_missing) and
+        (len(features_essential) > 0)
+    ):
+        table.dropna(
+            axis="index",
+            how="any",
+            subset=features_essential,
+            inplace=True,
+        )
+        pass
+    # Remove rows from table for observations that are redundant replicates.
+    if remove_redundancy:
+        table.drop_duplicates(
+            subset=features_relevant,
+            keep="first",
+            inplace=True,
+        )
+        pass
+    # Restore or reset indices in table to generic default.
+    table.reset_index(
+        level=None,
+        inplace=True,
+        drop=True, # remove index; do not move to regular columns
+    )
+    table.columns.rename(
+        None,
+        inplace=True,
+    ) # single-dimensional index
+
+    # Standardize scale of values for observations of features.
+    table = pscl.manage_transform_scale_feature_by_table_columns(
+        table=table,
+        features_continuity_scale=features_continuity_scale,
+        adjust_scale=adjust_scale,
+        method_scale=method_scale,
+        report=report,
+    )
+
+    # Organize indices in table.
+    # Determine whether parameters specified a column in the table for
+    # identifiers of observations that will become index across rows.
+    if (
+        (index_rows_source is not None) and
+        (index_rows_source in (table.columns.to_list())) and
+        (explicate_indices)
+    ):
+        # Remove rows from table for observations with redundancy in identifiers
+        # for indices across columns and rows of the table.
+        table = porg.remove_redundancy_identifiers_table_columns_rows(
+            table=table,
+            identifiers_rows=index_rows_source,
+            remove_redundancy=remove_redundancy,
+            report=False,
+        )
+        # Create index across rows from column that already exists in table.
+        table = porg.explicate_table_indices_columns_rows_single_level(
+            table=table,
+            index_columns=index_columns_source,
+            index_rows=index_rows_source,
+            explicate_indices=explicate_indices,
+            report=False,
+        )
+        # Standardize names of indices.
+        table = porg.translate_names_table_indices_columns_rows(
+            table=table,
+            index_columns_product=index_columns_product,
+            index_rows_source=index_rows_source,
+            index_rows_product=index_rows_product,
+            report=None,
+        )
+    elif (
+        (index_rows_source is not None) and
+        (index_rows_source in (table.columns.tolist()))
+    ):
+        # Organize indices.
+        table.reset_index(
+            level=None,
+            inplace=True,
+            drop=True, # remove index; do not move to regular columns
+        )
+        table.set_index(
+            index_rows_source,
+            append=False,
+            drop=True,
+            inplace=True,
+        )
+        # Standardize names of indices.
+        table = porg.translate_names_table_indices_columns_rows(
+            table=table,
+            index_columns_product=index_columns_product,
+            index_rows_source=index_rows_source,
+            index_rows_product=index_rows_product,
+            report=None,
+        )
+        table.reset_index(
+            level=None,
+            inplace=True,
+            drop=False, # remove index; do not move to regular columns
+        )
+        # Create index across rows from column that already exists in table.
+        table = porg.explicate_table_indices_columns_rows_single_level(
+            table=table,
+            index_columns=index_columns_product,
+            index_rows=index_rows_product,
+            explicate_indices=explicate_indices,
+            report=False,
+        )
+    else:
+        # Name generic index in table.
+        table.reset_index(
+            level=None,
+            inplace=True,
+            drop=True, # remove index; do not move to regular columns
+        )
+        table.index.set_names(index_rows_product, inplace=True)
+        table.reset_index(
+            level=None,
+            inplace=True,
+            drop=False, # remove index; do not move to regular columns
+        )
+        # Create index across rows from column that already exists in table.
+        table = porg.explicate_table_indices_columns_rows_single_level(
+            table=table,
+            index_columns=index_columns_product,
+            index_rows=index_rows_product,
+            explicate_indices=explicate_indices,
+            report=False,
+        )
+        pass
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=4)
+        print("package: partner")
+        print("module: organization.py")
+        name_function = str(
+            "prepare_table_features_observations_for_analysis()"
+        )
+        print("function: " + name_function)
+        putly.print_terminal_partition(level=5)
+        print(table)
+        putly.print_terminal_partition(level=5)
+        pass
+    # Return information.
+    return table
+
+
 
 
 # Evaluate information in table for features and observations.
@@ -285,7 +621,7 @@ def check_parameters_table_data_regression(
     feature_response=None,
     features_predictor_fixed=None,
     features_predictor_random=None,
-    groups_random=None,
+    feature_groups_random=None,
     threshold_features_variance=None,
     threshold_observations_count=None,
     measure_variance=None,
@@ -320,9 +656,9 @@ def check_parameters_table_data_regression(
         features_predictor_random (list<str>): names of columns in data table
             for feature variables to include in regression model as predictor
             independent variables with random effects
-        groups_random (str): name of column in data table for identifiers or
-            designations of groups of observations for which to allow random
-            effects in the regression model
+        feature_groups_random (str): name of column in data table for
+            identifiers or designations of groups of observations for which to
+            allow random effects in the regression model
         threshold_features_variance (float): threshold minimal variance for
             values of features across observations
         threshold_observations_count (int): threshold minimal count of
@@ -449,35 +785,69 @@ def check_parameters_table_data_regression(
             pail = pdesc.calculate_variance_measures(
                 array=values_raw,
             )
-            if (pail[measure_variance] >= threshold_features_variance):
+            if (abs(pail[measure_variance]) >= threshold_features_variance):
                 checks.append(True)
             else:
                 checks.append(False)
                 pass
             pass
         return all(checks)
+
     # Evaluate individual features separately.
-    check_fixed = check_features_variance(
+    check_variance_response = check_features_variance(
         table=table,
-        features=features_predictor_fixed,
+        features=[feature_response],
         measure_variance=measure_variance,
         threshold_features_variance=threshold_features_variance,
     )
-    # Features with random effects will generall be categorical.
-    if False:
-        check_random = check_features_variance(
-            table=table,
-            features=features_predictor_random,
-            measure_variance=measure_variance,
-            threshold_features_variance=threshold_features_variance,
-        )
-    else:
-        check_random = True
-        pass
-    if (check_fixed and check_random):
+    check_variance_fixed = check_features_variance(
+        table=table,
+        features=features_predictor_fixed, # features_predictor_fixed
+        measure_variance=measure_variance,
+        threshold_features_variance=threshold_features_variance,
+    )
+    # Features with random effects will generally be categorical.
+    # It is important that the categorical features (binary dummies) do not
+    # have the same value across too many observations.
+    check_variance_random = check_features_variance(
+        table=table,
+        features=features_predictor_random,
+        measure_variance=measure_variance,
+        threshold_features_variance=threshold_features_variance,
+    )
+    # Determine whether all sets of features pass the variance test.
+    if (
+        check_variance_response and
+        check_variance_fixed and
+        check_variance_random
+    ):
         check_variance = True
     else:
         check_variance = False
+        pass
+
+    # Check that features do not have a sum too close to zero.
+    # In particular, features can have a sum too close to zero when there are
+    # not many observations and their values have been transformed to the
+    # z-score standard scale.
+    columns_check_sum = copy.deepcopy(features_predictor_fixed)
+    columns_check_sum.extend(copy.deepcopy(features_predictor_random))
+    columns_check_sum.insert(0, feature_response)
+    series_sum_features = table[columns_check_sum].aggregate(
+        lambda series: series.sum(),
+        axis="index", # apply function to each column
+    )
+    series_sum_features_zero = series_sum_features[numpy.isclose(
+        series_sum_features,
+        0.0,
+        rtol=1e-05,
+        atol=1e-17,
+        equal_nan=False,
+    )]
+    if (series_sum_features_zero.shape[0] == 0):
+        check_sum_zero = True
+    else:
+        check_sum_zero = False
         pass
 
     # Check whether there was failure of any checks overall.
@@ -486,6 +856,7 @@ def check_parameters_table_data_regression(
         (check_features_exist) and
         (check_observations_count) and
         (check_variance)
+        #(check_sum_zero)
     ):
         check_overall = True
     else:
@@ -498,6 +869,7 @@ def check_parameters_table_data_regression(
     pail["check_features_exist"] = check_features_exist
     pail["check_observations_count"] = check_observations_count
     pail["check_variance"] = check_variance
+    pail["check_sum_zero"] = check_sum_zero
     pail["check_overall"] = check_overall
 
     # Warn.
@@ -538,6 +910,7 @@ def check_parameters_table_data_regression(
         print("check_features_exist: " + str(check_features_exist))
         print("check_observations_count: " + str(check_observations_count))
         print("check_variance: " + str(check_variance))
+        print("check_sum_zero: " + str(check_sum_zero))
         print("check_overall: " + str(check_overall))
         pass
     # Return information.
@@ -1316,7 +1689,7 @@ def regress_continuous_linear_mixed_effects_random_intercepts_slopes(
     feature_response=None,
     features_predictor_fixed=None,
     features_predictor_random=None,
-    groups_random=None,
+    feature_groups_random=None,
     method_fit=None,
     report=None,
 ):
@@ -1328,16 +1701,19 @@ def regress_continuous_linear_mixed_effects_random_intercepts_slopes(
 
     The model accommodates a random effect of different intercepts between
     groups of observations. It also accommodates random effects of slope
-    coefficients that differ between groups of observations, requiring these
-    random slopes to be correlated, I think with the predictor features for
-    random effects. It is possible to force these random slopes to be
-    correlated or to force these random slopes to be independent and
-    uncorrelated. Refer to the documentation of the 'MixedLM' method in the
-    StatsModels package in Python.
+    coefficients that differ between groups of observations. It is optional to
+    require these random slopes to be correlated with the random intercepts, or
+    it is optional to require the random slopes to be independent and not
+    correlated with the random intercepts. Refer to the documentation of the
+    'MixedLM' method in the StatsModels package in Python.
 
     The implementation in StatsModels allows additional parameters through the
     'fit' method (https://www.statsmodels.org/dev/generated/statsmodels.
     regression.mixed_linear_model.MixedLM.fit.html).
+
+    Here is a reference with recommendations to filter observations to avoid
+    errors in mixed effects linear regression.
+    https://edwards.flinders.edu.au/statsmodels-mixedlm-singular-matrix-error/
 
     ----------
     Format of source data table (name: "table")
@@ -1428,9 +1804,9 @@ def regress_continuous_linear_mixed_effects_random_intercepts_slopes(
         features_predictor_random (list<str>): names of columns in data table
             for feature variables to include in regression model as predictor
             independent variables with random effects
-        groups_random (str): name of column in data table for identifiers or
-            designations of groups of observations for which to allow random
-            effects in the regression model
+        feature_groups_random (str): name of column in data table for
+            identifiers or designations of groups of observations for which to
+            allow random effects in the regression model
         method_fit (list<str>): names of methods to apply for fitting the
             model, especially with random slopes some models can fail to fit
             the model to convergence
@@ -1503,14 +1879,18 @@ def regress_continuous_linear_mixed_effects_random_intercepts_slopes(
     )
     # Organize predictor features with random effects.
     if (
-        (groups_random is not None) and
-        (len(groups_random) > 0) and
-        (str(groups_random[0]).strip().lower() != "none") and
+        (feature_groups_random is not None) and
+        (len(feature_groups_random) > 0) and
+        (str(feature_groups_random[0]).strip().lower() != "none") and
         (features_predictor_random is not None) and
         (len(features_predictor_random) > 0) and
-        (str(features_predictor_random[0]).strip().lower() != "none") and
-        ("intercept" in features_predictor_random)
+        (str(features_predictor_random[0]).strip().lower() != "none")
     ):
+        if (
+            ("intercept" not in features_predictor_random)
+        ):
+            features_predictor_random.insert(0, "intercept")
+            pass
         # Include specific predictor features with random effects.
         # Include a constant intercept with random effects.
         #features_predictor_random = ["intercept",] # if "none"
@@ -1541,31 +1921,73 @@ def regress_continuous_linear_mixed_effects_random_intercepts_slopes(
         model = statsmodels.api.MixedLM(
             table[feature_response],
             table_predictor_fixed,
-            groups=table[groups_random],
-            exog_re=None, # default to random intercept for each group
+            groups=table[feature_groups_random],
+            exog_re=None, # default to random effect of intercept for each group
             missing="drop",
         )
         # Fit the model.
-        handle_model = model.fit(
-            reml=True, # Restricted Maximum Likelihood (REML) or ML
-            method=method_fit,
-        )
     else:
         # Define model with random intercepts and random slopes.
         model = statsmodels.api.MixedLM(
             table[feature_response],
             table_predictor_fixed,
-            groups=table[groups_random],
+            groups=table[feature_groups_random],
             exog_re=table_predictor_random,
             missing="drop",
         )
         # Fit the model.
-        handle_model = model.fit(
-            reml=True, # Restricted Maximum Likelihood (REML) or ML
-            method=method_fit,
-            #maxiter=10000,
-        )
+        #free = (statsmodels.regression.mixed_linear_model.MixedLMParams.from_components(
+        #    numpy.ones(2), numpy.eye(2)
+        #))
+        pass
 
+    # Determine methods for fit.
+    if (method_fit is None):
+        # Define methods for fit.
+        methods_fit = [
+            "bfgs",
+            "lbfgs",
+            "cg",
+            "powell",
+            "basinhopping",
+            "nm",
+        ]
+    else:
+        # Define methods for fit.
+        methods_fit = [method_fit]
+        pass
+    # Fit the model.
+    handle_model = None
+    for method_fit in methods_fit:
+        try:
+            handle_model = model.fit(
+                reml=True, # Restricted Maximum Likelihood (REML) or ML
+                method=method_fit, # None, individual method name, or a list of method names
+                #maxiter=10000,
+                #free=free, # constrain random effect intercepts and slopes to be independent and not correlated (r = 0)
+            )
+            method_success = method_fit
+            # Report.
+            if report:
+                putly.print_terminal_partition(level=5)
+                print("feature_response: " + str(feature_response))
+                print(
+                    f"model fit PASSED with method {method_success}",
+                    file=sys.stderr
+                )
+                pass
+            break
+        except numpy.linalg.LinAlgError as e:
+            # Report.
+            if report:
+                putly.print_terminal_partition(level=5)
+                print("feature_response: " + str(feature_response))
+                print(
+                    f"model fit FAILED with method {method_fit}",
+                    file=sys.stderr
+                )
+                pass
+            pass
         pass
 
     # Collect information.
@@ -1852,6 +2274,7 @@ def manage_regression_continuous_linear_ordinary_least_squares(
         "akaike",
         "bayes",
         "condition",
+        "error",
     ]
     pail["implementation"] = str(
         "statsmodels.regression.linear_model.OLS()"
@@ -1878,6 +2301,8 @@ def manage_regression_continuous_linear_ordinary_least_squares(
     )
     # Extra.
     pail["table_summary"] = pail_regression["model"].summary()
+    # Determine whether to identify an error.
+    pail["error"] = False
 
     # Report.
     if report:
@@ -1903,8 +2328,6 @@ def manage_regression_continuous_linear_ordinary_least_squares(
     return pail
 
 
-# TODO: TCW; 6 April 2025
-# enhance the information extracted from the model?
 def manage_regression_continuous_linear_mixed_effects(
     table=None,
     index_columns=None,
@@ -1914,7 +2337,7 @@ def manage_regression_continuous_linear_mixed_effects(
     feature_response=None,
     features_predictor_fixed=None,
     features_predictor_random=None,
-    groups_random=None,
+    feature_groups_random=None,
     method_fit=None,
     report=None,
 ):
@@ -1963,9 +2386,9 @@ def manage_regression_continuous_linear_mixed_effects(
         features_predictor_random (list<str>): names of columns in data table
             for feature variables to include in regression model as predictor
             independent variables with random effects
-        groups_random (str): name of column in data table for identifiers or
-            designations of groups of observations for which to allow random
-            effects in the regression model
+        feature_groups_random (str): name of column in data table for
+            identifiers or designations of groups of observations for which to
+            allow random effects in the regression model
         method_fit (list<str>): names of methods to apply for fitting the
             model, especially with random slopes some models can fail to fit
             the model to convergence
@@ -1990,75 +2413,122 @@ def manage_regression_continuous_linear_mixed_effects(
             feature_response=feature_response,
             features_predictor_fixed=features_predictor_fixed,
             features_predictor_random=features_predictor_random,
-            groups_random=groups_random,
+            feature_groups_random=feature_groups_random,
             method_fit=method_fit,
             report=report,
     ))
-    # Report attributes.
-    #print(dir(pail_regression["model"]))
-    # Extract residuals.
-    residuals = pail_regression["model"].resid
-
-    #print(pail_regression["model"].summary())
-
-    # Organize information from regression for predictor features.
-    parameters = pandas.Series(data=pail_regression["model"].params)
-    standard_errors = pandas.Series(data=pail_regression["model"].bse)
-    pvalues = pandas.Series(data=pail_regression["model"].pvalues)
-    pail_predictors = parse_organize_regression_intercept_predictors(
-        table_predictor_intercept=pail_regression["table_predictor_intercept"],
-        features_predictor=pail_regression["features_predictor_intercept"],
-        parameters=parameters,
-        standard_errors=standard_errors,
-        pvalues=pvalues,
-        report=report,
-    )
-
-    # Collect information.
-    pail = dict()
-    # Regression model as a whole.
-    pail["entries_model"] = [
-        "implementation",
-        "count_observations_table",
-        "count_observations_model",
-        "degrees_freedom_model",
-        "degrees_freedom_residual",
-        "r_square",
-        "r_square_adjust",
-        "r_square_pseudo",
-        "log_likelihood",
-        "akaike",
-        "bayes",
-        "condition",
-    ]
-    pail["implementation"] = str(
-        "statsmodels.regression.mixed_linear_model.MixedLM()"
-    )
-    pail["count_observations_table"] = int(table.shape[0])
-    pail["count_observations_model"] = int(pail_regression["model"].nobs)
-    pail["degrees_freedom_model"] = int(
-        pail_regression["model"].df_modelwc # what does this mean?
-    )
-    pail["degrees_freedom_residual"] = int(
-        pail_regression["model"].df_resid
-    )
-    pail["degrees_freedom_residual"] = float("nan")
-    #pail["r_square"] = pail_regression["model"].rsquared
-    pail["r_square"] = float("nan")
-    #pail["r_square_adjust"] = pail_regression["model"].rsquared_adj
-    pail["r_square_adjust"] = float("nan")
-    pail["r_square_pseudo"] = float("nan") # hold place for logistic regression
-    pail["log_likelihood"] = pail_regression["model"].llf
-    pail["akaike"] = pail_regression["model"].aic
-    pail["bayes"] = pail_regression["model"].bic
-    #pail["condition"] = pail_regression["model"].condition_number
-    pail["condition"] = float("nan")
-    # Intercept and predictors as parts of regression model.
-    pail["entries_intercept_predictors"] = pail_predictors["entries"]
-    pail.update(
-        pail_predictors["intercept_predictors"]
-    )
-    pail["table_summary"] = pail_regression["model"].summary()
+    # Determine whether the regression succeeded.
+    if (pail_regression["model"] is not None):
+        # Report attributes.
+        #print(dir(pail_regression["model"]))
+        # Extract residuals.
+        residuals = pail_regression["model"].resid
+        #print(pail_regression["model"].summary())
+        # Organize information from regression for predictor features.
+        parameters = pandas.Series(data=pail_regression["model"].params)
+        standard_errors = pandas.Series(data=pail_regression["model"].bse)
+        pvalues = pandas.Series(data=pail_regression["model"].pvalues)
+        pail_predictors = parse_organize_regression_intercept_predictors(
+            table_predictor_intercept=(
+                pail_regression["table_predictor_intercept"]
+            ),
+            features_predictor=pail_regression["features_predictor_intercept"],
+            parameters=parameters,
+            standard_errors=standard_errors,
+            pvalues=pvalues,
+            report=report,
+        )
+        # Collect information.
+        pail = dict()
+        # Regression model as a whole.
+        pail["entries_model"] = [
+            "implementation",
+            "count_observations_table",
+            "count_observations_model",
+            "degrees_freedom_model",
+            "degrees_freedom_residual",
+            "r_square",
+            "r_square_adjust",
+            "r_square_pseudo",
+            "log_likelihood",
+            "akaike",
+            "bayes",
+            "condition",
+            "error",
+        ]
+        pail["implementation"] = str(
+            "statsmodels.regression.mixed_linear_model.MixedLM()"
+        )
+        pail["count_observations_table"] = int(table.shape[0])
+        pail["count_observations_model"] = int(pail_regression["model"].nobs)
+        pail["degrees_freedom_model"] = int(
+            pail_regression["model"].df_modelwc # what does this mean?
+        )
+        pail["degrees_freedom_residual"] = int(
+            pail_regression["model"].df_resid
+        )
+        pail["degrees_freedom_residual"] = float("nan")
+        #pail["r_square"] = pail_regression["model"].rsquared
+        pail["r_square"] = float("nan")
+        #pail["r_square_adjust"] = pail_regression["model"].rsquared_adj
+        pail["r_square_adjust"] = float("nan")
+        pail["r_square_pseudo"] = float("nan") # hold place for logistic regression
+        pail["log_likelihood"] = pail_regression["model"].llf
+        pail["akaike"] = pail_regression["model"].aic
+        pail["bayes"] = pail_regression["model"].bic
+        #pail["condition"] = pail_regression["model"].condition_number
+        pail["condition"] = float("nan")
+        # Intercept and predictors as parts of regression model.
+        pail["entries_intercept_predictors"] = pail_predictors["entries"]
+        pail.update(
+            pail_predictors["intercept_predictors"]
+        )
+        pail["table_summary"] = pail_regression["model"].summary()
+        # Determine whether to identify an error.
+        if (not pail_regression["model"].converged):
+            pail["error"] = True
+        else:
+            pail["error"] = False
+            pass
+    else:
+        # Collect information.
+        pail = dict()
+        # Regression model as a whole.
+        pail["entries_model"] = [
+            "implementation",
+            "count_observations_table",
+            "count_observations_model",
+            "degrees_freedom_model",
+            "degrees_freedom_residual",
+            "r_square",
+            "r_square_adjust",
+            "r_square_pseudo",
+            "log_likelihood",
+            "akaike",
+            "bayes",
+            "condition",
+            "error",
+        ]
+        pail["implementation"] = str(
+            "statsmodels.regression.mixed_linear_model.MixedLM()"
+        )
+        pail["count_observations_table"] = int(table.shape[0])
+        pail["count_observations_model"] = float("nan")
+        pail["degrees_freedom_model"] = float("nan")
+        pail["degrees_freedom_residual"] = float("nan")
+        pail["r_square"] = float("nan")
+        pail["r_square_adjust"] = float("nan")
+        pail["r_square_pseudo"] = float("nan") # hold place for logistic regression
+        pail["log_likelihood"] = float("nan")
+        pail["akaike"] = float("nan")
+        pail["bayes"] = float("nan")
+        pail["condition"] = float("nan")
+        # Intercept and predictors as parts of regression model.
+        pail["entries_intercept_predictors"] = None
+        pail["table_summary"] = pandas.DataFrame()
+        # Determine whether to identify an error.
+        pail["error"] = True
+        pass
 
     # Report.
     if report:
@@ -2073,8 +2543,8 @@ def manage_regression_continuous_linear_mixed_effects(
         print("text formula for regression model:")
         print(formula_text)
         putly.print_terminal_partition(level=5)
-        print("summary from regression model:")
-        print(pail_regression["model"].summary())
+        #print("summary from regression model:")
+        #print(pail_regression["model"].summary())
         #print(dir(pail_regression))
         #print(pail_regression.params)
         #print(pail_regression.pvalues)
@@ -2188,6 +2658,7 @@ def manage_regression_discrete_logistic_logit(
         "akaike",
         "bayes",
         "condition",
+        "error",
     ]
     pail["implementation"] = str(
         "statsmodels.discrete.discrete_model.Logit()"
@@ -2213,6 +2684,8 @@ def manage_regression_discrete_logistic_logit(
         pail_predictors["intercept_predictors"]
     )
     pail["table_summary"] = pail_regression["model"].summary()
+    # Determine whether to identify an error.
+    pail["error"] = False
 
     # Report.
     if report:
@@ -2248,7 +2721,7 @@ def determine_type_regression_analysis(
     feature_response=None,
     features_predictor_fixed=None,
     features_predictor_random=None,
-    groups_random=None,
+    feature_groups_random=None,
     method_fit=None,
     report=None,
 ):
@@ -2445,9 +2918,9 @@ def determine_type_regression_analysis(
         features_predictor_random (list<str>): names of columns in data table
             for feature variables to include in regression model as predictor
             independent variables with random effects
-        groups_random (str): name of column in data table for identifiers or
-            designations of groups of observations for which to allow random
-            effects in the regression model
+        feature_groups_random (str): name of column in data table for
+            identifiers or designations of groups of observations for which to
+            allow random effects in the regression model
         method_fit (list<str>): names of methods to apply for fitting the
             model, especially with random slopes some models can fail to fit
             the model to convergence
@@ -2489,7 +2962,7 @@ def determine_type_regression_analysis(
             feature_response=feature_response,
             features_predictor_fixed=features_predictor_fixed,
             features_predictor_random=features_predictor_random,
-            groups_random=groups_random,
+            feature_groups_random=feature_groups_random,
             method_fit=method_fit,
             report=report,
         )
@@ -3407,7 +3880,7 @@ def collect_organize_record_regression_analysis(
     feature_response=None,
     features_predictor_fixed=None,
     features_predictor_random=None,
-    groups_random=None,
+    feature_groups_random=None,
     method_fit=None,
     record_extra=None,
     delimiter_list_items=None,
@@ -3468,9 +3941,9 @@ def collect_organize_record_regression_analysis(
         features_predictor_random (list<str>): names of columns in data table
             for feature variables to include in regression model as predictor
             independent variables with random effects
-        groups_random (str): name of column in data table for identifiers or
-            designations of groups of observations for which to allow random
-            effects in the regression model
+        feature_groups_random (str): name of column in data table for
+            identifiers or designations of groups of observations for which to
+            allow random effects in the regression model
         method_fit (list<str>): names of methods to apply for fitting the
             model, especially with random slopes some models can fail to fit
             the model to convergence
@@ -3512,7 +3985,7 @@ def collect_organize_record_regression_analysis(
         "feature_response",
         "features_predictor_fixed",
         "features_predictor_random",
-        "groups_random",
+        "feature_groups_random",
         "method_fit",
     ]
     pail["entries_parameter_instance"].extend(list(record_extra.keys()))
@@ -3531,7 +4004,7 @@ def collect_organize_record_regression_analysis(
     pail["record"]["features_predictor_random"] = delimiter_list_items.join(
         features_predictor_random
     )
-    pail["record"]["groups_random"] = groups_random
+    pail["record"]["feature_groups_random"] = feature_groups_random
     pail["record"]["method_fit"] = method_fit
     pail["record"].update(record_extra)
     # Determine whether to perform regression.
@@ -3546,7 +4019,7 @@ def collect_organize_record_regression_analysis(
             feature_response=feature_response,
             features_predictor_fixed=features_predictor_fixed,
             features_predictor_random=features_predictor_random,
-            groups_random=groups_random,
+            feature_groups_random=feature_groups_random,
             method_fit=method_fit,
             report=report,
         )
@@ -3560,6 +4033,16 @@ def collect_organize_record_regression_analysis(
         del pail["record"]["entries_intercept_predictors"]
         del pail["record"]["table_summary"]
         pail["table_summary"] = copy.deepcopy(pail_regression["table_summary"])
+        # Determine whether there was an error in the regression.
+        # This setting of "entries_model" and "entries_intercept_predictors" is
+        # not actually necessary.
+        # This error might result, for example, from a model that did not
+        # converge in mixed effects linear regression.
+        #if (pail_regression["error"]):
+        #    # Collect information.
+        #    pail["entries_model"] = None
+        #    pail["entries_intercept_predictors"] = None
+        #    #pail["table_summary"] = None
     else:
         # Collect information.
         pail["entries_model"] = None
@@ -3594,7 +4077,7 @@ def prepare_text_summary_regression_anova(
     description_analysis=None,
     formula_text=None,
     description_response=None,
-    description_groups_random=None,
+    description_feature_groups_random=None,
     description_predictor=None,
     summary_1=None,
     summary_2=None,
@@ -3612,7 +4095,8 @@ def prepare_text_summary_regression_anova(
         formula_text (str): human readable formula, treated as a note for
             clarification
         description_response (str): description_response
-        description_groups_random (str): description_groups_random
+        description_feature_groups_random (str):
+            description_feature_groups_random
         description_predictor (str): description_predictor
         summary_1 (str): summary from analysis
         summary_2 (str): summary from analysis
@@ -3667,7 +4151,7 @@ def prepare_text_summary_regression_anova(
         """) +
         str(
             "Description of groups of observations for random effects: \n" +
-            description_groups_random
+            description_feature_groups_random
         ) +
         textwrap.dedent("""\
 

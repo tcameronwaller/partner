@@ -40,11 +40,23 @@ License:
 ###############################################################################
 # Notes
 
+# Here are a few informal (need review) notes about methods of normalization.
+# robust scaling ((x - median(x) / interquartile_range(x)))
+# logarithmic transformation
+#   mitigate skewness, especially left
+# square root transformation
+#   mitigate skewness in presence of zeros
+# square transformation
+#   mitigate skewness, especially left
+# exponential transformation
+#   mitigate skewness, especially when relationship is exponential
+
 
 ###############################################################################
 # Installation and importation
 
 # Standard
+import sys
 import os
 import csv
 import copy
@@ -68,7 +80,7 @@ import statsmodels.api
 
 # Custom
 import partner.utility as putly # this import path for subpackage
-
+import partner.organization as porg
 #dir()
 #importlib.reload()
 
@@ -408,6 +420,102 @@ def transform_exponent_by_table_columns(
         pass
     # Return information.
     return table
+
+
+def transform_product_by_table_columns(
+    table=None,
+    columns=None,
+    factor=None,
+    report=None,
+):
+    """
+    Transform values by calculating the product with a specific factor.
+
+    This function preserves the names and sequence of columns from the original
+    source table.
+
+    Review or revision: TCW; 7 January 2026
+
+    arguments:
+        table (object): Pandas data-frame table of values on continuous ratio
+            or interval scale of measurement
+        columns (list<str>): names of columns in table for which to apply the
+            transformation
+        base (float): base for exponent
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): Pandas data-frame table of values
+
+    """
+
+    # Define subordinate functions for internal use.
+    # Use this function with an "apply()" iterator.
+    def calculate_product(
+        factor_one=None,
+        factor_two=None,
+    ):
+        # Determine whether there is adequate information for division.
+        if (
+            (factor_one is not None) and
+            (factor_two is not None) and
+            (not math.isnan(factor_one)) and
+            (not math.isnan(factor_two))
+        ):
+            # Manage types of values.
+            factor_one = float(factor_one)
+            factor_two = float(factor_two)
+            # There is adequate information for multiplication.
+            product = (factor_one * factor_two)
+        else:
+            # There is inadequate information for division.
+            product = float("nan")
+            pass
+        # Return information.
+        return product
+
+    # Copy information.
+    table = table.copy(deep=True)
+    columns = copy.deepcopy(columns)
+
+    # Filter columns by whether they are available in the table.
+    columns_relevant = list(filter(
+        lambda column: (str(column) in table.columns.to_list()),
+        columns
+    ))
+
+    # Calculate the standard z-score of values in each column of table.
+    # This method inserts missing values if the standard deviation is zero.
+    for column in columns_relevant:
+        table[column] = numpy.multiply(
+            table[column].to_numpy(
+                    dtype="float64",
+                    na_value=numpy.nan,
+                    copy=True,
+            ),
+            factor,
+        )
+        pass
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        print("module: scale.py")
+        function = (
+            "transform_product_by_table_columns()"
+        )
+        print(str("function: " + function))
+        putly.print_terminal_partition(level=5)
+        print(str("factor: " + str(factor)))
+        putly.print_terminal_partition(level=5)
+        pass
+    # Return information.
+    return table
+
+
 
 
 # Standard Z Score
@@ -929,7 +1037,8 @@ def manage_transform_scale_feature_by_table_columns(
     observation_5   0.001     0.001     0.001     0.001     0.001     ...
     ----------
 
-    Review: TCW; 8 May 2025
+    Date, revision or review: 20 February 2026
+    Date, revision or review: 8 May 2025
 
     arguments:
         table (object): Pandas data-frame table of data with features
@@ -955,7 +1064,6 @@ def manage_transform_scale_feature_by_table_columns(
     # Copy information.
     table = table.copy(deep=True)
     features_continuity_scale = copy.deepcopy(features_continuity_scale)
-
 
     # Standardize scale of values for observations of features.
     if (
@@ -999,9 +1107,477 @@ def manage_transform_scale_feature_by_table_columns(
     return table
 
 
+##########
+# Scale alignment between samples by sum total signal intensity
+
+
+def scale_signals_between_samples_by_sum_total_signal_intensity(
+    table=None,
+    name_index_columns=None,
+    name_index_rows=None,
+    columns_signal_scale=None,
+    scale_factor_batch=None,
+    report=None,
+):
+    """
+    This function is a dependency of the function below.
+    package: partner
+    module or script: 1_organize_table_signal_proteomics
+    function: align_scale_signal_between_samples_by_sum_total()
+
+    Align scale of values for signal intensity between separate samples using
+    the sum total signal intensity across all analytes in each sample.
+
+    Date, revision or review: 4 February 2026
+
+    arguments:
+        table (object): Pandas data-frame table of signals for analytes
+            from their measurements across samples
+        name_index_columns (str): name of index across columns in table
+        name_index_rows (str): name of index across rows in table
+        columns_signal_scale (list<str>): names of column in table
+        scale_factor_batch (float): extra factor for adjustment of signals for
+            all samples in batch
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict<object>): collection of information
+
+    """
+
+    # Copy information.
+    table = table.copy(deep=True)
+    table_total = table.copy(deep=True)
+    columns_signal_scale = copy.deepcopy(columns_signal_scale)
+
+    # Define indices in table.
+    table_total = porg.explicate_table_indices_columns_rows_single_level(
+        table=table_total,
+        index_columns=name_index_columns,
+        index_rows=name_index_rows,
+        explicate_indices=True,
+        report=report,
+    )
+    # Calculate sum total values of signal intensity across all analytes in
+    # each sample.
+    intensities_sum_total = table_total[columns_signal_scale].aggregate(
+        lambda column: numpy.nansum(
+            column.to_numpy(
+                dtype="float64",
+                na_value=numpy.nan,
+                copy=True,
+            )
+        ),
+        axis="index", # apply function to each column
+    )
+
+    # Calculate mean of sum total values of signal intensity across all
+    # analytes in all samples.
+    intensity_total_mean = numpy.nanmean(
+        intensities_sum_total.to_numpy(
+            dtype="float64",
+            na_value=numpy.nan,
+            copy=True,
+        )
+    )
+    # Convert Pandas series to data-frame table.
+    table_factor = intensities_sum_total.to_frame(
+        name="intensity",
+    )
+    # Define indices in table.
+    table_factor.index.set_names("sample", inplace=True)
+    table_factor.reset_index(
+        level=None,
+        inplace=True,
+        drop=False, # remove index; do not move to regular columns
+    )
+    # Calculate the scale factor.
+    table_factor["intensity_total"] = intensity_total_mean
+    table_factor["scale_factor_1"] = table_factor.apply(
+        lambda row: putly.divide_accommodate_zero_missing(
+            numerator=row["intensity_total"],
+            denominator=row["intensity"],
+        ),
+        axis="columns", # apply function to each row
+    )
+    table_factor["scale_factor_2"] = table_factor.apply(
+        lambda row: numpy.multiply(
+            row["scale_factor_1"],
+            scale_factor_batch,
+        ),
+        axis="columns", # apply function to each row
+    )
+    # Define indices in table.
+    table_factor = porg.explicate_table_indices_columns_rows_single_level(
+        table=table_factor,
+        index_columns="column",
+        index_rows="sample",
+        explicate_indices=True,
+        report=report,
+    )
+    # Calculate the scale adjustments for each analyte.
+    for column_signal in columns_signal_scale:
+        #name_column = str(column_signal + "_scale")
+        table[column_signal] = table.apply(
+            lambda row: numpy.multiply(
+                row[column_signal],
+                table_factor["scale_factor_2"][column_signal],
+            ),
+            axis="columns", # apply function to each row
+        )
+        pass
+    # Remove unnecessary columns from table.
+    table.drop(
+        labels=[],
+        axis="columns",
+        inplace=True
+    )
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        name_package = str("partner")
+        print("package: " + name_package)
+        name_module = str("scale.py")
+        print("module: " + name_module)
+        name_function = str(
+            "scale_signals_between_samples_by_sum_total_signal_intensity()"
+        )
+        print("function: " + name_function)
+        putly.print_terminal_partition(level=5)
+        print(table)
+        putly.print_terminal_partition(level=5)
+        pass
+    # Return information.
+    return table
+
 
 ##########
-# Scale adjustment by the DESeq method of median-ratio scaling
+# Scale alignment between batches by internal standard bridge samples
+
+
+def scale_signals_between_batches_by_bridge_internal_standard(
+    table=None,
+    name_index_columns=None,
+    name_index_rows=None,
+    columns_bridges_batch=None,
+    columns_bridges_all=None,
+    columns_observations_batch=None,
+    adjust_scale_bridges_batch=None,
+    report=None,
+):
+    """
+    This function is a dependency of the function below.
+    package: partner
+    module or script: 1_organize_table_signal_proteomics
+    function: manage_merge_scale_alignment_distribution_normalization()
+
+    Adjust scale of values for signals between separate batches using internal
+    standards called bridge samples.
+
+    Date, revision or review: 28 January 2026
+
+    arguments:
+        table (object): Pandas data-frame table of signals for analytes
+            from their measurements across samples
+        name_index_columns (str): name of index across columns in table
+        name_index_rows (str): name of index across rows in table
+        columns_bridges_batch (list<str>): names of column in table
+        columns_bridges_all (list<str>): names of column in table
+        columns_observations_batch (list<str>): names of columns in table
+        adjust_scale_bridges_batch (bool): whether to adjust the scale of
+            signals from bridge samples in the batch
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict<object>): collection of information
+
+    """
+
+    # Define subordinate functions for internal use.
+    def calculate_product(
+        factor_one=None,
+        factor_two=None,
+    ):
+        # Determine whether there is adequate information for division.
+        if (
+            (factor_one is not None) and
+            (factor_two is not None) and
+            (not math.isnan(factor_one)) and
+            (not math.isnan(factor_two))
+        ):
+            # Manage types of values.
+            factor_one = float(factor_one)
+            factor_two = float(factor_two)
+            # There is adequate information for multiplication.
+            product = (factor_one * factor_two)
+        else:
+            # There is inadequate information for division.
+            product = float("nan")
+            pass
+        # Return information.
+        return product
+
+    # Copy information.
+    table = table.copy(deep=True)
+    columns_bridges_batch = copy.deepcopy(columns_bridges_batch)
+    columns_bridges_all = copy.deepcopy(columns_bridges_all)
+    columns_observations_batch = copy.deepcopy(columns_observations_batch)
+    columns_signals_scale = copy.deepcopy(columns_observations_batch)
+
+    # Calculate mean values of signals from bridge and observation samples in
+    # batch and across all batches.
+    #table["mean"] = ((table["column_1"] + table["column_2"]) / 2)
+    #float((row["column_1"] + row["column_2"]) / 2)
+    if (len(columns_bridges_batch) > 1):
+        table["mean_bridges_batch"] = table.apply(
+            lambda row: numpy.nanmean(row[columns_bridges_batch]),
+            axis="columns", # apply function to each row
+        )
+    else:
+        table["mean_bridges_batch"] = table[columns_bridges_batch[0]]
+        pass
+    table["mean_bridges_all"] = table.apply(
+        lambda row: numpy.nanmean(row[columns_bridges_all]),
+        axis="columns", # apply function to each row
+    )
+    table["mean_observations"] = table.apply(
+        lambda row: numpy.nanmean(row[columns_observations_batch]),
+        axis="columns", # apply function to each row
+    )
+    # Calculate the scale factor.
+    table["scale_factor"] = table.apply(
+        lambda row: putly.divide_accommodate_zero_missing(
+            numerator=row["mean_bridges_all"],
+            denominator=row["mean_bridges_batch"],
+        ),
+        axis="columns", # apply function to each row
+    )
+    # Determine whether to adjust the scale of signals from bridge samples in
+    # the batch.
+    if (adjust_scale_bridges_batch):
+        columns_signals_scale.extend(columns_bridges_batch)
+        pass
+    # Calculate the scale adjustments for each analyte.
+    for column_signal in columns_signals_scale:
+        #name_column = str(column_signal + "_scale")
+        #table[column_signal] = table.apply(
+        #    lambda row: calculate_product(
+        #        factor_one=row[column_signal],
+        #        factor_two=row["scale_factor"],
+        #    ),
+        #    axis="columns", # apply function to each row
+        #)
+        table[column_signal] = table.apply(
+            lambda row: numpy.multiply(
+                row[column_signal],
+                row["scale_factor"],
+            ),
+            axis="columns", # apply function to each row
+        )
+        pass
+
+    # Remove unnecessary columns from table.
+    table.drop(
+        labels=[
+            "mean_bridges_batch",
+            "mean_bridges_all",
+            "mean_observations",
+            "scale_factor",
+        ],
+        axis="columns",
+        inplace=True
+    )
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        name_package = str("partner")
+        print("package: " + name_package)
+        name_module = str("scale.py")
+        print("module: " + name_module)
+        name_function = str(
+            "scale_signals_between_batches_by_bridge_internal_standard()"
+        )
+        print("function: " + name_function)
+        putly.print_terminal_partition(level=5)
+        print(table)
+        putly.print_terminal_partition(level=5)
+        pass
+    # Return information.
+    return table
+
+
+def calculate_difference_signals_between_batches_by_bridge(
+    table=None,
+    name_index_columns=None,
+    name_index_rows=None,
+    columns_bridges_batch_1=None,
+    columns_bridges_batch_2=None,
+    filter_sort_columns=None,
+    sort_rows=None,
+    report=None,
+):
+    """
+    Calculate the difference in signals for individual analytes between mean of
+    bridge samples from each of two batches.
+
+    Date, revision or review: 3 February 2026
+
+    arguments:
+        table (object): Pandas data-frame table of signals for analytes
+            from their measurements across samples
+        name_index_columns (str): name of index across columns in table
+        name_index_rows (str): name of index across rows in table
+        columns_bridges_batch_1 (list<str>): names of column in table
+        columns_bridges_batch_2 (list<str>): names of column in table
+        filter_sort_columns (bool): whether to filter and sort to minimal
+            columns in table that are most relevant
+        sort_rows (bool): whether to sort rows in table
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict<object>): collection of information
+
+    """
+
+    # Copy information.
+    table = table.copy(deep=True)
+    columns_bridges_batch_1 = copy.deepcopy(columns_bridges_batch_1)
+    columns_bridges_batch_2 = copy.deepcopy(columns_bridges_batch_2)
+    columns_bridges_all = copy.deepcopy(columns_bridges_batch_1)
+    columns_bridges_all.extend(copy.deepcopy(columns_bridges_batch_2))
+
+    # Calculate mean values of signal intensity for individual analytes from
+    # bridge samples in each batch.
+    #table["mean"] = ((table["column_1"] + table["column_2"]) / 2)
+    #float((row["column_1"] + row["column_2"]) / 2)
+    if (len(columns_bridges_batch_1) > 1):
+        table["mean_bridges_batch_1"] = table.apply(
+            lambda row: numpy.nanmean(row[columns_bridges_batch_1]),
+            axis="columns", # apply function to each row
+        )
+    else:
+        table["mean_bridges_batch_1"] = table[columns_bridges_batch_1[0]]
+        pass
+    if (len(columns_bridges_batch_2) > 1):
+        table["mean_bridges_batch_2"] = table.apply(
+            lambda row: numpy.nanmean(row[columns_bridges_batch_2]),
+            axis="columns", # apply function to each row
+        )
+    else:
+        table["mean_bridges_batch_2"] = table[columns_bridges_batch_2[0]]
+        pass
+    table["mean_bridges_all"] = table.apply(
+        lambda row: numpy.nanmean(row[columns_bridges_all]),
+        axis="columns", # apply function to each row
+    )
+
+    # Calculate the difference in values of signal intensity for individual
+    # analytes from bridge samples in each batch.
+    table["difference_bridge_batch"] = table.apply(
+        lambda row: (
+            row["mean_bridges_batch_1"] - row["mean_bridges_batch_2"]
+        ),
+        axis="columns", # apply function to each row
+    )
+    # Calculate the relative difference.
+    table["difference_bridge_batch_relative"] = table.apply(
+        lambda row: putly.divide_accommodate_zero_missing(
+            numerator=row["difference_bridge_batch"],
+            denominator=row["mean_bridges_all"],
+        ),
+        axis="columns", # apply function to each row
+    )
+    table["difference_bridge_batch_percent"] = numpy.multiply(
+        table["difference_bridge_batch_relative"], 100
+    )
+
+    # Filter rows in table.
+    columns_sequence = [
+        "difference_bridge_batch_percent",
+        "difference_bridge_batch_relative",
+        "difference_bridge_batch",
+        "mean_bridges_all",
+        "mean_bridges_batch_1",
+        "mean_bridges_batch_2",
+    ]
+    table.dropna(
+        axis="index",
+        how="all",
+        subset=columns_sequence,
+        inplace=True,
+    )
+    # Sort sequence of rows in table.
+    if (sort_rows):
+        table.sort_values(
+            by=["difference_bridge_batch_percent"],
+            axis="index",
+            ascending=True,
+            na_position="last",
+            inplace=True,
+        )
+        # Restore or reset indices in table to generic default.
+        table.reset_index(
+            level=None,
+            inplace=True,
+            drop=False, # remove index; do not move to regular columns
+        )
+        table.columns.rename(
+            None,
+            inplace=True,
+        ) # single-dimensional index
+        pass
+    # Ranks of analytes in sort sequence.
+    table["rank"] = range(1, len(table) + 1)
+
+    # Specify sequence of columns within table.
+    columns_sequence = [
+        name_index_rows,
+        "rank",
+        "difference_bridge_batch_percent",
+        "difference_bridge_batch_relative",
+        "difference_bridge_batch",
+        "mean_bridges_all",
+        "mean_bridges_batch_1",
+        "mean_bridges_batch_2",
+    ]
+    # Filter and sort sequence of columns within table.
+    if (filter_sort_columns):
+        table = porg.filter_sort_table_columns(
+            table=table,
+            columns_sequence=columns_sequence,
+            report=report,
+        )
+        pass
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        name_package = str("partner")
+        print("package: " + name_package)
+        name_module = str("scale.py")
+        print("module: " + name_module)
+        name_function = str(
+            "calculate_difference_signals_between_batches_by_bridge()"
+        )
+        print("function: " + name_function)
+        putly.print_terminal_partition(level=5)
+        print(table)
+        putly.print_terminal_partition(level=5)
+        pass
+    # Return information.
+    return table
+
+
+##########
+# Scale alignment between samples by the DESeq method of median-ratio scaling
 
 
 def calculate_ratios_to_geometric_mean_across_feature_observations(
@@ -1192,8 +1768,9 @@ def scale_feature_values_between_observations_by_deseq(
     efficiency. While matrix transformations would be more efficient, they
     would also be more difficult to follow and critique.
 
-    Review: 29 April 2025
-    Review: 13 September 2024
+    Date, revision or review: 3 February 2026
+    Date, revision or review: 29 April 2025
+    Date, revision or review: 13 September 2024
 
     arguments:
         table (object): Pandas data-frame table of values for observations
@@ -1250,7 +1827,21 @@ def scale_feature_values_between_observations_by_deseq(
             columns=names_columns,
     ))
 
-    # Calculate median value of feature ratios for each observation.
+    # Note: TCW; 3 February 2026
+    # The median is independent of the distribution of values. It does not
+    # require normality.
+
+    # In each observation, a few features will vary greater than the geometric
+    # mean, while a few features will vary less than the geometric mean. An
+    # assumption is that most features will not vary much from the true
+    # mean, and any variation in these features will correspond to technical
+    # artifacts. The next goal is to identify the feature in each observation
+    # that varies the least: median ratio, neither greater nor less than the
+    # geometric mean. This most stable feature will represent a sort of
+    # internal reference standard for that observation.
+
+    # Calculate median value of ratios for each observation across all
+    # features.
     # These median ratios will be the scaling factor for each observation of
     # all features.
     median_ratios = table_scale[names_columns_ratio].aggregate(
@@ -1345,297 +1936,6 @@ def scale_feature_values_between_observations_by_deseq(
         print(table_scale_clean)
     # Return information.
     return table_scale_clean
-
-
-# obsolete?
-# I think the filter function is too complex and could be more reasonable
-# with a simpler implementation based on coefficient of variance.
-def filter_table_features_least_change_across_observations(
-    table=None,
-    name_columns=None,
-    name_rows=None,
-    count_quantile=None,
-    report=None,
-):
-    """
-    Filters rows in table to select features that demonstrate least change
-    across observations on the basis of the middle quantile.
-
-    This function is a handy companion to the function below.
-    partner.scale.scale_feature_values_between_observations_by_deseq()
-
-    Tables' format and orientation
-
-    Table has values for each feature oriented across rows with their
-    observations oriented across columns. All values are on a continous ratio
-    scale of measurement and have the same type, such as corresponding to
-    intensities from a particular type of measurement.
-
-    The table must have a single-level index (potentially with name
-    "observations") across columns and a single-level index (potentially with
-    name "features") across rows.
-
-    observations   observation_1 observation_2 observation_3 observation_4
-    features
-    feature_1      ...           ...           ...           ...
-    feature_2      ...           ...           ...           ...
-    feature_3      ...           ...           ...           ...
-    feature_4      ...           ...           ...           ...
-    feature_5      ...           ...           ...           ...
-    feature_6      ...           ...           ...           ...
-    feature_7      ...           ...           ...           ...
-    feature_8      ...           ...           ...           ...
-    feature_9      ...           ...           ...           ...
-    feature_10     ...           ...           ...           ...
-
-    This function does not modify the names of indices across columns or rows
-    from the original table.
-
-    In its implementation, this function attempts to prioritize clarity over
-    efficiency. While matrix transformations would be more efficient, they
-    would also be more difficult to follow and critique.
-
-    Review: 16 September 2024
-
-    arguments:
-        table (object): Pandas data-frame table of values for observations
-            across columns and for features across rows
-        name_columns (str): name of single-level index across columns
-        name_rows (str): name of single-level index across rows
-        count_quantile (int): odd count of quantiles, such as three for
-            tertiles
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (object): Pandas data-frame table of values for observations across
-            columns and for features across rows
-
-    """
-
-    # Copy information in table.
-    table = table.copy(deep=True)
-    # Copy names of columns in original table.
-    columns = copy.deepcopy(
-        table.columns.get_level_values(name_columns).to_list()
-    )
-    # Determine names of derivative columns.
-    columns_ratio = list(map(
-        lambda name: str(name + "_ratio"),
-        columns,
-    ))
-    columns_ratio_log = list(map(
-        lambda name: str(name + "_ratio_log"),
-        columns,
-    ))
-    # Calculate geometric mean of values for each feature across all
-    # observations.
-    # Calculate ratio of each observation for each feature to that feature's
-    # geometric mean value across all observations.
-    table_ratio = (
-        calculate_ratios_to_geometric_mean_across_feature_observations(
-            table=table,
-            columns=columns,
-    ))
-
-    # Calculate the logarithm of ratios.
-    for column in columns:
-        # math.log() # optimal for scalar values
-        # numpy.log() # optimal for array values
-        table_ratio[str(column + "_ratio_log")] = numpy.log(
-            table_ratio[str(column + "_ratio")].to_numpy(
-                dtype="float64",
-                na_value=numpy.nan,
-                copy=True,
-        ))
-        pass
-    # Copy information in table.
-    table_ratio = table_ratio.copy(deep=True)
-
-    # Calculate mean of ratio values for each feature across all observations.
-    # While the geometric mean is more precise for values on a ratio scale,
-    # there was an error when attempting to calculate quantiles with the
-    # geometric mean.
-    # Another option is to calculate the mean of the ratio values on a
-    # logarithmic scale.
-    table_ratio["mean_ratio"] = table_ratio.apply(
-        lambda row:
-            numpy.nanmedian(
-                row[columns_ratio_log].to_numpy(
-                    dtype="float64",
-                    na_value=numpy.nan,
-                    copy=True,
-                )
-            ),
-        axis="columns", # apply function to each row
-    )
-    # Determine indices for quantiles.
-    indices = list(range(0, count_quantile, 1))
-    index_middle = indices[int(len(indices) // 2)]
-    # Determine ordinal sets of features.
-    table_ratio["quantile_mean_ratio"] = pandas.qcut(
-        table_ratio["mean_ratio"],
-        q=count_quantile,
-        labels=indices,
-    )
-    # Filter table to rows of features in the middle quantile.
-    table_middle = table_ratio.loc[
-        (table_ratio["quantile_mean_ratio"] == index_middle), :
-    ]
-    # Determine counts and percentages.
-    count_rows_source = table.shape[0]
-    count_rows_product = table_middle.shape[0]
-    percentage = str(round(
-        float(100 * (count_rows_product / count_rows_source)), 2
-    ))
-    # Report.
-    if report:
-        putly.print_terminal_partition(level=2)
-        print("report:")
-        print("partner")
-        print("scale")
-        print(
-            "filter_table_features_least_change_across_observations()"
-        )
-        putly.print_terminal_partition(level=4)
-        print("count of quantiles: " + str(count_quantile))
-        print("quantile indices:")
-        print(indices)
-        print("middle index: " + str(index_middle))
-        putly.print_terminal_partition(level=4)
-        print(
-            "count of rows in original, source table: " +
-            str(count_rows_source)
-        )
-        print(
-            "count of rows in novel, product table: " +
-            str(count_rows_product) + " (" + percentage + " %)"
-        )
-        print("table of middle features that demonstrate least change")
-        print(table_middle)
-    # Return information.
-    return table_middle
-
-
-# TODO: TCW; 17 September 2024
-# I think the filter function is too complex and could be more reasonable
-# with a simpler implementation based on coefficient of variance.
-# Instead of the filter based on ratio to geometric mean, use
-# partner.organization.filter_table_rows_by_quantile_least_change_across_columns()
-def describe_variance_across_features_with_least_change(
-    table=None,
-    name_columns=None,
-    name_rows=None,
-    count_quantile=None,
-    report=None,
-):
-    """
-    Describes the variance of values across features with the least change as
-    calculated from the ratio of value for each individual observation relative
-    to the geometric mean of values across all observations.
-
-    This function is a handy companion to the function below.
-    partner.scale.scale_feature_values_between_observations_by_deseq()
-
-    Tables' format and orientation
-
-    Table has values for each feature oriented across rows with their
-    observations oriented across columns. All values are on a continous ratio
-    scale of measurement and have the same type, such as corresponding to
-    intensities from a particular type of measurement.
-
-    The table must have a single-level index (potentially with name
-    "observations") across columns and a single-level index (potentially with
-    name "features") across rows.
-
-    observations   observation_1 observation_2 observation_3 observation_4
-    features
-    feature_1      ...           ...           ...           ...
-    feature_2      ...           ...           ...           ...
-    feature_3      ...           ...           ...           ...
-    feature_4      ...           ...           ...           ...
-    feature_5      ...           ...           ...           ...
-    feature_6      ...           ...           ...           ...
-    feature_7      ...           ...           ...           ...
-    feature_8      ...           ...           ...           ...
-    feature_9      ...           ...           ...           ...
-    feature_10     ...           ...           ...           ...
-
-    This function does not modify the names of indices across columns or rows
-    from the original table.
-
-    In its implementation, this function attempts to prioritize clarity over
-    efficiency. While matrix transformations would be more efficient, they
-    would also be more difficult to follow and critique.
-
-    Review: 2 July 2024
-
-    arguments:
-        table (object): Pandas data-frame table of values for observations
-            across columns and for features across rows
-        name_columns (str): name of single-level index across columns
-        name_rows (str): name of single-level index across rows
-        count_quantile (int): odd count of quantiles, such as three for
-            tertiles
-        report (bool): whether to print reports
-
-    raises:
-
-    returns:
-        (dict<object>): collection of information
-
-    """
-
-    # Copy information in table.
-    table = table.copy(deep=True)
-    # Calculate geometric mean of values for each feature across all
-    # observations.
-    # Calculate ratio of each observation for each feature to that feature's
-    # geometric mean value across all observations.
-    # Calculate mean of ratio values across all observations for each feature.
-    # Filter rows in table to select features that demonstrate least change
-    # across observations on the basis of the middle quantile.
-    table_middle = (
-        filter_table_features_least_change_across_observations(
-            table=table,
-            name_columns=name_columns,
-            name_rows=name_rows,
-            count_quantile=count_quantile,
-            report=report,
-    ))
-    # Describe the distribution of values for these sets of middle features
-    # that change the least.
-    values_middle = table_middle["ratio_mean_geometric"].to_numpy(
-        dtype="float64",
-        na_value=numpy.nan,
-        copy=True,
-    )
-    mean_middle = float(numpy.nanmean(values_middle))
-    error_middle = float(scipy.stats.sem(values_middle))
-    #mean_middle = round(float(numpy.nanmean(values_middle)), 7)
-    #error_middle = round(float(scipy.stats.sem(values_middle)), 7)
-    # Report.
-    if report:
-        putly.print_terminal_partition(level=2)
-        print("Report:")
-        print("partner")
-        print("scale")
-        print(
-            "describe_variance_across_features_with_least_change()"
-        )
-        putly.print_terminal_partition(level=4)
-        print("Variance in the changeability across features with the least")
-        print("change across observations")
-        print("Mean across middle features: " + str(mean_middle))
-        print("Error across middle features: " + str(error_middle))
-    # Collect information.
-    pail = dict()
-    pail["mean"] = mean_middle
-    pail["error"] = error_middle
-    # Return information.
-    return pail
-
 
 
 ##########

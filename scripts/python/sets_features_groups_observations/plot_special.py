@@ -91,7 +91,7 @@ import partner.plot as pplot
 # Colors.
 
 
-def create_divergent_color_map(
+def create_color_map_divergent(
     value_minimum=None,
     value_center=None,
     value_maximum=None,
@@ -142,6 +142,54 @@ https://matplotlib.org/stable/users/explain/colors/colormap-manipulation.html
     # Return object.
     return pail
 
+
+def create_color_map_sequential(
+    value_minimum=None,
+    value_maximum=None,
+    color_minimum=None,
+    color_maximum=None,
+):
+    """
+    Create a custom divergent color map.
+
+    References:
+    1. https://matplotlib.org/stable/users/explain/colors/
+       colormap-manipulation.html
+
+https://matplotlib.org/stable/users/explain/colors/colormap-manipulation.html
+
+    Review or revision: TCW; 13 November 2025
+
+    arguments:
+        ...
+    raises:
+
+    returns:
+        (object): MatPlotLib color map
+
+    """
+
+    # Organize anchors and colors for color map.
+    anchors = [0.0, 1.0,]
+    colors = [color_minimum, color_maximum,]
+    # Create color map.
+    map = matplotlib.colors.LinearSegmentedColormap.from_list(
+        "map_tcw_custom",
+        list(zip(anchors, colors,)),
+        N=256,
+        gamma=1.0,
+    )
+    # Create normalization scale to fit the values to the color map.
+    scale = matplotlib.colors.Normalize(
+        vmin=value_minimum,
+        vmax=value_maximum,
+    )
+    # Bundle information.
+    pail = dict()
+    pail["map"] = map
+    pail["scale"] = scale
+    # Return object.
+    return pail
 
 
 
@@ -757,7 +805,7 @@ def plot_heatmap_signal_features_observations_labels(
     #    # Extent: (left, right, bottom, top)
     #    #extent=(-0.5, (matrix.shape[1] - 0.5), (matrix.shape[0] - 0.5), -0.5),
     #)
-    pail_color_map = create_divergent_color_map(
+    pail_color_map = create_color_map_divergent(
         value_minimum=pail["value_minimum"],
         value_center=pail["value_center"],
         value_maximum=pail["value_maximum"],
@@ -774,6 +822,393 @@ def plot_heatmap_signal_features_observations_labels(
         # Extent: (left, right, bottom, top)
         #extent=(-0.5, (matrix.shape[1] - 0.5), (matrix.shape[0] - 0.5), -0.5),
     )
+    # Set titles for axes.
+    if (len(title_ordinate) > 0):
+        axes_main.set_ylabel(
+            ylabel=title_ordinate,
+            labelpad=30,
+            alpha=1.0,
+            backgroundcolor=colors["white"],
+            color=colors["black"],
+            fontproperties=fonts["properties"][size_title_ordinate]
+        )
+        pass
+    if (len(title_abscissa) > 0):
+        axes_main.set_xlabel(
+            xlabel=title_abscissa,
+            labelpad=30,
+            alpha=1.0,
+            backgroundcolor=colors["white"],
+            color=colors["black"],
+            fontproperties=fonts["properties"][size_title_abscissa]
+        )
+        pass
+    # Set tick parameters for axes.
+    axes_main.tick_params(
+        axis="both", # "y", "x", or "both"
+        which="both", # "major", "minor", or "both"
+        length=2.5, # 5.0
+        width=1.5, # 3.5
+        pad=5, # 7.5
+        direction="out",
+        color=colors["black"],
+        labelcolor=colors["black"],
+        top=False,
+        bottom=False,
+        left=False,
+        right=False,
+        labeltop=False,
+        labelbottom=False,
+        labelleft=False,
+        labelright=False,
+    )
+    # Manage labels for categories along the axes.
+    # Determine feasibility and appropriate font size for representing labels
+    # of individual categorical features or observations along the axes.
+    count_labels_ordinate = len(pail["labels_ordinate_categories"])
+    count_labels_abscissa = len(pail["labels_abscissa_categories"])
+    if (size_label_ordinate is None):
+        size_label_ordinate = determine_size_axis_labels_categories(
+            count_labels=count_labels_ordinate,
+        )
+        pass
+    if (size_label_abscissa is None):
+        size_label_abscissa = determine_size_axis_labels_categories(
+            count_labels=count_labels_abscissa,
+        )
+        pass
+    # Determine whether to show labels for features or categories along the
+    # vertical ordinate axis.
+    if (
+        (show_labels_ordinate) and
+        (size_label_ordinate is not None) and
+        (pail["labels_ordinate_categories"] is not None) and
+        (count_labels_ordinate > 1)
+    ):
+        # Set tick positions and labels on vertical ordinate axis.
+        axes_main.set_yticks(
+            numpy.arange(pail["matrix_signal"].shape[0]),
+        )
+        axes_main.set_yticklabels(
+            pail["labels_ordinate_categories"],
+            #minor=False,
+            ha="right", # horizontal alignment
+            va="center", # vertical alignment
+            alpha=1.0,
+            rotation=0.0,
+            rotation_mode="anchor",
+            backgroundcolor=colors["white"],
+            color=colors["black"],
+            fontproperties=fonts["properties"][size_label_ordinate]
+        )
+        # Set tick parameters for vertical ordinate axis.
+        axes_main.tick_params(
+            axis="y", # "y", "x", or "both"
+            which="both", # "major", "minor", or "both"
+            length=2.5, # 5.0
+            width=1.5, # 3.5
+            pad=5, # 7.5
+            direction="out",
+            color=colors["black"],
+            labelcolor=colors["black"],
+            left=True,
+            right=False,
+            labelleft=True,
+            labelright=False,
+        )
+        pass
+    # Determine whether to show labels for features or categories along the
+    # horizontal abscissa axis.
+    if (
+        (show_labels_abscissa) and
+        (size_label_abscissa is not None) and
+        (pail["labels_abscissa_categories"] is not None) and
+        (count_labels_abscissa > 1)
+    ):
+        # Set tick positions and labels on horizontal abscissa axis.
+        axes_main.set_xticks(
+            numpy.arange(pail["matrix_signal"].shape[1]),
+        )
+        axes_main.set_xticklabels(
+            pail["labels_abscissa_categories"],
+            #minor=False,
+            ha="left", # horizontal alignment
+            va="top", # vertical alignment
+            alpha=1.0,
+            rotation=-60,
+            rotation_mode="anchor",
+            backgroundcolor=colors["white"],
+            color=colors["black"],
+            fontproperties=fonts["properties"][size_label_abscissa]
+        )
+        # Set tick parameters for horizontal abscissa axis.
+        axes_main.tick_params(
+            axis="x", # "y", "x", or "both"
+            which="both", # "major", "minor", or "both"
+            length=2.5, # 5.0
+            width=1.5, # 3.5
+            pad=7, # 7.5 - 17.5
+            direction="out",
+            color=colors["black"],
+            labelcolor=colors["black"],
+            top=False,
+            bottom=True,
+            labeltop=False,
+            labelbottom=True,
+        )
+        pass
+
+    # Create legend for scale of color grid.
+    if show_scale_bar:
+        bar = axes_main.figure.colorbar(
+            image_main,
+            orientation="vertical",
+            ax=axes_main,
+            location="right",
+            shrink=0.5, # 0.7; factor for dimensions of the Scale Bar.
+        )
+        if (len(title_bar) > 0):
+            bar.ax.set_ylabel(
+                title_bar,
+                rotation=-90,
+                va="bottom",
+                labelpad=5, # 5
+                alpha=1.0,
+                backgroundcolor=colors["white"],
+                color=colors["black"],
+                fontproperties=fonts["properties"][size_title_bar],
+            )
+        bar.ax.tick_params(
+            axis="both",
+            which="both", # major, minor, or both
+            direction="out",
+            length=5, # 5.0, 7.5
+            width=2.5, # 2.5, 5.0
+            color=colors["black"],
+            pad=5, # 5, 7
+            labelsize=fonts["values"][size_label_bar]["size"],
+            labelcolor=colors["black"],
+        )
+
+    # Return figure.
+    return figure
+
+
+# Note: TCW; 7 January 2026
+# Function "plot_heatmap_features_observations_labels_scale_sequential()" is a
+# copy of "plot_heatmap_signal_features_observations_labels()", except for its
+# use of a linear scale color map. Rather than support the redundancy, pass the
+# appropriate color map to the function for plotting the heatmap.
+def plot_heatmap_features_observations_labels_scale_sequential(
+    table=None,
+    format_table=None,
+    index_columns=None,
+    index_rows=None,
+    transpose_table=None,
+    fill_missing=None,
+    value_missing_fill=None,
+    constrain_signal_values=None,
+    value_minimum=None,
+    value_maximum=None,
+    title_ordinate=None,
+    title_abscissa=None,
+    title_bar=None,
+    labels_ordinate_categories=None,
+    labels_abscissa_categories=None,
+    size_title_ordinate=None,
+    size_title_abscissa=None,
+    size_title_bar=None,
+    size_label_ordinate=None,
+    size_label_abscissa=None,
+    size_label_bar=None,
+    show_labels_ordinate=None,
+    show_labels_abscissa=None,
+    show_scale_bar=None,
+    aspect=None,
+    fonts=None,
+    colors=None,
+    report=None,
+):
+    """
+    Heatmap.
+
+    features of this chart design...
+    labels of categorical groups on both axes: True
+    labels of significance on individual cells: False
+    clustering: False
+
+    Format of source table
+
+    Format of source table is in wide format with floating-point values of
+    signal intensities or a single, specific type of descriptive statistics
+    (usually either mean or median) corresponding to features across rows and
+    observations or groups of observations across columns.
+    ----------
+    observation_or_group group_1 group_2 group_3 group_4
+    feature
+    feature_1            0.01    0.001   0.001   0.015
+    feature_2            0.01    0.001   0.001   0.015
+    feature_3            -0.01   0.001   0.001   0.015
+    feature_4            -0.01   0.001   0.001   0.015
+    feature_5            -0.01   0.001   0.001   0.015
+    ----------
+
+    For versatility, the source table does not have explicitly defined indices
+    across columns or rows.
+
+    This function preserves the original sequence of features. This function
+    also preserves the original sequence of groups and observations within
+    groups.
+
+    MatPlotLib color maps.
+    https://matplotlib.org/stable/tutorials/colors/colormaps.html
+
+
+    Review or revision: 13 November 2025
+    Review or revision: 30 December 2024
+
+    arguments:
+        table (object): Pandas data-frame table of values of signal intensity
+            for features in rows across sample observations or groups of
+            sample observations in columns
+        format_table (int): value 1 for features across rows and observations
+            or groups of observations across columns, value 2 for features
+            across columns and observations across rows with potential special
+            column for groups of observations
+        index_columns (str): name to define an index corresponding to
+            information across columns in source table
+        index_rows (str): name of a column in source table which defines an
+            index corresponding to information across rows
+        transpose_table (bool): whether to transpose matrix from table
+        fill_missing (bool): whether to fill any missing values in every
+            element of matrix
+        value_missing_fill (float): value with which to fill any missing values
+        constrain_signal_values (bool): whether to constrain all values in
+            matrix
+        value_minimum (float): minimal value for threshold constraint on
+            signals and for anchor on scale of projection to visual
+            representation in color
+        value_maximum (float): maximal value for threshold constraint on
+            signals and for anchor on scale of projection to visual
+            representation in color
+        title_ordinate (str): title for ordinate vertical axis
+        title_abscissa (str): title for abscissa horizontal axis
+        title_bar (str): title for scale bar
+        labels_ordinate_categories (list<str>): optional, explicit labels for
+            ordinate or vertical axis
+        labels_abscissa_categories (list<str>): optional, explicit labels for
+            abscissa or horizontal axis
+        size_title_ordinate (str): font size
+        size_title_abscissa (str): font size
+        size_title_bar (str): font size
+        size_label_ordinate (str): font size
+        size_label_abscissa (str): font size
+        size_label_bar (str): font size
+        show_labels_ordinate (bool): whether to show on vertical ordinate axis
+            of plot chart explicit text labels for individual categories
+        show_labels_abscissa (bool): whether to show on horizontal abscissa
+            axis of plot chart explicit text labels for individual categories
+        show_scale_bar (bool): whether to create scale bar
+        aspect (str): aspect ratio for MatPlotLib chart figure
+        fonts (dict<object>): references to definitions of font properties
+        colors (dict<tuple>): references to definitions of color properties
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (object): MatPlotLib figure object
+
+    """
+
+    ##########
+    # Prepare information for figure.
+    pail = extract_prepare_table_signals_categories_for_heatmap(
+        table=table,
+        format_table=format_table, # 1: features in rows, observations in columns
+        index_columns=index_columns,
+        index_rows=index_rows,
+        column_group=None,
+        transpose_table=transpose_table,
+        fill_missing=fill_missing,
+        value_missing_fill=value_missing_fill,
+        constrain_signal_values=constrain_signal_values,
+        value_minimum=value_minimum,
+        value_center=None,
+        value_maximum=value_maximum,
+        labels_ordinate_categories=labels_ordinate_categories,
+        labels_abscissa_categories=labels_abscissa_categories,
+        report=report,
+    )
+
+    ##########
+    # Create figure.
+    figure = pplot.initialize_matplotlib_figure_aspect(
+        aspect=aspect,
+    )
+    # Create axes.
+    #axes_main = matplotlib.pyplot.axes()
+    axes_main = figure.add_subplot(111)
+    # Keep axes, ticks, and labels, but remove border.
+    for position in ['right', 'top', 'bottom', 'left']:
+        matplotlib.pyplot.gca().spines[position].set_visible(False)
+    # Adjust margins.
+    figure.subplots_adjust(
+        left=0.02,
+        right=0.99,
+        top=0.98,
+        bottom=0.15,
+    )
+
+    # Plot values as a grid of color on continuous scale.
+    # This function represents values acros matrix dimension 0 as vertical
+    # rows.
+    # This function represents values across matrix dimension 1 as horizontal
+    # columns.
+    # Diverging color maps: "PRGn", "PRGn_r", "PiYG", "PiYG_r",
+    # Diverging color maps: "PuOr", "PuOr_r",
+    # Diverging color maps: "PuOr", "PuOr_r", "RdBu", "RdBu_r", "BrBG",
+    # Sequential color maps: "Reds", "Reds_r", "Oranges", "Oranges_r",
+    # site: https://montoliu.naukas.com/2021/11/18/color-blindness-purple-and-
+    #     orange-are-the-solution/
+    #image_main = axes_main.imshow(
+    #    pail["matrix_signal"],
+    #    cmap=matplotlib.colormaps["PuOr"], # binary, Reds, RdBu_r, PuOr, PuOr_r
+    #    vmin=pail["value_minimum"],
+    #    vmax=pail["value_maximum"],
+    #    aspect="auto", # "auto", "equal",
+    #    origin="lower",
+    #    # Extent: (left, right, bottom, top)
+    #    #extent=(-0.5, (matrix.shape[1] - 0.5), (matrix.shape[0] - 0.5), -0.5),
+    #)
+    if True:
+        pail_color_map = create_color_map_sequential(
+            value_minimum=pail["value_minimum"],
+            value_maximum=pail["value_maximum"],
+            color_minimum=(1.0,1.0,1.0,1.0,), # "white"
+            color_maximum=(0.0,0.0,0.0,1.0,), # "black";(red: 0; green: 0; blue: 0) # TCW; 7 January 2026
+        )
+        image_main = axes_main.imshow(
+            pail["matrix_signal"],
+            cmap=pail_color_map["map"],
+            norm=pail_color_map["scale"],
+            aspect="auto", # "auto", "equal",
+            origin="lower",
+            # Extent: (left, right, bottom, top)
+            #extent=(-0.5, (matrix.shape[1] - 0.5), (matrix.shape[0] - 0.5), -0.5),
+        )
+    else:
+        image_main = axes_main.imshow(
+            pail["matrix_signal"],
+            cmap="binary",
+            norm="linear",
+            aspect="auto", # "auto", "equal",
+            origin="lower",
+            # Extent: (left, right, bottom, top)
+            #extent=(-0.5, (matrix.shape[1] - 0.5), (matrix.shape[0] - 0.5), -0.5),
+        )
+        pass
+
     # Set titles for axes.
     if (len(title_ordinate) > 0):
         axes_main.set_ylabel(
@@ -3292,7 +3727,7 @@ def plot_scatter_point_color_response_discrete_or_continuous(
         ) for i in range(count_categories_response)]
         axes.legend(
             handles=handles_legend,
-            loc="upper right", # "upper right", "upper center", "lower right"
+            loc="upper left", # "center right", "upper right", "upper center", "lower right"
             #bbox_to_anchor=(0.5, -0.05),
             #ncol=4,
             prop=fonts["properties"][size_label_legend_bar],
@@ -3438,18 +3873,18 @@ def create_write_plot_chart_scatter_point_response(
         title_ordinate=title_ordinate,
         identifiers_emphasis=identifiers_emphasis,
         size_title_chart="nine",
-        size_title_abscissa="nine",
-        size_title_ordinate="nine",
-        size_title_legend_bar="thirteen",
-        size_label_abscissa="thirteen",
-        size_label_ordinate="thirteen",
+        size_title_abscissa="seven",
+        size_title_ordinate="seven",
+        size_title_legend_bar="eleven",
+        size_label_abscissa="ten",
+        size_label_ordinate="ten",
         size_label_emphasis="sixteen",
-        size_label_legend_bar="thirteen",
+        size_label_legend_bar="nine",
         size_marker=size_marker,
         size_edge_marker=size_edge_marker,
         size_edge_ellipse=size_edge_ellipse,
         factor_confidence_ellipse=factor_confidence_ellipse, # 2.0 * standard deviation (95% of normal distribution)
-        aspect="landscape",
+        aspect="square",
         fonts=fonts,
         colors_fill_markers=colors_fill_markers,
         colors_fill_ellipses=colors_fill_ellipses,

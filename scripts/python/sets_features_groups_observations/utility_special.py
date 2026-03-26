@@ -81,6 +81,82 @@ import partner.description as pdesc
 # Functionality
 
 
+def organize_filter_table_parameters(
+    table=None,
+    name_batch=None,
+    categories_batch=None,
+    filter_parameters=None,
+    report=None,
+):
+    """
+    Organize and filter information in a table of parameters.
+
+    Review or revision: TCW; 31 December 2025
+
+    arguments:
+        table (object): Pandas data-frame table of parameters
+        name_batch (str): name for a set or group of categories that designate
+            instances of parameters in a batch for execution
+        categories_batch (list<str>): names of categories that designate sets
+            or groups of instances of parameters in a batch for execution
+        filter_parameters (bool): whether to filter information about
+            parameters
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict): collection of source information about parameters
+
+    """
+
+    # Copy information.
+    table = table.copy(deep=True)
+
+    # Organize information.
+    table["execution"] = pandas.to_numeric(
+        table["execution"],
+        downcast="integer",
+        errors="coerce",
+    )
+    table["sequence"] = pandas.to_numeric(
+        table["sequence"],
+        downcast="integer",
+        errors="coerce",
+    )
+
+    # Filter rows in table by names of categories.
+    if filter_parameters:
+        table = table.loc[(
+            (table["execution"] == 1) &
+            (table["category"].isin(categories_batch))
+        ), :].copy(deep=True)
+        pass
+
+    # Bundle information.
+    pail = dict()
+    pail["table"] = table
+
+    # Report.
+    if report:
+        # Organize information.
+        # Print information.
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        print("module: drive_correlations_from_table_parameters.py")
+        print("function: organize_filter_table_parameters()")
+        putly.print_terminal_partition(level=5)
+        print(str("name_batch: " + name_batch))
+        print("categories_batch:")
+        print(categories_batch)
+        putly.print_terminal_partition(level=5)
+        print("parameter table:")
+        print(table)
+        putly.print_terminal_partition(level=5)
+        pass
+    # Return information.
+    return pail
+
 
 # TODO: TCW; 16 December 2025
 #    Eventually, phase out the use of "table_signals" in all modules with the
@@ -399,6 +475,126 @@ def read_organize_parameters_sets_features(
     return pail
 
 
+def organize_parameters_table_features_translations(
+    table_features=None,
+    column_identifier_feature=None,
+    column_name_feature=None,
+    features_selection=None,
+    prefix_name_feature=None,
+    report=None,
+):
+    """
+    Organize parameters and information about features.
+
+    Date, review or revision: 22 January 2026
+
+    arguments:
+        table_features (object): Pandas data-frame table
+        column_identifier_feature (str): name of column in source table
+        column_name_feature (str): name of column in source table
+        features_selection (list<str>): identifiers of features for which to
+            include signals across observations
+        prefix_name_feature (str): prefix for names of features
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict<object>): bundle of information
+
+    """
+
+    # Copy information.
+    if (table_features is not None):
+        table_features = table_features.copy(deep=True)
+        pass
+    features_selection = copy.deepcopy(features_selection)
+    features_selection_translation = copy.deepcopy(features_selection)
+
+    # Determine whether information is available for translation of the
+    # names of features.
+    if (
+        (table_features is not None)
+    ):
+        # Filter rows in table for selection of features.
+        if (len(features_selection) > 0):
+            table_features_selection = table_features.loc[
+                table_features[column_identifier_feature].isin(
+                    features_selection
+                ), :
+            ].copy(deep=True)
+        else:
+            table_features_selection = table_features.copy(deep=True)
+            pass
+        # Filter rows in table for nonmissing information about features.
+        table_alias = table_features_selection
+        table_alias = table_alias.loc[
+            (
+                (table_alias[column_identifier_feature].str.len() > 0) &
+                (table_alias[column_name_feature].str.len() > 0)
+            ), :
+        ].copy(deep=True)
+        # Append prefix to names of features for translation.
+        if (
+            (prefix_name_feature is not None) and
+            (len(str(prefix_name_feature)) > 0)
+        ):
+            table_alias[column_name_feature] = table_alias.apply(
+                lambda row: str(
+                    prefix_name_feature + "_" +
+                    row[column_name_feature]
+                ),
+                axis="columns", # apply function to each row
+            )
+            pass
+        # Extract information for translation of names of columns.
+        table_translations = table_alias.filter(
+            items=[column_identifier_feature, column_name_feature,],
+            axis="columns",
+        )
+        series_translations = pandas.Series(
+            table_translations[column_name_feature].to_list(),
+            index=table_translations[column_identifier_feature],
+        )
+        translations_features = series_translations.to_dict()
+        # Translate selection of features.
+        features_selection_translation = list(map(
+            lambda feature: (
+                translations_features[feature]
+            ) if (feature in translations_features.keys()) else (feature),
+            copy.deepcopy(features_selection)
+        ))
+        features_selection_translation = putly.collect_unique_items(
+            items=features_selection_translation,
+        )
+    else:
+        table_alias = None
+        translations_features = dict()
+        features_selection_translation = copy.deepcopy(features_selection)
+        pass
+
+    # Bundle information.
+    pail = dict()
+    pail["table_features_selection"] = table_alias
+    pail["features_selection"] = features_selection
+    pail["features_selection_translation"] = features_selection_translation
+    pail["translations_features"] = translations_features
+
+    # Report.
+    if report:
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        module = str(
+            "utility_special.py"
+        )
+        print(str("module: " + module))
+        print("function: organize_parameters_table_features_translations()")
+        putly.print_terminal_partition(level=5)
+        pass
+    # Return information.
+    return pail
+
+
 def organize_parameters_further_sets_features(
     table_features=None,
     column_identifier_feature=None,
@@ -413,7 +609,7 @@ def organize_parameters_further_sets_features(
     """
     Organize parameters and information about features.
 
-    Review: TCW; 29 September 2025
+    Date, review or revision: 22 January 2026
 
     arguments:
         table_features (object): Pandas data-frame table
@@ -447,51 +643,28 @@ def organize_parameters_further_sets_features(
     sets_features = copy.deepcopy(sets_features)
     names_sets_features_sequence = copy.deepcopy(names_sets_features_sequence)
 
-    # Determine whether information is available for translation of the
-    # names of features.
-    if (
-        (table_features is not None)
-    ):
-        # Filter rows in table for selection of features.
-        if (len(features_selection) > 0):
-            table_features_selection = table_features.loc[
-                table_features[column_identifier_feature].isin(
-                    features_selection
-                ), :
-            ].copy(deep=True)
-        else:
-            table_features_selection = table_features
-            pass
-        table_alias = table_features_selection
-        table_features_selection = table_alias.loc[
-            (
-                (table_alias[column_identifier_feature].str.len() > 0) &
-                (table_alias[column_name_feature].str.len() > 0)
-            ), :
-        ].copy(deep=True)
-        # Extract information for translation of names of columns.
-        table_translations = table_features_selection.filter(
-            items=[column_identifier_feature, column_name_feature,],
-            axis="columns",
-        )
-        series_translations = pandas.Series(
-            table_translations[column_name_feature].to_list(),
-            index=table_translations[column_identifier_feature],
-        )
-        translations_features = series_translations.to_dict()
-    else:
-        table_features_selection = None
-        translations_features = dict()
-        pass
+    # Information about features and translations of their names.
+    pail_features = organize_parameters_table_features_translations(
+        table_features=table_features,
+        column_identifier_feature=column_identifier_feature,
+        column_name_feature=column_name_feature,
+        features_selection=features_selection,
+        prefix_name_feature=prefix_name_feature,
+        report=report,
+    )
+    #pail_features["table_features_selection"]
+    #pail_features["features_selection"]
+    #pail_features["features_selection_translation"]
+    #pail_features["translations_features"]
 
     # Bundle information.
     pail = dict()
-    pail["table_features_selection"] = table_features_selection
-    pail["features_selection"] = features_selection
-    #pail["features_selection_translation"] = features_selection_translation
-    #pail["features_selection_prefix"] = features_selection_prefix
+    pail["table_features_selection"] = pail_features["table_features_selection"]
+    pail["features_selection"] = pail_features["features_selection"]
+    pail["features_selection_translation"] = (
+        pail_features["features_selection_translation"]
+    )
     pail["translations_features"] = translations_features
-    #pail["translations_features_prefix"] = translations_features_prefix
     pail["names_sets_features_sequence"] = names_sets_features_sequence
     pail["sets_features"] = sets_features
 
@@ -814,6 +987,98 @@ def organize_parameters_further_groups_observations(
     # Return information.
     return pail
 
+
+def filter_table_columns_features_rows_observations(
+    table=None,
+    column_identifier_observation=None,
+    column_name_observation=None,
+    column_identifier_groups_observations=None,
+    columns_categories=None,
+    features_selection=None,
+    observations_selection=None,
+    filter_table_main=None,
+    report=None,
+):
+    """
+    Blank.
+
+    Date, review or revision: 22 January 2026
+    Date, review or revision: 16 December 2025
+    Date, eview or revision: 2 October 2025
+
+    arguments:
+
+    TODO: update documentation
+
+    raises:
+
+    returns:
+        (dict<object>): bundle of information
+    """
+
+    # Copy information.
+    table = table.copy(deep=True)
+    columns_categories = copy.deepcopy(columns_categories)
+    features_selection = copy.deepcopy(features_selection)
+    observations_selection = copy.deepcopy(observations_selection)
+
+    # Filter columns and rows in main table for specific features and
+    # observations.
+    # Notice that the function below already includes the name of the column
+    # for the index across rows.
+    if (filter_table_main):
+        # Copy information.
+        categories_features_selection = copy.deepcopy(columns_categories)
+        # Prepare inclusive list of columns.
+        categories_features_selection.insert(0, column_name_observation)
+        categories_features_selection.insert(0, column_identifier_observation)
+        categories_features_selection.insert(
+            0, column_identifier_groups_observations
+        )
+        categories_features_selection.extend(features_selection)
+        # Filter columns and rows in table.
+        table_selection = (
+            porg.filter_select_table_columns_rows_by_identifiers(
+                table=table,
+                index_rows=column_identifier_groups_observations,
+                identifiers_columns=categories_features_selection,
+                identifiers_rows=observations_selection,
+                report=False,
+        ))
+        # Filter rows in table for non-missing values across relevant columns.
+        table_selection.dropna(
+            axis="index",
+            how="all",
+            subset=features_selection,
+            inplace=True,
+        )
+    else:
+        # Copy information.
+        table_selection = table.copy(deep=True)
+        pass
+
+    # Report.
+    if report:
+        # Organize information.
+        # Print information.
+        putly.print_terminal_partition(level=3)
+        name_package = str("partner")
+        print("package: " + name_package)
+        name_module = str("utility_special.py")
+        print("module: " + name_module)
+        name_function = str(
+            "filter_table_columns_features_rows_observations()"
+        )
+        print("function: " + name_function)
+        putly.print_terminal_partition(level=5)
+        print("table before filtering columns and rows")
+        print(table)
+        print("table after filtering columns and rows")
+        print(table_selection)
+        putly.print_terminal_partition(level=5)
+        pass
+    # Return information.
+    return table_selection
 
 
 

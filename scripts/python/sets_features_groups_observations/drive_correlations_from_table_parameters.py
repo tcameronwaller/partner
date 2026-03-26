@@ -114,12 +114,10 @@ def parse_text_parameters(
 
     # Parse information.
 
-    # Paths to directories.
+    # Paths to directories and files.
     pail["path_directory_source"] = str(path_directory_source).strip()
     pail["path_directory_product"] = str(path_directory_product).strip()
     pail["path_directory_dock"] = str(path_directory_dock).strip()
-
-    # Paths to files.
     pail["path_file_source_table_parameters"] = str(
         path_file_source_table_parameters
     ).strip()
@@ -130,31 +128,41 @@ def parse_text_parameters(
     # It is also problematic to pass an empty string in parameters from a
     # script in Bash. Designate the word "none" as a substitute for missing or
     # empty.
-    # Iterate on individual names that could be empty or missing.
-    categories = {
+    # Iterate on individual parameters for names and categories.
+    names = {
         "name_batch": name_batch,
     }
-    for key_category in categories.keys():
+    for key_name in names.keys():
         # Determine whether parameter has a valid value that is not none.
         if (
-            (str(categories[key_category]).strip().lower() != "none")
+            (str(names[key_name]).strip().lower() != "none")
         ):
             # Parse value.
-            pail[key_category] = str(
-                categories[key_category]
+            pail[key_name] = str(
+                names[key_name]
             ).strip().replace("#", " ")
         else:
-            pail[key_category] = ""
+            pail[key_name] = ""
             pass
         pass
 
-    # Simple list of names and categories.
-    pail["categories_batch"] = putly.parse_text_list_values(
-        text=categories_batch,
-        delimiter=",",
-    )
+    # Lists.
+    # Iterate on individual parameters for names and categories.
+    lists = {
+        "categories_batch": categories_batch,
+    }
+    for key_list in lists.keys():
+        # Parse information.
+        pail[key_list] = putly.parse_text_list_values(
+            text=lists[key_list],
+            delimiter=",",
+        )
+        pail[key_list] = putly.collect_unique_items(
+            items=pail[key_list],
+        )
+        pass
 
-    # Boolean, true or false.
+    # Booleans, true or false.
     # Iterate on individual of Boolean designations.
     designations = {
         "report": report,
@@ -264,34 +272,32 @@ def define_column_types_table_parameters():
 
 
 def read_source_table_parameters(
-    name_batch=None,
-    categories_batch=None,
-    path_file_source_table_parameters=None,
+    path_directory_source=None,
+    path_directory_product=None,
     path_directory_dock=None,
-    filter_instances_parameters=None,
+    path_file_source_table_parameters=None,
     report=None,
 ):
     """
-    Read and organize source information about parameters for regressions.
+    Read source information.
 
     Notice that Pandas does not accommodate missing values within series of
     integer variable types.
 
-    Review: TCW; 3 December 2025
+    Review or revision: TCW; 31 December 2025
+    Review or revision: TCW; 3 December 2025
 
     arguments:
-        name_batch (str): name for a set or group of categories that designate
-            instances of parameters in a batch for execution
-        categories_batch (list<str>): names of categories that designate sets
-            or groups of instances of parameters in a batch for execution
+        path_directory_source (str): path to directory for procedure's source
+            directories and files
+        path_directory_product (str): path to directory for procedure's product
+            directories and files
+        path_directory_dock (str): path to dock directory for procedure's
+            source and product directories and files
         path_file_source_table_parameters (str): path to source file in text
             format as a table with tab delimiters between columns and newline
             delimiters between rows, with one row for each instance of
             parameters that define correlations
-        path_directory_dock (str): path to dock directory for procedure's
-            source and product directories and files
-        filter_instances_parameters (bool): whether to filter instances of
-            parameters
         report (bool): whether to print reports
 
     raises:
@@ -301,11 +307,14 @@ def read_source_table_parameters(
 
     """
 
+    # Bundle information.
+    pail = dict()
+
     # Read information from file.
 
     # Table of parameters for parallel instances.
     types_columns = define_column_types_table_parameters()
-    table = pandas.read_csv(
+    pail["table"] = pandas.read_csv(
         path_file_source_table_parameters,
         sep="\t",
         header=0,
@@ -316,25 +325,55 @@ def read_source_table_parameters(
         encoding="utf-8",
     )
 
-    # Organize information.
-    table["execution"] = pandas.to_numeric(
-        table["execution"],
-        downcast="integer",
-        errors="coerce",
-    )
-    table["sequence"] = pandas.to_numeric(
-        table["sequence"],
-        downcast="integer",
-        errors="coerce",
-    )
-
-    # Filter rows in table by names of categories.
-    if filter_instances_parameters:
-        table = table.loc[(
-            (table["execution"] == 1) &
-            (table["category"].isin(categories_batch))
-        ), :].copy(deep=True)
+    # Report.
+    if report:
+        # Organize information.
+        # Print information.
+        putly.print_terminal_partition(level=3)
+        print("package: partner")
+        print("module: drive_correlations_from_table_parameters.py")
+        print("function: read_source()")
+        putly.print_terminal_partition(level=5)
+        print("parameter table:")
+        print(pail["table"])
+        putly.print_terminal_partition(level=5)
         pass
+    # Return information.
+    return pail
+
+
+def extract_parameter_instances(
+    path_directory_dock=None,
+    table=None,
+    name_batch=None,
+    categories_batch=None,
+    report=None,
+):
+    """
+    Extract and organize instances of parameters from table.
+
+    Review or revision: TCW; 31 December 2025
+    Review or revision: TCW; 3 December 2025
+
+    arguments:
+        path_directory_dock (str): path to dock directory for procedure's
+            source and product directories and files
+        table (object): Pandas data-frame table of parameters
+        name_batch (str): name for a set or group of categories that designate
+            instances of parameters in a batch for execution
+        categories_batch (list<str>): names of categories that designate sets
+            or groups of instances of parameters in a batch for execution
+        report (bool): whether to print reports
+
+    raises:
+
+    returns:
+        (dict): collection of source information about parameters
+
+    """
+
+    # Copy information.
+    table = table.copy(deep=True)
 
     # Parse and extract information for distinct, individual instances of
     # parameters.
@@ -352,56 +391,15 @@ def read_source_table_parameters(
         record["abbreviation"] = str(row["abbreviation"]).strip()
         record["name_combination"] = "_".join([
             str(row["category"]).strip(),
-            str(row["sequence"]).strip(),
+            #str(row["sequence"]).strip(), # activate if necessary for unique names
             str(row["name"]).strip(),
         ])
 
-        # Paths to directories and files.
-        # Iterate on aliases.
-        aliases_temporary = [
-            str("table_features_observations"),
-            str("list_features_first"),
-            str("list_features_second"),
-            str("table_groups_observations"),
-        ]
-        for alias_temporary in aliases_temporary:
-            # Directories.
-            alias_temporary_directories = str(
-                "directories_source_" + alias_temporary
-            )
-            record[alias_temporary_directories] = (
-                putly.parse_text_list_values(
-                    text=str(row[alias_temporary_directories]).strip(),
-                    delimiter=",",
-            ))
-            # Files.
-            alias_temporary_file = str(
-                "name_file_source_" + alias_temporary
-            )
-            record[alias_temporary_file] = str(
-                row[alias_temporary_file]
-            ).strip()
-            # Paths to directories and files.
-            pail_path = putly.extract_organize_path_directory_file(
-                name_file=record[alias_temporary_file],
-                directories_path=record[alias_temporary_directories],
-                name_parent="dock",
-                path_directory_parent=path_directory_dock,
-                report=report,
-            )
-            record[str("path_file_source_" + alias_temporary)] = (
-                pail_path["path_file"]
-            )
-            pass
-
         # Names and categories.
-        # It is problematic to pass any white space in parameters from a script in
-        # Bash. Designate the hash symbol "#" as a substitute for white space.
-        # It is also problematic to pass an empty string in parameters from a
-        # script in Bash. Designate the word "none" as a substitute for missing or
-        # empty.
-        # Iterate on individual names that could be empty or missing.
-        keys_categories = [
+        # Designate the hash symbol "#" as a substitute for white space.
+        # Designate the word "none" as a substitute for missing or empty.
+        # Iterate on individual parameters for names and categories.
+        names = [
             "column_identifier_observation",
             "column_name_observation",
             "type_correlation",
@@ -413,17 +411,17 @@ def read_source_table_parameters(
             "date_review",
             "note",
         ]
-        for key_category in keys_categories:
+        for name in names:
             # Determine whether parameter has a valid value that is not none.
             if (
-                (str(row[key_category]).strip().lower() != "none")
+                (row[name] is not None) and
+                (len(str(row[name]).strip()) > 0) and
+                (str(row[name]).strip().lower() != "none")
             ):
                 # Parse value.
-                record[key_category] = str(
-                    row[key_category]
-                ).strip().replace("#", " ")
+                record[name] = str(row[name]).strip().replace("#", " ")
             else:
-                record[key_category] = ""
+                record[name] = ""
                 pass
             pass
 
@@ -502,6 +500,44 @@ def read_source_table_parameters(
                 pass
             pass
 
+        # Paths to directories and files.
+        # Iterate on aliases.
+        aliases_temporary = [
+            str("table_features_observations"),
+            str("list_features_first"),
+            str("list_features_second"),
+            str("table_groups_observations"),
+        ]
+        for alias_temporary in aliases_temporary:
+            # Directories.
+            alias_temporary_directories = str(
+                "directories_source_" + alias_temporary
+            )
+            record[alias_temporary_directories] = (
+                putly.parse_text_list_values(
+                    text=str(row[alias_temporary_directories]).strip(),
+                    delimiter=",",
+            ))
+            # Files.
+            alias_temporary_file = str(
+                "name_file_source_" + alias_temporary
+            )
+            record[alias_temporary_file] = str(
+                row[alias_temporary_file]
+            ).strip()
+            # Paths to directories and files.
+            pail_path = putly.extract_organize_path_directory_file(
+                name_file=record[alias_temporary_file],
+                directories_path=record[alias_temporary_directories],
+                name_parent="dock",
+                path_directory_parent=path_directory_dock,
+                report=report,
+            )
+            record[str("path_file_source_" + alias_temporary)] = (
+                pail_path["path_file"]
+            )
+            pass
+
         # Collect information and parameters for current row in table.
         records.append(record)
         pass
@@ -519,7 +555,7 @@ def read_source_table_parameters(
         putly.print_terminal_partition(level=3)
         print("package: partner")
         print("module: drive_correlations_from_table_parameters.py")
-        print("function: read_source_table_parameters()")
+        print("function: extract_parameter_instances()")
         putly.print_terminal_partition(level=5)
         print("parameter table:")
         print(table)
@@ -816,22 +852,42 @@ def execute_procedure(
     ##########
     # Read source information from file.
     pail_source = read_source_table_parameters(
-        name_batch=pail_parameters["name_batch"],
-        categories_batch=pail_parameters["categories_batch"],
+        path_directory_source=pail_parameters["path_directory_source"],
+        path_directory_product=pail_parameters["path_directory_product"],
+        path_directory_dock=pail_parameters["path_directory_dock"],
         path_file_source_table_parameters=(
             pail_parameters["path_file_source_table_parameters"]
         ),
-        path_directory_dock=pail_parameters["path_directory_dock"],
-        filter_instances_parameters=True,
         report=pail_parameters["report"],
     )
-    #for record in pail_source["records"]:
+
+    # Organize and filter table of parameters by categories in current batch.
+    pail_batch = sutly.organize_filter_table_parameters(
+        table=pail_source["table"],
+        name_batch=pail_parameters["name_batch"],
+        categories_batch=pail_parameters["categories_batch"],
+        filter_parameters=True,
+        report=pail_parameters["report"],
+    )
+
+    # Extract from table information about instances of parameters.
+    pail_extraction = extract_parameter_instances(
+        path_directory_dock=pail_parameters["path_directory_dock"],
+        table=pail_batch["table"],
+        name_batch=pail_parameters["name_batch"],
+        categories_batch=pail_parameters["categories_batch"],
+        report=pail_parameters["report"],
+    )
+    #for record in pail_extraction["records"]:
     #    print(record)
     #    pass
 
+
+
+
     ##########
     # Organize information.
-    count_instances = len(pail_source["records"])
+    count_instances = len(pail_extraction["records"])
     # Report.
     if report:
         putly.print_terminal_partition(level=3)
@@ -840,14 +896,17 @@ def execute_procedure(
         print("function: execute_procedure()")
         putly.print_terminal_partition(level=5)
         print("system: local")
-        print("path_file_source_table_parameters: " + str(
-            pail_parameters["path_file_source_table_parameters"]
+        print(str(
+            "path_file_source_table_parameters: " +
+            str(path_file_source_table_parameters)
         ))
-        print("path_directory_product: " + str(
-            pail_parameters["path_directory_product"]
+        print(str(
+            "path_directory_product: " +
+            str(pail_parameters["path_directory_product"])
         ))
-        print("path_directory_dock: " + str(
-            pail_parameters["path_directory_dock"]
+        print(str(
+            "path_directory_dock: " +
+            str(pail_parameters["path_directory_dock"])
         ))
         putly.print_terminal_partition(level=5)
         print("count of instances: " + str(count_instances))
@@ -859,7 +918,7 @@ def execute_procedure(
     control_parallel_instances(
         name_batch=pail_parameters["name_batch"],
         categories_batch=pail_parameters["categories_batch"],
-        instances=pail_source["records"],
+        instances=pail_extraction["records"],
         path_file_source_table_parameters=(
             pail_parameters["path_file_source_table_parameters"]
         ),
